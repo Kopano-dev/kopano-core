@@ -680,6 +680,14 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 	return hrSuccess;
 }
 
+vmime::mailbox MAPIToVMIME::make_mailbox(const std::wstring &name, const std::wstring &email)
+{
+	auto e2 = m_converter.convert_to<std::string>(email);
+	if (name.empty() || name == email)
+		return vmime::mailbox(std::move(e2));
+	return vmime::mailbox(getVmimeTextFromWide(name), std::move(e2));
+}
+
 /**
  * Build an MDN vmime message from a MAPI lpMessage.
  *
@@ -808,10 +816,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 
 		if (!strRepEmailAdd.empty()) {
 			vmMessage->getHeader()->Sender()->setValue(expeditor);
-			if (strRepName.empty() || strRepName == strRepEmailAdd)
-				vmMessage->getHeader()->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strRepEmailAdd)));
-			else
-				vmMessage->getHeader()->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strRepName), m_converter.convert_to<std::string>(strRepEmailAdd)));
+			vmMessage->getHeader()->From()->setValue(make_mailbox(strRepName, strRepEmailAdd));
 		}
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
@@ -1061,10 +1066,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmAdd);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to get sender information", hr);
-		if (!strName.empty())
-			lpVMMessageBuilder->setExpeditor(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmAdd)));
-		else
-			lpVMMessageBuilder->setExpeditor(vmime::mailbox(m_converter.convert_to<std::string>(strEmAdd)));
+		lpVMMessageBuilder->setExpeditor(make_mailbox(strName, strEmAdd));
 		// sender and reply-to is set elsewhere because it can only be done on a message object...
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
@@ -1599,41 +1601,24 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	// Set representing as from address, when possible
 	// Ignore PR_SENT_REPRESENTING if the email address is the same as the PR_SENDER email address
 	if (!strResEmail.empty() && strResEmail != strEmail) {
-		if (strResName.empty() || strResName == strResEmail)
-			vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strResEmail)));
-		else
-			vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strResName), m_converter.convert_to<std::string>(strResEmail)));
-
+		vmHeader->From()->setValue(make_mailbox(strResName, strResEmail));
 		// spooler checked if this is allowed
-		if (strResEmail != strEmail) {
-			// Set store owner as sender
-			if (strName.empty() || strName == strEmail)
-				vmHeader->Sender()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strEmail)));
-			else
-				vmHeader->Sender()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
-		}
-	} else if (strName.empty() || strName == strEmail) {
-		// Set store owner as from, sender does not need to be set
-		vmHeader->From()->setValue(vmime::mailbox(m_converter.convert_to<std::string>(strEmail)));
+		// Set store owner as sender
+		vmHeader->Sender()->setValue(make_mailbox(strName, strEmail));
 	} else {
-		vmHeader->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
+		// Set store owner as from, sender does not need to be set
+		vmHeader->From()->setValue(make_mailbox(strName, strEmail));
 	}
 
 	if (HrGetOneProp(lpMessage, PR_READ_RECEIPT_REQUESTED, &~lpReadReceipt) != hrSuccess || !lpReadReceipt->Value.b)
 		return hrSuccess;
 	// read receipt request
 	vmime::mailboxList mbl;
-	if (!strResEmail.empty() && strResEmail != strEmail) {
+	if (!strResEmail.empty() && strResEmail != strEmail)
 		// use user added from address
-		if (strResName.empty() || strName == strResEmail)
-			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strResEmail)));
-		else
-			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strResName), m_converter.convert_to<std::string>(strResEmail)));
-	} else if (strName.empty() || strName == strEmail) {
-		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail)));
-	} else {
-		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)));
-	}
+		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(make_mailbox(strResName, strResEmail)));
+	else
+		mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(make_mailbox(strName, strEmail)));
 	vmHeader->DispositionNotificationTo()->setValue(mbl);
 	return hrSuccess;
 }
@@ -1731,10 +1716,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		}
 	}
 
-	auto mb = !strName.empty() && strName != strEmail ?
-	          vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail)) :
-	          vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail));
-	mblist->appendMailbox(mb);
+	mblist->appendMailbox(vmime::make_shared<vmime::mailbox>(make_mailbox(strName, strEmail)));
 	lpEntry = reinterpret_cast<const FLATENTRY *>((reinterpret_cast<uintptr_t>(lpEntry) + CbFLATENTRY(lpEntry) + 3) / 4 * 4);
 	}
 	try {
