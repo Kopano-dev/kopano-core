@@ -36,7 +36,9 @@ Shows a list of stores that are not hooked to any user. The GUIDs shown in the
 output can be passed to \fB\-A\fP or \fB\-R\fP.
 .TP
 \fB\-P\fP
-Create a public store. Only one public store can be created.
+Create a public store. Only one public store can be created. In a multi-tenant
+environment, one public store can be created per company, to be specified with
+the \fB\-k\fP option.
 .TP
 \fB\-R\fP \fIguid\fP
 Remove an orphaned store. It actually only marks it as deleted in the database
