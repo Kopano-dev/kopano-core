@@ -218,18 +218,4 @@ ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const c
 	return code;
 }
 
-ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const std::string &fmt, ...)
-{
-	if (!ec_log_get()->Log(level))
-		return code;
-	char *msg = nullptr;
-	va_list va;
-	va_start(va, fmt);
-	auto ret = vasprintf(&msg, fmt.c_str(), va);
-	va_end(va);
-	if (ret >= 0)
-		hr_logcode2(kcerr_to_mapierr(code), level, func, std::unique_ptr<char[], cstdlib_deleter>(msg));
-	return code;
-}
-
 } /* namespace */

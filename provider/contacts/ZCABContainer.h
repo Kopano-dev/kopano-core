@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+#include <memory>
+#include <mutex>
 #include <vector>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
@@ -17,13 +19,13 @@
 class ZCABContainer KC_FINAL_OPG :
     public KC::ECUnknown, public IABContainer, public IDistList {
 protected:
-	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider);
+	ZCABContainer(std::shared_ptr<std::vector<zcabFolderEntry>> folders, IMAPIFolder *contacts, IMAPISupport *, void *provider);
 
 private:
 	HRESULT MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 
 public:
-	static HRESULT Create(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, ZCABContainer **);
+	static HRESULT Create(std::shared_ptr<std::vector<zcabFolderEntry>> folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, ZCABContainer **);
 	static HRESULT Create(IMessage *contact, ULONG eid_size, const ENTRYID *eid, IMAPISupport *, ZCABContainer **);
 
 	HRESULT GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -45,11 +47,11 @@ public:
 	virtual HRESULT GetPropList(unsigned int flags, SPropTagArray **) override;
 
 private:
-	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
-	const std::vector<zcabFolderEntry> *m_lpFolders;
+	std::shared_ptr<std::vector<zcabFolderEntry>> m_lpFolders;
 	KC::object_ptr<IMAPIFolder> m_lpContactFolder;
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	void *m_lpProvider;
+	std::mutex m_storemap_lock;
 
 	/* distlist version of this container */
 	KC::object_ptr<IMAPIProp> m_lpDistList;

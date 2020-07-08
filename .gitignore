@@ -90,6 +90,8 @@ stamp-h2
 /tests/htmltext
 /tests/imtomapi
 /tests/kc-335
+/tests/kc-1748
+/tests/kc-1759
 /tests/mapialloctime
 /tests/readflag
 /tests/ustring

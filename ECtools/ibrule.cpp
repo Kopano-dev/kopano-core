@@ -507,7 +507,7 @@ static HRESULT ibr_add(IExchangeModifyTable *emt, ibr_parse_ctx &&ctx)
 	ACTIONS ablk;
 	ablk.ulVersion = 1;
 	ablk.cActions = ctx.actions.size();
-	ablk.lpAction = ablk.cActions > 0 ? &ctx.actions[0] : nullptr;
+	ablk.lpAction = ctx.actions.data();
 	SPropValue pv[5];
 	unsigned int pc = 0;
 	if (ctx.have_seq) {

@@ -551,7 +551,7 @@ static HRESULT handler_client(size_t i)
 	if (!bThreads) {
 		++nChildren;
 		if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(),
-		    g_socks.linfd.size() > 0 ? &g_socks.linfd[0] : &hr) < 0) {
+		    g_socks.linfd.data()) < 0) {
 			ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 			--nChildren;
 			return MAPI_E_CALL_FAILED;
@@ -588,7 +588,6 @@ static HRESULT handler_client(size_t i)
  */
 static HRESULT running_service(char **argv)
 {
-	struct pollfd dummypoll;
 	int err = 0;
 	ec_log_always("Starting kopano-gateway version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 
@@ -649,7 +648,7 @@ static HRESULT running_service(char **argv)
 		auto nfds = g_socks.pollfd.size();
 		for (size_t i = 0; i < nfds; ++i)
 			g_socks.pollfd[i].revents = 0;
-		err = poll(nfds > 0 ? &g_socks.pollfd[0] : &dummypoll, nfds, 10 * 1000);
+		err = poll(g_socks.pollfd.data(), nfds, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_err("Socket error: %s", strerror(errno));

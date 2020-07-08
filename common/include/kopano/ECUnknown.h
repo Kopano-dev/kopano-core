@@ -65,11 +65,7 @@ protected:
 	virtual HRESULT			Suicide();
 
 	std::atomic<unsigned int> m_cRef{0};
-	/*
-	 * In general, parents should not hold references to (grand)children
-	 * because children hold references to parents. A manual loop breaker
-	 * is needed otherwise.
-	 */
+	/* This is another reference count that goes on top of m_cRef */
 	std::list<ECUnknown *>	lstChildren;
 	std::mutex mutex;
 };

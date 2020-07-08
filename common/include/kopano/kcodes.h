@@ -124,6 +124,17 @@ enum CONNECTION_TYPE {
 //Functions
 extern KC_EXPORT HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
 extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const char *fmt, ...) KC_LIKE_PRINTF(4, 5);
-extern KC_EXPORT ECRESULT er_logcode(ECRESULT code, unsigned int level, const char *func, const std::string &fmt, ...);
+
+template<size_t N, typename... Args> ECRESULT er_logcode(ECRESULT code,
+    unsigned int level, const char *func, const char (&fmt)[N], Args &&...args)
+{
+	return er_logcode(code, level, func, static_cast<const char *>(fmt), args...);
+}
+
+template<typename... Args> ECRESULT er_logcode(ECRESULT code,
+    unsigned int level, const char *func, const std::string &fmt, Args &&...args)
+{
+	return er_logcode(code, level, func, fmt.c_str(), args...);
+}
 
 } /* namespace */
