@@ -276,7 +276,14 @@ static HRESULT adm_resolve_entity(IECServiceAdmin *svcadm,
 		ret = svcadm->ResolveUserName(entity, 0, &eid_size, &~eid);
 	} else if (strcmp(opt_entity_type, "group") == 0) {
 		store_type = ECSTORE_TYPE_PUBLIC;
-		ret = svcadm->ResolveGroupName(entity, 0, &eid_size, &~eid);
+		if (strcmp(opt_entity_name, "Everyone") == 0) {
+			eid_size = g_cbEveryoneEid;
+			auto ret = KAllocCopy(g_lpEveryoneEid, g_cbEveryoneEid, &~eid);
+			if (ret != hrSuccess)
+				return kc_perror("KAllocCopy", ret);
+		} else {
+			ret = svcadm->ResolveGroupName(entity, 0, &eid_size, &~eid);
+		}
 	} else if (strcmp(opt_entity_type, "company") == 0) {
 		store_type = ECSTORE_TYPE_PUBLIC;
 		ret = svcadm->ResolveCompanyName(entity, 0, &eid_size, &~eid);
@@ -691,6 +698,7 @@ static HRESULT adm_create_public(IECServiceAdmin *svcadm, const char *cname)
 	ULONG cmpeid_size = 0;
 	memory_ptr<ENTRYID> cmpeid;
 	if (opt_companyname == nullptr) {
+		/* N.B.: Everyone is actually a group, not a company. */
 		cmpeid_size = g_cbEveryoneEid;
 		auto ret = KAllocCopy(g_lpEveryoneEid, g_cbEveryoneEid, &~cmpeid);
 		if (ret != hrSuccess)

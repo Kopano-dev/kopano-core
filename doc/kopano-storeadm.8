@@ -102,6 +102,9 @@ Copy orphaned store to public: kopano\-storeadm \-A 24680B \-p
 .IP \(bu 4
 Detach private store from user: kopano\-storeadm \-Dn user2
 .IP \(bu 4
+Detach global public store (requires server to not run in tenant mode):
+kopano\-storeadm \-Dn Everyone \-t group
+.IP \(bu 4
 Detach public store from company: kopano\-storeadm \-Dn companyname \-t company
 .IP \(bu 4
 Remove store: kopano\-storeadm \-R 24680B
