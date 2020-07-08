@@ -1,3 +1,12 @@
+9.x (2020-07-08)
+================
+Fixes:
+* mapi4linux: fix a refcycle between session and stores/
+  move store cache to ZCONTACTS provider [KC-1791]
+Changes:
+* GetContentsTable now produces correct PR_ACCESS columns [KC-1755]
+
+
 9.0.9 (2020-06-22)
 ==================
 Fixes:
