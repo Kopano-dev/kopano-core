@@ -27,7 +27,7 @@ namespace KC {
 		} \
 	} while (false)
 
-#define REGISTER_INTERFACE2(cls, interface)	\
+#define REGISTER_INTERFACE2(cls, interface) \
 	do { \
 		if (refiid == (IID_ ## cls)) { \
 			AddRef(); \
@@ -35,7 +35,7 @@ namespace KC {
 			return hrSuccess; \
 		} \
 	} while (false)
-#define REGISTER_INTERFACE3(guid, cls, interface)	\
+#define REGISTER_INTERFACE3(guid, cls, interface) \
 	do { \
 		if (refiid == (IID_ ## guid)) { \
 			AddRef(); \
