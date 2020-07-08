@@ -129,8 +129,6 @@ static inline std::string objclass_to_str(const SPropValue *p)
  */
 static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 {
-	bool listing_orphans = true;
-	ConsoleTable ct(50, 5);
 	static constexpr const SizedSSortOrderSet(2, sort_order) =
 		{2, 0, 0, {
 			{PR_EC_USERNAME, TABLE_SORT_ASCEND},
@@ -144,13 +142,18 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 	ret = table->SortTable(sort_order, 0);
 	if (ret != hrSuccess)
 		return kc_perror("SortTable", ret);
-	ct.set_lead("");
-	ct.SetHeader(0, "Store GUID");
-	ct.SetHeader(1, "Guessed owner");
-	ct.SetHeader(2, "Last login");
-	ct.SetHeader(3, "Store size");
-	ct.SetHeader(4, "Store type");
-	printf("Stores without an owner:\n");
+
+	ConsoleTable orp(50, 5), pvs(50, 1), pbs(50, 1);
+	orp.set_lead("");
+	orp.SetHeader(0, "Store GUID");
+	orp.SetHeader(1, "Guessed owner");
+	orp.SetHeader(2, "Last login");
+	orp.SetHeader(3, "Store size");
+	orp.SetHeader(4, "Store type");
+	pvs.set_lead("");
+	pvs.SetHeader(0, "Name");
+	pbs.set_lead("");
+	pbs.SetHeader(0, "Name");
 
 	while (true) {
 		rowset_ptr rowset;
@@ -161,49 +164,54 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			break;
 
 		for (unsigned int i = 0; i < rowset->cRows; ++i) {
-			auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
-			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
-			if (guid != nullptr && userp != nullptr)
-				continue;
-			auto objcls = rowset[i].cfind(PR_OBJECT_TYPE);
-			auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
-			auto ssize = rowset[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
 			auto stype = rowset[i].cfind(PR_EC_STORETYPE);
-			std::string user;
+			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
 			if (userp == nullptr) {
 				userp = rowset[i].cfind(PR_DISPLAY_NAME_A);
-				user = userp != nullptr ? userp->Value.lpszA : "<unknown>";
-			} else {
-				if (listing_orphans) {
-					listing_orphans = false;
-					ct.PrintTable();
-					ct.Clear();
-					ct.Resize(50, 2);
-					ct.SetHeader(0, "Type");
-					ct.SetHeader(1, "Name");
-					printf("\nEntities without stores:\n");
-				}
-				user = userp->Value.lpszA;
-			}
-			if (guid == nullptr) {
-				ct.AddColumn(0, objclass_to_str(objcls));
-				ct.AddColumn(1, user);
+				auto user = userp != nullptr ? userp->Value.lpszA : "<unknown>";
+				auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
+				auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
+				auto ssize = rowset[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+				orp.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
+				orp.AddColumn(1, user);
+				orp.AddColumn(2, mtime != nullptr ? time_to_rel(FileTimeToUnixTime(mtime->Value.ft)) : "<unknown>");
+				orp.AddColumn(3, ssize != nullptr ? str_storage(ssize->Value.li.QuadPart, false) : "<unknown>");
+				orp.AddColumn(4, stype != nullptr ? store_type_string(stype->Value.ul) : "<unknown>");
 				continue;
 			}
-			ct.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
-			ct.AddColumn(1, user);
-			ct.AddColumn(2, mtime != nullptr ? time_to_rel(FileTimeToUnixTime(mtime->Value.ft)) : "<unknown>");
-			ct.AddColumn(3, ssize != nullptr ? str_storage(ssize->Value.li.QuadPart, false) : "<unknown>");
-			ct.AddColumn(4, stype != nullptr ? store_type_string(stype->Value.ul) : "<unknown>");
+			auto objcls = rowset[i].cfind(PR_OBJECT_TYPE);
+			if (objcls == nullptr)
+				continue;
+			auto guid = rowset[i].cfind(PR_EC_STOREGUID);
+			if (guid != nullptr)
+				continue;
+			auto user = rowset[i].cfind(PR_EC_USERNAME_A);
+			if (user == nullptr || user->Value.lpszA == nullptr)
+				continue;
+			if (OBJECTCLASS_CLASSTYPE(objcls->Value.ul) == OBJECTCLASS_USER &&
+			    stype->Value.ul == ECSTORE_TYPE_PRIVATE)
+				pvs.AddColumn(0, user->Value.lpszA);
+			else if (objcls->Value.ul == CONTAINER_COMPANY &&
+			    stype->Value.ul == ECSTORE_TYPE_PUBLIC)
+				pbs.AddColumn(0, user->Value.lpszA);
 		}
 	}
-	ct.PrintTable();
+
+	printf("Stores without an owner:\n");
+	orp.PrintTable();
+	printf("\nUsers without a private store:\n");
+	pvs.PrintTable();
+	printf("\nCompanies without a public store:\n");
+	pbs.PrintTable();
 	return hrSuccess;
 }
 
 static HRESULT adm_list_mbt(KServerContext &srvctx)
 {
-	/* Unlike ECUserStoreTable, the MBT is the real thing. */
+	/*
+	 * MBT is just the mailboxes, while ECUserStoreTable is
+	 * union({user=>optional(private_store)}, MBT).
+	 */
 	object_ptr<IExchangeManageStore> ms;
 	auto ret = srvctx.m_admstore->QueryInterface(IID_IExchangeManageStore, &~ms);
 	if (ret != hrSuccess)
