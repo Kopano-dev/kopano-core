@@ -617,8 +617,8 @@ static HRESULT adm_detach_store(KServerContext &kadm)
 		 */
 		object_ptr<IMsgStore> pub_store;
 		std::wstring company;
-		if (opt_companyname != nullptr)
-			company = convert_to<std::wstring>(opt_companyname);
+		if (strcmp(opt_entity_name, "Everyone") != 0)
+			company = convert_to<std::wstring>(opt_entity_name);
 		ret = adm_get_public_store(kadm.m_session, kadm.m_admstore, company, &~pub_store);
 		if (ret != hrSuccess)
 			return kc_perror("Unable to open public store", ret);

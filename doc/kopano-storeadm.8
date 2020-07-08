@@ -92,15 +92,19 @@ Create new store for user: kopano\-storeadm \-Cn user1
 .IP \(bu 4
 Create new store with German names: kopano\-storeadm \-Cn user1 \-l de_DE
 .IP \(bu 4
+Create global public store: kopano\-storeadm \-P
+.IP \(bu 4
+Create company public store: kopano\-storeadm \-Pk companyname
+.IP \(bu 4
 Attach orphaned store to user: kopano\-storeadm \-A 24680B \-n user2
 .IP \(bu 4
 Copy orphaned store to public: kopano\-storeadm \-A 24680B \-p
 .IP \(bu 4
-Detach store from user: kopano\-storeadm \-Dn user2
+Detach private store from user: kopano\-storeadm \-Dn user2
+.IP \(bu 4
+Detach public store from company: kopano\-storeadm \-Dn companyname \-t company
 .IP \(bu 4
 Remove store: kopano\-storeadm \-R 24680B
-.IP \(bu 4
-Create public store: kopano\-storeadm \-P
 .SH Configuration file
 .PP
 Normally, no configuration file is used or required. If the file
