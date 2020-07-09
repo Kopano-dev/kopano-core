@@ -19,7 +19,7 @@ namespace KC {
 
 template<typename T> class memory_proxy KC_FINAL {
 	public:
-	memory_proxy(T **p) noexcept : m_ptr(p) {}
+	explicit memory_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(T *), "This hack won't work");
@@ -32,7 +32,7 @@ template<typename T> class memory_proxy KC_FINAL {
 
 template<typename T> class memory_proxy2 KC_FINAL {
 	public:
-	memory_proxy2(T **p) noexcept : m_ptr(p) {}
+	explicit memory_proxy2(T **p) noexcept : m_ptr(p) {}
 	memory_proxy<T> operator&() noexcept { return memory_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
@@ -40,7 +40,7 @@ template<typename T> class memory_proxy2 KC_FINAL {
 
 template<typename T> class object_proxy KC_FINAL {
 	public:
-	object_proxy(T **p) noexcept : m_ptr(p) {}
+	explicit object_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
 	operator void **() noexcept { return as<void>(); }
 	operator IUnknown **() noexcept { return as<IUnknown>(); }
@@ -57,7 +57,7 @@ template<typename T> class object_proxy KC_FINAL {
 
 template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
-	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
+	explicit object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
 	operator IUnknown **(void) noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(IUnknown *), "This hack won't work");
@@ -70,7 +70,7 @@ template<> class object_proxy<IUnknown> KC_FINAL {
 
 template<typename T> class object_proxy2 KC_FINAL {
 	public:
-	object_proxy2(T **p) noexcept : m_ptr(p) {}
+	explicit object_proxy2(T **p) noexcept : m_ptr(p) {}
 	object_proxy<T> operator&() noexcept { return object_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
@@ -277,7 +277,7 @@ class rowset_ptr {
 	typedef unsigned int size_type;
 	typedef SRowSet *pointer;
 	rowset_ptr() = default;
-	rowset_ptr(SRowSet *p) : m_rp(p) {}
+	explicit rowset_ptr(SRowSet *p) : m_rp(p) {}
 	void operator&() = delete;
 	size_type size() const { return m_rp->cRows; }
 	const SRow &operator[](size_t i) const { return m_rp->aRow[i]; }
