@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <kopano/platform.h>
 #include "WSABPropStorage.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
 #include "SOAPUtils.h"
@@ -78,7 +77,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = hrSuccess;
 	MAPIOBJECT  *mo = NULL;
-	ecmem_ptr<SPropValue> lpProp;
+	memory_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
 	soap_lock_guard spg(*m_lpTransport);
@@ -100,7 +99,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	 * This is only done to have a base for AllocateMore, otherwise a local
 	 * automatic variable would have sufficed.
 	 */
-	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpProp);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 

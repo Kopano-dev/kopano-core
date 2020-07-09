@@ -6,7 +6,6 @@
 #include <kopano/platform.h>
 #include "kcore.hpp"
 #include "ECMAPITable.h"
-#include "Mem.h"
 #include <kopano/ECDefs.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
@@ -132,7 +131,7 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		lpsPropValue->ulPropTag = PR_AB_PROVIDER_ID;
 
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
-		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
@@ -514,8 +513,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		return hrSuccess;
 
 	ULONG cValues, ulObjType;
-	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
-
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		auto rgpropvalsRecip = lpRecipList->aEntries[i].rgPropVals;
 		unsigned int cPropsRecip = lpRecipList->aEntries[i].cValues;
@@ -537,11 +534,12 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		auto hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
 		if(hr != hrSuccess)
 			continue;	// no
+		memory_ptr<SPropValue> lpPropArray, lpNewPropArray;
 		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
 		if(FAILED(hr) != hrSuccess)
 			continue;	// no
 		// merge the properties
-		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
+		hr = MAPIAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -570,7 +568,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray.release();
 		lpRecipList->aEntries[i].cValues	= cValues;
 		if(rgpropvalsRecip) {
-			ECFreeBuffer(rgpropvalsRecip);
+			MAPIFreeBuffer(rgpropvalsRecip);
 			rgpropvalsRecip = NULL;
 		}
 	}
@@ -605,7 +603,7 @@ HRESULT ECABProp::DefaultABGetProp(unsigned int ulPropTag, void *lpProvider,
 
 		if(lpProp->m_lpEntryId && lpProp->m_cbEntryId > 0) {
 			lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
-			hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr != hrSuccess)
 				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpsPropValue->Value.bin.cb);
@@ -645,7 +643,7 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
 	case CHANGE_PROP_TYPE(PR_AB_PROVIDER_ID, PT_ERROR):
 		lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
 		lpsPropValDst->Value.bin.cb = sizeof(GUID);
-		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));

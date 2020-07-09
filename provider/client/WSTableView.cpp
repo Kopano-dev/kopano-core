@@ -4,7 +4,6 @@
  */
 #include <kopano/platform.h>
 #include "WSTableView.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
 #include "SOAPUtils.h"
@@ -152,7 +151,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(CbNewSPropTagArray(sResponse.sPropTagArray.__size), reinterpret_cast<void **>(&lpsPropTags));
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(sResponse.sPropTagArray.__size), reinterpret_cast<void **>(&lpsPropTags));
 	if(hr != hrSuccess)
 		goto exit;
 

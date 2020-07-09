@@ -21,7 +21,6 @@
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
 #include "ics.h"
-#include "Mem.h"
 #include "ECMessage.h"
 #include <kopano/stringutil.h>
 #include "EntryPoint.h"
@@ -140,14 +139,13 @@ HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterfa
 
 HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	HRESULT		hr = hrSuccess;
-	ecmem_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-
 	//FIXME: give synchronization errors messages
 	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ECAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
+	memory_ptr<MAPIERROR> lpMapiError;
+	hr = MAPIAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if(hr != hrSuccess)
 		return hr;
 

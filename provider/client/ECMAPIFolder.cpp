@@ -21,7 +21,6 @@
 #include "WSTransport.h"
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <kopano/Util.h>
@@ -333,9 +332,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
     IMessage **lppMessage)
 {
 	object_ptr<ECMessage> lpMessage;
-	ecmem_ptr<MAPIUID> lpMapiUID;
 	ULONG		cbNewEntryId = 0;
-	ecmem_ptr<ENTRYID> lpNewEntryId;
 	SPropValue	sPropValue[3];
 	object_ptr<IECPropStorage> storage;
 
@@ -352,6 +349,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	if (cbEntryID == 0 || lpEntryID == nullptr ||
 	    HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &guid) != hrSuccess) {
 		// No entryid passed or bad entryid passed, create one
+		memory_ptr<ENTRYID> lpNewEntryId;
 		hr = HrCreateEntryId(guid, MAPI_MESSAGE, &cbNewEntryId, &~lpNewEntryId);
 		if (hr != hrSuccess)
 			return hr;
@@ -384,7 +382,8 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 		return hr;
 	//Set defaults
 	// Same as ECAttach::OpenProperty
-	hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
+	memory_ptr<MAPIUID> lpMapiUID;
+	hr = MAPIAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = GetMsgStore()->lpSupport->NewUID(lpMapiUID);
@@ -431,8 +430,6 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 
 	HRESULT hr = hrSuccess, hrEC = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	ecmem_ptr<SPropValue> lpDestPropArray;
-	ecmem_ptr<ENTRYLIST> lpMsgListEC, lpMsgListSupport;
 	GUID guidFolder, guidMsg;
 
 	// FIXME progress bar
@@ -451,6 +448,7 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 		return hr;
 
 	// Get the destination entry ID, and check for favories public folders, so get PR_ORIGINAL_ENTRYID first.
+	memory_ptr<SPropValue> lpDestPropArray;
 	if (ftype == ECSTORE_TYPE_PRIVATE)
 		hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &~lpDestPropArray);
 	if (hr != hrSuccess || ftype == ECSTORE_TYPE_PUBLIC)
@@ -479,18 +477,19 @@ HRESULT ECMAPIFolder::CopyMessages2(unsigned int ftype, ENTRYLIST *lpMsgList,
 	if(hr != hrSuccess)
 		return hr;
 	// Allocate memory for support list and kopano list
-	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
+	memory_ptr<ENTRYLIST> lpMsgListEC, lpMsgListSupport;
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListEC->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, reinterpret_cast<void **>(&lpMsgListEC->lpbin));
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListEC, reinterpret_cast<void **>(&lpMsgListEC->lpbin));
 	if (hr != hrSuccess)
 		return hr;
-	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListSupport);
 	if (hr != hrSuccess)
 		return hr;
 	lpMsgListSupport->cValues = 0;
-	hr = ECAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, reinterpret_cast<void **>(&lpMsgListSupport->lpbin));
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpMsgList->cValues, lpMsgListSupport, reinterpret_cast<void **>(&lpMsgListSupport->lpbin));
 	if (hr != hrSuccess)
 		return hr;
 	//FIXME
@@ -547,7 +546,6 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
     const IID *lpInterface, ULONG ulFlags, IMAPIFolder **lppFolder)
 {
 	unsigned int cbEntryId = 0;
-	ecmem_ptr<ENTRYID> lpEntryId;
 	object_ptr<IMAPIFolder> lpFolder;
 
 	// SC TODO: new code:
@@ -561,6 +559,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 		return MAPI_E_NO_SUPPORT;
 
 	// Create the actual folder on the server
+	memory_ptr<ENTRYID> lpEntryId;
 	auto hr = lpFolderOps->HrCreateFolder(ulFolderType,
 	          convstring(lpszFolderName, ulFlags),
 	          convstring(lpszFolderComment, ulFlags), ulFlags & OPEN_IF_EXISTS,
@@ -589,7 +588,7 @@ HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
 		return MAPI_E_NO_SUPPORT;
 
 	const auto count = folders.size();
-	std::vector<std::pair<unsigned int, ecmem_ptr<ENTRYID>>> entry_ids(count);
+	std::vector<std::pair<unsigned int, memory_ptr<ENTRYID>>> entry_ids(count);
 	std::vector<WSMAPIFolderOps::WSFolder> batch(count);
 	for (unsigned int i = 0; i < count; ++i) {
 		auto &src          = folders[i];
@@ -652,7 +651,6 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	ecmem_ptr<SPropValue> lpPropArray;
 	GUID guidDest, guidFrom;
 
 	//Get the interface of destinationfolder
@@ -670,6 +668,7 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 
 	// Get the destination entry ID
+	memory_ptr<SPropValue> lpPropArray;
 	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
 		return hr;

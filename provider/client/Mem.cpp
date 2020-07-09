@@ -5,7 +5,6 @@
 #include <kopano/platform.h>
 #include <mapispi.h>
 #include <mapicode.h>
-#include "Mem.h"
 #include "IECPropStorage.h"
 
 MAPIOBJECT::~MAPIOBJECT()
@@ -13,5 +12,5 @@ MAPIOBJECT::~MAPIOBJECT()
 	for (auto &obj : lstChildren)
 		delete obj;
 	if (lpInstanceID != nullptr)
-		ECFreeBuffer(lpInstanceID);
+		MAPIFreeBuffer(lpInstanceID);
 }

@@ -9,7 +9,6 @@
 #include <kopano/CommonUtil.h>
 #include "ECMailUser.h"
 #include "ECMAPITable.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 
 ECDistList::ECDistList(ECABLogon *prov, BOOL modify) :

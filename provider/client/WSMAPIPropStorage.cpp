@@ -5,7 +5,6 @@
 #include <list>
 #include <kopano/platform.h>
 #include "WSMAPIPropStorage.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
 #include "SOAPUtils.h"
@@ -99,7 +98,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 	END_SOAP_CALL
 
-	hr = ECAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValDst));
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValDst));
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -285,8 +284,8 @@ ECRESULT WSMAPIPropStorage::EcFillPropValues(const struct saveObject *lpsSaveObj
 	convert_context	context;
 
 	for (gsoap_size_t i = 0; i < lpsSaveObj->modProps.__size; ++i) {
-		ecmem_ptr<SPropValue> lpsProp;
-		auto ec = ECAllocateBuffer(sizeof(SPropValue), &~lpsProp);
+		memory_ptr<SPropValue> lpsProp;
+		auto ec = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsProp);
 		if (ec != erSuccess)
 			return ec;
 		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
@@ -320,7 +319,7 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj,
 
 	// We might have received a new instance ID from the server
 	if (lpClientObj->lpInstanceID) {
-		ECFreeBuffer(lpClientObj->lpInstanceID);
+		MAPIFreeBuffer(lpClientObj->lpInstanceID);
 		lpClientObj->lpInstanceID = NULL;
 		lpClientObj->cbInstanceID = 0;
 	}
@@ -446,7 +445,7 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lp
 	}
 
 	if (lpsMapiObject->lpInstanceID) {
-		ECFreeBuffer(lpsMapiObject->lpInstanceID);
+		MAPIFreeBuffer(lpsMapiObject->lpInstanceID);
 		lpsMapiObject->lpInstanceID = NULL;
 		lpsMapiObject->cbInstanceID = 0;
 	}

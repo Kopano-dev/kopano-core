@@ -16,7 +16,6 @@
 #include "ECGenericProp.h"
 #include "kcore.hpp"
 #include "pcutil.hpp"
-#include "Mem.h"
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <kopano/charset/convert.h>
@@ -250,7 +249,7 @@ HRESULT ECGenericProp::DefaultGetProp(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
 		if (lpBase == NULL)
 			assert(false);
-		auto hr = ECAllocateMore(lpProp->m_cbEntryId, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		auto hr = MAPIAllocateMore(lpProp->m_cbEntryId, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
@@ -356,13 +355,12 @@ HRESULT ECGenericProp::HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ul
 
 HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
 {
-	ecmem_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ECAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
+	memory_ptr<MAPIERROR> lpMapiError;
+	hr = MAPIAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -642,8 +640,6 @@ exit:
 // Load a single (large) property from the storage
 HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 {
-	ecmem_ptr<SPropValue> lpsPropVal;
-
 	if(lpStorage == NULL)
 		return MAPI_E_CALL_FAILED;
 
@@ -665,6 +661,7 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 		return MAPI_E_NOT_FOUND;
 
   	// The property was not loaded yet, demand-load it now
+	memory_ptr<SPropValue> lpsPropVal;
 	auto hr = lpStorage->HrLoadProp(m_sMapiObject->ulObjId, iterProps->second.GetPropTag(), &~lpsPropVal);
 	if(hr != hrSuccess)
 		return hr;
@@ -685,9 +682,8 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		return MAPI_E_INVALID_PARAMETER;
 
 	HRESULT			hrT = hrSuccess;
-	ecmem_ptr<SPropTagArray> lpGetPropTagArray;
+	memory_ptr<SPropTagArray> lpGetPropTagArray;
 	GetPropCallBack	lpfnGetProp = NULL;
-	ecmem_ptr<SPropValue> lpsPropValue;
 
 	if (lpPropTagArray == NULL) {
 		auto hr = GetPropList(ulFlags, &~lpGetPropTagArray);
@@ -695,7 +691,8 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 			return hr;
 		lpPropTagArray = lpGetPropTagArray.get();
 	}
-	auto hr = ECAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpsPropValue);
+	memory_ptr<SPropValue> lpsPropValue;
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpsPropValue);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -728,7 +725,6 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 {
-	ecmem_ptr<SPropTagArray> lpPropTagArray;
 	int					n = 0;
 
 	if (!m_props_loaded) {
@@ -738,7 +734,8 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 	}
 
 	// The size of the property tag array is never larger than (static properties + generated properties)
-	auto hr = ECAllocateBuffer(CbNewSPropTagArray(lstProps.size() + lstCallBack.size()),
+	memory_ptr<SPropTagArray> lpPropTagArray;
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstProps.size() + lstCallBack.size()),
 	          &~lpPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
@@ -783,10 +780,10 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		return MAPI_E_INVALID_PARAMETER;
 
 	HRESULT				hrT = hrSuccess;
-	ecmem_ptr<SPropProblemArray> lpProblems;
+	memory_ptr<SPropProblemArray> lpProblems;
 	int					nProblem = 0;
 	SetPropCallBack		lpfnSetProp = NULL;
-	auto hr = ECAllocateBuffer(CbNewSPropProblemArray(cValues), &~lpProblems);
+	auto hr = MAPIAllocateBuffer(CbNewSPropProblemArray(cValues), &~lpProblems);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -838,10 +835,10 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 	if (lpPropTagArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	ecmem_ptr<SPropProblemArray> lpProblems;
+	memory_ptr<SPropProblemArray> lpProblems;
 	int						nProblem = 0;
 	// over-allocate the problem array
-	auto er = ECAllocateBuffer(CbNewSPropProblemArray(lpPropTagArray->cValues), &~lpProblems);
+	auto er = MAPIAllocateBuffer(CbNewSPropProblemArray(lpPropTagArray->cValues), &~lpProblems);
 	if (er != erSuccess)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -898,7 +895,7 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
 	if (m_sMapiObject == NULL)
 		return MAPI_E_NOT_FOUND;
 	if (m_sMapiObject->lpInstanceID)
-		ECFreeBuffer(m_sMapiObject->lpInstanceID);
+		MAPIFreeBuffer(m_sMapiObject->lpInstanceID);
 
 	m_sMapiObject->lpInstanceID = NULL;
 	m_sMapiObject->cbInstanceID = 0;

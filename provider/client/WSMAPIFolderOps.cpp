@@ -7,7 +7,6 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
 #include "SOAPUtils.h"
@@ -263,8 +262,8 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 {
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
-	ecmem_ptr<ENTRYLIST> lpMsgList;
-	ecmem_ptr<SRestriction> lpRestriction;
+	memory_ptr<ENTRYLIST> lpMsgList;
+	memory_ptr<SRestriction> lpRestriction;
 
 	struct tableGetSearchCriteriaResponse sResponse;
 	soap_lock_guard spg(*m_lpTransport);
@@ -280,7 +279,7 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	END_SOAP_CALL
 
 	if(lppRestriction) {
-		hr = ECAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
+		hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 		if(hr != hrSuccess)
 			goto exit;
 		hr = CopySOAPRestrictionToMAPIRestriction(lpRestriction, sResponse.lpRestrict, lpRestriction);

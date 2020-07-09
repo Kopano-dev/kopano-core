@@ -11,7 +11,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "IECPropStorage.h"
-#include "Mem.h"
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include "ECArchiveAwareMessage.h"

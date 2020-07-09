@@ -10,7 +10,6 @@
 #include <mapiutil.h>
 #include <mapispi.h>
 #include "ClientUtil.h"
-#include "Mem.h"
 #include <kopano/stringutil.h>
 #include <kopano/ECGuid.h>
 #include "ECABContainer.h"

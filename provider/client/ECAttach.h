@@ -7,7 +7,6 @@
 #include <kopano/Util.h>
 #include "ECMessage.h"
 #include "ECMAPIProp.h"
-#include "Mem.h"
 
 class ECMsgStore;
 

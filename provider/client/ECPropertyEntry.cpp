@@ -7,8 +7,8 @@
 #include <new>
 #include <string>
 #include <utility>
+#include <mapix.h>
 #include "ECPropertyEntry.h"
-#include "Mem.h"
 #include <kopano/charset/convert.h>
 
 using namespace KC;
@@ -651,7 +651,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			break;
 		}
 		BYTE *lpBin = NULL;
-		hr = ECAllocateMore(Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpBin));
+		hr = MAPIAllocateMore(Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpBin));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -666,7 +666,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		// Deliberate fallthrough
 	case PT_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_UNICODE) {
-			hr = ECAllocateMore(sizeof(wchar_t) * (wcslen(Value.lpszW) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszW));
+			hr = MAPIAllocateMore(sizeof(wchar_t) * (wcslen(Value.lpszW) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszW));
 			if (hr != hrSuccess)
 				dwLastError = hr;
 			else
@@ -678,7 +678,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			dwLastError = MAPI_E_INVALID_PARAMETER;
 			return hr;
 		}
-		hr = ECAllocateMore(dst.length() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszA));
+		hr = MAPIAllocateMore(dst.length() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszA));
 		if (hr != hrSuccess)
 			dwLastError = hr;
 		else
@@ -687,7 +687,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_CLSID: {
 		GUID *lpGUID;
-		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGUID));
+		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGUID));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -701,7 +701,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		break;
 	case PT_MV_I2: {
 		short int *lpShort;
-		hr = ECAllocateMore(Value.MVi.cValues * sizeof(short int), lpBase, reinterpret_cast<void **>(&lpShort));
+		hr = MAPIAllocateMore(Value.MVi.cValues * sizeof(short int), lpBase, reinterpret_cast<void **>(&lpShort));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -713,7 +713,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_LONG: {
 		LONG *lpLong;
-		hr = ECAllocateMore(Value.MVl.cValues * sizeof(LONG), lpBase, reinterpret_cast<void **>(&lpLong));
+		hr = MAPIAllocateMore(Value.MVl.cValues * sizeof(LONG), lpBase, reinterpret_cast<void **>(&lpLong));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -725,7 +725,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_R4: {
 		float *lpFloat;
-		hr = ECAllocateMore(Value.MVflt.cValues * sizeof(float), lpBase, reinterpret_cast<void **>(&lpFloat));
+		hr = MAPIAllocateMore(Value.MVflt.cValues * sizeof(float), lpBase, reinterpret_cast<void **>(&lpFloat));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -737,7 +737,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_DOUBLE: {
 		double *lpDouble;
-		hr = ECAllocateMore(Value.MVdbl.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpDouble));
+		hr = MAPIAllocateMore(Value.MVdbl.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpDouble));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -749,7 +749,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_CURRENCY: {
 		CURRENCY *lpCurrency;
-		hr = ECAllocateMore(Value.MVcur.cValues * sizeof(CURRENCY), lpBase, reinterpret_cast<void **>(&lpCurrency));
+		hr = MAPIAllocateMore(Value.MVcur.cValues * sizeof(CURRENCY), lpBase, reinterpret_cast<void **>(&lpCurrency));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -761,7 +761,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_APPTIME: {
 		double *lpApptime;
-		hr = ECAllocateMore(Value.MVat.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpApptime));
+		hr = MAPIAllocateMore(Value.MVat.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpApptime));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -773,7 +773,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_SYSTIME: {
 		FILETIME *lpFiletime;
-		hr = ECAllocateMore(Value.MVft.cValues * sizeof(FILETIME), lpBase, reinterpret_cast<void **>(&lpFiletime));
+		hr = MAPIAllocateMore(Value.MVft.cValues * sizeof(FILETIME), lpBase, reinterpret_cast<void **>(&lpFiletime));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -785,7 +785,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_BINARY: {
 		SBinary *lpBin;
-		hr = ECAllocateMore(Value.MVbin.cValues * sizeof(SBinary), lpBase, reinterpret_cast<void **>(&lpBin));
+		hr = MAPIAllocateMore(Value.MVbin.cValues * sizeof(SBinary), lpBase, reinterpret_cast<void **>(&lpBin));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -798,7 +798,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 				lpsProp->Value.MVbin.lpbin[i].lpb = NULL;
 				continue;
 			}
-			hr = ECAllocateMore(Value.MVbin.lpbin[i].cb, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVbin.lpbin[i].lpb));
+			hr = MAPIAllocateMore(Value.MVbin.lpbin[i].cb, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVbin.lpbin[i].lpb));
 			if (hr != hrSuccess)
 				return hr;
 			memcpy(lpsProp->Value.MVbin.lpbin[i].lpb, Value.MVbin.lpbin[i].lpb, lpsProp->Value.MVbin.lpbin[i].cb);
@@ -811,7 +811,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	case PT_MV_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8) {
 			lpsProp->Value.MVszA.cValues = Value.MVszW.cValues;
-			hr = ECAllocateMore(Value.MVszW.cValues * sizeof(LPSTR), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA));
+			hr = MAPIAllocateMore(Value.MVszW.cValues * sizeof(char *), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA));
 			if (hr != hrSuccess) {
 				dwLastError = hr;
 				break;
@@ -823,7 +823,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 					dwLastError = MAPI_E_INVALID_PARAMETER;
 					return hr;
 				}
-				hr = ECAllocateMore(strDst.size() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA[i]));
+				hr = MAPIAllocateMore(strDst.size() + 1, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA[i]));
 				if (hr != hrSuccess)
 					dwLastError = hr;
 				else
@@ -832,13 +832,13 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			break;
 		}
 		lpsProp->Value.MVszW.cValues = Value.MVszW.cValues;
-		hr = ECAllocateMore(Value.MVszW.cValues * sizeof(LPWSTR), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW));
+		hr = MAPIAllocateMore(Value.MVszW.cValues * sizeof(wchar_t *), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
 		for (ULONG i = 0; hr == hrSuccess && i < Value.MVszW.cValues; ++i) {
-			hr = ECAllocateMore(sizeof(wchar_t) * (wcslen(Value.MVszW.lppszW[i]) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW[i]));
+			hr = MAPIAllocateMore(sizeof(wchar_t) * (wcslen(Value.MVszW.lppszW[i]) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW[i]));
 			if (hr != hrSuccess)
 				dwLastError = hr;
 			else
@@ -848,7 +848,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_CLSID: {
 		GUID *lpGuid;
-		hr = ECAllocateMore(Value.MVguid.cValues * sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGuid));
+		hr = MAPIAllocateMore(Value.MVguid.cValues * sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGuid));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
@@ -860,7 +860,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 	}
 	case PT_MV_I8: {
 		LARGE_INTEGER *lpLarge;
-		hr = ECAllocateMore(Value.MVli.cValues * sizeof(LARGE_INTEGER), lpBase, reinterpret_cast<void **>(&lpLarge));
+		hr = MAPIAllocateMore(Value.MVli.cValues * sizeof(LARGE_INTEGER), lpBase, reinterpret_cast<void **>(&lpLarge));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;

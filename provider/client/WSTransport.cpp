@@ -25,7 +25,6 @@
 #include "pcutil.hpp"
 #include <kopano/kcodes.h>
 #include "KCmd.nsmap"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
@@ -498,7 +497,7 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
 	HRESULT hr = hrSuccess;
 	entryId sEntryId; // Do not free
 	struct getStoreResponse sResponse;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	soap_lock_guard spg(*this);
 
@@ -557,7 +556,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	ECRESULT er = erSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreNameResponse sResponse;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	soap_lock_guard spg(*this);
 
@@ -591,7 +590,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	ECRESULT er = erSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreTypeResponse sResponse;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	soap_lock_guard spg(*this);
 
@@ -679,7 +678,7 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
     ULONG ulFlags, IECPropStorage **lppPropStorage)
 {
 	object_ptr<WSMAPIPropStorage> lpPropStorage;
-	ecmem_ptr<ENTRYID> lpUnWrapParentID, lpUnWrapEntryID;
+	memory_ptr<ENTRYID> lpUnWrapParentID, lpUnWrapEntryID;
 	unsigned int cbUnWrapParentID = 0, cbUnWrapEntryID = 0;
 
 	if (lpParentEntryID) {
@@ -712,7 +711,7 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
     const ENTRYID *lpEntryID, IECPropStorage **lppPropStorage)
 {
 	object_ptr<WSABPropStorage> lpPropStorage;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	auto hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
@@ -729,7 +728,7 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
 HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
     WSMAPIFolderOps **lppFolderOps)
 {
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 //FIXME: create this function
@@ -782,7 +781,7 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID,
     const ENTRYID *lpStoreEntryID, ECMsgStore *lpMsgStore,
     WSTableOutGoingQueue **lppTableOutGoingQueueOps)
 {
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	// lpStoreEntryID == null for master queue
@@ -1113,8 +1112,7 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 		hr = MAPI_E_NO_ACCESS;
 		goto exitm;
 	}
-
-	hr = ECAllocateBuffer(sizeof(ULONG) * sResponse.lpsPropTags.__size, reinterpret_cast<void **>(lpServerIDs));
+	hr = MAPIAllocateBuffer(sizeof(unsigned int) * sResponse.lpsPropTags.__size, reinterpret_cast<void **>(lpServerIDs));
 	if (hr != hrSuccess)
 		goto exitm;
 	memcpy(*lpServerIDs, sResponse.lpsPropTags.__ptr, sizeof(ULONG) * sResponse.lpsPropTags.__size);
@@ -1147,18 +1145,18 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
+	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
 	if (er != erSuccess)
 		goto exitm;
 
 	// Loop through all the returned names, and put it into the return value
 	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
 		// Each MAPINAMEID must be allocated
-		er = ECAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
+		er = MAPIAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
 		if (er != erSuccess)
 			goto exitm;
 		if(sResponse.lpsNames.__ptr[i].lpguid && sResponse.lpsNames.__ptr[i].lpguid->__ptr) {
-			er = ECAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
+			er = MAPIAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
 			if (er != erSuccess)
 				goto exitm;
 			memcpy(lppNames[i]->lpguid, sResponse.lpsNames.__ptr[i].lpguid->__ptr, sizeof(GUID));
@@ -1169,7 +1167,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 		} else if(sResponse.lpsNames.__ptr[i].lpString) {
 			std::wstring strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
 
-			er = ECAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
+			er = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (er != erSuccess)
 				goto exitm;
@@ -1197,7 +1195,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	ULONG ulRowId = 0, cbUnWrapStoreID = 0;
 	int			nLen = 0;
 	entryId sEntryId; // Do not free
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	std::wstring unicode;
 	convert_context converter;
 	soap_lock_guard spg(*this);
@@ -1218,7 +1216,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), reinterpret_cast<void **>(&lpsRowSet));
+	er = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), reinterpret_cast<void **>(&lpsRowSet));
 	if (er != erSuccess)
 		goto exitm;
 	lpsRowSet->cRows = 0;
@@ -1226,7 +1224,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		ulRowId = i+1;
 
 		lpsRowSet->aRow[i].cValues = NUM_RFT_PROPS;
-		er = ECAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
+		er = MAPIAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
 		if (er != erSuccess)
 			goto exitm;
 		++lpsRowSet->cRows;
@@ -1237,7 +1235,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].ulPropTag = PR_INSTANCE_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb = 4; //fixme: maybe fix, normal 8 now
-		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb));
 		if (er != erSuccess)
 			goto exitm;
@@ -1246,7 +1244,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].ulPropTag = PR_ENTRYID;
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb));
 		if (er != erSuccess)
 			goto exitm;
@@ -1255,7 +1253,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		// Use the entryid for record key
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].ulPropTag = PR_RECORD_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		er = ECAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb));
 		if (er != erSuccess)
 			goto exitm;
@@ -1264,14 +1262,14 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		if (ulFlags & MAPI_UNICODE) {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_W;
 			unicode = converter.convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
-			er = ECAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
+			er = MAPIAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
 			if (er != erSuccess)
 				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length() + 1) * sizeof(wchar_t));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
-			er = ECAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
+			er = MAPIAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
 			if (er != erSuccess)
 				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA, sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass, nLen);
@@ -1292,7 +1290,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 	ECRESULT	er = erSuccess;
 	entryId sEntryId; // Do not free
 	ULONG cbEntryID = 0, cbUnWrapStoreID = 0;
-	ecmem_ptr<ENTRYID> lpEntryID, lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpEntryID, lpUnWrapStoreID;
 	soap_lock_guard spg(*this);
 
 	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
@@ -1343,7 +1341,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 {
 	ECRESULT er = erSuccess;
 	entryId sStoreId, sEntryId; // Do not free
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	soap_lock_guard spg(*this);
 
@@ -1616,7 +1614,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct getUserResponse	sResponse;
-	ecmem_ptr<ECUSER> lpECUser;
+	memory_ptr<ECUSER> lpECUser;
 	entryId	sUserId;
 	ULONG ulUserId = 0;
 	soap_lock_guard spg(*this);
@@ -2889,8 +2887,8 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
 	entryId sEntryId; // Do not free
-	ecmem_ptr<ECPERMISSION> lpECPermissions;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ECPERMISSION> lpECPermissions;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG			cbUnWrapStoreID = 0;
 
 	struct rightsResponse sRightResponse;
@@ -2915,7 +2913,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 
 	*lpcPermissions = 0;
 	if (sRightResponse.pRightsArray != nullptr) {
-		hr = ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
+		hr = MAPIAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
 		     &~lpECPermissions);
 		if (hr != erSuccess)
 			goto exitm;
@@ -2951,7 +2949,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 	int				nChangedItems = 0;
 	unsigned int	i,
 					nItem;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG			cbUnWrapStoreID = 0;
 
 	struct rightsArray rArray;
@@ -3008,7 +3006,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	HRESULT hr = hrSuccess;
 	entryId	sEntryId; // Do not free
 	struct getOwnerResponse sResponse;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 	soap_lock_guard spg(*this);
 
@@ -3083,9 +3081,9 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 		if(lpFlagList->ulFlag[i] == MAPI_UNRESOLVED && sResponse.aFlags.__ptr[i] == MAPI_RESOLVED)
 		{
 			lpAdrList->aEntries[i].cValues = sResponse.sRowSet.__ptr[i].__size;
-			ECFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
+			MAPIFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
 
-			hr = ECAllocateBuffer(sizeof(SPropValue) * lpAdrList->aEntries[i].cValues,
+			hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAdrList->aEntries[i].cValues,
 			     reinterpret_cast<void **>(&lpAdrList->aEntries[i].rgPropVals));
 			if (hr != hrSuccess)
 				goto exitm;
@@ -3160,7 +3158,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
+	er = MAPIAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
 	if (er != erSuccess)
 		goto exitm;
 	lpsQuota->bUseDefaultQuota = sResponse.sQuota.bUseDefaultQuota;
@@ -3327,7 +3325,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
+	er = MAPIAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
 	if (er != erSuccess)
 		goto exitm;
 	lpsQuotaStatus->llStoreSize = sResponse.llStoreSize;
@@ -3411,7 +3409,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		hr = lpCachedResult->hr;
 		if (hr == hrSuccess) {
 			ulLen = lpCachedResult->serverPath.length() + 1;
-			hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
+			hr = MAPIAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 			if (hr == hrSuccess) {
 				memcpy(lpszServerPath, lpCachedResult->serverPath.c_str(), ulLen);
 				*lppszServerPath = lpszServerPath;
@@ -3447,7 +3445,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, std::move(cachedResult));
 	}
 
-	hr = ECAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
+	hr = MAPIAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -3467,7 +3465,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
 	struct getServerDetailsResponse sResponse;
-	ecmem_ptr<struct mv_string8> lpsSvrNameList;
+	memory_ptr<struct mv_string8> lpsSvrNameList;
 	soap_lock_guard spg(*this);
 
 	hr = SvrNameListToSoapMvString8(lpServerNameList, ulFlags & MAPI_UNICODE, &~lpsSvrNameList);
@@ -3498,7 +3496,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	HRESULT						hr = hrSuccess;
 	ECRESULT					er = erSuccess;
 	struct icsChangeResponse	sResponse;
-	ecmem_ptr<ICSCHANGE> lpChanges;
+	memory_ptr<ICSCHANGE> lpChanges;
 	struct xsd__base64Binary	sSourceKey;
 	struct restrictTable		*lpsSoapRestrict = NULL;
 
@@ -3521,7 +3519,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	}
 	END_SOAP_CALL
 
-	er = ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
+	er = MAPIAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
 	if (er != erSuccess)
 		goto exitm;
 
@@ -3531,7 +3529,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 		lpChanges[i].ulFlags = sResponse.sChangesArray.__ptr[i].ulFlags;
 
 		if(sResponse.sChangesArray.__ptr[i].sSourceKey.__size > 0) {
-			er = ECAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
+			er = MAPIAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sSourceKey.lpb));
 			if (er != erSuccess)
 				goto exitm;
@@ -3540,7 +3538,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 		}
 
 		if(sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size > 0) {
-			er = ECAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
+			er = MAPIAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sParentSourceKey.lpb));
 			if (er != erSuccess)
 				goto exitm;
@@ -3593,7 +3591,7 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sStoreId;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	struct xsd__base64Binary	folderSourceKey;

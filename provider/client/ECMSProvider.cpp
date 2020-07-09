@@ -11,7 +11,6 @@
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"

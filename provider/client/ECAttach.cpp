@@ -77,8 +77,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	object_ptr<ECMessage> lpMessage;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue		sPropValue[3];
-	ecmem_ptr<SPropValue> lpPropAttachType;
-	ecmem_ptr<MAPIUID> lpMapiUID;
+	memory_ptr<SPropValue> lpPropAttachType;
 	ULONG ulAttachType = 0, ulObjId = 0;
 	BOOL			fNew = FALSE;
 	scoped_rlock lock(m_hMutexMAPIObject);
@@ -131,7 +130,8 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 			return hr;
 		//Set defaults
 		// Same as ECMAPIFolder::CreateMessage
-		hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
+		memory_ptr<MAPIUID> lpMapiUID;
+		hr = MAPIAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
 		if (hr != hrSuccess)
 			return hr;
 		hr = GetMsgStore()->lpSupport->NewUID(lpMapiUID);
@@ -159,7 +159,7 @@ HRESULT ECAttach::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	auto lpAttach = static_cast<ECAttach *>(lpParam);
 	SizedSPropTagArray(1, sPropArray);
 	ULONG cValues = 0;
-	ecmem_ptr<SPropValue> lpProps;
+	memory_ptr<SPropValue> lpProps;
 
 	switch(ulPropTag) {
 	case PR_ATTACH_DATA_OBJ:

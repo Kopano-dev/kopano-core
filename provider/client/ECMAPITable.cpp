@@ -9,7 +9,6 @@
 #include <mapitags.h>
 #include <mapiguid.h>
 #include <mapiutil.h>
-#include "Mem.h"
 #include "ECMAPITable.h"
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
@@ -278,12 +277,8 @@ HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-
-	if(lpsSortOrderSet)
-		hr = ECAllocateBuffer(CbSSortOrderSet(lpsSortOrderSet), &~lpSortCriteria);
-	else
-		hr = ECAllocateBuffer(CbNewSSortOrderSet(0), &~lpSortCriteria);
-
+	hr = MAPIAllocateBuffer(lpsSortOrderSet != nullptr ?
+	     CbSSortOrderSet(lpsSortOrderSet) : CbNewSSortOrderSet(0), &~lpSortCriteria);
 	if(hr != hrSuccess)
 		return hr;
 	if(lpsSortOrderSet)

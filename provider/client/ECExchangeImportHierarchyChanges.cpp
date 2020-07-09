@@ -16,7 +16,6 @@
 #include "pcutil.hpp"
 #include "ics.h"
 #include <mapiutil.h>
-#include "Mem.h"
 #include "EntryPoint.h"
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
@@ -46,14 +45,13 @@ HRESULT	ECExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **l
 }
 
 HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
-	ecmem_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-
 	//FIXME: give synchronization errors messages
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ECAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
+	memory_ptr<MAPIERROR> lpMapiError;
+	hr = MAPIAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if(hr != hrSuccess)
 		return hr;
 

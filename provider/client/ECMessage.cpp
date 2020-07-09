@@ -25,7 +25,6 @@
 #include <kopano/codepage.h>
 #include "rtfutil.h"
 #include <kopano/Util.h>
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include "WSUtil.h"
@@ -646,7 +645,7 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	}
 
 	// We have at least one body prop. Determine which tags to add.
-	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &~ptrPropTagArrayMod);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &~ptrPropTagArrayMod);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -730,12 +729,12 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				++ulNextAttUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();
-				ecmem_ptr<SPropValue> lpProps;
+				memory_ptr<SPropValue> lpProps;
 				SPropValue sKeyProp;
 
 				// +1 for maybe missing PR_ATTACH_NUM property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
+				hr = MAPIAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 				if (hr != hrSuccess)
 					return hr;
 
@@ -801,7 +800,6 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	object_ptr<ECAttach> lpAttach;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue			sID;
-	ecmem_ptr<SPropValue> lpObjId;
 	ULONG				ulObjId;
 
 	if (lpAttachments == nullptr) {
@@ -819,6 +817,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = ulAttachmentNum;
+	memory_ptr<SPropValue> lpObjId;
 	if (lpAttachments->HrGetRowID(&sID, &~lpObjId) == hrSuccess)
 		ulObjId = lpObjId->Value.ul;
 	else
@@ -951,12 +950,12 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				++ulNextRecipUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();
-				ecmem_ptr<SPropValue> lpProps;
+				memory_ptr<SPropValue> lpProps;
 				SPropValue sKeyProp, *lpPropID = nullptr, *lpPropObjType = nullptr;
 
 				// +1 for maybe missing PR_ROWID property
 				// +1 for maybe missing PR_OBJECT_TYPE property
-				hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
+				hr = MAPIAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 				if (hr != hrSuccess)
 					return hr;
 
@@ -1035,7 +1034,6 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 		return MAPI_E_NO_ACCESS;
 
 	HRESULT hr = hrSuccess;
-	ecmem_ptr<SPropValue> lpRecipProps;
 	ULONG cValuesRecipProps = 0;
 	SPropValue sPropAdd[2], sKeyProp;
 
@@ -1056,6 +1054,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 		ulNextRecipUniqueId = 0;
 	}
 
+	memory_ptr<SPropValue> lpRecipProps;
 	for (unsigned int i = 0; i < lpMods->cEntries; ++i) {
 		if(ulFlags & MODRECIP_ADD || ulFlags == 0) {
 			// Add a new PR_ROWID
@@ -1096,7 +1095,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	SizedSPropTagArray(1, sPropTagArray);
 	unsigned int cValue = 0, ulRepCount = 0, cRecip = 0;
 	unsigned int ulPreprocessFlags = 0, ulSubmitFlag = 0;
-	ecmem_ptr<SPropValue> lpsPropArray, lpRecip;
+	memory_ptr<SPropValue> lpsPropArray, lpRecip;
 	object_ptr<IMAPITable> lpRecipientTable;
 	SizedADRLIST(1, sRowSetRecip);
 	SPropValue sPropResponsibility;
@@ -1161,7 +1160,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
     GetSystemTimeAsFileTime(&ft);
-	hr = ECAllocateBuffer(sizeof(SPropValue) * 2, &~lpsPropArray);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 2, &~lpsPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1181,7 +1180,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	// Setup PR_SUBMIT_FLAGS
 	if (ulPreprocessFlags & NEEDS_PREPROCESSING)
 		ulSubmitFlag = SUBMITFLAG_PREPROCESS;
-	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1202,7 +1201,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 {
-	ecmem_ptr<SPropValue> lpReadReceiptRequest;
+	memory_ptr<SPropValue> lpReadReceiptRequest;
 	memory_ptr<SPropValue> lpsPropUserName;
 	SPropValue		sProp;
 	object_ptr<IMAPIFolder> lpRootFolder;
@@ -1375,8 +1374,8 @@ HRESULT ECMessage::SyncRecips()
 HRESULT ECMessage::SaveRecips()
 {
 	rowset_ptr lpRowSet;
-	ecmem_ptr<SPropValue> lpObjIDs;
-	ecmem_ptr<ULONG> lpulStatus;
+	memory_ptr<SPropValue> lpObjIDs;
+	memory_ptr<unsigned int> lpulStatus;
 	ULONG				ulRealObjType;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
@@ -1464,8 +1463,8 @@ BOOL ECMessage::HasAttachment()
 HRESULT ECMessage::SyncAttachments()
 {
 	rowset_ptr lpRowSet;
-	ecmem_ptr<SPropValue> lpObjIDs;
-	ecmem_ptr<ULONG> lpulStatus;
+	memory_ptr<SPropValue> lpObjIDs;
+	memory_ptr<unsigned int> lpulStatus;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
@@ -1556,7 +1555,6 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG objtype,
 
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 {
-	ecmem_ptr<SPropValue> lpsPropMessageFlags;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// could not have modified (easy way out of my bug)
@@ -1615,7 +1613,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 HRESULT ECMessage::SyncSubject()
 {
 	BOOL bDirtySubject = false, bDirtySubjectPrefix = false;
-	ecmem_ptr<SPropValue> lpPropArray;
 	ULONG			cValues = 0;
 	wchar_t *lpszColon = nullptr, *lpszEnd = nullptr;
 	int				sizePrefix1 = 0;
@@ -1632,6 +1629,7 @@ HRESULT ECMessage::SyncSubject()
 		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
 
 	// Check if subject and prefix in sync
+	memory_ptr<SPropValue> lpPropArray;
 	auto hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &~lpPropArray);
 	if(HR_FAILED(hr))
 		return hr;
@@ -1847,7 +1845,7 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		}
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 		lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
-		hr = ECAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
@@ -1903,7 +1901,7 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->ulPropTag = PR_BODY_HTML;
 		unsigned int ulSize = lpsPropValue->Value.bin.cb;
 		lpData = lpsPropValue->Value.bin.lpb;
-		hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
+		hr = MAPIAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 		if (hr != hrSuccess)
 			break;
 		if (ulSize > 0 && lpData != nullptr)
@@ -2055,7 +2053,6 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 // when saving.
 HRESULT ECMessage::HrLoadProps()
 {
-	ecmem_ptr<SPropValue> lpsBodyProps;
 	static constexpr const SizedSPropTagArray(3, sPropBodyTags) =
 		{3, {PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML}};
 	ULONG cValues = 0;
@@ -2079,6 +2076,7 @@ HRESULT ECMessage::HrLoadProps()
 	 * We won't generate any body except the best body if it wasn't returned by the
 	 * server, which is actually wrong.
 	 */
+	memory_ptr<SPropValue> lpsBodyProps;
 	hr = ECMAPIProp::GetProps(sPropBodyTags, 0, &cValues, &~lpsBodyProps);
 	if (HR_FAILED(hr))
 		return hr;
@@ -2196,7 +2194,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		return MAPI_E_INVALID_OBJECT;
 
 	SPropValue sKeyProp;
-	ecmem_ptr<SPropValue> lpProps;
+	memory_ptr<SPropValue> lpProps;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (lpAttachments == nullptr) {
@@ -2231,7 +2229,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	unsigned int i = 0, ulProps = lpsMapiObject->lstProperties.size();
 
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
-	auto hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2329,7 +2327,7 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 {
 	memory_ptr<SPropValue> ptrPropValue;
-	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
 

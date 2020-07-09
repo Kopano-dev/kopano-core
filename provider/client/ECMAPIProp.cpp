@@ -16,7 +16,6 @@
 #include "ECMsgStore.h"
 #include "ECMAPIProp.h"
 #include "ECMemStream.h"
-#include "Mem.h"
 #include <kopano/Util.h>
 #include <kopano/mapiext.h>
 #include <kopano/CommonUtil.h>
@@ -137,7 +136,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 		hr = lpProp->GetMsgStore()->get_store_guid(g);
 		if (hr != hrSuccess)
 			return kc_perror("get_store_guid", hr);
-		hr = ECAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &g, sizeof(g));
@@ -170,7 +169,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 
 		hr = lpProp->GetMsgStore()->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
 		if(hr == hrSuccess) {
-			hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			hr = MAPIAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr != hrSuccess)
 				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
@@ -179,7 +178,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 		break;
 	}
 	case PROP_ID(PR_MDB_PROVIDER):
-		hr = ECAllocateMore(sizeof(MAPIUID),lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
@@ -199,7 +198,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 
 		if (lpProp->m_lpParentID != NULL) {
-			hr = ECAllocateMore(lpProp->m_cbParentID, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			hr = MAPIAllocateMore(lpProp->m_cbParentID, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr != hrSuccess)
 				break;
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpParentID, lpProp->m_cbParentID);
@@ -214,7 +213,7 @@ HRESULT ECMAPIProp::DefaultMAPIGetProp(unsigned int ulPropTag,
 		GUID sServerGuid{};
 		hr = ((ECMAPIProp*)lpParam)->m_lpRoot->GetMsgStore()->lpTransport->GetServerGUID(&sServerGuid);
 		if (hr == hrSuccess)
-			hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr == hrSuccess) {
 			memcpy(lpsPropValue->Value.bin.lpb, &sServerGuid, sizeof(GUID));
 			lpsPropValue->Value.bin.cb = sizeof(GUID);
@@ -273,7 +272,7 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 		hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		hr = MAPIAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
@@ -311,7 +310,7 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 			return kc_perror("get_store_guid", hr);
 		// Reset type to binary
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
-		hr = ECAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(g), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &g, sizeof(g));
@@ -320,7 +319,7 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 	}
 	case CHANGE_PROP_TYPE(PR_MDB_PROVIDER, PT_ERROR):
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
-		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+		hr = MAPIAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
@@ -351,7 +350,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		return MAPI_E_NOT_FOUND;
 
 	object_ptr<ECMemStream> lpStream;
-	ecmem_ptr<SPropValue> lpsPropValue;
+	memory_ptr<SPropValue> lpsPropValue;
 
 	if (*lpiid == IID_IStream && !m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
@@ -380,7 +379,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	if (ulFlags & MAPI_MODIFY)
 		ulInterfaceOptions |= STGM_WRITE;
 	// IStream requested for a property
-	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 	if (hr != hrSuccess)
 		return hr;
 	// Yank the property in from disk if it wasn't loaded yet
@@ -671,11 +670,11 @@ HRESULT ECMAPIProp::GetIDsFromNames(unsigned int cPropNames, MAPINAMEID **lppPro
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
 	auto lpStreamData = static_cast<STREAMDATA *>(lpData);
-	ecmem_ptr<SPropValue> lpPropValue;
+	memory_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulSize = 0;
 	object_ptr<ECMemStream> lpECStream;
-	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Stat(&sStat, 0);
@@ -684,7 +683,8 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 
 	if(PROP_TYPE(lpStreamData->ulPropTag) == PT_STRING8) {
 		char *buffer = nullptr;
-		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + 1, lpPropValue, reinterpret_cast<void **>(&buffer));
+		hr = MAPIAllocateMore(static_cast<unsigned int>(sStat.cbSize.QuadPart + 1),
+		     lpPropValue, reinterpret_cast<void **>(&buffer));
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
@@ -693,7 +693,7 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		lpPropValue->Value.lpszA = buffer;
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
 		wchar_t *buffer = nullptr;
-		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart + sizeof(wchar_t),
+		hr = MAPIAllocateMore(static_cast<unsigned int>(sStat.cbSize.QuadPart + sizeof(wchar_t)),
 		     lpPropValue, reinterpret_cast<void **>(&buffer));
 		if(hr != hrSuccess)
 			return hr;

@@ -13,7 +13,6 @@
 #include <utility>
 #include <cassert>
 #include "kcore.hpp"
-#include "Mem.h"
 #include "ECMSProvider.h"
 #include "ECABContainer.h"
 #include <kopano/stringutil.h>

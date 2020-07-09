@@ -6,7 +6,6 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMAPIFolderPublic.h"
-#include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <kopano/CommonUtil.h>

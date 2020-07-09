@@ -20,7 +20,6 @@
 #include <kopano/mapiguidext.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
-#include "Mem.h"
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/charset/convstring.h>
@@ -594,8 +593,7 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
 	LPENTRYID	lpEntryId = NULL;
 	if (CoCreateGuid(&eid.uniqueId) != hrSuccess)
 		return MAPI_E_CALL_FAILED;
-
-	auto hr = ECAllocateBuffer(sizeof(eid), reinterpret_cast<void **>(&lpEntryId));
+	auto hr = MAPIAllocateBuffer(sizeof(eid), reinterpret_cast<void **>(&lpEntryId));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -672,7 +670,7 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::s
 	if (strncmp(lpszUrl, "pseudo://", 9))
 		return MAPI_E_NOT_FOUND;
 
-	ecmem_ptr<char> lpszServerPath;
+	memory_ptr<char> lpszServerPath;
 	bool		bIsPeer = false;
 	auto hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
