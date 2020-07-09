@@ -3942,16 +3942,15 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
-		} else {
-			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
-
-			if (sProp.Value.ul > sPropEnd.Value.ul)
-				std::swap(sProp.Value.ul, sPropEnd.Value.ul);
-			*rst += ECAndRestriction(
-				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
-				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
+			continue;
 		}
+		sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
+		sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
+		if (sProp.Value.ul > sPropEnd.Value.ul)
+			std::swap(sProp.Value.ul, sPropEnd.Value.ul);
+		*rst += ECAndRestriction(
+			ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
+			ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
 	}
 	ret.reset(rst);
 	return hrSuccess;
