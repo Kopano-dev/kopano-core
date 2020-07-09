@@ -97,7 +97,7 @@ class default_delete {
 template<typename T, typename Deleter = default_delete> class memory_ptr {
 	public:
 	typedef T *pointer;
-	constexpr memory_ptr(void) noexcept {}
+	constexpr memory_ptr() noexcept = default;
 	constexpr memory_ptr(std::nullptr_t) noexcept {}
 	explicit memory_ptr(T *p) noexcept : m_ptr(p) {}
 	~memory_ptr(void)
@@ -155,10 +155,9 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 		reset();
 		return *this;
 	}
+	void operator&() const noexcept = delete;
 
 	private:
-	void operator&(void) const noexcept {} /* flag everyone */
-
 	T *m_ptr = nullptr;
 };
 
@@ -183,7 +182,7 @@ template<typename T> class object_rcguard final : public T {
 template<typename T> class object_ptr {
 	public:
 	typedef T *pointer;
-	constexpr object_ptr(void) noexcept {}
+	constexpr object_ptr() noexcept = default;
 	constexpr object_ptr(std::nullptr_t) noexcept {}
 	explicit object_ptr(T *p) : m_ptr(p)
 	{
@@ -253,10 +252,10 @@ template<typename T> class object_ptr {
 			old->Release();
 		return *this;
 	}
-	private:
-	void operator=(std::nullptr_t) noexcept {}
-	void operator&(void) const noexcept {} /* flag everyone */
+	void operator=(std::nullptr_t) noexcept = delete;
+	void operator&() const noexcept = delete;
 
+	private:
 	T *m_ptr = nullptr;
 };
 
