@@ -6,36 +6,7 @@
 #include <mapispi.h>
 #include <mapicode.h>
 #include "Mem.h"
-
-LPMALLOC			_pmalloc;
-LPALLOCATEBUFFER	_pfnAllocBuf;
-LPALLOCATEMORE		_pfnAllocMore;
-LPFREEBUFFER		_pfnFreeBuf;
-HINSTANCE			_hInstance;
-
-// This is the same as client-side MAPIFreeBuffer, but uses
-// the linked memory routines passed in during MSProviderInit()
-
-// Use the EC* functions to allocate memory that will be
-// passed back to the caller through MAPI
-
-HRESULT ECFreeBuffer(void *lpvoid) {
-	if(_pfnFreeBuf == NULL)
-		return MAPI_E_CALL_FAILED;
-	else return _pfnFreeBuf(lpvoid);
-}
-
-HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid) {
-	if(_pfnAllocBuf == NULL)
-		return MAPI_E_CALL_FAILED;
-	else return _pfnAllocBuf(cbSize, lpvoid);
-}
-
-HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid) {
-	if(_pfnAllocMore == NULL)
-		return MAPI_E_CALL_FAILED;
-	else return _pfnAllocMore(cbSize, lpBase, lpvoid);
-}
+#include "IECPropStorage.h"
 
 MAPIOBJECT::~MAPIOBJECT()
 {

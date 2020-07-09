@@ -29,12 +29,6 @@
 
 using namespace KC;
 
-extern LPMALLOC _pmalloc;
-extern LPALLOCATEBUFFER _pfnAllocBuf;
-extern LPALLOCATEMORE _pfnAllocMore;
-extern LPFREEBUFFER _pfnFreeBuf;
-extern HINSTANCE _hInstance;
-
 struct initprov {
 	IProviderAdmin *provadm;
 	MAPIUID *provuid;
@@ -96,14 +90,6 @@ HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	if (ulMAPIver != CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
-
-	// Save the pointers for later use
-	_pmalloc = pmalloc;
-	_pfnAllocBuf = pfnAllocBuf;
-	_pfnAllocMore = pfnAllocMore;
-	_pfnFreeBuf = pfnFreeBuf;
-	_hInstance = hInstance;
-
 	// This object is created for the lifetime of the DLL and destroyed when the
 	// DLL is closed (same on linux, but then for the shared library);
 	auto hr = ECMSProviderSwitch::Create(&~lpMSProvider);
@@ -522,19 +508,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	convert_context	converter;
 	SPropValue spv;
 
-	_hInstance = hInst;
-
-	if (psup) {
-		hr = psup->GetMemAllocRoutines(&_pfnAllocBuf, &_pfnAllocMore, &_pfnFreeBuf);
-		if (hr != hrSuccess)
-			assert(false);
-	} else {
-		// Support object not available on linux at this time... TODO: fix mapi4linux?
-		_pfnAllocBuf = MAPIAllocateBuffer;
-		_pfnAllocMore = MAPIAllocateMore;
-		_pfnFreeBuf = MAPIFreeBuffer;
-	}
-
 	// Logon defaults
 	std::string strType = "http", strServerPort = "236";
 	object_ptr<IProfSect> ptrGlobalProfSect, ptrProfSect;
@@ -622,13 +595,6 @@ HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
-	// Save the pointer to the allocation routines in global variables
-	_pmalloc = lpMalloc;
-	_pfnAllocBuf = lpAllocateBuffer;
-	_pfnAllocMore = lpAllocateMore;
-	_pfnFreeBuf = lpFreeBuffer;
-	_hInstance = hInstance;
-
 	object_ptr<ECABProviderSwitch> lpABProvider;
 	HRESULT hr = ECABProviderSwitch::Create(&~lpABProvider);
 	if (hr == hrSuccess)

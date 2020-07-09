@@ -4,16 +4,7 @@
  */
 #pragma once
 #include <kopano/memory.hpp>
-#include "IECPropStorage.h"
-
-// Linked memory routines
-HRESULT ECFreeBuffer(void *lpvoid);
-HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid);
-HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
-
-class client_delete {
-	public:
-	void operator()(void *x) const { ECFreeBuffer(x); }
-};
-
-template<typename T> using ecmem_ptr = KC::memory_ptr<T, client_delete>;
+#define ECAllocateBuffer MAPIAllocateBuffer
+#define ECAllocateMore MAPIAllocateMore
+#define ECFreeBuffer MAPIFreeBuffer
+template<typename T> using ecmem_ptr = KC::memory_ptr<T>;
