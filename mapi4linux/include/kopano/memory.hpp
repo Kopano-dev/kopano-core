@@ -208,14 +208,7 @@ template<typename T> class object_ptr {
 	{
 		reset(o.m_ptr);
 	}
-	object_ptr(object_ptr &&o)
-	{
-		auto old = get();
-		m_ptr = o.m_ptr;
-		o.m_ptr = pointer();
-		if (old != pointer())
-			old->Release();
-	}
+	object_ptr(object_ptr &&o) : m_ptr(o.m_ptr) { o.m_ptr = pointer(); }
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
 #ifdef KC_DISALLOW_OBJECTPTR_REFMOD
