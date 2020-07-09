@@ -416,7 +416,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECSessionGroupManager.cpp provider/client/ECSessionGroupManager.h \
 	provider/client/EntryPoint.h \
 	provider/client/IECPropStorage.h \
-	provider/client/Mem.cpp \
 	provider/client/ProviderUtil.cpp provider/client/ProviderUtil.h \
 	provider/client/SessionGroupData.cpp provider/client/SessionGroupData.h \
 	provider/client/WSABPropStorage.cpp provider/client/WSABPropStorage.h \

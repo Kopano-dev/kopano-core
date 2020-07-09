@@ -12,6 +12,7 @@
 #include <kopano/Util.h>
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
+#include "IECPropStorage.h"
 
 /*
  * This is a PropStorage object for use with the WebServices storage platform
@@ -539,4 +540,12 @@ HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {
 HRESULT WSMAPIPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	static_cast<WSMAPIPropStorage *>(lpParam)->ecSessionId = sessionId;
 	return hrSuccess;
+}
+
+MAPIOBJECT::~MAPIOBJECT()
+{
+	for (auto &obj : lstChildren)
+		delete obj;
+	if (lpInstanceID != nullptr)
+		MAPIFreeBuffer(lpInstanceID);
 }
