@@ -355,7 +355,7 @@ HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey
 			auto hr = MAPIAllocateBuffer(cbKey, &~newkey);
 			if (hr != hrSuccess)
 				return hr;
-			iter->second->lpKey.reset(newkey);
+			iter->second->lpKey = std::move(newkey);
 		}
 
 		memcpy(iter->second->lpKey, lpKey, cbKey);

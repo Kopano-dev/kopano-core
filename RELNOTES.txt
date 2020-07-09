@@ -168,10 +168,18 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.15 (2020-07-09)
+===================
+Fixes:
 * libserver: fix off by one crash in
   ECGenericObjectTable::AddCategoryBeforeAddRow [KC-1798]
+* libserver: fix crash in ECNotifyClient::Reregister [KC-1806]
+* storeadm: support -D on global public store [KS-45824]
+* storeadm: support -D on company public stores [KS-45824]
+Changes:
+* storeadm: -O distinguishes "entities with no store" more
+  precisely now as "users without private store" and
+  "companies without public store" [KC-1805]
 
 
 8.7.14 (2020-06-11)

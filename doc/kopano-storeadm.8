@@ -26,7 +26,8 @@ Create a new store and attach it to the user account specified with \fB\-n\fP.
 That account must not have an associated store yet.
 .TP
 \fB\-D\fP
-Detach (unhook) the store from the user account specified with \fB\-n\fP.
+Detach (unhook) the store from the user account specified with \fB\-n\fP. Note
+that the stores of the SYSTEM account cannot be detached.
 .TP
 \fB\-M\fP
 Lists all mailboxes (stores) the server knows about.
@@ -36,7 +37,9 @@ Shows a list of stores that are not hooked to any user. The GUIDs shown in the
 output can be passed to \fB\-A\fP or \fB\-R\fP.
 .TP
 \fB\-P\fP
-Create a public store. Only one public store can be created.
+Create a public store. Only one public store can be created. In a multi-tenant
+environment, one public store can be created per company, to be specified with
+the \fB\-k\fP option.
 .TP
 \fB\-R\fP \fIguid\fP
 Remove an orphaned store. It actually only marks it as deleted in the database
@@ -84,9 +87,13 @@ account, copy the orphaned store's contents into "Public Store\\Admin\\Deleted
 User - username".  The orphaned store is left unmodified.
 .TP
 \fB\-t\fP {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}
-The store type for the entity specified with \fB\-n\fP. If not specified,
-\fB\-t user\fP is implicitly assumed. (This option only has an effect when used
-with \fB\-A\fP or \fB\-D\fP.)
+Affects how the \fB\-n\fP argument is interpreted and selects a store type.
+"user" treats \-n as a user name and selects the private store.
+"archive" treats \-n as a user name and selects the archive store.
+"group" treats \-n as a group name and selects the public store.
+"company" treats \-n as a company name and selects the public store.
+If not specified, \fB\-t user\fP is the default.
+This option only has an effect when used with \fB\-A\fP or \fB\-D\fP.
 .TP
 \fB\-v\fP
 Raise the loglevel by one count. (The default level is 3; maximum is 6.)
@@ -96,15 +103,22 @@ Create new store for user: kopano\-storeadm \-Cn user1
 .IP \(bu 4
 Create new store with German names: kopano\-storeadm \-Cn user1 \-l de_DE
 .IP \(bu 4
+Create global public store: kopano\-storeadm \-P
+.IP \(bu 4
+Create company public store: kopano\-storeadm \-Pk companyname
+.IP \(bu 4
 Attach orphaned store to user: kopano\-storeadm \-A 24680B \-n user2
 .IP \(bu 4
 Copy orphaned store to public: kopano\-storeadm \-A 24680B \-p
 .IP \(bu 4
-Detach store from user: kopano\-storeadm \-Dn user2
+Detach private store from user: kopano\-storeadm \-Dn user2
+.IP \(bu 4
+Detach global public store (requires server to not run in tenant mode):
+kopano\-storeadm \-Dn Everyone \-t group
+.IP \(bu 4
+Detach public store from company: kopano\-storeadm \-Dn companyname \-t company
 .IP \(bu 4
 Remove store: kopano\-storeadm \-R 24680B
-.IP \(bu 4
-Create public store: kopano\-storeadm \-P
 .IP \(bu 4
 Retranslate folder names into French: kopano\-storeadm \-Yn user1 \-l fr_FR
 .SH Configuration file
