@@ -1,5 +1,5 @@
-8.7.x
-=====
+8.7.15 (2020-07-09)
+===================
 Fixes:
 * libserver: fix off by one crash in
   ECGenericObjectTable::AddCategoryBeforeAddRow [KC-1798]
