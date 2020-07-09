@@ -1,5 +1,6 @@
-9.x (2020-07-08)
-================
+9.0.10 (2020-07-09)
+===================
+Changes from the 8.7.x branch up to 8.7.15 are included.
 Fixes:
 * mapi4linux: fix a refcycle between session and stores/
   move store cache to ZCONTACTS provider [KC-1791]
