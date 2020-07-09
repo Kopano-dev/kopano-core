@@ -115,7 +115,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 {
 	if (lppPropTags == nullptr || *lppPropTags == nullptr)
 		/* Exchange does not support this, so neither do we. */
-		return MAPI_E_TOO_BIG;
+		return MAPI_E_INVALID_PARAMETER;
 
 	ecmem_ptr<MAPINAMEID *> lppPropNames, lppResolved;
 	ecmem_ptr<SPropTagArray> lpsUnresolved;
@@ -192,7 +192,7 @@ HRESULT ECNamedProp::GetIDsFromNames(unsigned int cPropNames,
 {
 	if (cPropNames == 0 || lppPropNames == nullptr)
 		/* Exchange does not support this, so neither do we. */
-		return MAPI_E_TOO_BIG;
+		return MAPI_E_INVALID_PARAMETER;
 
 	ecmem_ptr<SPropTagArray> lpsPropTagArray;
 	std::unique_ptr<MAPINAMEID *[]> lppPropNamesUnresolved;
