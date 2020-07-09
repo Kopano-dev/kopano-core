@@ -33,11 +33,7 @@ template<typename T> class memory_proxy KC_FINAL {
 template<typename T> class memory_proxy2 KC_FINAL {
 	public:
 	memory_proxy2(T **p) noexcept : m_ptr(p) {}
-	memory_proxy<T> operator&(void)
-	{
-		return memory_proxy<T>(m_ptr);
-	}
-
+	memory_proxy<T> operator&() noexcept { return memory_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
 };
@@ -75,11 +71,7 @@ template<> class object_proxy<IUnknown> KC_FINAL {
 template<typename T> class object_proxy2 KC_FINAL {
 	public:
 	object_proxy2(T **p) noexcept : m_ptr(p) {}
-	object_proxy<T> operator&(void)
-	{
-		return object_proxy<T>(m_ptr);
-	}
-
+	object_proxy<T> operator&() noexcept { return object_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
 };
@@ -120,7 +112,7 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 		m_ptr = pointer();
 	}
 	memory_ptr(const memory_ptr &) = delete;
-	memory_ptr(memory_ptr &&o) : m_ptr(o.release()) {}
+	memory_ptr(memory_ptr &&o) noexcept : m_ptr(o.release()) {}
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
 	T *operator->(void) const noexcept { return m_ptr; }
@@ -208,7 +200,7 @@ template<typename T> class object_ptr {
 	{
 		reset(o.m_ptr);
 	}
-	object_ptr(object_ptr &&o) : m_ptr(o.m_ptr) { o.m_ptr = pointer(); }
+	object_ptr(object_ptr &&o) noexcept : m_ptr(o.m_ptr) { o.m_ptr = pointer(); }
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
 #ifdef KC_DISALLOW_OBJECTPTR_REFMOD
