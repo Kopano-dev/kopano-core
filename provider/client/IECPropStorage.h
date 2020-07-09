@@ -38,13 +38,13 @@ struct MAPIOBJECT {
 	~MAPIOBJECT();
 	void operator=(const MAPIOBJECT &) = delete;
 
-	bool operator < (const MAPIOBJECT &other) const {
+	bool operator<(const MAPIOBJECT &other) const noexcept {
 		return std::tie(ulObjType, ulUniqueId) <
 		       std::tie(other.ulObjType, other.ulUniqueId);
 	};
 
 	struct CompareMAPIOBJECT {
-		bool operator()(const MAPIOBJECT *a, const MAPIOBJECT *b) const
+		bool operator()(const MAPIOBJECT *a, const MAPIOBJECT *b) const noexcept
 		{
 			return *a < *b;
 		}
