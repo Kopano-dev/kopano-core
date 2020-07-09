@@ -29,7 +29,6 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/mapiext.h>
-#include "WSABPropStorage.h"
 #include <kopano/ecversion.h>
 #include "ClientUtil.h"
 #include "ECSessionGroupManager.h"
@@ -39,6 +38,7 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>
 #include "SOAPSock.h"
+#include "WSMAPIPropStorage.h"
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
 #ifdef HAVE_GSSAPI

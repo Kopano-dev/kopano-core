@@ -12,10 +12,49 @@
 #include "WSTransport.h"
 #include <mapi.h>
 #include <mapispi.h>
+#include "ECABContainer.h"
+#include "WSTableView.h"
 
 namespace KC {
 class convert_context;
 }
+
+class WSABPropStorage KC_FINAL_OPG :
+    public KC::ECUnknown, public IECPropStorage {
+	protected:
+	WSABPropStorage(unsigned int eid_size, const ENTRYID *, KC::ECSESSIONID, WSTransport *);
+	virtual ~WSABPropStorage();
+
+	public:
+	static HRESULT Create(unsigned int eid_size, const ENTRYID *, KC::ECSESSIONID, WSTransport *, WSABPropStorage **);
+	virtual HRESULT QueryInterface(const IID &, void **) override;
+	static HRESULT Reload(void *parm, KC::ECSESSIONID);
+
+	private:
+	// Get a single (large) property
+	virtual HRESULT HrLoadProp(unsigned int obj_id, unsigned int proptag, SPropValue **) override;
+	// Save complete object to disk
+	virtual HRESULT HrSaveObject(unsigned int flags, MAPIOBJECT *) override;
+	// Load complete object from disk
+	virtual HRESULT HrLoadObject(MAPIOBJECT **) override;
+	virtual IECPropStorage *GetServerStorage() override { return this; }
+
+	entryId m_sEntryId;
+	KC::ECSESSIONID ecSessionId;
+	KC::object_ptr<WSTransport> m_lpTransport;
+	unsigned int m_ulSessionReloadCallback;
+	ALLOC_WRAP_FRIEND;
+};
+
+class WSABTableView KC_FINAL_OPG : public WSTableView {
+	public:
+	static HRESULT Create(unsigned int type, unsigned int flags, KC::ECSESSIONID, unsigned int eid_size, const ENTRYID *, ECABLogon *, WSTransport *, WSTableView **);
+	virtual	HRESULT	QueryInterface(const IID &, void **) override;
+
+	protected:
+	WSABTableView(unsigned int type, unsigned int flags, KC::ECSESSIONID, unsigned int eid_size, const ENTRYID *, ECABLogon *, WSTransport *);
+	ALLOC_WRAP_FRIEND;
+};
 
 class WSMAPIPropStorage KC_FINAL_OPG : public KC::ECUnknown, public IECPropStorage {
 protected:
