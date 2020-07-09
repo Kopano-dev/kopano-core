@@ -46,13 +46,16 @@ Enhancements:
   "cache_cell_size=0.5G"
 
 
-9.x (2020-07-08)
-================
+9.0.10 (2020-07-09)
+===================
+Changes from the 8.7.x branch up to 8.7.15 are included.
 Fixes:
 * mapi4linux: fix a refcycle between session and stores/
   move store cache to ZCONTACTS provider [KC-1791]
+* m4lcommon: avoid losing rows from ECMemTable
 Changes:
 * GetContentsTable now produces correct PR_ACCESS columns [KC-1755]
+* cli: the utility now emits an obsoletion warning [KC-1778]
 
 
 9.0.9 (2020-06-22)
@@ -216,10 +219,18 @@ Packaging changes:
 * gsoap 2.8.73 or higher is now required
 
 
-8.7.x
-=====
+8.7.15 (2020-07-09)
+===================
+Fixes:
 * libserver: fix off by one crash in
   ECGenericObjectTable::AddCategoryBeforeAddRow [KC-1798]
+* libserver: fix crash in ECNotifyClient::Reregister [KC-1806]
+* storeadm: support -D on global public store [KS-45824]
+* storeadm: support -D on company public stores [KS-45824]
+Changes:
+* storeadm: -O distinguishes "entities with no store" more
+  precisely now as "users without private store" and
+  "companies without public store" [KC-1805]
 
 
 8.7.14 (2020-06-11)

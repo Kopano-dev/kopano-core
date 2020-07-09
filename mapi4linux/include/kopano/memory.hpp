@@ -139,6 +139,7 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 		if (p != pointer())
 			Deleter()(p);
 	}
+	void reset(const memory_ptr &) noexcept = delete;
 	void swap(memory_ptr &o) noexcept
 	{
 		std::swap(m_ptr, o.m_ptr);
