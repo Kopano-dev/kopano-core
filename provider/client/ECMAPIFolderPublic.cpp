@@ -143,7 +143,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 			break;
 		}
 		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
+			const auto strTmp = convert_to<std::wstring>(lpszName);
 			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wchar_t),
 			     lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszW));
 			if (hr != hrSuccess)
@@ -152,7 +152,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 			lpsPropValue->ulPropTag = PR_DISPLAY_NAME_W;
 			break;
 		}
-		const std::string strTmp = convert_to<std::string>(lpszName);
+		const auto strTmp = convert_to<std::string>(lpszName);
 		hr = MAPIAllocateMore(strTmp.size() + 1, lpBase,
 		     reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 		if (hr != hrSuccess)

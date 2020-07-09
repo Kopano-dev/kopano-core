@@ -2080,7 +2080,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		 * unreviewed use in MAPIToVMIME.
 		 */
 		std::string strBuffOut = content_transfer_decode(vmBody);
-		std::wstring strUnicodeText = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
+		auto strUnicodeText = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
 		strUnicodeText.erase(std::remove(strUnicodeText.begin(), strUnicodeText.end(), L'\0'), strUnicodeText.end());
 
 		if (HrGetCPByCharset(mime_charset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess)
@@ -2313,7 +2313,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue())->getSubType() ==
 		    vmime::mediaTypes::TEXT_PLAIN) {
 			// escape and wrap with <pre> tags
-			std::wstring strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
+			auto strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
 			strHTML = "<pre>";
 			auto hr = Util::HrTextToHtml(strwBody.c_str(), strHTML, sCodepage.Value.ul);
 			if (hr != hrSuccess)

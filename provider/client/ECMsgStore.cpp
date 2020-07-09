@@ -626,8 +626,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	if (lppszExplicitClass == nullptr)
 		return hrSuccess;
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring dst = convert_to<std::wstring>(strExplicitClass);
-
+		auto dst = convert_to<std::wstring>(strExplicitClass);
 		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), reinterpret_cast<void **>(lppszExplicitClass));
 		if (hr != hrSuccess)
 			return hr;
@@ -635,7 +634,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 		return hrSuccess;
 	}
 
-	std::string dst = convert_to<std::string>(strExplicitClass);
+	auto dst = convert_to<std::string>(strExplicitClass);
 	hr = MAPIAllocateBuffer(dst.length() + 1, reinterpret_cast<void **>(lppszExplicitClass));
 	if (hr != hrSuccess)
 		return hr;
@@ -1161,7 +1160,7 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	memory_ptr<char> ptrServerPath;
 	std::string		strPseudoUrl;
 	convstring		tstrServerName(lpszServerName, ulFlags);
-	const utf8string strUserName = convert_to<utf8string>("SYSTEM");
+	const auto strUserName = convert_to<utf8string>("SYSTEM");
 
 	if (!tstrServerName.null_or_empty()) {
 		strPseudoUrl = "pseudo://";

@@ -979,14 +979,14 @@ public:
 				bError = true;
 			} else if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				std::wstring wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
+				const auto wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
 				hr = MAPIAllocateMore((wstrTmp.length() + 1) * sizeof *lpProps[i].Value.lpszW, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszW));
 				if (hr != hrSuccess)
 					return hr;
 				wcscpy(lpProps[i].Value.lpszW, wstrTmp.c_str());
 			} else if (PROP_TYPE(lpFind->ulPropTag) ==  PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) == PT_STRING8) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				std::string strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
+				const auto strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
 				hr = MAPIAllocateMore(strTmp.length() + 1, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszA));
 				if (hr != hrSuccess)
 					return hr;

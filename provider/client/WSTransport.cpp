@@ -136,9 +136,9 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	auto bPipeConnection = strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0;
 	struct logonResponse sResponse;
 	convert_context	converter;
-	utf8string	strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
-	utf8string	strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
-	utf8string	strImpersonateUser = converter.convert_to<utf8string>(sProfileProps.strImpersonateUser);
+	auto strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
+	auto strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
+	auto strImpersonateUser = converter.convert_to<utf8string>(sProfileProps.strImpersonateUser);
 	soap_lock_guard spg(*this);
 
 	if (m_lpCmd != nullptr) {
@@ -1080,7 +1080,7 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 			break;
 		case MNID_STRING: {
 			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
-			utf8string strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
+			auto strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
 			sNamedProps.__ptr[i].lpString = soap_strdup(nullptr, strNameUTF8.c_str());
 			break;
 		}
@@ -1165,8 +1165,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			lppNames[i]->Kind.lID = *sResponse.lpsNames.__ptr[i].lpId;
 			lppNames[i]->ulKind = MNID_ID;
 		} else if(sResponse.lpsNames.__ptr[i].lpString) {
-			std::wstring strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
-
+			auto strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
 			er = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (er != erSuccess)
