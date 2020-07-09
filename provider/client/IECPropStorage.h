@@ -34,7 +34,9 @@ struct MAPIOBJECT {
 	MAPIOBJECT(unsigned int uqid, unsigned int id, unsigned int type) :
 		ulUniqueId(uqid), ulObjId(id), ulObjType(type)
 	{}
+	MAPIOBJECT(const MAPIOBJECT &);
 	~MAPIOBJECT();
+	void operator=(const MAPIOBJECT &) = delete;
 
 	bool operator < (const MAPIOBJECT &other) const {
 		return std::tie(ulObjType, ulUniqueId) <
@@ -47,21 +49,6 @@ struct MAPIOBJECT {
 			return *a < *b;
 		}
 	};
-
-	MAPIOBJECT(const MAPIOBJECT &s) :
-		lstDeleted(s.lstDeleted), lstAvailable(s.lstAvailable),
-		lstModified(s.lstModified), lstProperties(s.lstProperties),
-		bChangedInstance(s.bChangedInstance), bChanged(s.bChanged),
-		bDelete(s.bDelete), ulUniqueId(s.ulUniqueId),
-		ulObjId(s.ulObjId), ulObjType(s.ulObjType)
-	{
-		KC::Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
-			&cbInstanceID, reinterpret_cast<ENTRYID **>(&lpInstanceID));
-		for (const auto &i : s.lstChildren)
-			lstChildren.emplace(new MAPIOBJECT(*i));
-	};
-
-	void operator=(const MAPIOBJECT &) = delete;
 
 	/* data */
 	std::set<MAPIOBJECT *, CompareMAPIOBJECT> lstChildren; /* ECSavedObjects */
