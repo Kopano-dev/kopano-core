@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <kopano/ECUnknown.h>
 #include "m4l.mapisvc.h"
 #include <mapispi.h>
@@ -14,11 +15,12 @@
 #include <edkmdb.h>
 
 struct M4LSUPPORTADVISE {
-	M4LSUPPORTADVISE(NOTIFKEY *k, ULONG m, ULONG f, IMAPIAdviseSink *s) :
-		lpKey(k), ulEventMask(m), ulFlags(f), lpAdviseSink(s)
+	M4LSUPPORTADVISE(KC::memory_ptr<NOTIFKEY> &&k, unsigned int m,
+	    unsigned int f, IMAPIAdviseSink *s) :
+		lpKey(std::move(k)), ulEventMask(m), ulFlags(f), lpAdviseSink(s)
 	{}
 
-	LPNOTIFKEY lpKey;
+	KC::memory_ptr<NOTIFKEY> lpKey;
 	unsigned int ulEventMask, ulFlags;
 	LPMAPIADVISESINK lpAdviseSink;
 };
