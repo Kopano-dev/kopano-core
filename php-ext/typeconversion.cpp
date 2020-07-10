@@ -44,10 +44,10 @@ extern "C" {
 #include <kopano/charset/convert.h>
 
 // Calls MAPIAllocateMore or MAPIAllocateBuffer according to whether an lpBase was passed or not
-#define MAPI_ALLOC(n, lpBase, lpp) (lpBase ? MAPIAllocateMore(n, lpBase, lpp) : MAPIAllocateBuffer(n, lpp))
+#define MAPI_ALLOC(n, lpBase, lpp) ((lpBase) ? MAPIAllocateMore((n), (lpBase), (lpp)) : MAPIAllocateBuffer((n), (lpp)))
 // Frees the buffer with MAPIFreeBuffer if lpBase is NOT set, we can't directly free data allocated with MAPIAllocateMore ..
 #define MAPI_FREE(lpbase, lpp) \
-	do { if (lpBase == nullptr) MAPIFreeBuffer(lpp); } while (false)
+	do { if ((lpBase) == nullptr) MAPIFreeBuffer(lpp); } while (false)
 #define BEFORE_PHP7_2(s) const_cast<char *>(s)
 
 using namespace KC;
