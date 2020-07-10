@@ -19,7 +19,7 @@ namespace KC {
 
 template<typename T> class memory_proxy KC_FINAL {
 	public:
-	memory_proxy(T **p) noexcept : m_ptr(p) {}
+	explicit memory_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(T *), "This hack won't work");
@@ -32,19 +32,15 @@ template<typename T> class memory_proxy KC_FINAL {
 
 template<typename T> class memory_proxy2 KC_FINAL {
 	public:
-	memory_proxy2(T **p) noexcept : m_ptr(p) {}
-	memory_proxy<T> operator&(void)
-	{
-		return memory_proxy<T>(m_ptr);
-	}
-
+	explicit memory_proxy2(T **p) noexcept : m_ptr(p) {}
+	memory_proxy<T> operator&() noexcept { return memory_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
 };
 
 template<typename T> class object_proxy KC_FINAL {
 	public:
-	object_proxy(T **p) noexcept : m_ptr(p) {}
+	explicit object_proxy(T **p) noexcept : m_ptr(p) {}
 	operator T **(void) noexcept { return m_ptr; }
 	operator void **() noexcept { return as<void>(); }
 	operator IUnknown **() noexcept { return as<IUnknown>(); }
@@ -61,7 +57,7 @@ template<typename T> class object_proxy KC_FINAL {
 
 template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
-	object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
+	explicit object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
 	operator IUnknown **(void) noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(IUnknown *), "This hack won't work");
@@ -74,12 +70,8 @@ template<> class object_proxy<IUnknown> KC_FINAL {
 
 template<typename T> class object_proxy2 KC_FINAL {
 	public:
-	object_proxy2(T **p) noexcept : m_ptr(p) {}
-	object_proxy<T> operator&(void)
-	{
-		return object_proxy<T>(m_ptr);
-	}
-
+	explicit object_proxy2(T **p) noexcept : m_ptr(p) {}
+	object_proxy<T> operator&() noexcept { return object_proxy<T>(m_ptr); }
 	private:
 	T **m_ptr;
 };
@@ -105,7 +97,7 @@ class default_delete {
 template<typename T, typename Deleter = default_delete> class memory_ptr {
 	public:
 	typedef T *pointer;
-	constexpr memory_ptr(void) noexcept {}
+	constexpr memory_ptr() noexcept = default;
 	constexpr memory_ptr(std::nullptr_t) noexcept {}
 	explicit memory_ptr(T *p) noexcept : m_ptr(p) {}
 	~memory_ptr(void)
@@ -120,7 +112,7 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 		m_ptr = pointer();
 	}
 	memory_ptr(const memory_ptr &) = delete;
-	memory_ptr(memory_ptr &&o) : m_ptr(o.release()) {}
+	memory_ptr(memory_ptr &&o) noexcept : m_ptr(o.release()) {}
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
 	T *operator->(void) const noexcept { return m_ptr; }
@@ -164,10 +156,9 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 		reset();
 		return *this;
 	}
+	void operator&() const noexcept = delete;
 
 	private:
-	void operator&(void) const noexcept {} /* flag everyone */
-
 	T *m_ptr = nullptr;
 };
 
@@ -192,7 +183,7 @@ template<typename T> class object_rcguard final : public T {
 template<typename T> class object_ptr {
 	public:
 	typedef T *pointer;
-	constexpr object_ptr(void) noexcept {}
+	constexpr object_ptr() noexcept = default;
 	constexpr object_ptr(std::nullptr_t) noexcept {}
 	explicit object_ptr(T *p) : m_ptr(p)
 	{
@@ -209,14 +200,7 @@ template<typename T> class object_ptr {
 	{
 		reset(o.m_ptr);
 	}
-	object_ptr(object_ptr &&o)
-	{
-		auto old = get();
-		m_ptr = o.m_ptr;
-		o.m_ptr = pointer();
-		if (old != pointer())
-			old->Release();
-	}
+	object_ptr(object_ptr &&o) noexcept : m_ptr(o.m_ptr) { o.m_ptr = pointer(); }
 	/* Observers */
 	T &operator*(void) const { return *m_ptr; }
 #ifdef KC_DISALLOW_OBJECTPTR_REFMOD
@@ -269,10 +253,10 @@ template<typename T> class object_ptr {
 			old->Release();
 		return *this;
 	}
-	private:
-	void operator=(std::nullptr_t) noexcept {}
-	void operator&(void) const noexcept {} /* flag everyone */
+	void operator=(std::nullptr_t) noexcept = delete;
+	void operator&() const noexcept = delete;
 
+	private:
 	T *m_ptr = nullptr;
 };
 
@@ -293,7 +277,7 @@ class rowset_ptr {
 	typedef unsigned int size_type;
 	typedef SRowSet *pointer;
 	rowset_ptr() = default;
-	rowset_ptr(SRowSet *p) : m_rp(p) {}
+	explicit rowset_ptr(SRowSet *p) : m_rp(p) {}
 	void operator&() = delete;
 	size_type size() const { return m_rp->cRows; }
 	const SRow &operator[](size_t i) const { return m_rp->aRow[i]; }

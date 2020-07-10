@@ -45,7 +45,7 @@ class KC_EXPORT DB_RESULT KC_FINAL {
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
 	DB_RESULT(DB_RESULT &&o) = default;
 	~DB_RESULT(void);
-	DB_RESULT &operator=(DB_RESULT &&o);
+	DB_RESULT &operator=(DB_RESULT &&o) noexcept;
 	operator bool(void) const { return m_res != nullptr; }
 	bool operator==(std::nullptr_t) const noexcept { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const noexcept { return m_res != nullptr; }
@@ -82,7 +82,7 @@ class KC_EXPORT kd_trans final {
 	public:
 	kd_trans();
 	kd_trans(kt_completion &d, ECRESULT &r) : m_db(&d), m_result(&r) {}
-	kd_trans(kd_trans &&);
+	kd_trans(kd_trans &&) noexcept;
 	~kd_trans();
 	kd_trans &operator=(kd_trans &&);
 	ECRESULT commit();
@@ -155,7 +155,7 @@ class KC_EXPORT KDatabase : public kt_completion {
 	bool m_bSuppressLockErrorLogging = false;
 
 	private:
-	void FreeResult_internal(void *);
+	void FreeResult_internal(void *) noexcept;
 	ECRESULT setup_gcm(size_t, bool);
 
 	std::recursive_mutex m_hMutexMySql;
