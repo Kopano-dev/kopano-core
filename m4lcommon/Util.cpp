@@ -519,15 +519,14 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 HRESULT Util::HrCopySRestriction(LPSRestriction *lppDest,
     const SRestriction *lpSrc)
 {
-	LPSRestriction lpDest = NULL;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestriction),
-	             reinterpret_cast<void **>(&lpDest));
+	memory_ptr<SRestriction> lpDest;
+	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrCopySRestriction(lpDest, lpSrc, lpDest);
 	if(hr != hrSuccess)
 		return hr;
-	*lppDest = lpDest;
+	*lppDest = lpDest.release();
 	return hrSuccess;
 }
 
