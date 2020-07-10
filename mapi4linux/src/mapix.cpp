@@ -1709,28 +1709,16 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 
 HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, const SRowSet *lpSearchPath)
 {
-	if (m_lpSavedSearchPath) {
-		FreeProws(m_lpSavedSearchPath);
-		m_lpSavedSearchPath = NULL;
-	}
-	auto hr = MAPIAllocateBuffer(CbNewSRowSet(lpSearchPath->cRows), reinterpret_cast<void **>(&m_lpSavedSearchPath));
-	if (hr != hrSuccess) {
-		kc_perrorf("MAPIAllocateBuffer failed", hr);
-		goto exit;
-	}
-
-	hr = Util::HrCopySRowSet(m_lpSavedSearchPath, lpSearchPath, NULL);
-	if (hr != hrSuccess) {
-		kc_perrorf("Util::HrCopySRowSet failed", hr);
-		goto exit;
-	}
-
-exit:
-	if (hr != hrSuccess && m_lpSavedSearchPath) {
-		FreeProws(m_lpSavedSearchPath);
-		m_lpSavedSearchPath = NULL;
-	}
-	return hr;
+	rowset_ptr rs;
+	auto hr = MAPIAllocateBuffer(CbNewSRowSet(lpSearchPath->cRows), &~rs);
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAllocateBuffer failed", hr);
+	hr = Util::HrCopySRowSet(rs.get(), lpSearchPath, nullptr);
+	if (hr != hrSuccess)
+		return kc_perrorf("Util::HrCopySRowSet failed", hr);
+	FreeProws(m_lpSavedSearchPath);
+	m_lpSavedSearchPath = rs.release();
+	return hrSuccess;
 }
 
 /**
