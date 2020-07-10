@@ -185,8 +185,6 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	LPSPropValue pv = NULL;
-
 	// Validate input
 	if (lpPropArray == nullptr || cValues == 0)
 		return MAPI_E_INVALID_PARAMETER;
@@ -217,16 +215,16 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		if(PROP_TYPE(lpPropArray[c].ulPropTag) == PT_ERROR || 
 			lpPropArray[c].ulPropTag == PR_NULL)
 			continue;
-		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&pv));
+		memory_ptr<SPropValue> pv;
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~pv);
 		if (hr != hrSuccess)
 			return hr;
 		memset(pv, 0, sizeof(SPropValue));
 		hr = Util::HrCopyProperty(pv, &lpPropArray[c], pv);
-		if (hr != hrSuccess) {
-			MAPIFreeBuffer(pv);
+		if (hr != hrSuccess)
 			return hr;
-		}
 		properties.emplace_back(pv);
+		pv.release();
 	}
 	return hrSuccess;
 }
