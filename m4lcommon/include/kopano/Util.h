@@ -23,7 +23,7 @@ extern KC_EXPORT HRESULT HrCopyPropertyArray(const SPropValue *src, unsigned int
 extern HRESULT HrCopyPropertyArrayByRef(const SPropValue *src, unsigned int srcvals, SPropValue **dest, unsigned int *destvals, bool excl_errors = false);
 extern HRESULT HrCopyPropertyArray(const SPropValue *src, unsigned int srcvals, SPropValue *dest, void *base);
 extern HRESULT HrCopyPropertyArrayByRef(const SPropValue *src, unsigned int srcvals, SPropValue *dest);
-extern KC_EXPORT HRESULT HrCopyProperty(SPropValue *dest, const SPropValue *src, void *base, ALLOCATEMORE * = nullptr);
+extern KC_EXPORT HRESULT HrCopyProperty(SPropValue *dest, const SPropValue *src, void *base);
 extern HRESULT HrCopyPropertyByRef(SPropValue *dest, const SPropValue *src);
 extern KC_EXPORT HRESULT HrCopySRestriction(SRestriction *dst, const SRestriction *src, void *base);
 extern KC_EXPORT HRESULT  HrCopySRestriction(SRestriction **dst, const SRestriction *src);
