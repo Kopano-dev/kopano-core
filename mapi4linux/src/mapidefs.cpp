@@ -360,7 +360,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	std::unique_ptr<providerEntry> entry;
 	ULONG cProviderProps = 0;
-	LPSPropValue lpProviderProps = NULL;
 	HRESULT hr = hrSuccess;
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
@@ -389,6 +388,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	CoCreateGuid(reinterpret_cast<GUID *>(&entry->uid));
 
 	// no need to free this, not a copy!
+	const SPropValue *lpProviderProps;
 	lpProvider->GetProps(&cProviderProps, &lpProviderProps);
 	hr = entry->profilesection->SetProps(cProviderProps, lpProviderProps, NULL);
 	if (hr != hrSuccess)

@@ -905,18 +905,17 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface,
 			continue;
 		}
 		std::vector<SVCProvider *> vABProviders = serv->service->GetProviders();
-		LPSPropValue lpProps;
-		ULONG cValues;
 		for (const auto prov : vABProviders) {
 			std::string strDisplayName = "<unknown>";
-			prov->GetProps(&cValues, &lpProps);
+			const SPropValue *lpProps;
+			unsigned int cValues;
 
-			auto lpProp = PpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
-			auto lpUID  = PpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
+			prov->GetProps(&cValues, &lpProps);
+			auto lpProp = PCpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
+			auto lpUID  = PCpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
 			if (!lpUID || !lpProp || lpProp->Value.ul != MAPI_AB_PROVIDER)
 				continue;
-
-			lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME_A);
+			lpProp = PCpropFindProp(lpProps, cValues, PR_DISPLAY_NAME_A);
 			if (lpProp)
 				strDisplayName = lpProp->Value.lpszA;
 
