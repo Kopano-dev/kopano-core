@@ -119,17 +119,13 @@ def _filter(notifs, folder, event_types, folder_types):
         if notif.event_type not in event_types:
             continue
 
-        if (folder and \
-            notif.object_type == 'item' and \
-            notif.object.folder != folder):
+        if folder and notif.object_type == 'item' and notif.object.folder != folder:
             continue
 
-        if (notif.object_type == 'item' and \
-            notif.object.folder.type_ not in folder_types):
+        if notif.object_type == 'item' and notif.object.folder and notif.object.folder.type_ not in folder_types:
             continue
 
-        if (notif.object_type == 'folder' and \
-            notif.object.type_ not in folder_types):
+        if notif.object_type == 'folder' and notif.object and notif.object.type_ not in folder_types:
             continue
 
         yield notif
@@ -158,7 +154,7 @@ class AdviseSink(MAPIAdviseSink):
     def _on_notify(self, notifications):
         if not hasattr(self.delegate, 'update'):
             return 0
-        store  = self.store() if self.store else None
+        store = self.store() if self.store else None
         folder = self.folder() if self.folder else None
         for n in notifications:
             for m in _filter(_split(n, store), folder,
