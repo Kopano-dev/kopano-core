@@ -2224,6 +2224,7 @@ HRESULT SessionRestorer::restore_propvals(SPropValue **prop_ret, ULONG &nprops)
 	memcpy(&nprops, &*m_input, sizeof(nprops));
 	m_input += sizeof(nprops);
 	m_left -= sizeof(nprops);
+	/* caller will clean in either case */
 	auto ret = MAPIAllocateBuffer(sizeof(**prop_ret) * nprops, reinterpret_cast<void **>(prop_ret));
 	if (ret != hrSuccess)
 		return ret;
