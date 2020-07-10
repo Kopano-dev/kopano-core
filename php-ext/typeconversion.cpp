@@ -43,8 +43,6 @@ extern "C" {
 #include "typeconversion.h"
 #include <kopano/charset/convert.h>
 
-// Calls MAPIAllocateMore or MAPIAllocateBuffer according to whether an lpBase was passed or not
-#define MAPI_ALLOC(n, lpBase, lpp) ((lpBase) ? MAPIAllocateMore((n), (lpBase), (lpp)) : MAPIAllocateBuffer((n), (lpp)))
 // Frees the buffer with MAPIFreeBuffer if lpBase is NOT set, we can't directly free data allocated with MAPIAllocateMore ..
 #define MAPI_FREE(lpbase, lpp) \
 	do { if ((lpBase) == nullptr) MAPIFreeBuffer(lpp); } while (false)
@@ -113,8 +111,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray **lppBinaryArray TSRMLS_DC)
 {
 	SBinaryArray *lpBinaryArray = NULL;
-	
-	MAPI_G(hr) = MAPI_ALLOC(sizeof(SBinaryArray), lpBase, reinterpret_cast<void **>(&lpBinaryArray));
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinaryArray), lpBase, reinterpret_cast<void **>(&lpBinaryArray));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	MAPI_G(hr) = PHPArraytoSBinaryArray(entryid_array, lpBase ? lpBase : lpBinaryArray, lpBinaryArray TSRMLS_CC);
@@ -164,7 +161,7 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 	auto count = zend_hash_num_elements(Z_ARRVAL_P(sortorder_array));
-	MAPI_G(hr) = MAPI_ALLOC(CbNewSSortOrderSet(count), lpBase, reinterpret_cast<void **>(&lpSortOrderSet));
+	MAPI_G(hr) = MAPIAllocateMore(CbNewSSortOrderSet(count), lpBase, reinterpret_cast<void **>(&lpSortOrderSet));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 
@@ -205,7 +202,7 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 		return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	}
 	auto count = zend_hash_num_elements(target_hash);
-	MAPI_G(hr) = MAPI_ALLOC(CbNewSPropTagArray(count), lpBase, reinterpret_cast<void **>(&lpPropTagArray));
+	MAPI_G(hr) = MAPIAllocateMore(CbNewSPropTagArray(count), lpBase, reinterpret_cast<void **>(&lpPropTagArray));
 	if (MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	lpPropTagArray->cValues = count;
@@ -259,7 +256,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	    *lpcValues = 0;
 	}
 
-	MAPI_G(hr) = MAPI_ALLOC(sizeof(SPropValue) * count, lpBase, reinterpret_cast<void **>(&lpPropValue));
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(SPropValue) * count, lpBase, reinterpret_cast<void **>(&lpPropValue));
 	auto cleanup = make_scope_success([&]() {
 		if (MAPI_G(hr) != hrSuccess && lpBase != nullptr && lpPropValue != nullptr)
 			MAPIFreeBuffer(lpPropValue);
@@ -677,7 +674,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 
 	auto count = zend_hash_num_elements(target_hash);
 	// We allow allocing a 0 count addresslist, since we need this the OP_DELEGATE rule
-	MAPI_G(hr) = MAPI_ALLOC(CbNewADRLIST(count), lpBase, reinterpret_cast<void **>(&lpAdrList));
+	MAPI_G(hr) = MAPIAllocateMore(CbNewADRLIST(count), lpBase, reinterpret_cast<void **>(&lpAdrList));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	lpAdrList->cEntries = 0;
@@ -1195,7 +1192,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction *lppRes TSRMLS_DC) {
 	LPSRestriction lpRes = NULL;
 	
-	MAPI_G(hr) = MAPI_ALLOC(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpRes));
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpRes));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	MAPI_G(hr) = PHPArraytoSRestriction(phpVal, lpBase ? lpBase : lpRes, lpRes TSRMLS_CC);
@@ -1720,7 +1717,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 	}
 	
 	count = zend_hash_num_elements(Z_ARRVAL_P(zvalReadStates));
-	MAPI_G(hr) = MAPI_ALLOC(sizeof(READSTATE) * count, lpBase, reinterpret_cast<void **>(&lpReadStates));
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(READSTATE) * count, lpBase, reinterpret_cast<void **>(&lpReadStates));
 	if(MAPI_G(hr) != hrSuccess) 
 		goto exit;
 
@@ -1775,7 +1772,7 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 		return MAPI_G(hr);
 	}
 
-	MAPI_G(hr) = MAPI_ALLOC(sizeof(GUID) * count, lpBase, reinterpret_cast<void **>(&lpGUIDs));
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID) * count, lpBase, reinterpret_cast<void **>(&lpGUIDs));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	ZEND_HASH_FOREACH_VAL(target_hash, pentry) {
