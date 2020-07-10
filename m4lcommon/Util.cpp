@@ -70,11 +70,9 @@ static HRESULT HrCopyAction(ACTION *, const ACTION *, void *);
 HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     const SPropValue *lpToAdd, SPropValue **lppDest, ULONG *cDestValues)
 {
-	LPSPropValue lpDest = NULL;
+	memory_ptr<SPropValue> lpDest;
 	unsigned int n = 0;
-
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * (cValues + 1),
-	             reinterpret_cast<void **>(&lpDest));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * (cValues + 1), &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
 	for (unsigned int i = 0; i < cValues; ++i) {
@@ -91,7 +89,7 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 		hr = HrCopyProperty(&lpDest[n++], lpToAdd, lpDest);
 	if(hr != hrSuccess)
 		return hr;
-	*lppDest = lpDest;
+	*lppDest = lpDest.release();
 	*cDestValues = n;
 	return hrSuccess;
 }
