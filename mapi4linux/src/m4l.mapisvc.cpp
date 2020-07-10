@@ -278,7 +278,6 @@ SVCService::~SVCService()
 	if (m_dl)
 		dlclose(m_dl);
 #endif
-	MAPIFreeBuffer(m_lpProps);
 }
 
 /** 
@@ -294,8 +293,7 @@ SVCService::~SVCService()
 HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	char filename[PATH_MAX + 1];
-
-	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), reinterpret_cast<void **>(&m_lpProps));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), &~m_lpProps);
 	if (hr != hrSuccess)
 		return hr;
 

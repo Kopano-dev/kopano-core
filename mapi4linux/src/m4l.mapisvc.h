@@ -67,7 +67,7 @@ private:
 	SVC_ABProviderInit m_fnABProviderInit = nullptr;
 
 	/* PR_* tags from file */
-	SPropValue *m_lpProps = nullptr;
+	KC::memory_ptr<SPropValue> m_lpProps;
 	ULONG m_cValues = 0;
 	std::map<std::string, std::unique_ptr<SVCProvider>> m_sProviders;
 };
