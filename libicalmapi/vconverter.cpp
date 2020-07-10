@@ -2545,7 +2545,8 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			if (HrSetBody(lpException, &lpicProp) == hrSuccess)
 				icalcomponent_add_property(lpicException.get(), lpicProp);
 		}
-		lstExceptions.emplace_back(lpicException.release());
+		lstExceptions.emplace_back(lpicException.get());
+		lpicException.release();
 	}
 
 	*lpEventList = std::move(lstExceptions);
@@ -2777,7 +2778,8 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// push the main event in the front, before all exceptions
-	lstEvents.emplace_front(lpicEvent.release());
+	lstEvents.emplace_front(lpicEvent.get());
+	lpicEvent.release();
 	// end
 	*lpicMethod = icMainMethod;
 	*lpEventList = std::move(lstEvents);
