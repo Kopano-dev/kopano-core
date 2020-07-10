@@ -140,16 +140,14 @@ HRESULT ECMemTable::HrGetRowID(LPSPropValue lpRow, LPSPropValue *lppID)
 	auto iterRows = mapRows.find(lpRow->Value.ul);
 	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL)
 		return MAPI_E_NOT_FOUND;
-	LPSPropValue lpID = NULL;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue),
-		reinterpret_cast<void **>(&lpID));
+	memory_ptr<SPropValue> lpID;
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpID);
 	if(hr != hrSuccess)
 		return hr;
 	hr = Util::HrCopyProperty(lpID, iterRows->second.lpsID, lpID);
 	if(hr != hrSuccess)
 		return hr;
-
-	*lppID = lpID;
+	*lppID = lpID.release();
 	return hrSuccess;
 }
 
