@@ -135,7 +135,7 @@ HRESULT LMTP::HrCommandMAILFROM(const std::string &strFrom, std::string &strAddr
 HRESULT LMTP::HrCommandRCPTTO(const std::string &strTo,
     std::string &strUnresolved)
 {
-	HRESULT hr = HrParseAddress(strTo, strUnresolved);
+	auto hr = HrParseAddress(strTo, strUnresolved);
 	if (hr != hrSuccess)
 		return hr_lerr(hr, "Invalid recipient address in command \"%s\"", strTo.c_str());
 	ec_log_debug("Resolved command \"%s\" to recipient address \"%s\"",

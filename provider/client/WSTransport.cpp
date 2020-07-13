@@ -334,7 +334,7 @@ HRESULT WSTransport::CloneAndRelogon(WSTransport **lppTransport) const
 
 HRESULT WSTransport::HrReLogon()
 {
-	HRESULT hr = HrLogon(m_sProfileProps);
+	auto hr = HrLogon(m_sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 

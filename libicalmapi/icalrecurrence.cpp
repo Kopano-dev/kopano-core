@@ -706,7 +706,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 	icaltimetype ittExDate;
 	TIMEZONE_STRUCT sTZgmt{};
 
-	HRESULT hr = HrCreateICalRecurrenceType(sTimeZone, bIsAllDay, lpRecurrence, &icRRule);
+	auto hr = HrCreateICalRecurrenceType(sTimeZone, bIsAllDay, lpRecurrence, &icRRule);
 	if (hr != hrSuccess)
 		return hr;
 

@@ -120,7 +120,8 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpsPropValue;
 
-	HRESULT hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&MUID_PROFILE_INSTANCE, 0, &~lpProfSect);
+	auto hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&MUID_PROFILE_INSTANCE),
+	          0, &~lpProfSect);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(lpProfSect, PR_PROFILE_NAME_A, &~lpsPropValue);
@@ -175,7 +176,7 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
 HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+	auto hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 	if (m_transact)
@@ -187,7 +188,7 @@ HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 HRESULT ECMsgStore::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+	auto hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 	if (m_transact)
@@ -992,7 +993,7 @@ HRESULT ECMsgStore::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
 HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	assert(m_lpNotifyClient == NULL);
-	HRESULT hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
+	auto hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
 	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
@@ -1982,7 +1983,7 @@ static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *lpFolder,
 	if (ulPropTag == 0)
 		return hrSuccess;
 	// Get entryid of the folder
-	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
+	auto hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2507,7 +2508,7 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
 	// Synchronize() calls.
 	object_ptr<WSTransport> ptrTransport;
-	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
+	auto hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, ulPropTag, &sChanges.front(), ulStart, ulCount, lpsProps, &~ptrStreamExporter);

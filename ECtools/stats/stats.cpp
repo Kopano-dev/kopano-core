@@ -579,7 +579,7 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 	memory_ptr<SPropTagArray> ptrColumns;
 	ConsoleTable ct(0, 0);
 
-	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
+	auto hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
 	rowset_ptr ptrRows;

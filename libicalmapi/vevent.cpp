@@ -37,8 +37,8 @@ VEventConverter::VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones
  */
 HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
-	HRESULT hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent,
-	             lpPrevItem, lppRet);
+	auto hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent,
+	          lpPrevItem, lppRet);
 	if (hr != hrSuccess)
 		return hr;
 	(*lppRet)->eType = VEVENT;
@@ -400,7 +400,8 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
 {
 	icalcomp_ptr lpEvent(icalcomponent_new(ICAL_VEVENT_COMPONENT));
-	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo, lpstrTZid, lpEvent.get());
+	auto hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo,
+	          lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
 		return hr;
 	if (lppEvent)
@@ -424,8 +425,8 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	bool bCounterProposal = false;
 	ULONG ulStartIndex = PROP_APPTSTARTWHOLE, ulEndIndex = PROP_APPTENDWHOLE;
 
-	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
-	             lpicTZinfo, strTZid, lpEvent);
+	auto hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
+	          lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
 

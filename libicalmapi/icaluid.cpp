@@ -39,7 +39,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 	GUID sGuid;
 	uint32_t ulSize = cpu_to_le32(1);
 
-	HRESULT hr = CoCreateGuid(&sGuid);
+	auto hr = CoCreateGuid(&sGuid);
 	if (hr != hrSuccess)
 		return hr;
 	auto ftNow = UnixTimeToFileTime(time(nullptr));

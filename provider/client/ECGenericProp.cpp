@@ -901,10 +901,9 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
 	m_sMapiObject->cbInstanceID = 0;
 	m_sMapiObject->bChangedInstance = false;
 
-	HRESULT hr = Util::HrCopyEntryId(cbInstanceID,
-		lpInstanceID,
-		&m_sMapiObject->cbInstanceID,
-		reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
+	auto hr = Util::HrCopyEntryId(cbInstanceID, lpInstanceID,
+	          &m_sMapiObject->cbInstanceID,
+	          reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
 	if (hr != hrSuccess)
 		return hr;
 	m_sMapiObject->bChangedInstance = true;

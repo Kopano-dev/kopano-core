@@ -185,8 +185,8 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 		icalcomponent_add_property(m_lpicCalender.get(), icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION "//EN"));
 	}
 
-	HRESULT hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,
-	             strOrganiser, strUser, strUID, &icFbComponent);
+	auto hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,
+	          strOrganiser, strUser, strUID, &icFbComponent);
 	if (hr != hrSuccess)
 		return hr;
 	m_icMethod = ICAL_METHOD_PUBLISH;

@@ -127,7 +127,7 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 {
 	rowset_ptr ptrRows;
 	convert_context converter;
-	HRESULT hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
+	auto hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	
@@ -282,8 +282,8 @@ static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base,
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) != PT_UNICODE)
 			continue;
-		HRESULT hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW,
-			&lpRow->lpProps[c].Value.lpszA, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW,
+		          &lpRow->lpProps[c].Value.lpszA, base, converter);
 		if (hr != hrSuccess)
 			return hr;
 		lpRow->lpProps[c].ulPropTag = CHANGE_PROP_TYPE(lpRow->lpProps[c].ulPropTag, PT_STRING8);
@@ -298,8 +298,8 @@ static HRESULT ConvertUnicodeToString8(const ADRLIST *lpAdrList, void *base,
 		return hrSuccess;
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		HRESULT hr = ConvertUnicodeToString8(reinterpret_cast<const SRow *>(&lpAdrList->aEntries[c]),
-			base, converter);
+		auto hr = ConvertUnicodeToString8(reinterpret_cast<const SRow *>(&lpAdrList->aEntries[c]),
+		          base, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -314,7 +314,8 @@ static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, con
 		if (lpActions->lpAction[c].acttype != OP_FORWARD &&
 		    lpActions->lpAction[c].acttype != OP_DELEGATE)
 			continue;
-		HRESULT hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist, base, converter);
+		auto hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist,
+		          base, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}

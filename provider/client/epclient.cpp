@@ -595,7 +595,7 @@ HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 	object_ptr<ECABProviderSwitch> lpABProvider;
-	HRESULT hr = ECABProviderSwitch::Create(&~lpABProvider);
+	auto hr = ECABProviderSwitch::Create(&~lpABProvider);
 	if (hr == hrSuccess)
 		hr = lpABProvider->QueryInterface(IID_IABProvider,
 		     reinterpret_cast<void **>(lppABProvider));

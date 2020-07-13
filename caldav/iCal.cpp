@@ -281,8 +281,8 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType=0;
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
-	             &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	auto hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
+	          &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 	if (blCensor && IsPrivate(lpMessage, ulTagPrivate))
@@ -303,7 +303,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 {
 	object_ptr<IMessage> lpMessage;
-	HRESULT hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
+	auto hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpIcal2Mapi->GetItem(ulPos, 0, lpMessage);

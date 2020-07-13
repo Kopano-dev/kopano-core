@@ -1200,7 +1200,8 @@ HRESULT M4LMAPISession::setStatusRow(ULONG cValues, const SPropValue *lpProps)
 {
 	scoped_lock l_status(m_mutexStatusRow);
 	m_cValuesStatus = 0;
-	HRESULT hr = Util::HrCopyPropertyArray(lpProps, cValues, &~m_lpPropsStatus, &m_cValuesStatus, true);
+	auto hr = Util::HrCopyPropertyArray(lpProps, cValues, &~m_lpPropsStatus,
+	          &m_cValuesStatus, true);
 	if (hr != hrSuccess)
 		kc_perrorf("Util::HrCopyPropertyArray failed", hr);
 	return hr;

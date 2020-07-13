@@ -237,7 +237,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest, void *lpBase)
 {
 	for (unsigned int i = 0; i < cValues; ++i) {
-		HRESULT hr = HrCopyProperty(&lpDest[i], &lpSrc[i], lpBase);
+		auto hr = HrCopyProperty(&lpDest[i], &lpSrc[i], lpBase);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -259,7 +259,7 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest)
 {
 	for (unsigned int i = 0; i < cValues; ++i) {
-		HRESULT hr = HrCopyPropertyByRef(&lpDest[i], &lpSrc[i]);
+		auto hr = HrCopyPropertyByRef(&lpDest[i], &lpSrc[i]);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -759,7 +759,7 @@ HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
 {
 	lpDest->cRows = 0;
 	for (unsigned int i = 0; i < lpSrc->cRows; ++i) {
-		HRESULT hr = HrCopySRow(&lpDest->aRow[i], &lpSrc->aRow[i], lpBase);
+		auto hr = HrCopySRow(&lpDest->aRow[i], &lpSrc->aRow[i], lpBase);
 		if (hr != hrSuccess)
 			return hr;
 		++lpDest->cRows;
@@ -1703,7 +1703,7 @@ static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::
 	const char *lpszCharset;
 	convert_context converter;
 	std::string data;
-	HRESULT hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess)
 		lpszCharset = "us-ascii";
 	hr = Util::HrStreamToString(sInput, data);
@@ -1739,7 +1739,7 @@ HRESULT Util::HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage)
 {
 	std::wstring wstrHTML;
 	CHtmlToTextParser	parser;
-	HRESULT hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
+	auto hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
 	if(hr != hrSuccess)
 		return hr;
 	if (!parser.Parse(string_strip_nuls(wstrHTML).c_str()))
@@ -2071,7 +2071,7 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
 {
 	std::wstring wstrHTML;
 	std::string strRTF;
-	HRESULT hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
+	auto hr = HrConvertStreamToWString(html, ulCodepage, &wstrHTML);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrHtmlToRtf(wstrHTML.c_str(), strRTF);
@@ -2298,7 +2298,7 @@ static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
 {
 	ULARGE_INTEGER liRead{}, liWritten{};
 	STATSTG stStatus;
-	HRESULT hr = lpSrc->Stat(&stStatus, 0);
+	auto hr = lpSrc->Stat(&stStatus, 0);
 	if (FAILED(hr))
 		return hr;
 	hr = lpSrc->CopyTo(lpDest, stStatus.cbSize, &liRead, &liWritten);
@@ -3374,7 +3374,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<IMAPITable> ptrAttachTable;
-	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
+	auto hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
 	rowset_ptr ptrRows;
@@ -3400,7 +3400,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
-	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
+	auto hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
 	object_ptr<IMsgStore> ptrStore;

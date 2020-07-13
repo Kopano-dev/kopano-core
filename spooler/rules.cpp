@@ -151,7 +151,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	wstrBcc.clear();
 
 	object_ptr<IMAPITable> ptrRecips;
-	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
+	auto hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
 	if(hr != hrSuccess)
 		return hr;
 	hr = ptrRecips->SetColumns(sptaDisplay, TBL_BATCH);
@@ -201,7 +201,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	std::string strHTML, strHTMLForwardText;
 	std::wstring wstrBody, strForwardText, wstrTo, wstrCc, wstrBcc;
 
-	HRESULT hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &~ptrBodies);
+	auto hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)

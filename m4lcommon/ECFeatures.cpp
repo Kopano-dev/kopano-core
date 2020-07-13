@@ -61,7 +61,7 @@ static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
 	    lpProps == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	memory_ptr<SPropValue> ptrProps;
-	HRESULT hr = HrGetOneProp(lpStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrProps);
+	auto hr = HrGetOneProp(lpStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrProps);
 	if (hr != hrSuccess)
 		return hr;
 	object_ptr<IMailUser> ptrUser;
@@ -92,7 +92,7 @@ bool checkFeature(const char *feature, IAddrBook *lpAddrBook,
 	    PROP_TYPE(ulPropTag) != PT_MV_STRING8)
 		return MAPI_E_INVALID_PARAMETER == hrSuccess;
 	memory_ptr<SPropValue> ptrProps;
-	HRESULT hr = HrGetUserProp(lpAddrBook, lpStore, ulPropTag, &~ptrProps);
+	auto hr = HrGetUserProp(lpAddrBook, lpStore, ulPropTag, &~ptrProps);
 	if (hr != hrSuccess)
 		return false;
 	return hasFeature(feature, ptrProps) == hrSuccess;

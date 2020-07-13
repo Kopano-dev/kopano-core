@@ -112,8 +112,7 @@ template<typename string_type, ULONG prAccount>
 HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpStoreTable) {
 	while (true) {
 		rowset_ptr ptrRows;
-
-		HRESULT hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
+		auto hr = lpStoreTable->QueryRows(50, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -160,8 +159,8 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
 {
 	UserListCollector<std::string, PR_ACCOUNT_A> collector(lpMapiSession);
-	HRESULT hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
-	             bLocalOnly, &collector);
+	auto hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
+	          bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
 	collector.move_result(lplstUsers);
@@ -172,8 +171,8 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly)
 {
 	UserListCollector<std::wstring, PR_ACCOUNT_W> collector(lpMapiSession);
-	HRESULT hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
-	             bLocalOnly, &collector);
+	auto hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
+	          bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
 	collector.move_result(lplstUsers);
@@ -341,8 +340,7 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
     DataCollector *lpCollector)
 {
 	object_ptr<IMsgStore> ptrStoreAdmin;
-
-	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
+	auto hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
 		ec_log_err("Unable to open default store on server \"%s\": %s (%x)",
 			lpszPath, GetMAPIErrorMessage(hr), hr);
@@ -398,7 +396,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	sPropUser.Value.ul = MAPI_MAILUSER;
 
 	object_ptr<IMAPITable> ptrTable;
-	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
+	auto hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open contents table", hr);
 	hr = ptrTable->SetColumns(sCols, TBL_BATCH);

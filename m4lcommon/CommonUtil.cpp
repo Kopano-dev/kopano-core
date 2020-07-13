@@ -340,7 +340,7 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
+	auto hr = HrSearchECStoreEntryId(lpMAPISession, false, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
@@ -356,7 +356,7 @@ static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,
 {
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
+	auto hr = HrSearchECStoreEntryId(lpMAPISession, true, &cbEntryID, &~lpEntryID);
 	if(hr != hrSuccess)
 		return hr;
 	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
@@ -1110,10 +1110,9 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 {
 	std::list<unsigned int> lstTags;
 	ULONG n = 0;
-
 	LPSPropTagArray lpTags = NULL;
 
-	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
+	auto hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), reinterpret_cast<void **>(&lpTags));
@@ -2191,7 +2190,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<IExchangeManageStore> ptrEMS;
-	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
+	auto hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	memory_ptr<ENTRYID> ptrStoreId;

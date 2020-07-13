@@ -542,7 +542,7 @@ HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
 	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLogger)));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	HRESULT hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());
+	auto hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());
 	if (FAILED(hr))
 		return hr;
 	*lpptrSession = std::move(lpSession);

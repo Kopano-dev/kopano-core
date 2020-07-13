@@ -678,8 +678,7 @@ HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
 	name.ulKind = MNID_ID;
 	name.Kind.lID = named_proptype;
 
-	HRESULT hr = m_propobj->GetIDsFromNames(1, &namep,
-	             MAPI_CREATE, &~proptag);
+	auto hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
 	if (hr != hrSuccess)
 		return hr;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
@@ -709,7 +708,7 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg, unsigned int pos)
 	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(PR_MESSAGE_CLASS, PT_STRING8);
 	s.Value.lpszA = const_cast<char *>("IPM.Contact");
-	HRESULT hr = HrSetOneProp(msg, &s);
+	auto hr = HrSetOneProp(msg, &s);
 	if (hr != hrSuccess)
 		return hr;
 

@@ -177,7 +177,7 @@ public:
 	%extend {
 		IStream() {
 			IStream *lpStream = NULL;
-			HRESULT hr = CreateStreamOnHGlobal(NULL, TRUE, &lpStream);
+			auto hr = CreateStreamOnHGlobal(nullptr, true, &lpStream);
 			if(hr == hrSuccess)
 				return lpStream;
 			return NULL;

@@ -156,7 +156,7 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 {
 	object_ptr<IMAPITable> lpTable;
 	ULONG ulCount;
-	HRESULT hr = lpFolder->GetContentsTable(0, &~lpTable);
+	auto hr = lpFolder->GetContentsTable(0, &~lpTable);
  	if(hr != hrSuccess) {
 		cout << "Failed to open Folder table." << endl;
 		return hr;
@@ -211,7 +211,7 @@ HRESULT Fsck::ValidateFolder(LPMAPIFOLDER lpFolder,
 {
 	cout << "Validating folder \"" << strName << "\"" << endl;
 	++ulFolders;
-	HRESULT hr = ProcessFolder(this, lpFolder, strName);
+	auto hr = ProcessFolder(this, lpFolder, strName);
 	cout << "Validation of folder \"" << strName << "\" complete" << endl;
 	return hr;
 }
@@ -361,7 +361,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 		{5, {PR_ROWID, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W,
 		PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
-	HRESULT hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->GetRowCount(0, &cRows);

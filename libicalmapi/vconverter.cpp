@@ -357,7 +357,7 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 	// CleanGlobalObjectID -> it has UID value
 
 	// Get Unique ID of ical item, or create new
-	HRESULT hr = HrGetUID(lpicEvent, &strUid);
+	auto hr = HrGetUID(lpicEvent, &strUid);
 	if (hr != hrSuccess)
 		hr = HrGenerateUid(&strUid);
 	if (hr != hrSuccess)
@@ -873,8 +873,8 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	auto strSearchKey = strToUpper(strType + ":" + m_converter.convert_to<std::string>(strEmail));
 
 	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_W;
-	HRESULT hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base,
-	             strType.c_str(), &sPropVal.Value.lpszW);
+	auto hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base,
+	          strType.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		return hr;
 	lplstMsgProps->emplace_back(sPropVal);
@@ -1171,8 +1171,8 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		return hrSuccess;
 	}
 
-	HRESULT hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime,
-	             &bReminderSet);
+	auto hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime,
+	          &bReminderSet);
 	if (hr != hrSuccess)
 		// just skip the reminder
 		return hrSuccess;
@@ -1542,8 +1542,8 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 	if (lpicProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = HrSetTimeProperty(tStamp, bDateOnly, lpicTZinfo, strTZid,
-	             icalkind, lpicProp);
+	auto hr = HrSetTimeProperty(tStamp, bDateOnly, lpicTZinfo, strTZid,
+	          icalkind, lpicProp);
 	icalcomponent_add_property(lpicEvent, lpicProp);
 	return hr;
 }

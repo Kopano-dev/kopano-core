@@ -263,7 +263,7 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	LPENTRYID lpPublicID = NULL;
 	LPENTRYID lpEntryID = NULL;
 
-	HRESULT hr = InitEntryIDs();
+	auto hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
 	switch(ePublicEntryID)

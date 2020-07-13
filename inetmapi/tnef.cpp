@@ -450,7 +450,7 @@ exit:
  */
 HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropValue> > &proplist)
 {
-	HRESULT hr = HrWriteDWord(lpStream, proplist.size());
+	auto hr = HrWriteDWord(lpStream, proplist.size());
 	if(hr != hrSuccess)
 		return hr;
 

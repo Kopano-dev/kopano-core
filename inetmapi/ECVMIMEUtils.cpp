@@ -76,7 +76,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 {
 	rowset_ptr lpRowSet;
 	std::wstring strName, strEmail, strType;
-	HRESULT hr = lpTable->QueryRows(INT_MAX, 0, &~lpRowSet);
+	auto hr = lpTable->QueryRows(INT_MAX, 0, &~lpRowSet);
 	if (hr != hrSuccess)
 		return hr;
 

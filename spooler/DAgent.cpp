@@ -578,8 +578,7 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 {
 	if (lpSession == NULL || lppAdrBook == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	HRESULT hr = lpSession->OpenAddressBook(0, NULL, 0, lppAdrBook);
+	auto hr = lpSession->OpenAddressBook(0, nullptr, 0, lppAdrBook);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open addressbook", hr);
 	if (lppAddrDir == nullptr)
@@ -1714,7 +1713,7 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 	p[3].Value.lpszW = const_cast<wchar_t *>(lpRecip->wstrFullname.c_str());
 	p[4].ulPropTag   = PR_RECEIVED_BY_SEARCH_KEY;
 	p[4].Value.bin   = lpRecip->sSearchKey;
-	HRESULT hr = lpMessage->SetProps(ARRAY_SIZE(p), p, nullptr);
+	auto hr = lpMessage->SetProps(ARRAY_SIZE(p), p, nullptr);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to set RECEIVED_BY properties", hr);
 	return hrSuccess;
@@ -2343,7 +2342,7 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
 	/* Always start at the beginning of the file */
 	rewind(fp);
 	/* Read file into string */
-	HRESULT hr = HrMapFileToString(fp, &strMail);
+	auto hr = HrMapFileToString(fp, &strMail);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to map input to memory", hr);
 

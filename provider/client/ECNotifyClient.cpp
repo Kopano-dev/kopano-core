@@ -219,7 +219,7 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 	/*
 	 * Release connection from Master
 	 */
-	HRESULT hr = m_lpNotifyMaster->DropConnection(ulConnection);
+	auto hr = m_lpNotifyMaster->DropConnection(ulConnection);
 	if (hr != hrSuccess)
 		return hr;
 

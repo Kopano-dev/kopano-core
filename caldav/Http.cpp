@@ -654,7 +654,7 @@ HRESULT Http::HrResponseBody(const std::string &strResponse)
  */
 HRESULT Http::HrRequestAuth(const std::string &strMsg)
 {
-	HRESULT hr = HrResponseHeader(401, "Unauthorized");
+	auto hr = HrResponseHeader(401, "Unauthorized");
 	if (hr != hrSuccess)
 		return hr;
 	return HrResponseHeader("WWW-Authenticate", "Basic realm=\"" + strMsg + "\"");

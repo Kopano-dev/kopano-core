@@ -34,8 +34,8 @@ VTodoConverter::VTodoConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, 
  */
 HRESULT VTodoConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
-	HRESULT hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent,
-	             lpPrevItem, lppRet);
+	auto hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent,
+	          lpPrevItem, lppRet);
 	if (hr != hrSuccess)
 		return hr;
 	(*lppRet)->eType = VTODO;
@@ -66,7 +66,7 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
 	ULONG ulStatus = 0;
 
 	// @todo fix exception message class
-	HRESULT hr = HrCopyString(base, L"IPM.Task", &sPropVal.Value.lpszW);
+	auto hr = HrCopyString(base, L"IPM.Task", &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
 		return hr;
 	sPropVal.ulPropTag = PR_MESSAGE_CLASS_W;
@@ -234,8 +234,8 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 HRESULT VTodoConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMethod, icaltimezone **lppicTZinfo, std::string *lpstrTZid, icalcomponent **lppEvent)
 {
 	icalcomp_ptr lpEvent(icalcomponent_new(ICAL_VTODO_COMPONENT));
-	HRESULT hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo,
-	             lpstrTZid, lpEvent.get());
+	auto hr = VConverter::HrMAPI2ICal(lpMessage, lpicMethod, lppicTZinfo,
+	          lpstrTZid, lpEvent.get());
 	if (hr != hrSuccess)
 		return hr;
 	if (lppEvent)
@@ -257,8 +257,8 @@ HRESULT VTodoConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lp
  */
 HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
-	             lpicTZinfo, strTZid, lpEvent);
+	auto hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
+	          lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
 

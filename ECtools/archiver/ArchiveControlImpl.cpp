@@ -58,7 +58,7 @@ HRESULT ArchiveControlImpl::Create(std::shared_ptr<ArchiverSession> ptrSession,
 		std::move(lpLogger), bForceCleanup));
 	if (ptrArchiveControl == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	HRESULT hr = ptrArchiveControl->Init();
+	auto hr = ptrArchiveControl->Init();
 	if (hr != hrSuccess)
 		return hr;
 	*lpptrArchiveControl = std::move(ptrArchiveControl);

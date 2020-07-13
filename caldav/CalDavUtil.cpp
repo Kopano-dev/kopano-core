@@ -95,8 +95,8 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 {
 	object_ptr<IMAPIFolder> lpUsrFld;
 	ULONG ulObjType = 0;
-	HRESULT hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
-	             &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
+	auto hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	          &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrAddProperty(lpUsrFld, ulPropertyId, bIsFldID, lpwstrProperty);
@@ -418,7 +418,7 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
 	object_ptr<IMailUser> lpMailUser;
 	ULONG ulObjType = 0;
 
-	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
+	auto hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrSProp->Value.bin.lpb),
@@ -488,7 +488,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	SBinary sbEid{};
 	bool blFound = false;
 
-	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
+	auto hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
 		return false;
 	hr = lpSharedStore->OpenEntry(0, nullptr, &iid_of(lpRootCont), 0, nullptr, &~lpRootCont);
@@ -615,7 +615,7 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
 	ULONG ulObjType = 0;
 	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 
-	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
+	auto hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpUsrFld->GetContentsTable(0, &~lpTable);
@@ -670,7 +670,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
 	memory_ptr<ENTRYID> ptrEntryId;
 	unsigned int cFBData = 0, cbEntryId = 0, ulObj = 0;
 
-	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
+	auto hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		return hr;
 	object_ptr<IABContainer> ptrABDir;
