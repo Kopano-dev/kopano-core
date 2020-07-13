@@ -3216,7 +3216,6 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
     vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
     std::string *lpExtended)
 {
-	HRESULT hr = hrSuccess;
 	std::list<std::string> lBody, lBodyStructure;
 	auto vmHeaderPart = vmBodyPart->getHeader();
 
@@ -3235,7 +3234,8 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
 			// alternative, mixed, related
 
 			if (vmBodyPart->getBody()->getPartCount() == 0)
-				return hr;		// multipart without any real parts? let's completely skip this.
+				/* multipart without any real parts? let's completely skip this. */
+				return hrSuccess;
 
 			// function please:
 			std::string strBody, strBodyStructure;
@@ -3276,7 +3276,7 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
 	}
 
 	// add () around results?
-	return hr;
+	return hrSuccess;
 }
 
 /**

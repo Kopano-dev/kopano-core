@@ -136,8 +136,6 @@ PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
  */
 HRESULT PublishFreeBusy::HrInit()
 {
-	HRESULT hr = hrSuccess;
-	
 	PROPMAP_INIT_NAMED_ID (APPT_STARTWHOLE, 	PT_SYSTIME, PSETID_Appointment, dispidApptStartWhole)
 	PROPMAP_INIT_NAMED_ID (APPT_ENDWHOLE, 		PT_SYSTIME, PSETID_Appointment, dispidApptEndWhole)
 	PROPMAP_INIT_NAMED_ID (APPT_CLIPEND,		PT_SYSTIME, PSETID_Appointment, dispidClipEnd)
@@ -146,7 +144,7 @@ HRESULT PublishFreeBusy::HrInit()
 	PROPMAP_INIT_NAMED_ID (APPT_RECURRINGSTATE,	PT_BINARY, PSETID_Appointment,	dispidRecurrenceState)
 	PROPMAP_INIT_NAMED_ID (APPT_TIMEZONESTRUCT,	PT_BINARY, PSETID_Appointment,	dispidTimeZoneData)
 	PROPMAP_INIT (m_lpDefStore)
-	return hr;
+	return hrSuccess;
 }
 
 /** 

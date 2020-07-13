@@ -1465,7 +1465,6 @@ exit:
  */
 static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExpired)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsExpiryTime;
 	auto laters = make_scope_success([&]() { sc->inc(*bExpired ? SCN_DAGENT_MSG_EXPIRED : SCN_DAGENT_MSG_NOT_EXPIRED); });
 	/*
@@ -1475,14 +1474,13 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpsExpiryTime) == hrSuccess &&
 	    time(nullptr) > FileTimeToUnixTime(lpsExpiryTime->Value.ft)) {
 		// exit with no errors
-		hr = hrSuccess;
 		*bExpired = true;
 		ec_log_warn("Message was expired, not delivering");
 		// TODO: if a read-receipt was requested, we need to send a non-read read-receipt
-		return hr;
+		return hrSuccess;
 	}
 	*bExpired = false;
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
@@ -1949,18 +1947,17 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 static HRESULT FindSpamMarker(const std::string &strMail,
     DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	const char *szHeader = g_lpConfig->GetSetting("spam_header_name", "", NULL);
 	const char *szValue = g_lpConfig->GetSetting("spam_header_value", "", NULL);
 	std::string strHeaders;
 	auto laters = make_scope_success([&]() { lpArgs->sc->inc(lpArgs->ulDeliveryMode == DM_JUNK ? SCN_DAGENT_IS_SPAM : SCN_DAGENT_IS_HAM); });
 
 	if (!szHeader || !szValue)
-		return hr;
+		return hrSuccess;
 	// find end of headers
 	auto end = strMail.find("\r\n\r\n");
 	if (end == strMail.npos)
-		return hr;
+		return hrSuccess;
 	end += 2;
 
 	// copy headers in upper case, need to resize destination first
@@ -1971,7 +1968,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// find header
 	auto pos = strHeaders.find(match.c_str());
 	if (pos == strHeaders.npos)
-		return hr;
+		return hrSuccess;
 
 	// skip header and find end of line
 	pos += match.length();
@@ -1980,11 +1977,11 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// find value in header line (no header continuations supported here)
 	pos = strHeaders.find(match.c_str(), pos);
 	if (pos == strHeaders.npos || pos > end)
-		return hr;
+		return hrSuccess;
 	// found, override delivery to junkmail folder
 	lpArgs->ulDeliveryMode = DM_JUNK;
 	ec_log_info("Spam marker found in e-mail, delivering to junk-mail folder");
-	return hr;
+	return hrSuccess;
 }
 
 /**

@@ -3970,7 +3970,6 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
  */
 HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &lstMails)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulMailnr;
 	ULONG ulBeginMailnr;
 	// split different sequence parts into a vector
@@ -4005,7 +4004,7 @@ HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &l
 
 	lstMails.sort();
 	lstMails.unique();
-	return hr;
+	return hrSuccess;
 }
 
 /**
