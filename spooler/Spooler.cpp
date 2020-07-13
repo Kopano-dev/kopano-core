@@ -877,7 +877,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 
 static int main2(int argc, char **argv)
 {
-	HRESULT hr = hrSuccess;
 	const char *szPath = nullptr, *szSMTP = nullptr;
 	int ulPort = 0, logfd = -1;
 	bool bForked = false;
@@ -1147,7 +1146,7 @@ static int main2(int argc, char **argv)
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 
-	hr = mapiinit.Initialize();
+	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess)
 		return hr_lcrit(hr, "Unable to initialize MAPI");
 

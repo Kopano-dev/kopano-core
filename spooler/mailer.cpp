@@ -1165,7 +1165,6 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
     const wchar_t *lpszMailer, IAddrBook *lpAddrBook, const SBinary &owner,
     const SBinaryArray &mv, unsigned int *lpulObjType, bool *lpbAllowed)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int ulObjType, ulCmpRes;
 
 	for (unsigned int i = 0; i < mv.cValues; ++i) {
@@ -1173,6 +1172,7 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 		if (GetNonPortableObjectType(mv.lpbin[i].cb, reinterpret_cast<const ENTRYID *>(mv.lpbin[i].lpb), &ulObjType))
 			continue;
 
+		HRESULT hr = hrSuccess;
 		if (ulObjType == MAPI_DISTLIST) {
 			hr = HrFindUserInGroup(lpAddrBook, owner, mv.lpbin[i], &ulCmpRes);
 		} else if (ulObjType == MAPI_MAILUSER) {

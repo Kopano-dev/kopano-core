@@ -2366,7 +2366,6 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     const serverrecipients_t *lpServerNameRecips, DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMasterMessage;
 	std::string strMail;
 	serverrecipients_t listServerPathRecips;
@@ -2379,7 +2378,7 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 	/* Always start at the beginning of the file */
 	rewind(fp);
 	/* Read file into string */
-	hr = HrMapFileToString(fp, &strMail);
+	auto hr = HrMapFileToString(fp, &strMail);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to map input to memory", hr);
 
@@ -2490,7 +2489,6 @@ static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
     IMAPISession *lpSession, FILE *fp, companyrecipients_t *lpCompanyRecips,
     DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	lpArgs->sc->inc(SCN_DAGENT_TO_LIST);
 	/*
 	 * Find user with lowest adminlevel, we will use the addressbook for this
@@ -2502,7 +2500,7 @@ static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
 		object_ptr<IMAPISession> lpUserSession;
 		object_ptr<IAddrBook> lpAdrBook;
 
-		hr = FindLowestAdminLevelSession(&comp.second, lpArgs, &~lpUserSession);
+		auto hr = FindLowestAdminLevelSession(&comp.second, lpArgs, &~lpUserSession);
 		if (hr != hrSuccess)
 			return kc_perrorf("FindLowestAdminLevelSession failed", hr);
 		hr = OpenResolveAddrFolder(lpUserSession, &~lpAdrBook, nullptr);
@@ -2568,7 +2566,6 @@ static void *HandlerLMTP(void *lpArg)
 	companyrecipients_t mapRCPT;
 	std::list<std::string> lOrderedRecipients;
 	std::map<std::string, std::string> mapRecipientResults;
-	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
 	PyMapiPluginFactory pyMapiPluginFactory;
@@ -2593,7 +2590,7 @@ static void *HandlerLMTP(void *lpArg)
 		Sleep(10000); //wait 10 seconds so you can attach gdb
 		ec_log_info("Starting worker for LMTP request");
 	}
-	hr = HrGetSession(lpArgs.get(), KOPANO_SYSTEM_USER_W, &~lpSession);
+	auto hr = HrGetSession(lpArgs.get(), KOPANO_SYSTEM_USER_W, &~lpSession);
 	if (hr != hrSuccess) {
 		kc_perrorf("HrGetSession failed", hr);
 		lmtp.HrResponse("421 internal error: GetSession failed");
@@ -2866,7 +2863,6 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 
 static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int nMaxThreads;
 
 	ec_log_always("Starting kopano-dagent version " PROJECT_VERSION " (pid %d uid %u) (LMTP mode)", getpid(), getuid());
@@ -2913,7 +2909,7 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	ec_log_info("Maximum LMTP threads set to %d", nMaxThreads);
 
 	AutoMAPI mapiinit;
-	hr = mapiinit.Initialize();
+	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess)
 		return hr_lcrit(hr, "Unable to initialize MAPI");
 
@@ -3025,7 +3021,6 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
     const char *recipient, bool bStringEmail, FILE *fpMail,
     DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IAddrBook> lpAdrBook;
 	object_ptr<IABContainer> lpAddrDir;
@@ -3041,7 +3036,8 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
 		// only suppress error when it has no meaning (e.g. delivery of Unix user to itself)
-		hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &~lpSession, !lpArgs->bResolveAddress);
+		auto hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W,
+		          &~lpSession, !lpArgs->bResolveAddress);
 		if (hr == hrSuccess) {
 			hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
 			if (hr != hrSuccess)
@@ -3068,7 +3064,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		single_recip.wstrUsername = convert_to<std::wstring>(single_recip.wstrRCPT);
 	}
 
-	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
+	auto hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_LOGON_FAILED)
 			// This is a hard failure, two things could have happened
@@ -3187,7 +3183,6 @@ static int get_return_value(HRESULT hr, bool listen_lmtp, bool qmail)
 int main(int argc, char **argv)
 {
 	FILE *fp = stdin;
-	HRESULT hr = hrSuccess;
 	bool bDefaultConfigWarning = false; // Provide warning when default configuration is used
 	bool bExplicitConfig = false; // User added config option to commandline
 	bool bListenLMTP = false; // Do not listen for LMTP by default
@@ -3389,6 +3384,7 @@ int main(int argc, char **argv)
 
 	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	/* When LoadSettings fails, provide warning to user (but wait until we actually have the Logger) */
+	HRESULT hr = hrSuccess;
 	if (!g_lpConfig->LoadSettings(szConfig))
 		bDefaultConfigWarning = true;
 	else {

@@ -1471,13 +1471,11 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
     unsigned int flags)
 {
-	HRESULT hr = hrSuccess;
-
 	if (vmBody->getPartCount() <= 0) {
 		m_mailState.part_counter.push_back(1);
 		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
-		hr = handleAttachment(vmHeader, vmBody, lpMessage);
+		auto hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
 			kc_perror("dissect_multipart: Unable to save attachment", hr);
 		return hr;
@@ -1509,7 +1507,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 			m_mailState.part_counter.push_back(i);
 			auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 			auto vmBodyPart = vmBody->getPartAt(i);
-			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
+			auto hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 			if (hr != hrSuccess) {
 				ec_log_err("dissect_multipart: Unable to parse part %s: %s", m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 				return hr;
@@ -1521,6 +1519,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	auto lBodies = vtm_order_alternatives(vmBody);
 
 	// recursively process multipart alternatives in reverse to select best body first
+	HRESULT hr = hrSuccess;
 	for (auto body_idx : lBodies) {
 		m_mailState.part_counter.push_back(body_idx);
 		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
@@ -2758,7 +2757,6 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
  */
 static HRESULT postWriteFixups(IMessage *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpMessageClass, lpProps, lpRecProps;
 	ULONG cValues = 0, cRecProps = 0, cbConversationIndex = 0;
 	memory_ptr<unsigned char> lpConversationIndex;
@@ -2793,7 +2791,7 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 		PROPMAP_NAMED_ID(CLIPEND,					PT_SYSTIME,	PSETID_Appointment, dispidClipEnd)
 	PROPMAP_INIT(lpMessage)
 
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
 	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen("IPM.Schedule.Meeting.")) != 0)

@@ -471,7 +471,6 @@ HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropV
  */
 HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
-	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTagArray);
 	ULONG cNames = 0, ulLen = 0, ulMVProp = 0, ulCount = 0;
 	memory_ptr<MAPINAMEID *> lppNames;
@@ -484,7 +483,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		sPropTagArray.cValues = 1;
 		sPropTagArray.aulPropTag[0] = lpProp->ulPropTag;
 
-		hr = Util::HrCopyPropTagArray(sPropTagArray, &~lpsPropTagArray);
+		auto hr = Util::HrCopyPropTagArray(sPropTagArray, &~lpsPropTagArray);
 		if (hr != hrSuccess)
 			return hr;
 		hr = m_lpMessage->GetNamesFromIDs(&+lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
@@ -532,12 +531,13 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		}
 	} else {
 		// Write the property tag
-		hr = HrWriteDWord(lpStream, lpProp->ulPropTag);
+		auto hr = HrWriteDWord(lpStream, lpProp->ulPropTag);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	// Now, write the actual property value
+	HRESULT hr = hrSuccess;
 	if(PROP_TYPE(lpProp->ulPropTag) & MV_FLAG) {
 		switch(PROP_TYPE(lpProp->ulPropTag)) {
 		case PT_MV_I2:

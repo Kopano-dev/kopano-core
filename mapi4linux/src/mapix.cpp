@@ -952,7 +952,6 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-    HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IAddrBook> lpAddrBook;
     ULONG cbUnWrappedID = 0;
@@ -973,7 +972,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
    
 	// If this a wrapped entryid, just unwrap them.
 	if (memcmp(&muidStoreWrap, &lpEntryID->ab, sizeof(GUID)) == 0) {
-		hr = UnWrapStoreEntryID(cbEntryID, lpEntryID, &cbUnWrappedID, &~lpUnWrappedID);
+		auto hr = UnWrapStoreEntryID(cbEntryID, lpEntryID, &cbUnWrappedID, &~lpUnWrappedID);
 		if (hr != hrSuccess) {
 			ec_log_err("M4LMAPISession::OpenEntry() UnWrapStoreEntryID failed");
 			return hr;
@@ -990,7 +989,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	// See if we already have the store open
 	object_ptr<IMsgStore> lpMDB;
 	for (const auto &ecunk : lstChildren) {
-		hr = ecunk->QueryInterface(IID_IMsgStore, &~lpMDB);
+		auto hr = ecunk->QueryInterface(IID_IMsgStore, &~lpMDB);
 		if (hr != hrSuccess)
 			continue;
 		memory_ptr<SPropValue> spv;
@@ -1014,7 +1013,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	// If this is an addressbook EntryID or a one-off entryid, use the addressbook to open the item
 	if (memcmp(&guidProvider, &MUIDOOP, sizeof(MUIDOOP)) == 0) {
-		hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
+		auto hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenAddressBook failed", hr);
 		hr = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
@@ -1026,7 +1025,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     // If not, it must be a provider entryid, so we have to find the provider
 
 	// Find the profile section associated with this entryID
-	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
+	auto hr = serviceAdmin->GetProviderTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetProviderTable failed", hr);
 	hr = lpTable->SetColumns(sptaProviders, 0);
@@ -1616,7 +1615,6 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
  * @retval	MAPI_E_NOT_FOUND			Addressbook	is not available.
  */
 HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
-	HRESULT hr = MAPI_E_INVALID_PARAMETER;
 	ULONG objType, cbEntryID;
 	object_ptr<IABContainer> lpABContainer;
 	memory_ptr<SPropValue> propEntryID;
@@ -1627,13 +1625,14 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 
 	if (lpcbEntryID == NULL || lppEntryID == NULL) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): invalid parameters");
-		return hr;
+		return MAPI_E_INVALID_PARAMETER;
 	} else if (m_lABProviders.size() == 0) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): no ABs to search");
-		return hr;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	// m_lABProviders[0] probably always is Kopano
+	HRESULT hr = hrSuccess;
 	for (const auto &i : m_lABProviders) {
 		// find a working open root container
 		hr = i.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0,

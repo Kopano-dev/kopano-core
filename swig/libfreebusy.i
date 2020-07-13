@@ -138,11 +138,10 @@ public:
         virtual HRESULT PushDelegateInfoToWorkspace() = 0;
         %extend {
                 IFreeBusySupport() {
-                    HRESULT hr = hrSuccess;
 					KC::object_ptr<ECFreeBusySupport> lpFreeBusySup;
                        IFreeBusySupport *lpFreeBusySupport = NULL;
 
-                    hr = ECFreeBusySupport::Create(&~lpFreeBusySup);
+			auto hr = ECFreeBusySupport::Create(&~lpFreeBusySup);
                     if(hr != hrSuccess)
 				return NULL;
                     hr = lpFreeBusySup->QueryInterface(IID_IFreeBusySupport, reinterpret_cast<void **>(&lpFreeBusySupport));

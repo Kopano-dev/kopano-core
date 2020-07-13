@@ -105,7 +105,6 @@ exit:
  */
 HRESULT iCal::HrHandleIcalPost()
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpContTable;
 	SBinary sbEid{}, sbUid{};
 	ULONG ulItemCount = 0;
@@ -124,7 +123,7 @@ HRESULT iCal::HrHandleIcalPost()
 
 	//retrieve entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
-	hr = CreateICalToMapi(m_lpUsrFld, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	auto hr = CreateICalToMapi(m_lpUsrFld, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 	if (hr != hrSuccess) {
 		kc_perrorf("CreateICalToMapi", hr);
 		goto exit;

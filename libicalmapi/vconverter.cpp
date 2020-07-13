@@ -1171,8 +1171,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		return hrSuccess;
 	}
 
-	auto hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime,
-	          &bReminderSet);
+	auto hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime, &bReminderSet);
 	if (hr != hrSuccess)
 		// just skip the reminder
 		return hrSuccess;

@@ -1690,7 +1690,6 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 HRESULT spv_postload_large_props(IMAPIProp *lpProp,
     const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
-	HRESULT hr = hrSuccess;
 	void *lpData = NULL;
 	bool had_err = false;
 	memory_ptr<SPropTagArray> new_tags;
@@ -1723,8 +1722,8 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
-		hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t), lpProps,
-		     reinterpret_cast<void **>(&lpData));
+		auto hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t),
+		          lpProps, reinterpret_cast<void **>(&lpData));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());

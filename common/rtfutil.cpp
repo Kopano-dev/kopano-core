@@ -153,7 +153,6 @@ static std::wstring RTFFlushStateOutput(convert_context &convertContext,
 HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
-	HRESULT hr;
 	const char *szInput = lpStrRTFIn.c_str();
 	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
@@ -169,7 +168,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 		return MAPI_E_NOT_FOUND;
 
 	// select output charset
-	hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
 	if (hr != hrSuccess) {
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
@@ -370,7 +369,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
-	HRESULT hr;
 	std::wstring wstrUnicodeTmp;
 	const char *szInput = lpStrRTFIn.c_str();
 	auto rtfend = szInput + lpStrRTFIn.size();
@@ -385,7 +383,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	convert_context convertContext;
 
 	// select output charset
-	hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
 	if (hr != hrSuccess) {
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;
@@ -648,7 +646,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
-	HRESULT hr;
 	std::wstring wstrUnicodeTmp;
 	const char *szInput = lpStrRTFIn.c_str();
 	auto rtfend = szInput + lpStrRTFIn.size();
@@ -662,7 +659,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	bool bPar = false;
 
 	// select output charset
-	hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
 	if (hr != hrSuccess) {
 		szHTMLCharset = "us-ascii";
 		hr = hrSuccess;

@@ -2143,12 +2143,11 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
  */
 HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *output, void *parent)
 {
-	HRESULT hr;
 	LPBYTE buffer = NULL;
 
 	if (len % 2 != 0)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = MAPIAllocateMore(len / 2 + 1, parent, reinterpret_cast<void **>(&buffer));
+	auto hr = MAPIAllocateMore(len / 2 + 1, parent, reinterpret_cast<void **>(&buffer));
 	if (hr != hrSuccess)
 		return hr;
 	hr = hex2bin(input, len, buffer);
@@ -3516,8 +3515,6 @@ HRESULT Util::ExtractSuggestedContactsEntryID(LPSPropValue lpPropBlob, ULONG *lp
 
 HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned short usBlockType, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	HRESULT hr;
-
 	LPBYTE lpPos = lpPropBlob->Value.bin.lpb;
 	LPBYTE lpEnd = lpPropBlob->Value.bin.lpb + lpPropBlob->Value.bin.cb;
 		
@@ -3552,7 +3549,7 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 		lpPos += 2;
 		if (lpPos + usLen > lpEnd)
 			return MAPI_E_CORRUPT_DATA;
-		hr = MAPIAllocateBuffer(usLen, reinterpret_cast<void **>(lppEntryID));
+		auto hr = MAPIAllocateBuffer(usLen, reinterpret_cast<void **>(lppEntryID));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(*lppEntryID, lpPos, usLen);

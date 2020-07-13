@@ -4067,7 +4067,6 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataItemName,
     std::string strMsgDataItemValue, bool *lpbDoDelete)
 {
-	HRESULT hr = hrSuccess;
 	std::vector<std::string> lstFlags;
 	unsigned int ulCurrent, cValues, ulObjType;
 	memory_ptr<SPropValue> lpPropVal;
@@ -4093,8 +4092,10 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 	for (auto mail_idx : lstMails) {
 		object_ptr<IMessage> lpMessage;
 
-		hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb, reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
-		     &IID_IMessage, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpMessage);
+		auto hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb,
+		          reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
+		          &IID_IMessage, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
+		          &ulObjType, &~lpMessage);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -4295,6 +4296,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 		lstFolderMailEIDs[mail_idx].strFlags = strNewFlags;
 	} // loop on mails
 
+	HRESULT hr = hrSuccess;
 	if (strMsgDataItemName.size() > 7 &&
 	    strMsgDataItemName.compare(strMsgDataItemName.size() - 7, 7, ".SILENT") == 0)
 		hr = MAPI_E_NOT_ME;		// abuse error code that will not be used elsewhere from this function
