@@ -588,9 +588,6 @@ ECAuthSession::~ECAuthSession()
 	} else { /* Something strange happened */
 		ec_log_err("ntlm_auth terminated abnormally");
 	}
-#else
-	if (status)
-		ec_log_notice("ntlm_auth exited with status %d", status);
 #endif
 }
 
