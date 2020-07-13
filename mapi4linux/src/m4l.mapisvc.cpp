@@ -246,27 +246,21 @@ ULONG INFLoader::DefinitionFromString(const std::string& strDef, bool bProp) con
 	return (ULONG)ntohl(hex);
 }
 
-SVCProvider::~SVCProvider()
-{
-	MAPIFreeBuffer(m_lpProps);
-}
-
 /** 
  * Return the properties of this provider section
  * 
  * @param[out] lpcValues number of properties in lppPropValues
  * @param[out] lppPropValues pointer to internal properties
  */
-void SVCProvider::GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues)
+void SVCProvider::GetProps(unsigned int *lpcValues, const SPropValue **pv)
 {
 	*lpcValues = m_cValues;
-	*lppPropValues = m_lpProps;
+	*pv = m_lpProps.get();
 }
 
 HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 {
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(),
-		reinterpret_cast<void **>(&m_lpProps));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(), &~m_lpProps);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -284,7 +278,6 @@ SVCService::~SVCService()
 	if (m_dl)
 		dlclose(m_dl);
 #endif
-	MAPIFreeBuffer(m_lpProps);
 }
 
 /** 
@@ -300,8 +293,7 @@ SVCService::~SVCService()
 HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	char filename[PATH_MAX + 1];
-
-	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), reinterpret_cast<void **>(&m_lpProps));
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), &~m_lpProps);
 	if (hr != hrSuccess)
 		return hr;
 

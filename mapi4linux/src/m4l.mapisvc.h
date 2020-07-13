@@ -9,6 +9,7 @@
 #include <string>
 #include <mapidefs.h>
 #include <mapispi.h>
+#include <kopano/memory.hpp>
 
 typedef std::map<std::string, std::string> inf_section;
 typedef std::map<std::string, inf_section> inf_file;
@@ -37,13 +38,12 @@ private:
 class SVCProvider final {
 public:
 	/* ZARAFA6_ABP, ZARAFA6_MSMDB_private, ZARAFA6_MSMDB_public */
-	~SVCProvider();
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
-	void GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues);
+	void GetProps(unsigned int *nvals, const SPropValue **);
 
 private:
 	ULONG m_cValues = 0;
-	SPropValue *m_lpProps = nullptr; /* PR_* tags from file */
+	KC::memory_ptr<SPropValue> m_lpProps; /* PR_* tags from file */
 };
 
 class SVCService final {
@@ -67,7 +67,7 @@ private:
 	SVC_ABProviderInit m_fnABProviderInit = nullptr;
 
 	/* PR_* tags from file */
-	SPropValue *m_lpProps = nullptr;
+	KC::memory_ptr<SPropValue> m_lpProps;
 	ULONG m_cValues = 0;
 	std::map<std::string, std::unique_ptr<SVCProvider>> m_sProviders;
 };

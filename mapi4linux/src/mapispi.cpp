@@ -67,18 +67,18 @@ HRESULT M4LMAPISupport::GetMemAllocRoutines(ALLOCATEBUFFER **lpAllocateBuffer,
 HRESULT M4LMAPISupport::Subscribe(const NOTIFKEY *lpKey, ULONG ulEventMask,
     ULONG ulFlags, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
-	LPNOTIFKEY lpNewKey = NULL;
 	ulock_normal l_adv(m_advises_mutex, std::defer_lock_t());
 
 	/* Copy key (this should prevent deletion of the key while it is still in the list */
-	auto hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), reinterpret_cast<void **>(&lpNewKey));
+	memory_ptr<NOTIFKEY> lpNewKey;
+	auto hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpNewKey);
 	if (hr != hrSuccess)
 		return hr;
 
 	memcpy(lpNewKey, lpKey, sizeof(*lpKey));
 	l_adv.lock();
 	++m_connections;
-	m_advises.emplace(m_connections, M4LSUPPORTADVISE(lpNewKey, ulEventMask, ulFlags, lpAdviseSink));
+	m_advises.emplace(m_connections, M4LSUPPORTADVISE(std::move(lpNewKey), ulEventMask, ulFlags, lpAdviseSink));
 	*lpulConnection = m_connections;
 	return hrSuccess;
 }
