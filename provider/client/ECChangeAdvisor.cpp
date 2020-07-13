@@ -70,7 +70,7 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 		return MAPI_E_NO_SUPPORT;
 
 	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
-	BOOL			fEnhancedICS = false;
+	bool fEnhancedICS = false;
 	auto hr = lpMsgStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &fEnhancedICS);
 	if (hr != hrSuccess)
 		return hr;

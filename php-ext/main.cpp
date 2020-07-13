@@ -4024,8 +4024,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 	MAPI_G(hr) = lpecFBSupport->QueryInterface(IID_IFreeBusySupport, &~lpFBSupport);
 	if( MAPI_G(hr) != hrSuccess)
 		return;
-
-	MAPI_G(hr) = lpFBSupport->Open(lpSession, lpUserStore, (lpUserStore)?TRUE:FALSE);
+	MAPI_G(hr) = lpFBSupport->Open(lpSession, lpUserStore, lpUserStore != nullptr);
 	if( MAPI_G(hr) != hrSuccess)
 		return;
 

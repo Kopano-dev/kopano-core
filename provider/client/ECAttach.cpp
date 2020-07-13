@@ -79,7 +79,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	SPropValue		sPropValue[3];
 	memory_ptr<SPropValue> lpPropAttachType;
 	ULONG ulAttachType = 0, ulObjId = 0;
-	BOOL			fNew = FALSE;
+	bool fNew = false;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get the attachment method
@@ -101,12 +101,12 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 
 	/* Client is opening an IMessage submessage */
 	if (!m_sMapiObject->lstChildren.empty()) {
-		fNew = FALSE; // Create the submessage object from my sSavedObject data
+		fNew = false; // Create the submessage object from my sSavedObject data
 		ulObjId = (*m_sMapiObject->lstChildren.begin())->ulObjId;
 	} else {
 		if (!fModify || !(ulFlags & MAPI_CREATE))
 			return MAPI_E_NO_ACCESS;
-		fNew = TRUE; // new message in message
+		fNew = true; // new message in message
 		ulObjId = 0;
 	}
 

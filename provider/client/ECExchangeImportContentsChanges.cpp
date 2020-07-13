@@ -50,14 +50,14 @@ HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder,
 
 HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	BOOL	bCanStream = FALSE;
+	bool bCanStream = false;
 
 	REGISTER_INTERFACE2(ECExchangeImportContentsChanges, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 
 	if (refiid == IID_IECImportContentsChanges) {
 		m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
-		if (bCanStream == FALSE)
+		if (!bCanStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		REGISTER_INTERFACE2(IECImportContentsChanges, this);
 	}
@@ -245,7 +245,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	if(hr != hrSuccess)
 		return hr;
 	// Mark as ICS object
-	hr = lpECMessage->SetICSObject(TRUE);
+	hr = lpECMessage->SetICSObject(true);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);

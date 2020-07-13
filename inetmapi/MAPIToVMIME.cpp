@@ -1903,7 +1903,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 					ec_log_info(strTnefReason);
 
 tnef_anyway:
-				hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
+				hr = CreateStreamOnHGlobal(nullptr, true, &~lpStream);
 				if (hr != hrSuccess)
 					return kc_perror("Unable to create stream for TNEF attachment", hr);
 

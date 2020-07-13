@@ -104,7 +104,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 
 	//FIXME: check the property structure -> lpsPropValue
 
-	if (m_bLoading == FALSE && m_sMapiObject) {
+	if (!m_bLoading && m_sMapiObject != nullptr) {
 		// Only reset instance id when we're being modified, not being reloaded
 		HrSIEntryIDToID(m_sMapiObject->cbInstanceID, m_sMapiObject->lpInstanceID, nullptr, nullptr, &ulPropId);
 		if (ulPropId == PROP_ID(lpsPropValue->ulPropTag))
@@ -162,7 +162,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-		m_bReload = FALSE;
+		m_bReload = false;
 	}
 
 	// Find the property in our list
@@ -492,7 +492,7 @@ exit:
 		// down to read-only access. This means that specifying neither of
 		// the KEEP_OPEN flags means the same thing as KEEP_OPEN_READONLY.
 		if (!(ulFlags & (KEEP_OPEN_READWRITE|FORCE_SAVE)))
-			fModify = FALSE;
+			fModify = false;
 	return hr;
 }
 
@@ -592,9 +592,7 @@ HRESULT ECGenericProp::HrLoadProps()
 	scoped_rlock lock(m_hMutexMAPIObject);
 	if (m_props_loaded && !m_bReload)
 		goto exit; // already loaded
-
-	m_bLoading = TRUE;
-
+	m_bLoading = true;
 	if (m_sMapiObject != NULL) {
 		// remove what we know, (scenario: keep open r/w, drop props, get all again causes to know the server changes, incl. the hierarchy id)
 		m_sMapiObject.reset();
@@ -632,8 +630,7 @@ HRESULT ECGenericProp::HrLoadProps()
 	// We just read the properties from the disk, so it is a 'saved' (i.e. on-disk) message
 	fSaved = true;
 exit:
-	m_bReload = FALSE;
-	m_bLoading = FALSE;
+	m_bReload = m_bLoading = false;
 	return hr;
 }
 

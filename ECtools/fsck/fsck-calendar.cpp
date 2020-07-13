@@ -249,7 +249,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	memory_ptr<SPropTagArray> lpPropertyTagArray;
-	BOOL bRecurring = FALSE;
+	bool bRecurring = false;
 	LONG ulType = 0;
 	std::string lpData;
 	memory_ptr<MAPINAMEID *> ta;

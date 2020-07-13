@@ -52,7 +52,7 @@ public:
 	KC_HIDDEN virtual HRESULT GetFBDetailSupport(void **, BOOL) override { return E_NOTIMPL; }
 	KC_HIDDEN virtual HRESULT HrHandleServerSched(void *) override { return E_NOTIMPL; }
 	KC_HIDDEN virtual HRESULT HrHandleServerSchedAccess() override { return S_OK; }
-	KC_HIDDEN virtual BOOL FShowServerSched(BOOL) override { return FALSE; }
+	KC_HIDDEN virtual BOOL FShowServerSched(BOOL) override { return false; }
 	KC_HIDDEN virtual HRESULT HrDeleteServerSched() override { return S_OK; }
 	KC_HIDDEN virtual HRESULT GetFReadOnly(void *) override { return E_NOTIMPL; }
 	KC_HIDDEN virtual HRESULT SetLocalFB(void *) override { return E_NOTIMPL; }

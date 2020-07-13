@@ -61,7 +61,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IProfSect> lpProfSect;
 	unsigned int cValues = 0, ulStoreType = 0;
 	memory_ptr<SPropValue> lpsPropArray;
-	BOOL			fIsDefaultStore = FALSE;
+	bool fIsDefaultStore = false;
 	MAPIUID			guidMDBProvider;
 	sGlobalProfileProps	sProfileProps;
 
@@ -91,7 +91,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
 	    lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)
-		fIsDefaultStore = TRUE;
+		fIsDefaultStore = true;
 	// Create a transport for this message store
 	hr = WSTransport::Create(&~lpTransport);
 	if(hr != hrSuccess)
@@ -99,7 +99,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
-	} else if (fIsDefaultStore == FALSE){
+	} else if (!fIsDefaultStore) {
 		// also fallback to private store when logon failed (hr, do not change)
 		if (hr != hrSuccess || lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType) != hrSuccess)
 			// Maintain backward-compat: if connecting to a server that does not support the storetype

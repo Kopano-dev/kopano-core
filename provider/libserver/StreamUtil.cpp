@@ -1551,7 +1551,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	if (ulRealObjType == MAPI_MESSAGE || ulRealObjType == MAPI_ATTACH) {
 		unsigned int ulSubObjCount = 0, ulSubObjId = 0, ulSubObjType = 0;
-		BOOL			fHasAttach = FALSE;
+		bool fHasAttach = false;
 
 		er = lpSource->Read(&ulSubObjCount, sizeof(ulSubObjCount), 1);
 		if (er != erSuccess)
@@ -1562,7 +1562,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase,
 			if (er != erSuccess)
 				goto exit;
 			if (RealObjType(ulSubObjType, ulRealObjType) == MAPI_ATTACH)
-				fHasAttach = TRUE;
+				fHasAttach = true;
 			er = lpSource->Read(&ulSubObjId, sizeof(ulSubObjId), 1);
 			if (er != erSuccess)
 				goto exit;

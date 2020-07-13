@@ -331,7 +331,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			return kc_perror("Unable to restrict stats table", hr);
 	}
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
 		if (hr != hrSuccess)

@@ -491,7 +491,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	memory_ptr<ENTRYID> lpRootEntryID;
 	ULONG				cbRootEntryID = 0;
-	BOOL				fModifyObject = FALSE;
+	bool fModifyObject = false;
 	object_ptr<ECMAPIFolder> lpMAPIFolder;
 	object_ptr<ECMessage> lpMessage;
 	object_ptr<IECPropStorage> lpPropStorage;
@@ -501,7 +501,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
 			return MAPI_E_NO_ACCESS;
-		fModifyObject = TRUE;
+		fModifyObject = true;
 	}
 
 	if(ulFlags & MAPI_BEST_ACCESS)
@@ -557,7 +557,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			*lpulObjType = MAPI_FOLDER;
 		break;
 	case MAPI_MESSAGE:
-		hr = msgfac.Create(this, FALSE, fModifyObject, 0, FALSE, nullptr, &~lpMessage);
+		hr = msgfac.Create(this, false, fModifyObject, 0, false, nullptr, &~lpMessage);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -587,7 +587,7 @@ HRESULT ECMsgStore::SetReceiveFolder(const TCHAR *lpszMessageClass,
     ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	// Non supported function for publicfolder
-	if (IsPublicStore() == TRUE)
+	if (IsPublicStore())
 		return MAPI_E_NO_SUPPORT;
 	return lpTransport->HrSetReceiveFolder(m_cbEntryId, m_lpEntryId,
 	       convstring(lpszMessageClass, ulFlags), cbEntryID, lpEntryID);
@@ -692,7 +692,7 @@ HRESULT ECMsgStore::StoreLogoff(ULONG *lpulFlags) {
 HRESULT ECMsgStore::AbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags)
 {
 	// Non supported function for publicfolder
-	if (IsPublicStore() == TRUE)
+	if (IsPublicStore())
 		return MAPI_E_NO_SUPPORT;
 	// Check input/output variables
 	if (lpEntryID == NULL)
@@ -912,7 +912,7 @@ HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		hr = lpStore->HrGetRealProp(PR_QUOTA_RECEIVE_THRESHOLD, ulFlags, lpBase, lpsPropValue);
 		break;
 	case PROP_ID(PR_MAILBOX_OWNER_NAME):
-		if (lpStore->IsPublicStore() == TRUE) {
+		if (lpStore->IsPublicStore()) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
 		}
@@ -920,7 +920,7 @@ HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		hr = lpStore->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;
 	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-		if (lpStore->IsPublicStore() == TRUE) {
+		if (lpStore->IsPublicStore()) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
 		}
@@ -929,7 +929,7 @@ HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		break;
 	case PROP_ID(PR_STORE_OFFLINE):
 		// Delegate stores are always online, so ignore this property
-		if (lpStore->IsDelegateStore() == TRUE) {
+		if (lpStore->IsDelegateStore()) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
 		}
@@ -1183,7 +1183,8 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 			hr = lpTmpTransport->HrResolveUserStore(strUserName, 0, NULL, &cbEntryId, &~lpEntryId);
 			if (hr != hrSuccess)
 				return hr;
-			hr = GetIMsgStoreObject(FALSE, fModify, &g_mapProviders, lpSupport, cbEntryId, lpEntryId, &~lpMsgStoreOtherServer);
+			hr = GetIMsgStoreObject(false, fModify, &g_mapProviders,
+			     lpSupport, cbEntryId, lpEntryId, &~lpMsgStoreOtherServer);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpMsgStoreOtherServer->QueryInterface(IID_ECMsgStore, &~lpMsgStore);

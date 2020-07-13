@@ -1795,7 +1795,7 @@ HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrde
 	if (hr != hrSuccess)
 		return kc_pdebug("CalDAV::HrGetCalendarOrder getprop PR_IPM_APPOINTMENT_ENTRYID failed", hr);
 	hr = m_lpActiveStore->CompareEntryIDs(sbEid.cb, (LPENTRYID)sbEid.lpb, lpProp->Value.bin.cb, (LPENTRYID)lpProp->Value.bin.lpb, 0, &ulResult);
-	if (hr == hrSuccess && ulResult == TRUE)
+	if (hr == hrSuccess && ulResult == true)
 		lpstrCalendarOrder->assign("1");
 	return hr;
 }

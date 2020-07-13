@@ -282,7 +282,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		auto lpMappedProp = lpAdrList->aEntries[ulRecpCnt].cfind(PR_ENTRYID);
 		if (lpMappedProp && lpUsrEidProp)
 			hr = m_lpAdrBook->CompareEntryIDs(lpUsrEidProp->Value.bin.cb, (LPENTRYID)lpUsrEidProp->Value.bin.lpb, lpMappedProp->Value.bin.cb, (LPENTRYID)lpMappedProp->Value.bin.lpb , 0 , &ulRetn);
-		if (hr == hrSuccess && ulRetn == TRUE)
+		if (hr == hrSuccess && ulRetn == true)
 			m_ulUserStatus = icalRecipient.ulTrackStatus;
 
 		//Create EntryID by using mapped names, ical data might not have names.

@@ -3677,7 +3677,7 @@ HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, b
 	return hr;
 }
 
-HRESULT WSTransport::HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult)
+HRESULT WSTransport::HrCheckCapabilityFlags(unsigned int ulFlags, bool *lpbResult)
 {
 	if (lpbResult == NULL)
 		return MAPI_E_INVALID_PARAMETER;

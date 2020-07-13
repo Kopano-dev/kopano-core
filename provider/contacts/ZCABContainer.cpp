@@ -800,7 +800,8 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			for (i = m_lpFolders->begin();
 			     i != m_lpFolders->end(); ++i) {
 				ULONG res;
-				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
+				if (m_lpMAPISup->CompareEntryIDs(i->cbFolder, reinterpret_cast<ENTRYID *>(i->lpFolder),
+				    cbFolder, lpFolder, 0, &res) == hrSuccess && res == true)
 					break;
 			}
 			if (i == m_lpFolders->cend())

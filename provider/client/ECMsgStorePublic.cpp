@@ -108,7 +108,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	unsigned int objtype = 0;
 	object_ptr<ECMAPIFolder> lpMAPIFolder;
-	BOOL				fModifyObject = FALSE;
+	bool fModifyObject = false;
 	enumPublicEntryID	ePublicEntryID = ePE_None;
 	ULONG ulResult = 0, ulResults;
 	object_ptr<IECPropStorage> lpPropStorage;
@@ -119,7 +119,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
 			return MAPI_E_NO_ACCESS;
-		fModifyObject = TRUE;
+		fModifyObject = true;
 	}
 
 	if(ulFlags & MAPI_BEST_ACCESS)
@@ -136,11 +136,14 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if(hr != hrSuccess)
 		return hr;
 
-	if(ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE)
+	if (ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true)
 		ePublicEntryID = ePE_IPMSubtree;
-	else if(ComparePublicEntryId(ePE_Favorites, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE)
+	else if (ComparePublicEntryId(ePE_Favorites, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true)
 		ePublicEntryID = ePE_Favorites;
-	else if(ComparePublicEntryId(ePE_PublicFolders, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE)
+	else if (ComparePublicEntryId(ePE_PublicFolders, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true)
 		ePublicEntryID = ePE_PublicFolders;
 	else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		ePublicEntryID = ePE_FavoriteSubFolder;
@@ -193,7 +196,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & SHOW_SOFT_DELETES, &~lpPropStorage);
 		if (hr != hrSuccess)
 			return hr;
-		hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, TRUE);
+		hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, true);
 		if (hr != hrSuccess)
 			return hr;
 		//if (ePublicEntryID == ePE_FavoriteSubFolder)
@@ -213,7 +216,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (HrGetOneProp(lpMAPIFolder, PR_PARENT_ENTRYID, &~lpParentProp) == hrSuccess &&
 	    HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
 	    CompareEntryIDs(lpsPropValue->Value.bin.cb, (LPENTRYID)lpsPropValue->Value.bin.lpb, lpParentProp->Value.bin.cb, (LPENTRYID)lpParentProp->Value.bin.lpb, 0, &ulResults) == hrSuccess &&
-	    ulResults == TRUE)
+	    ulResults == true)
 		lpMAPIFolder->SetParentID(m_cIPMPublicFoldersID, m_lpIPMPublicFoldersID);
 
 	AddChild(lpMAPIFolder);
@@ -547,11 +550,14 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	ULONG ulResult = 0;
 	memory_ptr<ENTRYID> lpEntryIDIntern;
 
-	if(ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
+	if (ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true) {
 		return MAPI_E_NO_SUPPORT; // FIXME
-	} else if(ComparePublicEntryId(ePE_Favorites, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
+	} else if (ComparePublicEntryId(ePE_Favorites, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true) {
 		return MAPI_E_NO_SUPPORT; // FIXME
-	} else if(ComparePublicEntryId(ePE_PublicFolders, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
+	} else if (ComparePublicEntryId(ePE_PublicFolders, cbEntryID, lpEntryID,
+	    &ulResult) == hrSuccess && ulResult == true) {
 		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		// Replace the original entryid because this one is only readable

@@ -39,7 +39,7 @@ static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
 {
 	if (lpContext == NULL)
 		return S_OK;
-	static_cast<ECMAPIFolder *>(lpContext)->m_bReload = TRUE;
+	static_cast<ECMAPIFolder *>(lpContext)->m_bReload = true;
 	return S_OK;
 }
 
@@ -107,7 +107,7 @@ HRESULT ECMAPIFolder::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		if (lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == hrSuccess)
 			break;
 		lpsPropValue->ulPropTag = PR_SUBFOLDERS;
-		lpsPropValue->Value.b = FALSE;
+		lpsPropValue->Value.b = false;
 		break;
 	case PR_ACCESS:
 		if (lpFolder->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess)
@@ -722,7 +722,7 @@ HRESULT ECMAPIFolder::SetReadFlags(ENTRYLIST *lpMsgList, unsigned int ui_param,
 		return MAPI_E_NO_SUPPORT;
 
 	HRESULT		hr = hrSuccess;
-	BOOL		bError = FALSE;
+	bool bError = false;
 	// Progress bar
 	unsigned int ulPGMin = 0, ulPGMax = 0, ulPGDelta = 0, ulPGFlags = 0;
 
@@ -740,9 +740,9 @@ HRESULT ECMAPIFolder::SetReadFlags(ENTRYLIST *lpMsgList, unsigned int ui_param,
 			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb),
 			    &IID_IMessage, MAPI_MODIFY, nullptr, &~lpMessage) == hrSuccess) {
 				if(lpMessage->SetReadFlag(ulFlags&~MESSAGE_DIALOG) != hrSuccess)
-					bError = TRUE;
+					bError = true;
 			}else
-				bError = TRUE;
+				bError = true;
 
 			// Progress bar
 			if((ulFlags&MESSAGE_DIALOG ) && lpProgress) {
@@ -761,7 +761,7 @@ HRESULT ECMAPIFolder::SetReadFlags(ENTRYLIST *lpMsgList, unsigned int ui_param,
 		hr = lpFolderOps->HrSetReadFlags(lpMsgList, ulFlags, 0);
 	}
 
-	if(hr == hrSuccess && bError == TRUE)
+	if (hr == hrSuccess && bError)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 	return hr;
 }

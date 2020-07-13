@@ -444,7 +444,7 @@ ECScheduler::ECScheduler()
 ECScheduler::~ECScheduler()
 {
 	ulock_normal l_exit(m_hExitMutex);
-	m_bExit = TRUE;
+	m_bExit = true;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
 	if (m_thread_active)

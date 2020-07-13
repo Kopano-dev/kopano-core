@@ -1457,7 +1457,7 @@ HRESULT ECTNEF::Finish()
 	if (hr != hrSuccess)
 		return hr;
 	object_ptr<IStream> lpPropStream;
-	hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpPropStream);
+	hr = CreateStreamOnHGlobal(nullptr, true, &~lpPropStream);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrWritePropStream(lpPropStream, lstProps);
@@ -1708,7 +1708,7 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	if(hr != hrSuccess)
 		return hr;
 
-	while(TRUE) {
+	while (true) {
 		hr = lpClone->Read(buffer, 4096, &ulRead);
 		if(hr != hrSuccess)
 			return hr;
@@ -1776,7 +1776,7 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
     unsigned int ulLen, ULONG ulBlockID, ULONG ulLevel)
 {
 	object_ptr<IStream> lpStream;
-	auto hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
+	auto hr = CreateStreamOnHGlobal(nullptr, true, &~lpStream);
     if (hr != hrSuccess)
 		return hr;
     hr = lpStream->Write(lpData, ulLen, NULL);

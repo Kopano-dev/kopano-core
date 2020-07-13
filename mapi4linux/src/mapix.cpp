@@ -810,7 +810,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
 		
-	while(TRUE) {
+	while (true) {
 		hr = lpTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess)
 			return kc_perrorf("QueryRows failed", hr);
@@ -1032,7 +1032,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
 		
-	while(TRUE) {
+	while (true) {
 		rowset_ptr lpsRows;
 		hr = lpTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess)
@@ -1095,14 +1095,13 @@ HRESULT M4LMAPISession::CompareEntryIDs(ULONG cbEntryID1,
     ULONG ulFlags, ULONG *lpulResult)
 {
 	if (cbEntryID1 != cbEntryID2)
-		*lpulResult = FALSE;
+		*lpulResult = false;
 	else if (!lpEntryID1 || !lpEntryID2)
 		return MAPI_E_INVALID_ENTRYID;
 	else if (memcmp(lpEntryID1, lpEntryID2, cbEntryID1) != 0)
-		*lpulResult = FALSE;
+		*lpulResult = false;
 	else
-		*lpulResult = TRUE;
-
+		*lpulResult = true;
 	return hrSuccess;
 }
 

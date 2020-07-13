@@ -76,13 +76,6 @@ typedef char* LPSTR;
 typedef const char* LPCSTR;
 typedef __int64_t __int64;
 
-#ifndef FALSE
-  #define FALSE	0
-#endif
-#ifndef TRUE
-  #define TRUE	1
-#endif
-
 #define container_of(ptr, type, member) \
 	reinterpret_cast<type *>(reinterpret_cast<char *>(ptr) - offsetof(type, member))
 

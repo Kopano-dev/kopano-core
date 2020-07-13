@@ -368,7 +368,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 
 	object_ptr<ECABContainer> lpABContainer;
-	BOOL			fModifyObject = FALSE;
+	bool fModifyObject = false;
 	ABEID_FIXED lpABeid;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
@@ -379,7 +379,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (!fModify)
 			return MAPI_E_NO_ACCESS;
 		else
-			fModifyObject = TRUE;
+			fModifyObject = true;
 	}
 	if(ulFlags & MAPI_BEST_ACCESS)
 		fModifyObject = fModify;
@@ -423,7 +423,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 		if (hr != hrSuccess)
 			return hr;
-		hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
+		hr = lpABContainer->HrSetPropStorage(lpPropStorage, true);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpABContainer->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IABContainer, reinterpret_cast<void **>(lppUnk));
@@ -442,7 +442,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 		if (hr != hrSuccess)
 			return hr;
-		hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
+		hr = lpMailUser->HrSetPropStorage(lpPropStorage, true);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpMailUser->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IMailUser, reinterpret_cast<void **>(lppUnk));
@@ -461,7 +461,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 		if (hr != hrSuccess)
 			return hr;
-		hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
+		hr = lpDistList->HrSetPropStorage(lpPropStorage, true);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpDistList->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
