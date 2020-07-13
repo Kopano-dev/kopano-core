@@ -1,12 +1,77 @@
 import os
 import imaplib
+import poplib
 
 import pytest
+
+from MAPI import DELETE_HARD_DELETE, MAPI_MODIFY
+from MAPI.Util import OpenECSession, GetDefaultStore, SPropValue
+from MAPI.Tags import (PR_SUBJECT, PR_ENTRYID, PR_BODY, PR_MESSAGE_CLASS,
+                       PR_IPM_PUBLIC_FOLDERS_ENTRYID)
+
+
+@pytest.fixture
+def session():
+    user = os.getenv('KOPANO_TEST_POP3_USERNAME')
+    password = os.getenv('KOPANO_TEST_POP3_PASSWORD')
+    socket = os.getenv('KOPANO_SOCKET')
+
+    return OpenECSession(user, password, socket)
+
+
+@pytest.fixture
+def store(session):
+    return GetDefaultStore(session)
+
+
+@pytest.fixture
+def inbox(store):
+    inboxeid = store.GetReceiveFolder(b'IPM', 0)[0]
+    return store.OpenEntry(inboxeid, None, MAPI_MODIFY)
+
+
+@pytest.fixture
+def ipmnote(inbox):
+    message = inbox.CreateMessage(None, 0)
+
+    message.SetProps([SPropValue(PR_SUBJECT, b'test mail'),
+                      SPropValue(PR_BODY, b'test body'),
+                      SPropValue(PR_MESSAGE_CLASS, b'IPM.Note'),
+                      ])
+
+    message.SaveChanges(0)
+
+    yield message
+
+    eid = message.GetProps([PR_ENTRYID], 0)[0]
+    inbox.DeleteMessages([eid.Value], 0, None, DELETE_HARD_DELETE)
+
+
+@pytest.fixture
+def pop3():
+    yield poplib.POP3(os.getenv('KOPANO_TEST_POP3_HOST'), os.getenv('KOPANO_TEST_POP3_PORT'))
+
+
+@pytest.fixture
+def pop3login(pop3):
+    assert pop3.user(os.getenv('KOPANO_TEST_POP3_USERNAME'))[:3] == b'+OK'
+    assert pop3.pass_(os.getenv('KOPANO_TEST_POP3_PASSWORD'))[:3] == b'+OK'
+
+
+@pytest.fixture
+def reloginpop3():
+    def _reloginpop3():
+        pop3 = poplib.POP3(os.getenv('KOPANO_TEST_POP3_HOST'), os.getenv('KOPANO_TEST_POP3_PORT'))
+        assert pop3.user(os.getenv('KOPANO_TEST_POP3_USERNAME'))[:3] == b'+OK'
+        assert pop3.pass_(os.getenv('KOPANO_TEST_POP3_PASSWORD'))[:3] == b'+OK'
+        return pop3
+
+    return _reloginpop3
 
 
 @pytest.fixture
 def imap():
-    yield imaplib.IMAP4(os.getenv('KOPANO_TEST_IMAP_HOST'), os.getenv('KOPANO_TEST_IMAP_PORT'))
+    yield imaplib.IMAP4(os.getenv('KOPANO_TEST_IMAP_HOST'), os.getenv('KOPANO_TEST_IMAP_PORT', 143))
 
 
 @pytest.fixture
