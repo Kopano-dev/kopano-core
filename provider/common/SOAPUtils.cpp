@@ -694,7 +694,7 @@ size_t PropSize(const struct propVal *lpProp)
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
     struct soap *soap, bool bTruncate)
 {
-	ECRESULT er = PropCheck(lpSrc);
+	auto er = PropCheck(lpSrc);
 	if(er != erSuccess)
 		return er;
 

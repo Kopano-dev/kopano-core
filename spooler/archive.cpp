@@ -154,7 +154,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 		if (hr != hrSuccess)
 			return kc_pwarn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed", hr);
 		if (msg.second) {
-			HRESULT hrTmp = msg.second->Execute();
+			auto hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
 				kc_pwarn("Failed to execute post save action", hrTmp);
 		}
@@ -272,7 +272,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			return kc_perror("Failed to save message in archive", hr);
 		}
 		if (msg.second) {
-			HRESULT hrTmp = msg.second->Execute();
+			auto hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
 				kc_pwarn("Failed to execute post save action", hrTmp);
 		}

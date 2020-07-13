@@ -90,7 +90,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	memory_ptr<SPropValue> props;
 	ULONG cb;
-	HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
+	auto hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
 	if (!FAILED(hrTmp)) {
 		if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
 			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Archive folder: \"%s\'", props[0].Value.lpszA);
@@ -518,7 +518,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 
 			// Rollback
 			for (const auto &rb : lstRollbacks) {
-				HRESULT hrTmp = rb->Execute(m_ptrSession);
+				auto hrTmp = rb->Execute(m_ptrSession);
 				if (hrTmp != hrSuccess)
 					Logger()->perr("Failed to rollback transaction. The archive is consistent, but possibly cluttered.", hrTmp);
 			}
@@ -543,7 +543,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to save list of archives for this message", hr);
 	for (const auto &ta : lstTransactions) {
-		HRESULT hrTmp = ta->PurgeDeletes(m_ptrSession, m_ptrTransaction);
+		auto hrTmp = ta->PurgeDeletes(m_ptrSession, m_ptrTransaction);
 		if (hrTmp != hrSuccess)
 			Logger()->perr("Failed to remove old archives", hrTmp);
 	}

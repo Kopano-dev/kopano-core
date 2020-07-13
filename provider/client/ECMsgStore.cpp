@@ -1554,8 +1554,7 @@ static HRESULT create_store_private(ECMsgStore *store,
     ECMAPIFolder *ecroot, IMAPIFolder *root, IMAPIFolder *st)
 {
 	object_ptr<ECMAPIFolder> ecst;
-
-	HRESULT ret = st->QueryInterface(IID_ECMAPIFolder, &~ecst);
+	auto ret = st->QueryInterface(IID_ECMAPIFolder, &~ecst);
 	if (ret != hrSuccess)
 		return ret;
 

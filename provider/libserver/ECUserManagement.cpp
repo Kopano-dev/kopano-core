@@ -3914,7 +3914,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	objectid_t			sExternId;
 	ULONG				ulType = 0;
 
-	ECRESULT er = GetExternalId(ulUserId, &sExternId);
+	auto er = GetExternalId(ulUserId, &sExternId);
 	if (er != erSuccess)
 		return er;
 	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());

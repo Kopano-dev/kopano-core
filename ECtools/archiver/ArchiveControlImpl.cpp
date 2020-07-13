@@ -271,7 +271,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Processing %zu%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
 	for (const auto &user : lstUsers) {
 		m_lpLogger->logf(EC_LOGLEVEL_INFO, "Processing user \"" TSTRING_PRINTF "\".", user.c_str());
-		HRESULT hrTmp = (this->*fnProcess)(user);
+		auto hrTmp = (this->*fnProcess)(user);
 		if (FAILED(hrTmp)) {
 			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to process user \"" TSTRING_PRINTF "\": %s (%x)",
 				user.c_str(), GetMAPIErrorMessage(hrTmp), hrTmp);
