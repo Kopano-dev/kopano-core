@@ -4067,8 +4067,6 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
     std::string strMsgDataItemValue, bool *lpbDoDelete)
 {
 	std::vector<std::string> lstFlags;
-	unsigned int ulCurrent, cValues, ulObjType;
-	memory_ptr<SPropValue> lpPropVal;
 	std::string strNewFlags;
 	bool bDelete = false;
 	static constexpr const SizedSPropTagArray(4, proptags4) =
@@ -4090,6 +4088,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 	for (auto mail_idx : lstMails) {
 		object_ptr<IMessage> lpMessage;
+		unsigned int ulObjType;
 
 		auto hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb,
 		          reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
@@ -4100,6 +4099,10 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
+			hr = [](const std::string &strMsgDataItemValue, IMessage *lpMessage, bool &bDelete) -> HRESULT {
+			unsigned int cValues;
+			memory_ptr<SPropValue> lpPropVal;
+			HRESULT hr;
 			if (strMsgDataItemValue.find("\\SEEN") == strMsgDataItemValue.npos)
 				hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
 			else
@@ -4169,7 +4172,15 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 			hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 			if (hr != hrSuccess)
 				return hr;
+			return hr;
+			}(strMsgDataItemValue, lpMessage, bDelete);
+			if (hr != hrSuccess)
+				return hr;
 		} else if (strMsgDataItemName.compare(0, 6, "+FLAGS") == 0) {
+			hr = [](IMessage *lpMessage, bool &bDelete, const std::vector<std::string> &lstFlags) -> HRESULT {
+			unsigned int ulCurrent, cValues;
+			memory_ptr<SPropValue> lpPropVal;
+			HRESULT hr = hrSuccess;
 			for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
 				if (lstFlags[ulCurrent] == "\\SEEN") {
 					hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
@@ -4227,7 +4238,15 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				}
 				lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 			}
+			return hr;
+			}(lpMessage, bDelete, lstFlags);
+			if (hr != hrSuccess)
+				return hr;
 		} else if (strMsgDataItemName.compare(0, 6, "-FLAGS") == 0) {
+			hr = [](IMessage *lpMessage, const std::vector<std::string> &lstFlags) -> HRESULT {
+			unsigned int ulCurrent, cValues;
+			memory_ptr<SPropValue> lpPropVal;
+			HRESULT hr;
 			for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
 				if (lstFlags[ulCurrent] == "\\SEEN") {
 					hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
@@ -4285,6 +4304,10 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 				}
 				lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 			}
+			return hr;
+			}(lpMessage, lstFlags);
+			if (hr != hrSuccess)
+				return hr;
 		}
 
 		/* Get the newly updated flags */
