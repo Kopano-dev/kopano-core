@@ -566,9 +566,12 @@ ECAuthSession::~ECAuthSession()
 		return;
 	int status = 0;
 	// close I/O to make ntlm_auth exit
-	close(m_stdin);
-	close(m_stdout);
-	close(m_stderr);
+	if (m_stdin >= 0)
+		close(m_stdin);
+	if (m_stdout >= 0)
+		close(m_stdout);
+	if (m_stderr >= 0)
+		close(m_stderr);
 	// wait for process status
 	waitpid(m_NTLM_pid, &status, 0);
 	if (status == -1) {
