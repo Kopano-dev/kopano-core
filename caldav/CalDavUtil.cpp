@@ -763,10 +763,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport *lpFBSupport,
 		// ignore error
 		lpEnumBlock->Next(lMaxblks, lpsFBblks, &lblkFetched);
 		// add freebusy blocks to ical data
-		if (lblkFetched == 0)
-			hr = lpMapiToIcal->AddBlocks(NULL, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
-		else
-			hr = lpMapiToIcal->AddBlocks(lpsFBblks, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
+		hr = lpMapiToIcal->AddBlocks(lblkFetched == 0 ? nullptr : lpsFBblks.get(),
+		     lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd,
+		     lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
 		if (hr != hrSuccess)
 			goto next;
 

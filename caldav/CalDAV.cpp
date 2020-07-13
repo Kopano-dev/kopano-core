@@ -587,10 +587,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 			ec_log_warn("Login failed: %s (%x). Resending authentication request.", GetMAPIErrorMessage(hr), hr);
 	}
 	if (hr != hrSuccess) {
-		if(ulFlag & SERVICE_ICAL)
-			lpRequest.HrRequestAuth("Kopano iCal Gateway");
-		else
-			lpRequest.HrRequestAuth("Kopano CalDav Gateway");
+		lpRequest.HrRequestAuth((ulFlag & SERVICE_ICAL) ? "Kopano iCal Gateway" : "Kopano CalDav Gateway");
 		hr = hrSuccess; //keep connection open.
 		goto exit;
 	}
