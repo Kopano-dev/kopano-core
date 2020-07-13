@@ -562,20 +562,20 @@ ECAuthSession::~ECAuthSession()
 	std::unique_lock<std::mutex> l_thread(m_hThreadReleasedMutex);
 	m_hThreadReleased.wait(l_thread, [this](void) { return !IsLocked(); });
 	l_thread.unlock();
-	if (m_NTLM_pid == -1)
+	if (m_NTLM_pid < 0)
 		return;
-	int status;
+	int status = 0;
 	// close I/O to make ntlm_auth exit
 	close(m_stdin);
 	close(m_stdout);
 	close(m_stderr);
 	// wait for process status
 	waitpid(m_NTLM_pid, &status, 0);
-	ec_log_info("Removing ntlm_auth on pid %d. Exitstatus: %d", m_NTLM_pid, status);
 	if (status == -1) {
 		ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
 		return;
 	}
+	ec_log_info("Removed ntlm_auth on pid %d. Waitstatus: 0x%x", m_NTLM_pid, status);
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
 		if (WEXITSTATUS(status))
