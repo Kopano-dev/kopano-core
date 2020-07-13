@@ -540,7 +540,7 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
 	unsigned int oldval = lpcValues != nullptr ? *lpcValues : 0;
 	unsigned int ulModVal = oldval + 1;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
+	auto hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpsInputOccrInfo != nullptr)

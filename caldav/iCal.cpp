@@ -331,7 +331,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		return kc_perror("Error allocating memory", hr);
 	lpEntryList->cValues = 1;

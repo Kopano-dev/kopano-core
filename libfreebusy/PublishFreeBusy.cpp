@@ -381,8 +381,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	// Free previously allocated memory
 	if (*lppfbBlocks != NULL)
 		MAPIFreeBuffer(*lppfbBlocks);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(),
-	             reinterpret_cast<void **>(&lpFbBlocks));
+	auto hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(), reinterpret_cast<void **>(&lpFbBlocks));
 	if (hr != hrSuccess)
 		return hr;
 

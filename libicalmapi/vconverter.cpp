@@ -836,8 +836,8 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_CATEGORIES_PROPERTY))
 		vCategories.emplace_back(lpszCategories);
 
-	HRESULT hr = MAPIAllocateMore(vCategories.size() * sizeof(LPSTR),
-	            lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.MVszA.lppszA));
+	auto hr = MAPIAllocateMore(vCategories.size() * sizeof(char *),
+	          lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.MVszA.lppszA));
 	if (hr != hrSuccess)
 		return hr;
 

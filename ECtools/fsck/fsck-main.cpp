@@ -41,7 +41,7 @@ static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
     const SPropValue *lpItemProperty)
 {
 	memory_ptr<ENTRYLIST> lpEntryList;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin));
@@ -251,7 +251,7 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 		return hrSuccess;
 
 	memory_ptr<ADRLIST> lpMods;
-	HRESULT hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), &~lpMods);
+	auto hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), &~lpMods);
 	if (hr != hrSuccess)
 		return hr;
 

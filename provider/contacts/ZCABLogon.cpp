@@ -90,8 +90,7 @@ HRESULT ZCABLogon::AddFolder(const wchar_t *lpwDisplayName, ULONG cbStore,
 	entry.strwDisplayName = lpwDisplayName;
 
 	entry.cbStore = cbStore;
-	HRESULT hr = MAPIAllocateBuffer(cbStore,
-	             reinterpret_cast<void **>(&entry.lpStore));
+	auto hr = MAPIAllocateBuffer(cbStore, reinterpret_cast<void **>(&entry.lpStore));
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpStore, lpStore, cbStore);

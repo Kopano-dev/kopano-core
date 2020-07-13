@@ -191,8 +191,8 @@ static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
 	if (lpszW == NULL || lppszA == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	TryConvert(lpszW, local);
-	HRESULT hr = MAPIAllocateMore((local.length() + 1) * sizeof(std::string::value_type),
-		base, reinterpret_cast<void **>(&lpszA));
+	auto hr = MAPIAllocateMore((local.length() + 1) * sizeof(std::string::value_type),
+	          base, reinterpret_cast<void **>(&lpszA));
 	if (hr != hrSuccess)
 		return hr;
 	strcpy(lpszA, local.c_str());

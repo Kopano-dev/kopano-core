@@ -399,9 +399,8 @@ HRESULT ZCMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray * lppPropTagArray
 	LPSPropTagArray lpPropTagArray = NULL;
 	std::map<short, SPropValue>::const_iterator i;
 	ULONG j = 0;
-
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(m_mapProperties.size()),
-	             reinterpret_cast<void **>(&lpPropTagArray));
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(m_mapProperties.size()),
+	          reinterpret_cast<void **>(&lpPropTagArray));
 	if (hr != hrSuccess)
 		return hr;
 

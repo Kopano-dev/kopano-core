@@ -100,8 +100,7 @@ HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, 
 {
 	cabEntryID *lpWrapped = NULL;
 	ULONG cbWrapped = CbNewCABENTRYID(cbEntryID);
-	HRESULT hr = MAPIAllocateBuffer(cbWrapped,
-	             reinterpret_cast<void **>(&lpWrapped));
+	auto hr = MAPIAllocateBuffer(cbWrapped, reinterpret_cast<void **>(&lpWrapped));
 	if (hr != hrSuccess)
 		return hr;
 

@@ -172,8 +172,7 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 {
 	memory_ptr<SPropValue> lpDest;
     unsigned int n = 0;
-    
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
 	for (unsigned int i = 0; i < cValues; ++i) {
@@ -205,8 +204,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 {
 	memory_ptr<SPropValue> lpDest;
 	unsigned int n = 0;
-
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
 	for (unsigned int i = 0; i < cValues; ++i) {
@@ -664,8 +662,8 @@ static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
 {
 	lpDest->cActions = lpSrc->cActions;
 	lpDest->ulVersion = lpSrc->ulVersion;
-	HRESULT hr = MAPIAllocateMore(sizeof(ACTION) * lpSrc->cActions, lpBase,
-	             reinterpret_cast<void **>(&lpDest->lpAction));
+	auto hr = MAPIAllocateMore(sizeof(ACTION) * lpSrc->cActions, lpBase,
+	          reinterpret_cast<void **>(&lpDest->lpAction));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -801,7 +799,7 @@ HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
     LPSPropTagArray *lppDest)
 {
 	memory_ptr<SPropTagArray> ptrPropTagArray;
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &~ptrPropTagArray);
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
