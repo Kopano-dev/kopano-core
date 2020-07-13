@@ -295,6 +295,9 @@ private:
 	HRESULT HrParseSeqUidSet(const std::string &seq, std::list<ULONG> &mails);
 	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<KC::ECRestriction> &);
 	HRESULT HrStore(const std::list<ULONG> &mails, std::string msgdata_itemname, std::string msgdata_itemvalue, bool *do_del);
+	HRESULT HrStore_flags(const std::string &dataitemvalue, IMessage *, bool &xdelete);
+	HRESULT HrStore_pflags(IMessage *, bool &xdelete, const std::vector<std::string> &flags);
+	HRESULT HrStore_mflags(IMessage *, const std::vector<std::string> &flags);
 	HRESULT HrCopy(const std::list<ULONG> &mails, const std::wstring &folder, bool move);
 	HRESULT HrSearchNU(const std::vector<std::string> &cond, ULONG startcond, std::list<ULONG> &mailnr);
 	HRESULT HrSearch(std::vector<std::string> &&cond, ULONG startcond, std::list<ULONG> &mailnr);
