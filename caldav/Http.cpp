@@ -159,7 +159,6 @@ HRESULT Http::HrReadHeaders()
 // @todo this does way too much.
 HRESULT Http::HrParseHeaders()
 {
-	HRESULT hr;
 	std::string strAuthdata;
 	std::string strUserAgent;
 
@@ -176,7 +175,7 @@ HRESULT Http::HrParseHeaders()
 
 	// find the content-type
 	// Content-Type: text/xml;charset=UTF-8
-	hr = HrGetHeaderValue("Content-Type", &m_strCharSet);
+	auto hr = HrGetHeaderValue("Content-Type", &m_strCharSet);
 	if (hr == hrSuccess)
 		m_strCharSet = content_type_get_charset(m_strCharSet.c_str(), m_lpConfig->GetSetting("default_charset"));
 	else
