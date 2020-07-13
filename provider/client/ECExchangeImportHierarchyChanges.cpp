@@ -94,7 +94,6 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 
 HRESULT ECExchangeImportHierarchyChanges::Config(IStream *lpStream, unsigned int ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulLen = 0;
 	memory_ptr<SPropValue> lpPropSourceKey;
 
@@ -105,7 +104,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(IStream *lpStream, unsigned int
 		m_ulFlags = ulFlags;
 		return hrSuccess;
 	}
-	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);

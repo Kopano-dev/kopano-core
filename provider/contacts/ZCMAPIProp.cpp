@@ -218,7 +218,6 @@ HRESULT ZCMAPIProp::ConvertDistList(ULONG cValues, LPSPropValue lpProps)
 HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulIndex)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> ptrContactProps;
 	SPropValue sValue, sSource;
@@ -237,7 +236,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 #undef PS
 	};
 
-	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ARRAY_SIZE(mnNamedProps), &~lppNames);
+	auto hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * ARRAY_SIZE(mnNamedProps), &~lppNames);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -305,19 +304,17 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
     const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp,
     LPSPropValue lpBase)
 {
-	HRESULT hr;
-
 	if ((ulFlags & MAPI_UNICODE) == 0 && PROP_TYPE(i->second.ulPropTag) == PT_UNICODE) {
 		std::string strAnsi;
 		// copy from unicode to string8
 		lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
 		strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
-		hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA));
+		auto hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
 		strcpy(lpProp->Value.lpszA, strAnsi.c_str());
 	} else {
-		hr = Util::HrCopyProperty(lpProp, &i->second, lpBase);
+		auto hr = Util::HrCopyProperty(lpProp, &i->second, lpBase);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -337,7 +334,6 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
     ULONG *lpcValues, SPropValue **lppPropArray)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpProps;
 	convert_context converter;
 
@@ -347,7 +343,7 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 
 	if (lpPropTagArray == NULL) {
 		// check ulFlags for MAPI_UNICODE
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * m_mapProperties.size(), &~lpProps);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * m_mapProperties.size(), &~lpProps);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -363,7 +359,7 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 		*lpcValues = m_mapProperties.size();
 	} else {
 		// check lpPropTagArray->aulPropTag[x].ulPropTag for PT_UNICODE or PT_STRING8
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpProps);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpProps);
 		if (hr != hrSuccess)
 			return hr;
 

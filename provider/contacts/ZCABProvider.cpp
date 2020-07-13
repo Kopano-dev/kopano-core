@@ -37,14 +37,13 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ZCABLogon> lpABLogon;
 
 	if (lpMAPISup == nullptr || lppABLogon == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// todo: remove flags & guid .. probably add other stuff from profile?
-	hr = ZCABLogon::Create(lpMAPISup, 0, nullptr, &~lpABLogon);
+	auto hr = ZCABLogon::Create(lpMAPISup, 0, nullptr, &~lpABLogon);
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);

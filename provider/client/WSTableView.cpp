@@ -482,8 +482,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     SSortOrderSet *lpsSortOrderSet, ULONG ulRowCount, ULONG flags,
     SRowSet **lppRowSet)
 {
-    HRESULT hr = hrSuccess;
-    ECRESULT er = erSuccess;
 	struct propTagArray sColumns;
 	struct tableMultiRequest sRequest;
 	struct tableMultiResponse sResponse;
@@ -518,6 +516,8 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	}
 
 	soap_lock_guard spg(*m_lpTransport);
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
 	if(lpsRestriction) {
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrictTable, lpsRestriction);
 		if(hr != hrSuccess)

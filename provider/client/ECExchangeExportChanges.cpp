@@ -195,7 +195,6 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 	struct sbcmp {
 		bool operator()(const SBinary &l, const SBinary &r) const { return Util::CompareSBinary(l, r) < 0; }
 	};
-	HRESULT hr;
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
 	bool		bForceImplicitStateUpdate = false;
@@ -208,7 +207,7 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 		return MAPI_E_UNCONFIGURED;
 	}
 	if(lpRestriction) {
-		hr = Util::HrCopySRestriction(&~m_lpRestrict, lpRestriction);
+		auto hr = Util::HrCopySRestriction(&~m_lpRestrict, lpRestriction);
 		if (hr != hrSuccess)
 			return zlog("Invalid restriction", hr);
 	} else {
@@ -224,6 +223,7 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 		}
 
 		// We don't need the importer when doing SYNC_CATCHUP
+		HRESULT hr;
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
 			if (hr == hrSuccess) {
@@ -253,18 +253,18 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 		unsigned int tmp[2]{}, ulSize = 0;
 
 		zlog("Creating new exporter stream");
-		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
+		auto hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
 		if (hr != hrSuccess)
 			return zlog("Unable to create new exporter stream", hr);
 		m_lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 		m_lpStream->Write(tmp, sizeof(tmp), &ulSize);
 	} else {
-		hr = lpStream->QueryInterface(IID_IStream, &~m_lpStream);
+		auto hr = lpStream->QueryInterface(IID_IStream, &~m_lpStream);
 		if (hr != hrSuccess)
 			return zlog("Passed state stream does not support IStream interface", hr);
 	}
 
-	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId);
+	auto hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId);
 	if (hr != hrSuccess)
 		return zlog("Unable to decode sync state stream", hr);
 	ec_log_ics("Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu",

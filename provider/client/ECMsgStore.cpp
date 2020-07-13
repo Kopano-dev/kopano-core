@@ -302,20 +302,21 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+		auto hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId,
+		          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			return hr;
 		cbEntryID = cbUnWrapStoreID;
 		lpEntryID = lpUnWrapStoreID;
 	}
 
+	HRESULT hr = hrSuccess;
 	if(m_lpNotifyClient->RegisterAdvise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, true, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
 	if(hr != hrSuccess)
@@ -332,14 +333,14 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+		auto hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId,
+		          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			return hr;
 		cbEntryID = cbUnWrapStoreID;
@@ -349,13 +350,14 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	} else {
 		// check that the given lpEntryID belongs to the store in m_lpEntryId
 		GUID g;
-		hr = get_store_guid(g);
+		auto hr = get_store_guid(g);
 		if (hr != hrSuccess)
 			return MAPI_E_NO_SUPPORT;
 		if (g != reinterpret_cast<const EID *>(lpEntryID)->guid)
 			return MAPI_E_NO_SUPPORT;
 	}
 
+	HRESULT hr = hrSuccess;
 	if(m_lpNotifyClient->Advise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
 	m_setAdviseConnections.emplace(*lpulConnection);
@@ -2060,18 +2062,16 @@ static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass)
 {
 	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
-	HRESULT hr = hrSuccess;
-
 	// Set the special property
 	if(lpFolderPropSet) {
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
+		auto hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
 		memory_ptr<SPropValue> lpPropValue;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 		if (hr != hrSuccess)
 			return hr;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;

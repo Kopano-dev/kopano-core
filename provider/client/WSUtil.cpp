@@ -855,11 +855,9 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc,
 	    lpSrc->__ptr == nullptr)
 		return MAPI_E_INVALID_ENTRYID;
 
-	HRESULT hr;
 	ULONG		cbEntryId = 0;
 	LPENTRYID	lpEntryId = NULL;
-
-	hr = KAllocCopy(lpSrc->__ptr, lpSrc->__size, reinterpret_cast<void **>(&lpEntryId), lpBase);
+	auto hr = KAllocCopy(lpSrc->__ptr, lpSrc->__size, reinterpret_cast<void **>(&lpEntryId), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 	cbEntryId = lpSrc->__size;
@@ -2255,12 +2253,11 @@ static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base,
 
 HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpRow == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
+		HRESULT hr = hrSuccess;
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_SRESTRICTION) {
 			hr = ConvertString8ToUnicode(reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
 			     base != nullptr ? base : lpRow->lpProps, converter);
