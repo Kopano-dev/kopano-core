@@ -159,13 +159,12 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszError), wstrErrorMsg.c_str());
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszComponent), wstrCompName.c_str());
 	} else {
 		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		auto strCompName = convert_to<std::string>(g_strProductName.c_str());

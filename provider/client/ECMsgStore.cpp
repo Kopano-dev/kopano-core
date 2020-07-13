@@ -638,7 +638,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), reinterpret_cast<void **>(lppszExplicitClass));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t *)*lppszExplicitClass, dst.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(*lppszExplicitClass), dst.c_str());
 		return hrSuccess;
 	}
 

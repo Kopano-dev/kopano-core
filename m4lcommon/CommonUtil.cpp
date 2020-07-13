@@ -1734,7 +1734,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			lpProps[i].Value.lpszA[strData.size()] = 0;
 			break;
 		case PT_UNICODE:
-			lpProps[i].Value.lpszW = (wchar_t *)lpData;
+			lpProps[i].Value.lpszW = static_cast<wchar_t *>(lpData);
 			lpProps[i].Value.lpszW[strData.size() / sizeof(wchar_t)] = 0;
 			break;
 		case PT_BINARY:
