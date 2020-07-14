@@ -483,8 +483,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	memset(lpSyncStates->lpbin, 0, sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL);
 
 	for (auto notp : lNotifications) {
-		LPSBinary	tmp = NULL;
-
+		SBinary *tmp = nullptr;
 		hr = CopySOAPChangeNotificationToSyncState(notp, &tmp, lpSyncStates);
 		if (hr != hrSuccess)
 			continue;
