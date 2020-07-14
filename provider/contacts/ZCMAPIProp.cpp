@@ -274,7 +274,6 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
 HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID,
     const ENTRYID *lpEntryID, ZCMAPIProp **lppZCMAPIProp)
 {
-	HRESULT	hr = hrSuccess;
 	auto lpCABEntryID = reinterpret_cast<const cabEntryID *>(lpEntryID);
 
 	if (lpCABEntryID->ulObjType != MAPI_MAILUSER && lpCABEntryID->ulObjType != MAPI_DISTLIST)
@@ -282,7 +281,7 @@ HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID,
 	object_ptr<ZCMAPIProp> lpZCMAPIProp(new(std::nothrow) ZCMAPIProp(lpCABEntryID->ulObjType));
 	if (lpZCMAPIProp == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpZCMAPIProp->ConvertProps(lpContact, cbEntryID, lpEntryID, lpCABEntryID->ulOffset);
+	auto hr = lpZCMAPIProp->ConvertProps(lpContact, cbEntryID, lpEntryID, lpCABEntryID->ulOffset);
 	if (hr != hrSuccess)
 		return hr;
 	*lppZCMAPIProp = lpZCMAPIProp.release();

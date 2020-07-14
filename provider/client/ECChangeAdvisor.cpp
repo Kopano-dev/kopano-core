@@ -273,7 +273,6 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	if (lpParam == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT				hr = hrSuccess;
 	auto lpChangeAdvisor = static_cast<ECChangeAdvisor *>(lpParam);
 	ECLISTSYNCSTATE		listSyncStates;
 	ECLISTCONNECTION	listConnections;
@@ -290,7 +289,7 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	// Now re-register the notifications
 	std::transform(lpChangeAdvisor->m_mapSyncStates.begin(), lpChangeAdvisor->m_mapSyncStates.end(), std::back_inserter(listSyncStates),
 		[](const auto &e) -> SSyncState { return {e.first, e.second}; });
-	hr = lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, lpChangeAdvisor->m_lpChangeAdviseSink, &listConnections);
+	auto hr = lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, lpChangeAdvisor->m_lpChangeAdviseSink, &listConnections);
 	if (hr == hrSuccess)
 		lpChangeAdvisor->m_mapConnections.insert(std::make_move_iterator(listConnections.begin()), std::make_move_iterator(listConnections.end()));
 	return hr;

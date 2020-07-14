@@ -104,7 +104,6 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
     void *lpProvider, unsigned int ulFlags, SPropValue *lpsPropValue,
     ECGenericProp *lpParam, void *lpBase)
 {
-	HRESULT		hr = hrSuccess;
 	auto lpProp = static_cast<ECABContainer *>(lpParam);
 	memory_ptr<SPropValue> lpSectionUid;
 	object_ptr<IProfSect> lpProfSect;
@@ -114,7 +113,7 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		auto lpLogon = static_cast<ECABLogon *>(lpProvider);
 		if (lpLogon->m_lpMAPISup == nullptr)
 			return MAPI_E_NOT_FOUND;
-		hr = lpLogon->m_lpMAPISup->OpenProfileSection(nullptr, 0, &~lpProfSect);
+		auto hr = lpLogon->m_lpMAPISup->OpenProfileSection(nullptr, 0, &~lpProfSect);
 		if(hr != hrSuccess)
 			return hr;
 		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpSectionUid);
@@ -127,15 +126,16 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
 		break;
 		}
-	case PROP_ID(PR_AB_PROVIDER_ID):
+	case PROP_ID(PR_AB_PROVIDER_ID): {
 		lpsPropValue->ulPropTag = PR_AB_PROVIDER_ID;
 
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
-		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		auto hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
 		memcpy(lpsPropValue->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
 		break;
+	}
 	case PROP_ID(PR_ACCOUNT):
 	case PROP_ID(PR_NORMALIZED_SUBJECT):
 	case PROP_ID(PR_DISPLAY_NAME):
@@ -144,7 +144,7 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		LPCTSTR lpszName = NULL;
 		std::wstring strValue;
 
-		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+		auto hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -153,7 +153,7 @@ HRESULT ECABContainer::DefaultABContainerGetProp(unsigned int ulPropTag,
 		else if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_STRING8)
 			strValue = convert_to<std::wstring>(lpsPropValue->Value.lpszA);
 		else
-			return hr;
+			return hrSuccess;
 
 		if(strValue.compare( L"Global Address Book" ) == 0)
 			lpszName = KC_TX("Global Address Book");
@@ -367,7 +367,6 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
 	ABEID_FIXED lpABeid;
@@ -393,7 +392,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr || cbEntryID < sizeof(ABEID))
 			return MAPI_E_UNKNOWN_ENTRYID;
-		hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDServer);
+		auto hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDServer);
 		if(hr != hrSuccess)
 			return hr;
 		lpEntryID = lpEntryIDServer;
@@ -413,8 +412,8 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	//TODO: check entryid serverside?
 	switch (lpABeid.ulType) {
-	case MAPI_ABCONT:
-		hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
+	case MAPI_ABCONT: {
+		auto hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpABContainer->SetEntryId(cbEntryID, lpEntryID);
@@ -431,8 +430,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		break;
-	case MAPI_MAILUSER:
-		hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
+	}
+	case MAPI_MAILUSER: {
+		auto hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpMailUser->SetEntryId(cbEntryID, lpEntryID);
@@ -449,8 +449,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		break;
-	case MAPI_DISTLIST:
-		hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
+	}
+	case MAPI_DISTLIST: {
+		auto hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpDistList->SetEntryId(cbEntryID, lpEntryID);
@@ -467,6 +468,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (hr != hrSuccess)
 			return hr;
 		break;
+	}
 	default:
 		return MAPI_E_NOT_FOUND;
 	}
@@ -594,7 +596,6 @@ HRESULT ECABProp::DefaultABGetProp(unsigned int ulPropTag, void *lpProvider,
     unsigned int ulFlags, SPropValue *lpsPropValue, ECGenericProp *lpParam,
     void *lpBase)
 {
-	HRESULT		hr = hrSuccess;
 	auto lpProp = static_cast<ECABProp *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
@@ -603,16 +604,15 @@ HRESULT ECABProp::DefaultABGetProp(unsigned int ulPropTag, void *lpProvider,
 
 		if(lpProp->m_lpEntryId && lpProp->m_cbEntryId > 0) {
 			lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
-			hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+			auto hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr != hrSuccess)
-				break;
+				return hr;
 			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpsPropValue->Value.bin.cb);
 		} else {
-			hr = MAPI_E_NOT_FOUND;
+			return MAPI_E_NOT_FOUND;
 		}
 		break;
-	case PROP_ID(PR_STORE_SUPPORT_MASK):
-	{
+	case PROP_ID(PR_STORE_SUPPORT_MASK): {
 		unsigned int ulClientVersion = -1;
 		GetClientVersion(&ulClientVersion);
 
@@ -621,16 +621,15 @@ HRESULT ECABProp::DefaultABGetProp(unsigned int ulPropTag, void *lpProvider,
 			lpsPropValue->Value.l = STORE_UNICODE_OK;
 			lpsPropValue->ulPropTag = PR_STORE_SUPPORT_MASK;
 		} else {
-			hr = MAPI_E_NOT_FOUND;
+			return MAPI_E_NOT_FOUND;
 		}
 		break;
 	}
 	default:
-		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-		break;
+		return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	}
 
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECABProp::TableRowGetProp(void *lpProvider,

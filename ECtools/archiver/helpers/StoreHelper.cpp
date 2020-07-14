@@ -60,9 +60,7 @@ StoreHelper::StoreHelper(IMsgStore *st) :
 
 HRESULT StoreHelper::Init()
 {
-	HRESULT	hr;
-
-	hr = MAPIPropHelper::Init();
+	auto hr = MAPIPropHelper::Init();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -152,11 +150,10 @@ HRESULT StoreHelper::UpdateSearchFolders()
  */
 HRESULT StoreHelper::GetIpmSubtree(LPMAPIFOLDER *lppFolder)
 {
-	HRESULT	hr;
 	memory_ptr<SPropValue> ptrPropValue;
 
 	if (!m_ptrIpmSubtree) {
-		hr = HrGetOneProp(m_ptrMsgStore, PR_IPM_SUBTREE_ENTRYID, &~ptrPropValue);
+		auto hr = HrGetOneProp(m_ptrMsgStore, PR_IPM_SUBTREE_ENTRYID, &~ptrPropValue);
 		if (hr != hrSuccess)
 			return hr;
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.bin.cb,

@@ -48,8 +48,6 @@ MAPIPropHelper::MAPIPropHelper(IMAPIProp *p) :
  */
 HRESULT MAPIPropHelper::Init()
 {
-	HRESULT	hr = hrSuccess;
-
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT_NAMED_ID(ORIGINAL_SOURCEKEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)
@@ -59,7 +57,7 @@ HRESULT MAPIPropHelper::Init()
 	PROPMAP_INIT_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT_NAMED_ID(REF_PREV_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefPrevEntryId)
 	PROPMAP_INIT(m_ptrMapiProp)
-	return hr;
+	return hrSuccess;
 }
 
 /**

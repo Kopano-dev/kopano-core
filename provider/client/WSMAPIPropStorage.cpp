@@ -493,12 +493,11 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj,
 HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	ECRESULT	er = erSuccess;
-	HRESULT		hr = hrSuccess;
 	struct saveObject sSaveObj;
 	struct loadObjectResponse sResponse;
 	convert_context converter;
 
-	hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
+	auto hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
 	if (hr != hrSuccess) {
 		soap_del_saveObject(&sSaveObj);
 		return hr;
