@@ -552,7 +552,8 @@ HRESULT ClientUtil::GetGlobalProfileProperties(IProfSect *sect, struct sGlobalPr
 	return hrSuccess;
 }
 
-HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
+HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(IProfSect *lpGlobalProfSect,
+    unsigned int *lpcDelegates, BYTE **lppDelegateStores)
 {
 	if (lpGlobalProfSect == nullptr || lpcDelegates == nullptr ||
 	    lppDelegateStores == nullptr)
