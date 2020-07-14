@@ -120,7 +120,10 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 }
 
-HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
+HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, const IID &iid,
+    const std::string &sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType,
+    IExchangeExportChanges **lppExchangeExportChanges)
+{
 	if (lpStore == NULL || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY))
 		return MAPI_E_INVALID_PARAMETER;
 	return alloc_wrap<ECExchangeExportChanges>(lpStore, sourcekey,

@@ -3315,7 +3315,7 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 	zval *res;
 	LPMAPIFOLDER lpInbox = NULL;
 	// return value
-	LPEXCHANGEMODIFYTABLE lpRulesTable = NULL;
+	IExchangeModifyTable *lpRulesTable = nullptr;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3416,7 +3416,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	LOG_BEGIN();
 	// params
 	zval *res;
-	LPEXCHANGEMODIFYTABLE lpRulesTable = NULL;
+	IExchangeModifyTable *lpRulesTable = nullptr;
 	// return value
 	object_ptr<IMAPITable> lpRulesView;
 	// locals
@@ -3435,7 +3435,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 		return;
 
 	DEFERRED_EPILOGUE;
-	ZEND_FETCH_RESOURCE_C(lpRulesTable, LPEXCHANGEMODIFYTABLE, &res, -1, name_mapi_modifytable, le_mapi_modifytable);
+	ZEND_FETCH_RESOURCE_C(lpRulesTable, IExchangeModifyTable *, &res, -1, name_mapi_modifytable, le_mapi_modifytable);
 
 	MAPI_G(hr) = lpRulesTable->GetTable(0, &~lpRulesView);
 	if (MAPI_G(hr) != hrSuccess)
@@ -3468,7 +3468,7 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 	LOG_BEGIN();
 	// params
 	zval *res, *rows;
-	LPEXCHANGEMODIFYTABLE lpRulesTable = NULL;
+	IExchangeModifyTable *lpRulesTable = nullptr;
 	LPROWLIST lpRowList = NULL;
 	long ulFlags = 0;
 
@@ -3484,7 +3484,7 @@ ZEND_FUNCTION(mapi_rules_modifytable) {
 			FreeProws(reinterpret_cast<SRowSet *>(lpRowList));
 	});
 
-	ZEND_FETCH_RESOURCE_C(lpRulesTable, LPEXCHANGEMODIFYTABLE, &res, -1, name_mapi_modifytable, le_mapi_modifytable);
+	ZEND_FETCH_RESOURCE_C(lpRulesTable, IExchangeModifyTable *, &res, -1, name_mapi_modifytable, le_mapi_modifytable);
 
 	MAPI_G(hr) = PHPArraytoRowList(rows, NULL, &lpRowList TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {

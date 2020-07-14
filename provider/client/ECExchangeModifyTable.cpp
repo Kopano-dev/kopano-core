@@ -65,7 +65,7 @@ ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag,
 {}
 
 HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
-    ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
+    ULONG ulFlags, IExchangeModifyTable **lppObj)
 {
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
@@ -90,7 +90,7 @@ HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
 }
 
 HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
-    ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
+    ULONG ulFlags, IExchangeModifyTable **lppObj)
 {
 	object_ptr<IStream> lpRulesData;
 	STATSTG statRulesData;

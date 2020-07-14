@@ -33,7 +33,9 @@ ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *l
 	m_lpLogger(new ECLogger_Null), m_lpFolder(lpFolder)
 {}
 
-HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
+HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder,
+    IExchangeImportContentsChanges **lppExchangeImportContentsChanges)
+{
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<ECExchangeImportContentsChanges> lpEICC(new(std::nothrow) ECExchangeImportContentsChanges(lpFolder));
