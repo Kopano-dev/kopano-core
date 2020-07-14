@@ -33,7 +33,7 @@ HRESULT ZCABProvider::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+HRESULT ZCABProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {

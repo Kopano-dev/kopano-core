@@ -166,7 +166,7 @@ public:
 	virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,ENTRYID **lppWrappedEntry) = 0;
     virtual HRESULT ModifyProfile(ULONG ulFlags) = 0; 
 	virtual HRESULT IStorageFromStream(IUnknown *, const IID *intf, unsigned int flags, IStorage **) { return MAPI_E_NO_SUPPORT; }
-	virtual HRESULT GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP *lppSvcSupport) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT GetSvcConfigSupportObj(unsigned int flags, IMAPISupport **) { return MAPI_E_NO_SUPPORT; }
 };
 
 /********************************************************************/
@@ -282,7 +282,7 @@ typedef SCODE (OPTIONCALLBACK)(
             ULONG               ulFlags,
             ULONG               cbOptionData,
             LPBYTE              lpbOptionData,
-            LPMAPISUP           lpMAPISup,
+            IMAPISupport *,
             LPMAPIPROP          lpDataSource,
             LPMAPIPROP *    lppWrappedSource,
             LPMAPIERROR *   lppMAPIError);
@@ -448,7 +448,7 @@ extern "C" {
 typedef HRESULT (MSGSERVICEENTRY)(
     HINSTANCE       hInstance,
     IMalloc *,
-    LPMAPISUP       lpMAPISup,
+    IMAPISupport *,
     ULONG           ulUIParam,
     ULONG           ulFlags,
     ULONG           ulContext,

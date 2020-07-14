@@ -309,7 +309,7 @@ HRESULT ECABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 	return ((ECABLogon*)lpProvider)->m_lpTransport->HrResolveNames(lpPropTagArray, ulFlags, lpAdrList, lpFlagList);
 }
 
-ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
+ECABLogon::ECABLogon(IMAPISupport *lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :
 	m_lpMAPISup(lpMAPISup), m_lpTransport(lpTransport),
 	/* The "legacy" guid used normally (all AB entryIDs have this GUID) */
@@ -667,7 +667,7 @@ HRESULT ECABProvider::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+HRESULT ECABProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     BYTE **lppbSecurity, MAPIERROR **lppMAPIError, IABLogon **lppABLogon)
 {
@@ -724,7 +724,7 @@ HRESULT ECABProviderSwitch::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
+HRESULT ECABProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     BYTE **lppbSecurity, MAPIERROR **lppMAPIError, IABLogon **lppABLogon)
 {

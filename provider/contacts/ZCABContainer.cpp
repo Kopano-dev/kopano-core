@@ -33,7 +33,7 @@
 using namespace KC;
 
 ZCABContainer::ZCABContainer(std::shared_ptr<std::vector<zcabFolderEntry>> lpFolders,
-    IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider) :
+    IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider) :
 	m_lpFolders(std::move(lpFolders)),
 	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
 	m_lpProvider(lpProvider)

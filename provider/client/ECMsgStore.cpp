@@ -164,7 +164,7 @@ ULONG ECMsgStore::Release()
 	return ECUnknown::Release();
 }
 
-HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
+HRESULT ECMsgStore::Create(const char *lpszProfname, IMAPISupport *lpSupport,
     WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags,
     BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {

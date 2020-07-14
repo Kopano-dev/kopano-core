@@ -491,7 +491,7 @@ static std::string GetServerTypeFromPath(const char *szPath)
 
 // Called by MAPI to configure, or create a service
 extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
-    IMalloc *, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
+    IMalloc *, IMAPISupport *psup, unsigned int ulUIParam, unsigned int ulFlags,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
     IProviderAdmin *lpAdminProviders, MAPIERROR **lppMapiError)
 {

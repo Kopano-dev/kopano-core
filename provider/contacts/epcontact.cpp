@@ -12,7 +12,7 @@
 using namespace KC;
 
 HRESULT MSGServiceEntry(HINSTANCE hInst, IMalloc *,
-    LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,
+    IMAPISupport *psup, unsigned int ulUIParam, unsigned int ulFlags, unsigned int ulContext,
     ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
 {
