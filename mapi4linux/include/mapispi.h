@@ -165,7 +165,7 @@ public:
 	virtual HRESULT StatusRecips(IMessage *, const ADRLIST *recips) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,ENTRYID **lppWrappedEntry) = 0;
     virtual HRESULT ModifyProfile(ULONG ulFlags) = 0; 
-	virtual HRESULT IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE *lppStorageOut) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT IStorageFromStream(IUnknown *, const IID *intf, unsigned int flags, IStorage **) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP *lppSvcSupport) { return MAPI_E_NO_SUPPORT; }
 };
 
