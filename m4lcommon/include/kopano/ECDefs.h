@@ -120,26 +120,22 @@ struct SPROPMAPENTRY {
 	unsigned int	ulPropId;
 	LPTSTR			lpszValue;
 };
-typedef struct SPROPMAPENTRY *LPSPROPMAPENTRY;
 
 struct SPROPMAP {
 	unsigned int		cEntries;
-	LPSPROPMAPENTRY		lpEntries;
+	SPROPMAPENTRY *lpEntries;
 };
-typedef struct SPROPMAP *LPSPROPMAP;
 
 struct MVPROPMAPENTRY {
 	unsigned int	ulPropId;
 	int				cValues;
 	LPTSTR*			lpszValues;
 };
-typedef struct MVPROPMAPENTRY *LPMVPROPMAPENTRY;
 
 struct MVPROPMAP {
 	unsigned int		cEntries;
-	LPMVPROPMAPENTRY	lpEntries;
+	MVPROPMAPENTRY *lpEntries;
 };
-typedef struct MVPROPMAP *LPMVPROPMAP;
 
 struct ECUSER {
 	LPTSTR			lpszUsername;	// username@companyname
