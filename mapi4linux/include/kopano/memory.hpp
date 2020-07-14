@@ -81,19 +81,6 @@ class default_delete {
 	void operator()(void *p) const { MAPIFreeBuffer(p); }
 };
 
-/**
- * memory_ptr works a lot like std::unique_ptr, with the
- * additional differences:
- *  - operator& is defined (this is why we cannot use/derive from unique_ptr)
- *  - the deleter is fixed (for now…)
- *  - conversion to base class is not permitted (not very relevant to KC)
- *  - operator bool not present (not really desired for KC)
- * Differences to the prior implementation (ZCP's mapi_memory_ptr):
- *  - "constexpr", "noexcept" and "explicit" keywords added
- *  - move constructor and move assignment is implemented
- *  - methods "is_null", "free" and "as" are gone
- *  - operator void** and operator! is gone
- */
 template<typename T, typename Deleter = default_delete> class memory_ptr {
 	public:
 	typedef T *pointer;

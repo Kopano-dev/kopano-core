@@ -58,6 +58,12 @@ but has a number of extensions for source-code compatibility such as implicit
 conversions. The use of unique_ptr/memory_ptr allows for shorter
 code.
 
+Differences:
+
+  * operator& is defined (this is why we cannot use/derive from unique_ptr)
+  * conversion to base class is not permitted (not very relevant to KC)
+  * operator bool not present (not really desired for KC)
+
 Traditional:
 
 	foo *obj;
@@ -87,6 +93,10 @@ it turned out that in some instances, such freeing is undesired (e.g. near
 GetNameFromIDs). As a consequence, freeing has been made explicit using the
 ~ operator, not-freeing is expressed with the + operator, and not using either
 of ~ or + leads to a compile error, to catch unmindful uses of &.
+
+Do note the equivalent to unique_ptr<T[]> is memory_ptr<T>, not
+memory_ptr<T[]>.
+
 
 == object_ptr ==
 
