@@ -208,7 +208,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
  * their primary store.
  * @param[in]	lpContainer		The addressbook container to process.
  */
-HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
+HRESULT ArchiveStateCollector::PopulateFromContainer(IABContainer *lpContainer)
 {
 	SPropValue sPropObjType, sPropDispType;
 	static constexpr const SizedSPropTagArray(4, sptaUserProps) =

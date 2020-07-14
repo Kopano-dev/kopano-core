@@ -3118,7 +3118,7 @@ ZEND_FUNCTION(mapi_getprops)
 	} else if( type == le_mapi_distlist) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, IDistList *, &res, -1, name_mapi_distlist, le_mapi_distlist);
 	} else if( type == le_mapi_abcont) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPABCONT, &res, -1, name_mapi_abcont, le_mapi_abcont);
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, IABContainer *, &res, -1, name_mapi_abcont, le_mapi_abcont);
 	} else if( type == le_mapi_property) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
 	} else {
