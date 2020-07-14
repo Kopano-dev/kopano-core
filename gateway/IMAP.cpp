@@ -3340,19 +3340,24 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 	for (auto iFetch = lstDataItems.cbegin();
 	     bSkipOpen && iFetch != lstDataItems.cend(); ++iFetch)
 	{
-		if (iFetch->compare("BODY") == 0)
-			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY) != NULL;
-		else if (iFetch->compare("BODYSTRUCTURE") == 0)
-			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE) != NULL;
-		else if (iFetch->compare("ENVELOPE") == 0)
-			bSkipOpen = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) != NULL;
-		else if (iFetch->compare("RFC822.SIZE") == 0)
-			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL;
-		else if (strstr(iFetch->c_str(), "HEADER") != NULL) {
+		if (iFetch->compare("BODY") == 0) {
+			if (PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY) == nullptr)
+				bSkipOpen = false;
+		} else if (iFetch->compare("BODYSTRUCTURE") == 0) {
+			if (PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE) == nullptr)
+				bSkipOpen = false;
+		} else if (iFetch->compare("ENVELOPE") == 0) {
+			if (PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) == nullptr)
+				bSkipOpen = false;
+		} else if (iFetch->compare("RFC822.SIZE") == 0) {
+			if (PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) == nullptr)
+				bSkipOpen = false;
+		} else if (strstr(iFetch->c_str(), "HEADER") != NULL) {
 			// we can only use PR_TRANSPORT_MESSAGE_HEADERS when we have the full email.
 			auto headers = PCpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A);
 			auto size = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
-			bSkipOpen = (headers != nullptr && strlen(headers->Value.lpszA) > 0 && size != nullptr);
+			if (headers == nullptr || *headers->Value.lpszA == '\0' || size == nullptr)
+				bSkipOpen = false;
 		}
 		// full/partial body fetches, or size
 		else if (kc_starts_with(*iFetch, "BODY") || kc_starts_with(*iFetch, "RFC822"))
