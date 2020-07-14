@@ -1709,7 +1709,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 					continue;
 				lpProp->ulPropTag = lpsRestrict->lpProp->lpProp->ulPropTag;
 				int lCompare = 0;
-				CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare); // IGNORE error
+				er = CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare);
+				if (er != erSuccess)
+					/* ignore error (can only be INVALID_PARAMETER) */;
 
 				// PR_ANR has special semantics, lCompare is 1 if the substring is found, 0 if not
 
