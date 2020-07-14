@@ -278,7 +278,8 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				continue;
 			}
 			if (lpRowSet[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT) {
-				memcpy(&ttzInfo, lpRowSet[i].lpProps[6].Value.bin.lpb, sizeof(ttzInfo));
+				if (lpRowSet[i].lpProps[6].Value.bin.cb >= sizeof(ttzInfo))
+					memcpy(&ttzInfo, lpRowSet[i].lpProps[6].Value.bin.lpb, sizeof(ttzInfo));
 				ttzInfo.le_to_cpu();
 			}
 			if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
