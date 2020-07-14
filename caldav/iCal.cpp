@@ -105,7 +105,6 @@ exit:
  */
 HRESULT iCal::HrHandleIcalPost()
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpContTable;
 	SBinary sbEid{}, sbUid{};
 	ULONG ulItemCount = 0;
@@ -124,7 +123,7 @@ HRESULT iCal::HrHandleIcalPost()
 
 	//retrieve entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
-	hr = CreateICalToMapi(m_lpUsrFld, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
+	auto hr = CreateICalToMapi(m_lpUsrFld, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
 	if (hr != hrSuccess) {
 		kc_perrorf("CreateICalToMapi", hr);
 		goto exit;
@@ -281,8 +280,8 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType=0;
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
-	             &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	auto hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
+	          &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 	if (blCensor && IsPrivate(lpMessage, ulTagPrivate))
@@ -303,7 +302,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 {
 	object_ptr<IMessage> lpMessage;
-	HRESULT hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
+	auto hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpIcal2Mapi->GetItem(ulPos, 0, lpMessage);
@@ -331,7 +330,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		return kc_perror("Error allocating memory", hr);
 	lpEntryList->cValues = 1;

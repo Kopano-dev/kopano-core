@@ -151,7 +151,6 @@ HRESULT ECChangeAdvisor::Config(IStream *lpStream, GUID */*lpGUID*/,
  */
 HRESULT ECChangeAdvisor::PurgeStates()
 {
-	HRESULT hr;
 	ECLISTSYNCID		lstSyncId;
 	ECLISTSYNCSTATE		lstSyncState;
 	SyncStateMap		mapChangeId;
@@ -161,7 +160,7 @@ HRESULT ECChangeAdvisor::PurgeStates()
 	// First get the most up to date change ids for all registered sync ids (we will ignore the changeids since we don't know if we actually got that far)
 	std::transform(m_mapConnections.begin(), m_mapConnections.end(), std::back_inserter(lstSyncId),
 		[](const auto &s) { return s.first; });
-	hr = m_lpMsgStore->m_lpNotifyClient->UpdateSyncStates(lstSyncId, &lstSyncState);
+	auto hr = m_lpMsgStore->m_lpNotifyClient->UpdateSyncStates(lstSyncId, &lstSyncState);
 	if (hr != hrSuccess)
 		return hr;
 

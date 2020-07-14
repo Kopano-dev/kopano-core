@@ -139,7 +139,7 @@ ECGenericObjectTable::~ECGenericObjectTable()
 ECRESULT ECGenericObjectTable::SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought)
 {
 	scoped_rlock biglock(m_hLock);
-	ECRESULT er = Populate();
+	auto er = Populate();
 	if(er != erSuccess)
 		return er;
 	if(lpsSortOrderArray == NULL) {
@@ -173,7 +173,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	ulock_rec biglock(m_hLock);
 
-	ECRESULT er = Populate();
+	auto er = Populate();
 	if(er != erSuccess)
 		return er;
 	/* We may need the table position later (ulCount is not used) */
@@ -289,7 +289,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 ECRESULT ECGenericObjectTable::GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow)
 {
 	scoped_rlock biglock(m_hLock);
-	ECRESULT er = Populate();
+	auto er = Populate();
 	if(er != erSuccess)
 		return er;
 	if(lpsSortOrderArray == NULL) {
@@ -924,7 +924,7 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 	ECObjectTableList	ecRowList;
 	scoped_rlock biglock(m_hLock);
 
-	ECRESULT er = Populate();
+	auto er = Populate();
 	if (er != erSuccess)
 		return er;
 	if(lpsSortOrderArray == NULL) {
@@ -976,7 +976,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     struct rowSet *lpRowSet = NULL;
 	scoped_rlock biglock(m_hLock);
 
-	ECRESULT er = Populate();
+	auto er = Populate();
     if(er != erSuccess)
 		return er;
 
@@ -1038,8 +1038,7 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
 
 	if (sInstanceKey.__size != sizeof(sObjectTableKey))
 		return KCERR_INVALID_PARAMETER;
-
-	ECRESULT er = Populate();
+	auto er = Populate();
     if(er != erSuccess)
 		return er;
 	uint32_t tmp4;

@@ -40,7 +40,7 @@ HRESULT Deleter::DoProcessEntry(const SRow &proprow)
 		return MAPI_E_NOT_FOUND;
 	}
 	if (m_lstEntryIds.size() >= 50) {
-		HRESULT hr = PurgeQueuedMessages();
+		auto hr = PurgeQueuedMessages();
 		if (hr != hrSuccess)
 			return hr;
 	}

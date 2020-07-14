@@ -252,15 +252,13 @@ exit:
 HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
     BOOKMARK bkOrigin, ULONG flags)
 {
-	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
 	struct restrictTable *lpRestrict = NULL;
 	soap_lock_guard spg(*m_lpTransport);
-	ECRESULT er = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
+	auto hr = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
 
-	if(er != erSuccess) {
-		hr = MAPI_E_INVALID_PARAMETER;
+	if (hr != erSuccess)
 		goto exit;
-	}
 	hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -484,8 +482,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     SSortOrderSet *lpsSortOrderSet, ULONG ulRowCount, ULONG flags,
     SRowSet **lppRowSet)
 {
-    HRESULT hr = hrSuccess;
-    ECRESULT er = erSuccess;
 	struct propTagArray sColumns;
 	struct tableMultiRequest sRequest;
 	struct tableMultiResponse sResponse;
@@ -520,6 +516,8 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	}
 
 	soap_lock_guard spg(*m_lpTransport);
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
 	if(lpsRestriction) {
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrictTable, lpsRestriction);
 		if(hr != hrSuccess)

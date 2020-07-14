@@ -77,8 +77,8 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 		return hr;
 
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
-		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+		auto wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
+		auto wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
@@ -91,8 +91,8 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 			return hr;
 		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
-		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
-		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
+		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
+		auto strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));

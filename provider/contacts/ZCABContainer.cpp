@@ -81,12 +81,11 @@ HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
     const ENTRYID *lpEntryID, IMAPISupport *lpMAPISup,
     ZCABContainer **lppABContainer)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ZCMAPIProp> lpDistList;
 	object_ptr<ZCABContainer> lpABContainer(new(std::nothrow) ZCABContainer(nullptr, nullptr, lpMAPISup, nullptr));
 	if (lpABContainer == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);
+	auto hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpDistList->QueryInterface(IID_IMAPIProp, &~lpABContainer->m_lpDistList);
@@ -100,8 +99,7 @@ HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, 
 {
 	cabEntryID *lpWrapped = NULL;
 	ULONG cbWrapped = CbNewCABENTRYID(cbEntryID);
-	HRESULT hr = MAPIAllocateBuffer(cbWrapped,
-	             reinterpret_cast<void **>(&lpWrapped));
+	auto hr = MAPIAllocateBuffer(cbWrapped, reinterpret_cast<void **>(&lpWrapped));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -171,7 +169,6 @@ static constexpr const MAPINAMEID default_namedprops[(6*5)+2] = {
 
 HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	ULONG i, j = 0;
@@ -223,7 +220,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	Util::proptag_change_unicode(ulFlags, inputCols);
 	Util::proptag_change_unicode(ulFlags, outputCols);
-	hr = ECMemTable::Create(outputCols, PR_ROWID, &~lpTable);
+	auto hr = ECMemTable::Create(outputCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -440,7 +437,6 @@ done:
 
 HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(13, sptaCols) =
 		{13, {PR_NULL /* reserve for PR_ROWID */, PR_ADDRTYPE,
 		PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS, PR_ENTRYID,
@@ -454,7 +450,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
 	Util::proptag_change_unicode(ulFlags, sptaCols);
-	hr = ECMemTable::Create(sptaCols, PR_ROWID, &~lpTable);
+	auto hr = ECMemTable::Create(sptaCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -870,7 +866,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
-	HRESULT hr;
 	// only columns we can set from our contents table
 	static constexpr const SizedSPropTagArray(7, sptaDefault) =
 		{7, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE,
@@ -893,7 +888,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		if (m_lpFolders->empty())
 			return hrSuccess;
 		object_ptr<IMAPITable> ptrHierarchy;
-		hr = GetHierarchyTable(0, &~ptrHierarchy);
+		auto hr = GetHierarchyTable(0, &~ptrHierarchy);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrHierarchy->QueryRows(m_lpFolders->size(), 0, &~ptrRows);
@@ -926,7 +921,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 		for (i = 0; i < lpAdrList->aEntries[0].cValues; ++i)
 			stProps.emplace(lpAdrList->aEntries[0].rgPropVals[i].ulPropTag);
 		memory_ptr<SPropTagArray> ptrColumns;
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &~ptrColumns);
+		auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &~ptrColumns);
 		if (hr != hrSuccess)
 			return hr;
 		ptrColumns->cValues = stProps.size();

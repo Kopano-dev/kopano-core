@@ -1416,7 +1416,7 @@ ECRESULT ECCacheManager::GetServerDetails(const std::string &strServerId, server
 {
 	ECsServerDetails	*sEntry;
 	scoped_rlock lock(m_hCacheMutex);
-	ECRESULT er = m_ServerDetailsCache.GetCacheItem(strToLower(strServerId), &sEntry);
+	auto er = m_ServerDetailsCache.GetCacheItem(strToLower(strServerId), &sEntry);
 	if (er != erSuccess)
 		return er;
 	if (lpsDetails)

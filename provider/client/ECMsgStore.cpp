@@ -120,7 +120,8 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpsPropValue;
 
-	HRESULT hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&MUID_PROFILE_INSTANCE, 0, &~lpProfSect);
+	auto hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&MUID_PROFILE_INSTANCE),
+	          0, &~lpProfSect);
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(lpProfSect, PR_PROFILE_NAME_A, &~lpsPropValue);
@@ -175,7 +176,7 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
 HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+	auto hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 	if (m_transact)
@@ -187,7 +188,7 @@ HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 HRESULT ECMsgStore::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+	auto hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 	if (m_transact)
@@ -301,20 +302,21 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+		auto hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId,
+		          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			return hr;
 		cbEntryID = cbUnWrapStoreID;
 		lpEntryID = lpUnWrapStoreID;
 	}
 
+	HRESULT hr = hrSuccess;
 	if(m_lpNotifyClient->RegisterAdvise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, true, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
 	if(hr != hrSuccess)
@@ -331,14 +333,14 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
 		// never sent the client store entry
-		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+		auto hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId,
+		          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			return hr;
 		cbEntryID = cbUnWrapStoreID;
@@ -348,13 +350,14 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	} else {
 		// check that the given lpEntryID belongs to the store in m_lpEntryId
 		GUID g;
-		hr = get_store_guid(g);
+		auto hr = get_store_guid(g);
 		if (hr != hrSuccess)
 			return MAPI_E_NO_SUPPORT;
 		if (g != reinterpret_cast<const EID *>(lpEntryID)->guid)
 			return MAPI_E_NO_SUPPORT;
 	}
 
+	HRESULT hr = hrSuccess;
 	if(m_lpNotifyClient->Advise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
 	m_setAdviseConnections.emplace(*lpulConnection);
@@ -626,8 +629,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	if (lppszExplicitClass == nullptr)
 		return hrSuccess;
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring dst = convert_to<std::wstring>(strExplicitClass);
-
+		auto dst = convert_to<std::wstring>(strExplicitClass);
 		hr = MAPIAllocateBuffer(sizeof(std::wstring::value_type) * (dst.length() + 1), reinterpret_cast<void **>(lppszExplicitClass));
 		if (hr != hrSuccess)
 			return hr;
@@ -635,7 +637,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 		return hrSuccess;
 	}
 
-	std::string dst = convert_to<std::string>(strExplicitClass);
+	auto dst = convert_to<std::string>(strExplicitClass);
 	hr = MAPIAllocateBuffer(dst.length() + 1, reinterpret_cast<void **>(lppszExplicitClass));
 	if (hr != hrSuccess)
 		return hr;
@@ -993,7 +995,7 @@ HRESULT ECMsgStore::SetPropHandler(unsigned int ulPropTag, void *lpProvider,
 HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	assert(m_lpNotifyClient == NULL);
-	HRESULT hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
+	auto hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
 	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
@@ -1161,7 +1163,7 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	memory_ptr<char> ptrServerPath;
 	std::string		strPseudoUrl;
 	convstring		tstrServerName(lpszServerName, ulFlags);
-	const utf8string strUserName = convert_to<utf8string>("SYSTEM");
+	const auto strUserName = convert_to<utf8string>("SYSTEM");
 
 	if (!tstrServerName.null_or_empty()) {
 		strPseudoUrl = "pseudo://";
@@ -1554,8 +1556,7 @@ static HRESULT create_store_private(ECMsgStore *store,
     ECMAPIFolder *ecroot, IMAPIFolder *root, IMAPIFolder *st)
 {
 	object_ptr<ECMAPIFolder> ecst;
-
-	HRESULT ret = st->QueryInterface(IID_ECMAPIFolder, &~ecst);
+	auto ret = st->QueryInterface(IID_ECMAPIFolder, &~ecst);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -1983,7 +1984,7 @@ static HRESULT SetSpecialEntryIdOnFolder(IMAPIFolder *lpFolder,
 	if (ulPropTag == 0)
 		return hrSuccess;
 	// Get entryid of the folder
-	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
+	auto hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2061,18 +2062,16 @@ static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass)
 {
 	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
-	HRESULT hr = hrSuccess;
-
 	// Set the special property
 	if(lpFolderPropSet) {
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
+		auto hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpFolderPropSet, ulPropTag, ulMVPos);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
 		memory_ptr<SPropValue> lpPropValue;
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 		if (hr != hrSuccess)
 			return hr;
 		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
@@ -2508,7 +2507,7 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
 	// Synchronize() calls.
 	object_ptr<WSTransport> ptrTransport;
-	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
+	auto hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, ulPropTag, &sChanges.front(), ulStart, ulCount, lpsProps, &~ptrStreamExporter);

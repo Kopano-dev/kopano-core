@@ -92,9 +92,7 @@ HRESULT ECMsgStorePublic::SetPropHandler(unsigned int ulPropTag,
 
 HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
-	HRESULT hr;
-
-	hr = ECMsgStore::SetEntryId(cbEntryId, lpEntryId);
+	auto hr = ECMsgStore::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -263,7 +261,7 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	LPENTRYID lpPublicID = NULL;
 	LPENTRYID lpEntryID = NULL;
 
-	HRESULT hr = InitEntryIDs();
+	auto hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
 	switch(ePublicEntryID)
@@ -298,11 +296,10 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 	if (lpEntryID == NULL || lpulResult == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr;
 	unsigned int ulResult = 0, cbPublicID = 0;
 	LPENTRYID lpPublicID = NULL;
 
-	hr = InitEntryIDs();
+	auto hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
 	switch(ePublicEntryID)

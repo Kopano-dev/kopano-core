@@ -190,7 +190,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 	ECDatabase*			lpDatabase = NULL;
 	sObjectTableKey		sRowItem;
 
-	ECRESULT er = lpSession->GetDatabase(&lpDatabase);
+	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 

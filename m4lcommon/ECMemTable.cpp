@@ -304,8 +304,7 @@ HRESULT ECMemTable::HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableV
 {
 	ECMemTableView *lpView = NULL;
 	scoped_rlock l_data(m_hDataMutex);
-
-	HRESULT hr = ECMemTableView::Create(this, locale, ulFlags, &lpView);
+	auto hr = ECMemTableView::Create(this, locale, ulFlags, &lpView);
 	if (hr != hrSuccess)
 		return hr;
 	lstViews.emplace_back(lpView);
@@ -562,8 +561,7 @@ HRESULT ECMemTableView::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 	unsigned int ulCount, ulCurrentRow;
 	if(lpulCount == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto er = lpKeyTable.GetRowCount(&ulCount, &ulCurrentRow);
-	HRESULT hr = kcerr_to_mapierr(er);
+	auto hr = kcerr_to_mapierr(lpKeyTable.GetRowCount(&ulCount, &ulCurrentRow));
 	if(hr != hrSuccess)
 		return hr;
 	*lpulCount = ulCount;
@@ -573,9 +571,8 @@ HRESULT ECMemTableView::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
 	int lRowsSought;
-	auto er = lpKeyTable.SeekRow(static_cast<unsigned int>(bkOrigin),
-	              lRowCount, &lRowsSought);
-	HRESULT hr = kcerr_to_mapierr(er);
+	auto hr = kcerr_to_mapierr(lpKeyTable.SeekRow(static_cast<unsigned int>(bkOrigin),
+	          lRowCount, &lRowsSought));
 	if(hr != hrSuccess)
 		return hr;
 	if(lplRowsSought)
@@ -586,8 +583,7 @@ HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRows
 HRESULT ECMemTableView::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
 	unsigned int ulRows = 0, ulCurrentRow = 0;
-	auto er = lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow);
-	HRESULT hr = kcerr_to_mapierr(er);
+	auto hr = kcerr_to_mapierr(lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow));
 	if(hr != hrSuccess)
 		return hr;
 	return SeekRow(BOOKMARK_BEGINNING, static_cast<ULONG>(static_cast<double>(ulRows) * (static_cast<double>(ulNumerator) / ulDenominator)), NULL);
@@ -598,8 +594,7 @@ HRESULT ECMemTableView::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULON
 	unsigned int ulRows = 0, ulCurrentRow = 0;
 	if (lpulRow == NULL || lpulNumerator == NULL || lpulDenominator == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto er = lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow);
-	HRESULT hr = kcerr_to_mapierr(er);
+	auto hr = kcerr_to_mapierr(lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow));
 	if(hr != hrSuccess)
 		return hr;
 	*lpulRow = ulCurrentRow;
@@ -680,8 +675,7 @@ HRESULT ECMemTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 
 	if (lpbkPosition == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto er = lpKeyTable.CreateBookmark(&bkPosition);
-	HRESULT hr = kcerr_to_mapierr(er);
+	auto hr = kcerr_to_mapierr(lpKeyTable.CreateBookmark(&bkPosition));
 	if(hr != hrSuccess)
 		return hr;
 	*lpbkPosition = bkPosition;

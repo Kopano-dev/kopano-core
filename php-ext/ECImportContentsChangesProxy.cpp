@@ -135,7 +135,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
 	zval pvalReturn;
 
     IMessage *lpMessage = NULL;
-    HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
+	auto hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
     if(hr != hrSuccess) {
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP: %s (%x)",
 			KC::GetMAPIErrorMessage(hr), hr);

@@ -361,7 +361,7 @@ HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 {
 	for (const auto &i : m_sProviders) {
 		// CreateProvider will find the provider properties itself. the property parameters can be used for other properties.
-		HRESULT hr = lpProviderAdmin->CreateProvider(const_cast<TCHAR *>(reinterpret_cast<const TCHAR *>(i.first.c_str())), 0, NULL, 0, 0, NULL);
+		auto hr = lpProviderAdmin->CreateProvider(const_cast<TCHAR *>(reinterpret_cast<const TCHAR *>(i.first.c_str())), 0, nullptr, 0, 0, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 	}

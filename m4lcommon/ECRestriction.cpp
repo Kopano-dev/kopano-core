@@ -39,7 +39,7 @@ HRESULT ECRestriction::RestrictTable(IMAPITable *lpTable,
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	memory_ptr<SRestriction> ptrRestriction;
-	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
+	auto hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	return lpTable->Restrict(ptrRestriction, flags);
@@ -50,7 +50,7 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	memory_ptr<SRestriction> ptrRestriction;
-	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
+	auto hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	return lpTable->FindRow(ptrRestriction, BkOrigin, ulFlags);
@@ -115,9 +115,9 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	restriction.rt = RES_AND;
 	restriction.res.resAnd.cRes = m_lstRestrictions.size();
 
-	HRESULT hr = MAPIAllocateMore(restriction.res.resAnd.cRes *
-	             sizeof(*restriction.res.resAnd.lpRes), lpBase,
-	             reinterpret_cast<LPVOID *>(&restriction.res.resAnd.lpRes));
+	auto hr = MAPIAllocateMore(restriction.res.resAnd.cRes *
+	          sizeof(*restriction.res.resAnd.lpRes), lpBase,
+	          reinterpret_cast<LPVOID *>(&restriction.res.resAnd.lpRes));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -166,9 +166,9 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 	restriction.rt = RES_OR;
 	restriction.res.resOr.cRes = m_lstRestrictions.size();
 
-	HRESULT hr = MAPIAllocateMore(restriction.res.resOr.cRes *
-	             sizeof(*restriction.res.resOr.lpRes), lpBase,
-	             reinterpret_cast<LPVOID *>(&restriction.res.resOr.lpRes));
+	auto hr = MAPIAllocateMore(restriction.res.resOr.cRes *
+	          sizeof(*restriction.res.resOr.lpRes), lpBase,
+	          reinterpret_cast<void **>(&restriction.res.resOr.lpRes));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -200,8 +200,8 @@ HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	restriction.rt = RES_NOT;
-	HRESULT hr = MAPIAllocateMore(sizeof(*restriction.res.resNot.lpRes),
-	             lpBase, reinterpret_cast<LPVOID *>(&restriction.res.resNot.lpRes));
+	auto hr = MAPIAllocateMore(sizeof(*restriction.res.resNot.lpRes),
+	          lpBase, reinterpret_cast<LPVOID *>(&restriction.res.resNot.lpRes));
 	if (hr != hrSuccess)
 		return hr;
 	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resNot.lpRes, ulFlags);
@@ -246,7 +246,8 @@ HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 	if (ulFlags & ECRestriction::Cheap)
 		restriction.res.resContent.lpProp = m_ptrProp.get();
 	else {
-		HRESULT hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags, &restriction.res.resContent.lpProp);
+		auto hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags,
+		          &restriction.res.resContent.lpProp);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -305,7 +306,8 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 	if (ulFlags & ECRestriction::Cheap)
 		restriction.res.resProperty.lpProp = m_ptrProp.get();
 	else {
-		HRESULT hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags, &restriction.res.resContent.lpProp);
+		auto hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags,
+		          &restriction.res.resContent.lpProp);
 		if (hr != hrSuccess)
 			return hr;
 	}

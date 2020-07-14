@@ -119,7 +119,6 @@ static int dofile(const char *file, t_base *cls)
 		return TEST_FAIL;
 
 	struct ictx ictx;
-	HRESULT hr = hrSuccess;
 
 	/*
 	 * Sucky libinetmapi requires that we have a session open
@@ -129,7 +128,7 @@ static int dofile(const char *file, t_base *cls)
 	cls->setup();
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_DEBUG);
 	auto imsg = KSession().open_default_store().open_root(MAPI_MODIFY).create_message();
-	hr = IMToMAPI(NULL, NULL, NULL, imsg, rfcmsg, cls->m_dopt);
+	auto hr = IMToMAPI(nullptr, nullptr, nullptr, imsg, rfcmsg, cls->m_dopt);
 	if (hr != hrSuccess) {
 		fprintf(stderr, "IMToMAPI: %s\n", GetMAPIErrorMessage(hr));
 		return TEST_FAIL;

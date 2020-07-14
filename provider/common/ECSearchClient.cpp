@@ -174,7 +174,7 @@ ECRESULT ECSearchClient::Query(const GUID *lpServerGuid, const GUID *lpStoreGuid
 ECRESULT ECSearchClient::Suggest(std::string &suggestion)
 {
 	std::vector<std::string> resp;
-	ECRESULT er = DoCmd("SUGGEST", resp);
+	auto er = DoCmd("SUGGEST", resp);
 	if (er != erSuccess)
 		return er;
 	if (resp.size() < 1)

@@ -1165,7 +1165,6 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
     const wchar_t *lpszMailer, IAddrBook *lpAddrBook, const SBinary &owner,
     const SBinaryArray &mv, unsigned int *lpulObjType, bool *lpbAllowed)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int ulObjType, ulCmpRes;
 
 	for (unsigned int i = 0; i < mv.cValues; ++i) {
@@ -1173,6 +1172,7 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 		if (GetNonPortableObjectType(mv.lpbin[i].cb, reinterpret_cast<const ENTRYID *>(mv.lpbin[i].lpb), &ulObjType))
 			continue;
 
+		HRESULT hr = hrSuccess;
 		if (ulObjType == MAPI_DISTLIST) {
 			hr = HrFindUserInGroup(lpAddrBook, owner, mv.lpbin[i], &ulCmpRes);
 		} else if (ulObjType == MAPI_MAILUSER) {
@@ -1662,8 +1662,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sPropSender[2].Value.lpszW = (LPTSTR)lpUser->lpszMailAddress;
 		sPropSender[3].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 		sPropSender[3].Value.bin = lpUser->sUserId;
-
-		HRESULT hr2 = lpMessage->SetProps(4, sPropSender, NULL);
+		auto hr2 = lpMessage->SetProps(4, sPropSender, nullptr);
 		if (hr2 != hrSuccess) {
 			kc_perror("Unable to set sender id for message", hr2);
 			goto exit;
@@ -1715,7 +1714,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 					goto exit;
 				if (!bAllowSendAs) {
 					ec_log_warn("E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
-					HRESULT hr2 = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
+					auto hr2 = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 					if (hr2 != hrSuccess)
 						hr_lerr(hr2, "Unable to create undeliverable message for user \"%ls\"",
 							lpUser->lpszUsername);
@@ -1883,7 +1882,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	// If we have a repsenting message, save that now in the sent-items of that user
 	if (lpRepMessage) {
-		HRESULT hr2 = lpRepMessage->SaveChanges(0);
+		auto hr2 = lpRepMessage->SaveChanges(0);
 		if (hr2 != hrSuccess)
 			kc_perror("The representee's mail copy could not be saved", hr2);
 	}

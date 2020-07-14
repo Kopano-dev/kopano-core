@@ -393,7 +393,7 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 					<< KC_T("</P>");
 	} else {
 		memory_ptr<TCHAR> lpszDescription;
-		HRESULT hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
+		auto hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
 		if (hr == hrSuccess)
 			ossHtmlBody << KC_T("<P>")
 						<< KC_TX("Error description:")

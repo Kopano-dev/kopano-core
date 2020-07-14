@@ -340,7 +340,7 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
+	auto hr = HrSearchECStoreEntryId(lpMAPISession, false, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
@@ -356,7 +356,7 @@ static HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags,
 {
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
+	auto hr = HrSearchECStoreEntryId(lpMAPISession, true, &cbEntryID, &~lpEntryID);
 	if(hr != hrSuccess)
 		return hr;
 	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
@@ -979,14 +979,14 @@ public:
 				bError = true;
 			} else if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				std::wstring wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
+				const auto wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
 				hr = MAPIAllocateMore((wstrTmp.length() + 1) * sizeof *lpProps[i].Value.lpszW, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszW));
 				if (hr != hrSuccess)
 					return hr;
 				wcscpy(lpProps[i].Value.lpszW, wstrTmp.c_str());
 			} else if (PROP_TYPE(lpFind->ulPropTag) ==  PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) == PT_STRING8) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				std::string strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
+				const auto strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
 				hr = MAPIAllocateMore(strTmp.length() + 1, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszA));
 				if (hr != hrSuccess)
 					return hr;
@@ -1110,10 +1110,9 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 {
 	std::list<unsigned int> lstTags;
 	ULONG n = 0;
-
 	LPSPropTagArray lpTags = NULL;
 
-	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
+	auto hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), reinterpret_cast<void **>(&lpTags));
@@ -1691,7 +1690,6 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 HRESULT spv_postload_large_props(IMAPIProp *lpProp,
     const SPropTagArray *lpTags, unsigned int cValues, SPropValue *lpProps)
 {
-	HRESULT hr = hrSuccess;
 	void *lpData = NULL;
 	bool had_err = false;
 	memory_ptr<SPropTagArray> new_tags;
@@ -1724,8 +1722,8 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 		std::string strData;
 		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 			continue;
-		hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t), lpProps,
-		     reinterpret_cast<void **>(&lpData));
+		auto hr = MAPIAllocateMore(strData.size() + sizeof(wchar_t),
+		          lpProps, reinterpret_cast<void **>(&lpData));
 		if (hr != hrSuccess)
 			return hr;
 		memcpy(lpData, strData.data(), strData.size());
@@ -2191,7 +2189,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<IExchangeManageStore> ptrEMS;
-	HRESULT hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
+	auto hr = lpMsgStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	memory_ptr<ENTRYID> ptrStoreId;

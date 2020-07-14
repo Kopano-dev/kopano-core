@@ -104,7 +104,7 @@ HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateAll() function entry");
 
 	for (const auto &i : m_mapArchiveInfo) {
-		HRESULT hrTmp = UpdateOne(i.first, i.second, ulAttachFlags);
+		auto hrTmp = UpdateOne(i.first, i.second, ulAttachFlags);
 		if (hrTmp != hrSuccess)
 			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user \"" TSTRING_PRINTF "\": %s (%x)",
 				i.second.userName.c_str(), GetMAPIErrorMessage(hrTmp), hrTmp);

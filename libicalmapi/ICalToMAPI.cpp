@@ -324,7 +324,6 @@ HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend,
  */
 HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	ICalRecurrence cRec;
 	ULONG ulANr = 0;
 	memory_ptr<SPropTagArray> lpsPTA;
@@ -339,7 +338,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	auto lpItem = iItem->get();
 
 	if ((ulFlags & IC2M_APPEND_ONLY) == 0 && !lpItem->lstDelPropTags.empty()) {
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
+		auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
 		if (hr != hrSuccess)
 			return hr;
 		std::copy(lpItem->lstDelPropTags.begin(), lpItem->lstDelPropTags.end(), lpsPTA->aulPropTag);
@@ -349,7 +348,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 			return hr;
 	}
 
-	hr = SaveProps(&lpItem->lstMsgProps, lpMessage, ulFlags);
+	auto hr = SaveProps(&lpItem->lstMsgProps, lpMessage, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
 	if (!(ulFlags & IC2M_NO_RECIPIENTS))

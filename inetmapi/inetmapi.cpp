@@ -172,7 +172,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, char **lppbuf, sending_options sopt)
 {
 	std::ostringstream oss;
-	HRESULT hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
+	auto hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
 	if (hr != hrSuccess)
 		return hr;
 	auto lpszData = new char[oss.str().size()+1];

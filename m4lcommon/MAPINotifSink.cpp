@@ -65,9 +65,7 @@ static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
     MAPIERROR **lppDst)
 {
     MAPIERROR *lpDst = NULL;
-    
-	HRESULT hr = MAPIAllocateMore(sizeof(MAPIERROR), lpBase,
-	             reinterpret_cast<void **>(&lpDst));
+	auto hr = MAPIAllocateMore(sizeof(MAPIERROR), lpBase, reinterpret_cast<void **>(&lpDst));
 	if (hr != hrSuccess)
 		return hr;
 

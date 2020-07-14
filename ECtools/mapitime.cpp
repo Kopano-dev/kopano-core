@@ -92,7 +92,7 @@ static int mpt_main_init(void)
 {
 	while (mpt_repeat-- > 0) {
 		auto start = clk::now();
-		HRESULT ret = MAPIInitialize(NULL);
+		auto ret = MAPIInitialize(nullptr);
 		if (ret == erSuccess)
 			MAPIUninitialize();
 		auto stop = clk::now();
@@ -515,7 +515,7 @@ static int mpt_main_exectime(int argc, char **argv)
 static int mpt_main_cast(bool which)
 {
 	AutoMAPI mapiinit;
-	HRESULT ret = mapiinit.Initialize();
+	auto ret = mapiinit.Initialize();
 	if (ret != hrSuccess) {
 		perror("MAPIInitialize");
 		return EXIT_FAILURE;

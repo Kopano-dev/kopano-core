@@ -79,7 +79,7 @@ HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, UL
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	if (lpNotifyClient == NULL)
@@ -101,7 +101,7 @@ HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, UL
 HRESULT ECMAPITable::Unadvise(ULONG ulConnection)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	if (lpNotifyClient == NULL)
@@ -129,7 +129,7 @@ HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -143,7 +143,7 @@ HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
 HRESULT ECMAPITable::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	// FIXME if the client has done SetColumns, we can handle this
@@ -155,7 +155,7 @@ HRESULT ECMAPITable::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagArra
 HRESULT ECMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	ULONG ulRow = 0; // discarded
@@ -165,7 +165,7 @@ HRESULT ECMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 HRESULT ECMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if (hr != hrSuccess)
 		return hr;
 	return lpTableOps->HrSeekRow(bkOrigin, lRowCount, lplRowsSought);
@@ -174,7 +174,7 @@ HRESULT ECMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSou
 HRESULT ECMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	ULONG ulRows = 0, ulCurrent = 0;
@@ -187,7 +187,7 @@ HRESULT ECMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 HRESULT ECMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	ULONG ulRows = 0, ulCurrentRow = 0;
@@ -207,7 +207,7 @@ HRESULT ECMAPITable::FindRow(const SRestriction *lpRestriction,
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->HrFindRow(lpRestriction, bkOrigin, ulFlags);
@@ -237,7 +237,7 @@ HRESULT ECMAPITable::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 HRESULT ECMAPITable::CreateBookmark(BOOKMARK* lpbkPosition)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->CreateBookmark(lpbkPosition);
@@ -246,7 +246,7 @@ HRESULT ECMAPITable::CreateBookmark(BOOKMARK* lpbkPosition)
 HRESULT ECMAPITable::FreeBookmark(BOOKMARK bkPosition)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->FreeBookmark(bkPosition);
@@ -274,7 +274,7 @@ HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
 	memory_ptr<SSortOrderSet> lpSortCriteria;
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(lpsSortOrderSet != nullptr ?
@@ -304,7 +304,7 @@ HRESULT ECMAPITable::Abort()
 HRESULT ECMAPITable::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->HrExpandRow(cbInstanceKey, pbInstanceKey,
@@ -314,7 +314,7 @@ HRESULT ECMAPITable::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG 
 HRESULT ECMAPITable::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->HrCollapseRow(cbInstanceKey, pbInstanceKey, ulFlags,
@@ -325,7 +325,7 @@ HRESULT ECMAPITable::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULON
 HRESULT ECMAPITable::WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	if(lpulTableStatus)
@@ -336,7 +336,7 @@ HRESULT ECMAPITable::WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lp
 HRESULT ECMAPITable::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableOps->HrGetCollapseState(lppbCollapseState,
@@ -346,7 +346,7 @@ HRESULT ECMAPITable::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE
 HRESULT ECMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation)
 {
 	scoped_rlock lock(m_hLock);
-	HRESULT hr = FlushDeferred();
+	auto hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTableOps->HrSetCollapseState(pbCollapseState, cbCollapseState, lpbkLocation);
@@ -392,8 +392,8 @@ HRESULT ECMAPITable::Reload(void *lpParam)
 	// The underlying data has been reloaded, therefore we must re-register the advises. This is called
 	// after the transport has re-established its state
 	for (auto conn_id : lpThis->m_ulConnectionList) {
-		HRESULT hr = lpThis->lpNotifyClient->Reregister(conn_id, 4,
-			reinterpret_cast<BYTE *>(&lpThis->lpTableOps->ulTableId));
+		auto hr = lpThis->lpNotifyClient->Reregister(conn_id, 4,
+		          reinterpret_cast<BYTE *>(&lpThis->lpTableOps->ulTableId));
 		if(hr != hrSuccess)
 			return hr;
 	}

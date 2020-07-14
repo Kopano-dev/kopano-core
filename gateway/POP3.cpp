@@ -244,7 +244,7 @@ HRESULT POP3::HrCmdStarttls() {
 		return HrResponse(POP3_RESP_PERMFAIL, "STLS error in ssl context");
 	if (lpChannel->UsingSsl())
 		return HrResponse(POP3_RESP_ERR, "STLS already using SSL/TLS");
-	HRESULT hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
+	auto hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpChannel->HrEnableTLS();
@@ -363,7 +363,7 @@ HRESULT POP3::HrCmdList() {
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u messages", (ULONG)lstMails.size());
-	HRESULT hr = HrResponse(POP3_RESP_OK, szResponse);
+	auto hr = HrResponse(POP3_RESP_OK, szResponse);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -458,7 +458,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
  */
 HRESULT POP3::HrCmdDele(unsigned int ulMailNr) {
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
-		HRESULT hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
+		auto hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
 			hr = MAPI_E_NOT_FOUND;
 		return hr;
@@ -536,7 +536,7 @@ HRESULT POP3::HrCmdQuit() {
  */
 HRESULT POP3::HrCmdUidl() {
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
-	HRESULT hr = lpChannel->HrWriteLine("+OK");
+	auto hr = lpChannel->HrWriteLine("+OK");
 	if (hr != hrSuccess)
 		return hr;
 

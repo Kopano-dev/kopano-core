@@ -158,7 +158,6 @@ exit:
 HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *strXml)
 {
 	HRESULT hr = hrSuccess;
-	int ulRet;
 	std::string strNs, strNsPrefix = "C";
 	auto xmlBuff = xmlBufferCreate();
 
@@ -179,12 +178,10 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 
 	// let xml use enters and spaces to make it somewhat readable
 	// if indedentaion is not present, iCal.app does not show suggestionlist.
-	ulRet = xmlTextWriterSetIndent(xmlWriter, 1);
-	if (ulRet < 0)
+	if (xmlTextWriterSetIndent(xmlWriter, 1) < 0)
 		goto xmlfail;
 	//start xml-data i.e <xml version="1.0" encoding="utf-8"?>
-	ulRet = xmlTextWriterStartDocument(xmlWriter, NULL, "UTF-8", NULL);
-	if (ulRet < 0)
+	if (xmlTextWriterStartDocument(xmlWriter, nullptr, "UTF-8", nullptr) < 0)
 		goto xmlfail;
 
 	// @todo move this default to sDavMStatus constructor, never different.
@@ -197,11 +194,9 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	m_mapNs[sDavMStatus->sPropName.strNS.c_str()] = "C";
 
 	//<multistatus>
-	ulRet = xmlTextWriterStartElementNS(xmlWriter,
-		(const xmlChar *)strNsPrefix.c_str(),
-		(const xmlChar *)sDavMStatus->sPropName.strPropname.c_str(),
-		(const xmlChar *)sDavMStatus->sPropName.strNS.c_str());
-	if (ulRet < 0)
+	if (xmlTextWriterStartElementNS(xmlWriter, s2x(strNsPrefix.c_str()),
+	    s2x(sDavMStatus->sPropName.strPropname.c_str()),
+	    s2x(sDavMStatus->sPropName.strNS.c_str())) < 0)
 		goto xmlfail;
 
 	//write all xmlname spaces in main tag.
@@ -213,8 +208,8 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 			continue;
 		RegisterNs(strNs, &strNsPrefix);
 		strprefix = "xmlns:" + strNsPrefix;
-		ulRet = xmlTextWriterWriteAttribute(xmlWriter, s2x(strprefix.c_str()), s2x(strNs.c_str()));
-		if (ulRet < 0)
+		if (xmlTextWriterWriteAttribute(xmlWriter, s2x(strprefix.c_str()),
+		    s2x(strNs.c_str())) < 0)
 			goto xmlfail;
 	}
 	// <response>
@@ -225,16 +220,13 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	}
 
 	//</multistatus>
-	ulRet = xmlTextWriterEndElement(xmlWriter);
-	if (ulRet < 0)
+	if (xmlTextWriterEndElement(xmlWriter) < 0)
 		goto xmlfail;
 	//EOF
-	ulRet = xmlTextWriterEndDocument(xmlWriter);
-	if (ulRet < 0)
+	if (xmlTextWriterEndDocument(xmlWriter) < 0)
 		goto xmlfail;
 	// force write to buffer
-	ulRet = xmlTextWriterFlush(xmlWriter);
-	if (ulRet < 0)
+	if (xmlTextWriterFlush(xmlWriter) < 0)
 		goto xmlfail;
 	strXml->assign(reinterpret_cast<char *>(xmlBuff->content), xmlBuff->use);
 
@@ -637,11 +629,10 @@ exit:
  */
 HRESULT WebDav::HrPropertySearchSet()
 {
-	HRESULT hr;
 	WEBDAVMULTISTATUS sDavMStatus;
 	std::string strXml;
 
-	hr = HrHandlePropertySearchSet(&sDavMStatus);
+	auto hr = HrHandlePropertySearchSet(&sDavMStatus);
 	if (hr != hrSuccess)
 		return hr;
 	hr = RespStructToXml(&sDavMStatus, &strXml);
@@ -713,25 +704,20 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
     std::string *szNsPrefix)
 {
-	std::string strNs;
-	int ulRet;
 	convert_context converter;
-	HRESULT hr;
 
-	strNs = sWebVal.sPropName.strNS;
+	auto strNs = sWebVal.sPropName.strNS;
 	if(strNs.empty())
 	{
 		if (sWebVal.sPropName.strPropname.empty())
 			return hrSuccess;
-		ulRet = xmlTextWriterWriteElement(xmlWriter,
-			(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
-			(const xmlChar *)sWebVal.strValue.c_str());
-		if (ulRet < 0)
-			return MAPI_E_CALL_FAILED;
-		return hrSuccess;
+		return xmlTextWriterWriteElement(xmlWriter,
+		       s2x(sWebVal.sPropName.strPropname.c_str()),
+		       s2x(sWebVal.strValue.c_str())) < 0 ?
+		       MAPI_E_CALL_FAILED : hrSuccess;
 	}
 	// Retrieve the namespace prefix if present in map.
-	hr = GetNs(szNsPrefix, &strNs);
+	auto hr = GetNs(szNsPrefix, &strNs);
 	// if namespace is not present in the map then insert it into map.
 	if (hr != hrSuccess)
 		RegisterNs(strNs, szNsPrefix);
@@ -739,14 +725,11 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 	/*Write xml none of the form
 	 *	<D:href>/caldav/user/calendar/entryGUID.ics</D:href>
 	 */
-	ulRet =	xmlTextWriterWriteElementNS(xmlWriter,
-		(const xmlChar *)szNsPrefix->c_str(),
-		(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
-		(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()),
-		(const xmlChar *)sWebVal.strValue.c_str());
-	if (ulRet < 0)
-		return MAPI_E_CALL_FAILED;
-	return hrSuccess;
+	return xmlTextWriterWriteElementNS(xmlWriter, s2x(szNsPrefix->c_str()),
+	       s2x(sWebVal.sPropName.strPropname.c_str()),
+	       s2x((strNs.empty() ? nullptr : strNs.c_str())),
+	       s2x(sWebVal.strValue.c_str())) < 0 ?
+	       MAPI_E_CALL_FAILED : hrSuccess;
 }
 /**
  * Converts WEBDAVPROPNAME	to xml data
@@ -758,20 +741,13 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 HRESULT WebDav::WriteNode(xmlTextWriter *xmlWriter,
     const WEBDAVPROPNAME &sWebPropName, std::string *lpstrNsPrefix)
 {
-	std::string strNs;
-	int ulRet;
-	HRESULT hr;
-
-	strNs = sWebPropName.strNS;
+	auto strNs = sWebPropName.strNS;
 	if(strNs.empty())
-	{
-		ulRet = xmlTextWriterStartElement(xmlWriter,
-			(const xmlChar *)sWebPropName.strPropname.c_str());
-		if (ulRet < 0)
-			return MAPI_E_CALL_FAILED;
-		return hrSuccess;
-	}
-	hr = GetNs(lpstrNsPrefix, &strNs);
+		return xmlTextWriterStartElement(xmlWriter,
+		       s2x(sWebPropName.strPropname.c_str())) < 0 ?
+		       MAPI_E_CALL_FAILED : hrSuccess;
+
+	auto hr = GetNs(lpstrNsPrefix, &strNs);
 	if (hr != hrSuccess)
 		RegisterNs(strNs, lpstrNsPrefix);
 
@@ -779,15 +755,15 @@ HRESULT WebDav::WriteNode(xmlTextWriter *xmlWriter,
 	 * <D:propstat>
 	 * the end tag </D:propstat> is written by "xmlTextWriterEndElement(xmlWriter)"
 	 */
-	ulRet =	xmlTextWriterStartElementNS (xmlWriter,
-		(const xmlChar *)lpstrNsPrefix->c_str(),
-		(const xmlChar *)sWebPropName.strPropname.c_str(),
-		(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()));
-	if (ulRet < 0)
+	if (xmlTextWriterStartElementNS(xmlWriter,
+	    s2x(lpstrNsPrefix->c_str()),
+	    s2x(sWebPropName.strPropname.c_str()),
+	    s2x(strNs.empty() ? nullptr : strNs.c_str())) < 0)
 		return MAPI_E_CALL_FAILED;
 	if (!sWebPropName.strPropAttribName.empty()) {
-		ulRet = xmlTextWriterWriteAttribute(xmlWriter, (const xmlChar *)sWebPropName.strPropAttribName.c_str(), (const xmlChar *) sWebPropName.strPropAttribValue.c_str());
-		if (ulRet < 0)
+		if (xmlTextWriterWriteAttribute(xmlWriter,
+		    s2x(sWebPropName.strPropAttribName.c_str()),
+		    s2x(sWebPropName.strPropAttribValue.c_str())) < 0)
 			return MAPI_E_CALL_FAILED;
 	}
 	return hrSuccess;
@@ -831,11 +807,9 @@ HRESULT WebDav::GetNs(std::string * lpstrPrefx, std::string *lpstrNs)
 HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVRESPONSE &sResponse)
 {
-	HRESULT hr;
-	int ulRet;
 	const auto &sWebResp = sResponse;
 	// <response>
-	hr = WriteNode(xmlWriter, sWebResp.sPropName, lpstrNsPrefix);
+	auto hr = WriteNode(xmlWriter, sWebResp.sPropName, lpstrNsPrefix);
 	if (hr != hrSuccess)
 		return hr;
 	// <href>xxxxxxxxxxxxxxxx</href>
@@ -865,10 +839,8 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 			return hr;
 	}
 	//</response>
-	ulRet = xmlTextWriterEndElement(xmlWriter);
-	if (ulRet < 0)
-		return MAPI_E_CALL_FAILED;
-	return hrSuccess;
+	return xmlTextWriterEndElement(xmlWriter) < 0 ?
+	       MAPI_E_CALL_FAILED : hrSuccess;
 }
 
 /**
@@ -882,11 +854,9 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const std::list<WEBDAVPROPERTY> &lplstProps)
 {
-	HRESULT hr;
-	int ulRet;
-
 	for (const auto &iterProp : lplstProps) {
 		auto sWebProperty = iterProp;
+		HRESULT hr;
 		if (!sWebProperty.strValue.empty())
 		{
 			WEBDAVVALUE sWebVal;
@@ -914,17 +884,14 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
 				hr = WriteNode(xmlWriter, sWebVal.sPropName, lpstrNsPrefix);
 				if (hr != hrSuccess)
 					return hr;
-				ulRet = xmlTextWriterEndElement(xmlWriter);
-				if (ulRet < 0)
+				if (xmlTextWriterEndElement(xmlWriter) < 0)
 					return MAPI_E_CALL_FAILED;
 			}
 			sWebProperty.lstValues.pop_front();
 		}
-		if (sWebProperty.strValue.empty()) {
-			ulRet = xmlTextWriterEndElement(xmlWriter);
-			if (ulRet < 0)
-				return MAPI_E_CALL_FAILED;
-		}
+		if (sWebProperty.strValue.empty() &&
+		    xmlTextWriterEndElement(xmlWriter) < 0)
+			return MAPI_E_CALL_FAILED;
 	}
 
 	return hrSuccess;
@@ -940,12 +907,9 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
 HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, const WEBDAVPROPSTAT &lpsPropStat)
 {
-	HRESULT hr;
-	int ulRet;
-
 	const auto &sWebPropStat = lpsPropStat;
 	//<propstat>
-	hr = WriteNode(xmlWriter, sWebPropStat.sPropName,lpstrNsPrefix);
+	auto hr = WriteNode(xmlWriter, sWebPropStat.sPropName,lpstrNsPrefix);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -994,24 +958,20 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 				hr = WriteNode(xmlWriter, sWebVal.sPropName, lpstrNsPrefix);
 				if (hr != hrSuccess)
 					return hr;
-				ulRet = xmlTextWriterEndElement(xmlWriter);
-				if (ulRet < 0)
+				if (xmlTextWriterEndElement(xmlWriter) < 0)
 					return MAPI_E_CALL_FAILED;
 			}
 			sWebProperty.lstValues.pop_front();
 		}
 		//end tag if started
 		//</resourcetype>
-		if (sWebProperty.strValue.empty()) {
-			ulRet = xmlTextWriterEndElement(xmlWriter);
-			if (ulRet < 0)
-				return MAPI_E_CALL_FAILED;
-		}
+		if (sWebProperty.strValue.empty() &&
+		    xmlTextWriterEndElement(xmlWriter) < 0)
+			return MAPI_E_CALL_FAILED;
 	}
 
 	//</prop>
-	ulRet = xmlTextWriterEndElement(xmlWriter);
-	if (ulRet < 0)
+	if (xmlTextWriterEndElement(xmlWriter) < 0)
 		return MAPI_E_CALL_FAILED;
 	//<status xmlns="xxxxxxx">HTTP/1.1 200 OK</status>
 	hr = WriteData(xmlWriter, sWebPropStat.sStatus, lpstrNsPrefix);
@@ -1019,10 +979,8 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 		return hr;
 	// ending the function here on !hrSuccess breaks several tests.
 	//</propstat>
-	ulRet = xmlTextWriterEndElement(xmlWriter);
-	if (ulRet < 0)
-		return MAPI_E_CALL_FAILED;
-	return hrSuccess;
+	return xmlTextWriterEndElement(xmlWriter) < 0 ?
+	       MAPI_E_CALL_FAILED : hrSuccess;
 }
 
 /**
@@ -1036,7 +994,6 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, WEBDAVPROPERTY *lpsWebProperty)
 {
-	HRESULT hr;
 	ULONG ulDepthPrev = 0;
 	ULONG ulDepthCur = 0;
 	bool blFirst = true;
@@ -1046,6 +1003,7 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
 	{
 		auto sDavItem = lpsWebProperty->lstItems.front();
 		ulDepthCur = sDavItem.ulDepth;
+		HRESULT hr;
 
 		if(ulDepthCur >= ulDepthPrev)
 		{

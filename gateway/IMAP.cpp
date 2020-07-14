@@ -2363,7 +2363,7 @@ HRESULT IMAP::HrCmdGetQuota(const std::string &strTag,
 		return MAPI_E_CALL_FAILED;
 	}
 	if (strQuotaRoot.empty()) {
-		HRESULT hr = HrPrintQuotaRoot(strTag);
+		auto hr = HrPrintQuotaRoot(strTag);
 		if (hr != hrSuccess)
 			return hr;
 		HrResponse(RESP_TAGGED_OK, strTag, "GetQuota complete");
@@ -2394,7 +2394,7 @@ void IMAP::HrResponse(const std::string &strUntag, const std::string &strRespons
     // determines if we log debug info (so HUP will only affect new processes if
     // you want debug output)
 	ec_log_debug("> %s%s", strUntag.c_str(), strResponse.c_str());
-	HRESULT hr = lpChannel->HrWriteLine(strUntag + strResponse);
+	auto hr = lpChannel->HrWriteLine(strUntag + strResponse);
 	if (hr != hrSuccess)
 		throw KMAPIError(hr);
 }
@@ -2426,7 +2426,7 @@ void IMAP::HrResponse(const std::string &strResult, const std::string &strTag,
 		throw KMAPIError(MAPI_E_END_OF_SESSION);
 	}
 	ec_log_debug("> %s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
-	HRESULT hr = lpChannel->HrWriteLine(strTag + strResult + strResponse);
+	auto hr = lpChannel->HrWriteLine(strTag + strResult + strResponse);
 	if (hr != hrSuccess)
 		throw KMAPIError(hr);
 }
@@ -2650,7 +2650,7 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYI
 		bChanged = true;
 	}
 	if (bChanged) {
-		HRESULT hr = HrSetSubscribedList();
+		auto hr = HrSetSubscribedList();
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -2894,8 +2894,7 @@ HRESULT IMAP::HrGetFolderPath(std::list<SFolder>::const_iterator lpFolder,
 		return MAPI_E_NOT_FOUND;
 	if (lpFolder->lpParentFolder == lstFolders.cend())
 		return hrSuccess;
-	HRESULT hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders,
-	             strPath);
+	auto hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders, strPath);
 	if (hr != hrSuccess)
 		return hr;
 	strPath += IMAP_HIERARCHY_DELIMITER;
@@ -2938,8 +2937,7 @@ HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
 	if (public_folders) {
 		if (lpPublicStore == nullptr)
 			return MAPI_E_CALL_FAILED;
-
-		HRESULT hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~sprop);
+		auto hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~sprop);
 		if (hr != hrSuccess) {
 			ec_log_warn("Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 			return hrSuccess;
@@ -2952,8 +2950,7 @@ HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
 	} else {
 		if (lpStore == nullptr)
 			return MAPI_E_CALL_FAILED;
-
-		HRESULT hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~sprop);
+		auto hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~sprop);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &obj_type, &~folder);
@@ -3670,7 +3667,7 @@ HRESULT IMAP::HrGetMessageFlags(std::string &strResponse, IMessage *lpMessage, b
 
 	if (lpMessage == nullptr)
 		return MAPI_E_CALL_FAILED;
-	HRESULT hr = lpMessage->GetProps(sptaFlagProps, 0, &cValues, &~lpProps);
+	auto hr = lpMessage->GetProps(sptaFlagProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		return hr;
 	strResponse += "FLAGS (" + PropsToFlags(lpProps, cValues, bRecent, false) + ")";
@@ -3973,7 +3970,6 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
  */
 HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &lstMails)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulMailnr;
 	ULONG ulBeginMailnr;
 	// split different sequence parts into a vector
@@ -4008,7 +4004,7 @@ HRESULT IMAP::HrParseSeqUidSet(const std::string &strSeqSet, std::list<ULONG> &l
 
 	lstMails.sort();
 	lstMails.unique();
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -4071,7 +4067,6 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataItemName,
     std::string strMsgDataItemValue, bool *lpbDoDelete)
 {
-	HRESULT hr = hrSuccess;
 	std::vector<std::string> lstFlags;
 	unsigned int ulCurrent, cValues, ulObjType;
 	memory_ptr<SPropValue> lpPropVal;
@@ -4097,8 +4092,10 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 	for (auto mail_idx : lstMails) {
 		object_ptr<IMessage> lpMessage;
 
-		hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb, reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
-		     &IID_IMessage, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpMessage);
+		auto hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb,
+		          reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
+		          &IID_IMessage, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
+		          &ulObjType, &~lpMessage);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -4299,6 +4296,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 		lstFolderMailEIDs[mail_idx].strFlags = strNewFlags;
 	} // loop on mails
 
+	HRESULT hr = hrSuccess;
 	if (strMsgDataItemName.size() > 7 &&
 	    strMsgDataItemName.compare(strMsgDataItemName.size() - 7, 7, ".SILENT") == 0)
 		hr = MAPI_E_NOT_ME;		// abuse error code that will not be used elsewhere from this function
@@ -5346,8 +5344,7 @@ HRESULT IMAP::HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder)
 {
 	memory_ptr<SPropValue> lpParent;
     ULONG ulObjType = 0;
-
-	HRESULT hr = HrGetOneProp(lpFolder, PR_PARENT_ENTRYID, &~lpParent);
+	auto hr = HrGetOneProp(lpFolder, PR_PARENT_ENTRYID, &~lpParent);
     if(hr != hrSuccess)
 		return hr;
 	return lpSession->OpenEntry(lpParent->Value.bin.cb,

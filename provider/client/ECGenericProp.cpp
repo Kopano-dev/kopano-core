@@ -365,8 +365,8 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 		return hr;
 
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
-		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+		auto wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
+		auto wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
@@ -379,8 +379,8 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 			return hr;
 		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
-		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
-		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
+		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
+		auto strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
@@ -901,10 +901,9 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
 	m_sMapiObject->cbInstanceID = 0;
 	m_sMapiObject->bChangedInstance = false;
 
-	HRESULT hr = Util::HrCopyEntryId(cbInstanceID,
-		lpInstanceID,
-		&m_sMapiObject->cbInstanceID,
-		reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
+	auto hr = Util::HrCopyEntryId(cbInstanceID, lpInstanceID,
+	          &m_sMapiObject->cbInstanceID,
+	          reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
 	if (hr != hrSuccess)
 		return hr;
 	m_sMapiObject->bChangedInstance = true;

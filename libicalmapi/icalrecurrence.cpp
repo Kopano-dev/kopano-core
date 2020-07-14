@@ -43,7 +43,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
     icalcomponent *lpicRootEvent, icalcomponent *lpicEvent, bool bIsAllday,
     const SPropTagArray *lpNamedProps, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	int i = 0;
 	ULONG ulWeekDays = 0;	
 	time_t dtUTCEnd = 0, dtUTCUntil = 0;
@@ -52,7 +51,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL)
-		return hr;
+		return hrSuccess;
 	auto icRRule = icalproperty_get_rrule(lpicProp);
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp == nullptr)
@@ -218,6 +217,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	}
 
 	// now that we have a full recurrence object, recalculate the end time, see ZCP-9143
+	HRESULT hr = hrSuccess;
 	if (lpRec->getEndType() == recurrence::DATE)
 	{
 		memory_ptr<OccrInfo> lpOccrInfo;
@@ -706,7 +706,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 	icaltimetype ittExDate;
 	TIMEZONE_STRUCT sTZgmt{};
 
-	HRESULT hr = HrCreateICalRecurrenceType(sTimeZone, bIsAllDay, lpRecurrence, &icRRule);
+	auto hr = HrCreateICalRecurrenceType(sTimeZone, bIsAllDay, lpRecurrence, &icRRule);
 	if (hr != hrSuccess)
 		return hr;
 

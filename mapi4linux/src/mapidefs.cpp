@@ -358,7 +358,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	std::unique_ptr<providerEntry> entry;
 	ULONG cProviderProps = 0;
-	HRESULT hr = hrSuccess;
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
 	if (szService == nullptr)
@@ -377,7 +376,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	
 	// Set the default profilename
-	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
+	auto hr = HrGetOneProp(msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
 	if (hr != hrSuccess)
 		return hr;
 	hr = entry->profilesection->SetProps(1, lpsPropValProfileName, NULL);

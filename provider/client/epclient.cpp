@@ -148,8 +148,8 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* Get the default store for this user */
 	std::string redir_srv;
-	HRESULT ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &~d.eid,
-	              0, NULL, &redir_srv);
+	auto ret = d.transport->HrGetStore(0, nullptr, &d.eid_size, &~d.eid,
+	           0, nullptr, &redir_srv);
 	if (ret == MAPI_E_NOT_FOUND) {
 		ec_log_err("HrGetStore failed: No store present.");
 		return ret;
@@ -192,7 +192,7 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* PR_EC_USERNAME is the user we want to add ... */
 	memory_ptr<SPropValue> name;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
+	auto ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
 	if (ret != hrSuccess) {
@@ -232,7 +232,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 	// That's enough information to get the entryid from the correct server. There's no redirect
 	// available when resolving archive stores.
 	memory_ptr<SPropValue> name, server;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
+	auto ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
 		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
 	if (ret == hrSuccess) {
@@ -270,7 +270,7 @@ static HRESULT
 initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	memory_ptr<SPropValue> mdb;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &~mdb);
+	auto ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &~mdb);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -322,7 +322,7 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 static HRESULT initprov_addrbook(struct initprov &d)
 {
 	size_t abe_size = CbNewABEID("");
-	HRESULT ret = MAPIAllocateBuffer(abe_size, &~d.abe_id);
+	auto ret = MAPIAllocateBuffer(abe_size, &~d.abe_id);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -595,7 +595,7 @@ HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 	object_ptr<ECABProviderSwitch> lpABProvider;
-	HRESULT hr = ECABProviderSwitch::Create(&~lpABProvider);
+	auto hr = ECABProviderSwitch::Create(&~lpABProvider);
 	if (hr == hrSuccess)
 		hr = lpABProvider->QueryInterface(IID_IABProvider,
 		     reinterpret_cast<void **>(lppABProvider));

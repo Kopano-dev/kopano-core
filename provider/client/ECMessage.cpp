@@ -1033,22 +1033,20 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
-	HRESULT hr = hrSuccess;
 	ULONG cValuesRecipProps = 0;
 	SPropValue sPropAdd[2], sKeyProp;
 
 	// Load the recipients table object
 	if(lpRecips == NULL) {
 		object_ptr<IMAPITable> lpTable;
-		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
+		auto hr = GetRecipientTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
 	if (lpRecips == nullptr)
 		return MAPI_E_CALL_FAILED;
 	if(ulFlags == 0) {
-		hr = lpRecips->HrDeleteAll();
-
+		auto hr = lpRecips->HrDeleteAll();
 		if(hr != hrSuccess)
 			return hr;
 		ulNextRecipUniqueId = 0;
@@ -1056,6 +1054,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 
 	memory_ptr<SPropValue> lpRecipProps;
 	for (unsigned int i = 0; i < lpMods->cEntries; ++i) {
+		HRESULT hr = hrSuccess;
 		if(ulFlags & MODRECIP_ADD || ulFlags == 0) {
 			// Add a new PR_ROWID
 			sPropAdd[0].ulPropTag = PR_ROWID;
@@ -2169,14 +2168,12 @@ struct findobject_if {
 // and unique ID for each object.
 static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 {
-    HRESULT hr;
-
     lpDest->ulObjId = lpSrc->ulObjId;
 
 	for (const auto &src : lpSrc->lstChildren) {
 		auto iterDest = lpDest->lstChildren.find(src);
 		if (iterDest != lpDest->lstChildren.cend()) {
-			hr = HrCopyObjIDs(*iterDest, src);
+			auto hr = HrCopyObjIDs(*iterDest, src);
             if(hr != hrSuccess)
                 return hr;
         }

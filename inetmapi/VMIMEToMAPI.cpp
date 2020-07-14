@@ -1471,13 +1471,11 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
     unsigned int flags)
 {
-	HRESULT hr = hrSuccess;
-
 	if (vmBody->getPartCount() <= 0) {
 		m_mailState.part_counter.push_back(1);
 		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
-		hr = handleAttachment(vmHeader, vmBody, lpMessage);
+		auto hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
 			kc_perror("dissect_multipart: Unable to save attachment", hr);
 		return hr;
@@ -1509,7 +1507,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 			m_mailState.part_counter.push_back(i);
 			auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
 			auto vmBodyPart = vmBody->getPartAt(i);
-			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
+			auto hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, flags);
 			if (hr != hrSuccess) {
 				ec_log_err("dissect_multipart: Unable to parse part %s: %s", m_mailState.part_text().c_str(), GetMAPIErrorMessage(hr));
 				return hr;
@@ -1521,6 +1519,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::shared_ptr<vmime::header> vmHeader
 	auto lBodies = vtm_order_alternatives(vmBody);
 
 	// recursively process multipart alternatives in reverse to select best body first
+	HRESULT hr = hrSuccess;
 	for (auto body_idx : lBodies) {
 		m_mailState.part_counter.push_back(body_idx);
 		auto pop = make_scope_success([&]() { m_mailState.part_counter.pop_back(); });
@@ -2080,7 +2079,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		 * unreviewed use in MAPIToVMIME.
 		 */
 		std::string strBuffOut = content_transfer_decode(vmBody);
-		std::wstring strUnicodeText = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
+		auto strUnicodeText = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
 		strUnicodeText.erase(std::remove(strUnicodeText.begin(), strUnicodeText.end(), L'\0'), strUnicodeText.end());
 
 		if (HrGetCPByCharset(mime_charset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess)
@@ -2313,7 +2312,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue())->getSubType() ==
 		    vmime::mediaTypes::TEXT_PLAIN) {
 			// escape and wrap with <pre> tags
-			std::wstring strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
+			auto strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
 			strHTML = "<pre>";
 			auto hr = Util::HrTextToHtml(strwBody.c_str(), strHTML, sCodepage.Value.ul);
 			if (hr != hrSuccess)
@@ -2758,7 +2757,6 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
  */
 static HRESULT postWriteFixups(IMessage *lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpMessageClass, lpProps, lpRecProps;
 	ULONG cValues = 0, cRecProps = 0, cbConversationIndex = 0;
 	memory_ptr<unsigned char> lpConversationIndex;
@@ -2793,7 +2791,7 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 		PROPMAP_NAMED_ID(CLIPEND,					PT_SYSTIME,	PSETID_Appointment, dispidClipEnd)
 	PROPMAP_INIT(lpMessage)
 
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
+	auto hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		return hr;
 	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen("IPM.Schedule.Meeting.")) != 0)
@@ -3216,7 +3214,6 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
     vmime::shared_ptr<vmime::bodyPart> vmBodyPart, std::string *lpSimple,
     std::string *lpExtended)
 {
-	HRESULT hr = hrSuccess;
 	std::list<std::string> lBody, lBodyStructure;
 	auto vmHeaderPart = vmBodyPart->getHeader();
 
@@ -3235,7 +3232,8 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
 			// alternative, mixed, related
 
 			if (vmBodyPart->getBody()->getPartCount() == 0)
-				return hr;		// multipart without any real parts? let's completely skip this.
+				/* multipart without any real parts? let's completely skip this. */
+				return hrSuccess;
 
 			// function please:
 			std::string strBody, strBodyStructure;
@@ -3276,7 +3274,7 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const std::string &input,
 	}
 
 	// add () around results?
-	return hr;
+	return hrSuccess;
 }
 
 /**

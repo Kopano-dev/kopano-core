@@ -1153,8 +1153,8 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 	*bestBody = plaintext;
 
 	// grabbing rtf
-	HRESULT hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream,
-	             0, 0, &~lpCompressedRTFStream);
+	auto hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream,
+	          0, 0, &~lpCompressedRTFStream);
 	if(hr == hrSuccess) {
 		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &~lpUncompressedRTFStream);
 		if (hr != hrSuccess) {
@@ -1563,7 +1563,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	static constexpr const SizedSPropTagArray(4, sender_proptags) =
 		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
-	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
+	auto hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		return hr;
 

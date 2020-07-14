@@ -25,7 +25,7 @@ static int test_rtfhtml(std::string file)
 
 	rtftile.imbue(std::locale(""));
 	const std::string rtf{std::istreambuf_iterator<char>(rtftile), std::istreambuf_iterator<char>()};
-	HRESULT hr = HrExtractHTMLFromRealRTF(rtf, html, CP_UTF8);
+	auto hr = HrExtractHTMLFromRealRTF(rtf, html, CP_UTF8);
 	if (hr != hrSuccess) {
 		std::cerr << "Unable to parse RTF file: " << GetMAPIErrorMessage(hr) << std::endl;
 		return EXIT_FAILURE;

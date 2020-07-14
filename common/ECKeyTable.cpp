@@ -533,7 +533,7 @@ ECRESULT ECKeyTable::GetBookmark(unsigned int ulbkPosition, int* lpbkPosition)
 	auto iPosition = m_mapBookmarks.find(ulbkPosition);
 	if (iPosition == m_mapBookmarks.cend())
 		return KCERR_INVALID_BOOKMARK;
-	ECRESULT er = CurrentRow(iPosition->second.lpPosition, &ulCurrPosition);
+	auto er = CurrentRow(iPosition->second.lpPosition, &ulCurrPosition);
 	if (er != erSuccess)
 		return er;
 	if (iPosition->second.ulFirstRowPosition != ulCurrPosition)
@@ -552,7 +552,7 @@ ECRESULT ECKeyTable::CreateBookmark(unsigned int* lpulbkPosition)
 	if (m_mapBookmarks.size() >= BOOKMARK_LIMIT)
 		return KCERR_UNABLE_TO_COMPLETE;
 	sbkPosition.lpPosition = lpCurrent;
-	ECRESULT er = GetRowCount(&ulRowCount, &sbkPosition.ulFirstRowPosition);
+	auto er = GetRowCount(&ulRowCount, &sbkPosition.ulFirstRowPosition);
 	if (er != erSuccess)
 		return er;
 
@@ -684,7 +684,7 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 ECRESULT ECKeyTable::GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow)
 {
 	scoped_rlock biglock(mLock);
-	ECRESULT er = CurrentRow(lpCurrent, lpulCurrentRow);
+	auto er = CurrentRow(lpCurrent, lpulCurrentRow);
 	if (er != erSuccess)
 		return er;
 	*lpulRowCount = lpRoot->ulBranchCount;
@@ -799,7 +799,7 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
 {
 	scoped_rlock biglock(mLock);
 	auto lpPos = lpCurrent;
-	ECRESULT er = SeekId((sObjectTableKey *)lpsRowItem);
+	auto er = SeekId(lpsRowItem);
     if(er != erSuccess)
 		return er;
 
@@ -944,7 +944,7 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 {
 	scoped_rlock biglock(mLock);
 	auto lpCursor = lpCurrent;
-	ECRESULT er = SeekId(lpsRowItem);
+	auto er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
 	const auto &dat = lpCurrent->m_cols;
@@ -965,7 +965,7 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
     bool fCursorHidden = false;
 	scoped_rlock biglock(mLock);
 	auto lpCursor = lpCurrent;
-	ECRESULT er = SeekId(lpsRowItem);
+	auto er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
 	const auto &dat = lpCurrent->m_cols;
@@ -998,8 +998,7 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList)
 {
 	scoped_rlock biglock(mLock);
-
-	ECRESULT er = SeekId(lpsRowItem);
+	auto er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
 	const auto &dat = lpCurrent->m_cols;
@@ -1154,7 +1153,7 @@ ECRESULT ECKeyTable::GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow)
 {
 	ulock_rec biglock(mLock);
 	ECTableRow *lpCursor = lpCurrent;
-	ECRESULT er = SeekId(lpsRowItem);
+	auto er = SeekId(lpsRowItem);
     if(er != erSuccess)
         goto exit;
     *lpRow = lpCurrent;

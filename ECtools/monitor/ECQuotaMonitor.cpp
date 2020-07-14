@@ -876,7 +876,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
 		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
-	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);
+	auto hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);
 	if (FAILED(hr))
 		return hr;
 

@@ -76,7 +76,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 {
 	rowset_ptr lpRowSet;
 	std::wstring strName, strEmail, strType;
-	HRESULT hr = lpTable->QueryRows(INT_MAX, 0, &~lpRowSet);
+	auto hr = lpTable->QueryRows(INT_MAX, 0, &~lpRowSet);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -259,7 +259,6 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
     vmime::shared_ptr<vmime::message> vmMessage, bool bAllowEveryone,
     bool bAlwaysExpandDistrList)
 {
-	HRESULT hr = hrSuccess;
 	vmime::mailbox expeditor;
 	vmime::mailboxList recipients;
 
@@ -294,7 +293,8 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			return MAPI_W_CANCEL_MESSAGE;
 		}
 
-		hr = HrMakeRecipientsList(lpAdrBook, lpMessage, vmMessage, recipients, bAllowEveryone, bAlwaysExpandDistrList);
+		auto hr = HrMakeRecipientsList(lpAdrBook, lpMessage, vmMessage,
+		          recipients, bAllowEveryone, bAlwaysExpandDistrList);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -400,7 +400,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		error = convert_to<std::wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 vmime::parsingContext imopt_default_parsectx()

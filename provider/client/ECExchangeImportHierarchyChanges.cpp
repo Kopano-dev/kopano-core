@@ -56,8 +56,8 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 		return hr;
 
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
-		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
+		auto wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
+		auto wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
@@ -70,8 +70,8 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 			return hr;
 		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
-		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
-		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
+		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
+		auto strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError,
 		     reinterpret_cast<void **>(&lpMapiError->lpszError));
@@ -94,7 +94,6 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 
 HRESULT ECExchangeImportHierarchyChanges::Config(IStream *lpStream, unsigned int ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulLen = 0;
 	memory_ptr<SPropValue> lpPropSourceKey;
 
@@ -105,7 +104,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(IStream *lpStream, unsigned int
 		m_ulFlags = ulFlags;
 		return hrSuccess;
 	}
-	hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
+	auto hr = lpStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);

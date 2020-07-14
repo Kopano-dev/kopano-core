@@ -489,7 +489,7 @@ ECRESULT ECDatabase::Query(const std::string &strQuery)
 ECRESULT ECDatabase::DoSelect(const std::string &strQuery,
     DB_RESULT *lppResult, bool fStreamResult)
 {
-	ECRESULT er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
+	auto er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
 	m_stats->inc(SCN_DATABASE_SELECTS);
 	if (er != erSuccess) {
 		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);

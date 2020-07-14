@@ -136,8 +136,6 @@ PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
  */
 HRESULT PublishFreeBusy::HrInit()
 {
-	HRESULT hr = hrSuccess;
-	
 	PROPMAP_INIT_NAMED_ID (APPT_STARTWHOLE, 	PT_SYSTIME, PSETID_Appointment, dispidApptStartWhole)
 	PROPMAP_INIT_NAMED_ID (APPT_ENDWHOLE, 		PT_SYSTIME, PSETID_Appointment, dispidApptEndWhole)
 	PROPMAP_INIT_NAMED_ID (APPT_CLIPEND,		PT_SYSTIME, PSETID_Appointment, dispidClipEnd)
@@ -146,7 +144,7 @@ HRESULT PublishFreeBusy::HrInit()
 	PROPMAP_INIT_NAMED_ID (APPT_RECURRINGSTATE,	PT_BINARY, PSETID_Appointment,	dispidRecurrenceState)
 	PROPMAP_INIT_NAMED_ID (APPT_TIMEZONESTRUCT,	PT_BINARY, PSETID_Appointment,	dispidTimeZoneData)
 	PROPMAP_INIT (m_lpDefStore)
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -381,8 +379,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	// Free previously allocated memory
 	if (*lppfbBlocks != NULL)
 		MAPIFreeBuffer(*lppfbBlocks);
-	HRESULT hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(),
-	             reinterpret_cast<void **>(&lpFbBlocks));
+	auto hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(), reinterpret_cast<void **>(&lpFbBlocks));
 	if (hr != hrSuccess)
 		return hr;
 
