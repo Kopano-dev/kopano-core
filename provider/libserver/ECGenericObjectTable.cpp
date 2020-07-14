@@ -1129,7 +1129,8 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
     soap_serialize_collapseState(&xmlsoap, &sCollapseState);
     soap_begin_send(&xmlsoap);
     soap_put_collapseState(&xmlsoap, &sCollapseState, "CollapseState", NULL);
-    soap_end_send(&xmlsoap);
+	if (soap_end_send(&xmlsoap) != 0)
+		return KCERR_NETWORK_ERROR;
     // os.str() now contains serialized objects, copy into return structure
     lpsCollapseState->__size = os.str().size();
 	lpsCollapseState->__ptr  = soap_new_unsignedByte(soap, os.str().size());
