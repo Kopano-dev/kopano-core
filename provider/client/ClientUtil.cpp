@@ -39,7 +39,9 @@ static constexpr const SizedSPropTagArray(20, sptaKopanoProfile) =
 	PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION,
 	PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC}};
 
-HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags)
+HRESULT ClientUtil::HrInitializeStatusRow(const char *lpszProviderDisplay,
+    unsigned int ulResourceType, IMAPISupport *lpMAPISup,
+    SPropValue *lpspvIdentity, unsigned int ulFlags)
 {
 	memory_ptr<SPropValue> row;
 	size_t n = 0;
@@ -85,7 +87,8 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 	return lpMAPISup->ModifyStatusRow(n, row, ulFlags);
 }
 
-HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
+HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport,
+    IMAPISupport *lpMAPISup, SPropValue **lppIdentityProps)
 {
 	ULONG cbEntryStore = 0, cbEID = 0;
 	memory_ptr<ENTRYID> lpEntryStore, lpEID;
@@ -490,7 +493,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	return (*lppEmptyMessage)->SetProps(dval, dpv, nullptr);
 }
 
-HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps)
+HRESULT ClientUtil::GetGlobalProfileProperties(IMAPISupport *lpMAPISup,
+    struct sGlobalProfileProps *lpsProfileProps)
 {
 	object_ptr<IProfSect> lpGlobalProfSect;
 	auto hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), MAPI_MODIFY, &~lpGlobalProfSect);
@@ -552,7 +556,8 @@ HRESULT ClientUtil::GetGlobalProfileProperties(IProfSect *sect, struct sGlobalPr
 	return hrSuccess;
 }
 
-HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
+HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(IProfSect *lpGlobalProfSect,
+    unsigned int *lpcDelegates, BYTE **lppDelegateStores)
 {
 	if (lpGlobalProfSect == nullptr || lpcDelegates == nullptr ||
 	    lppDelegateStores == nullptr)

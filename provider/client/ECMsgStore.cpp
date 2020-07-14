@@ -164,7 +164,7 @@ ULONG ECMsgStore::Release()
 	return ECUnknown::Release();
 }
 
-HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
+HRESULT ECMsgStore::Create(const char *lpszProfname, IMAPISupport *lpSupport,
     WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags,
     BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
@@ -214,7 +214,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			// Non supported function for publicfolder
 			hr = GetReceiveFolderTable(0, (LPMAPITABLE*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store hierarchy", ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(),
+		     L"store hierarchy", ICS_SYNC_HIERARCHY,
+		     reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
 	    if (*lpiid == IID_IECExportAddressbookChanges) {
 			hr = alloc_wrap<ECExportAddressbookChanges>(this).as(*lpiid, lppUnk);
@@ -222,7 +224,9 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 				return hr;
 	    }
 		else
-			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(), L"store contents", ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+			hr = ECExchangeExportChanges::Create(this, *lpiid, std::string(),
+			     L"store contents", ICS_SYNC_CONTENTS,
+			     reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else if (ulPropTag == PR_EC_CHANGE_ADVISOR) {
 		object_ptr<ECChangeAdvisor> lpChangeAdvisor;
 		hr = ECChangeAdvisor::Create(this, &~lpChangeAdvisor);
@@ -245,7 +249,8 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 			hr = OpenStatsTable(TABLETYPE_STATS_SERVERS, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_ACL_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
-			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
+			hr = ECExchangeModifyTable::CreateACLTable(this,
+			     ulInterfaceOptions, reinterpret_cast<IExchangeModifyTable **>(lppUnk));
 	} else
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 

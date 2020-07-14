@@ -347,7 +347,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			strFaxMail = convert_to<std::string>(wstrEmailAddress);
 		} else {
 			// check if entry is in contacts folder
-			LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
+			auto lpContabEntryID = reinterpret_cast<CONTAB_ENTRYID *>(lpEntryID->Value.bin.lpb);
 			auto guid = reinterpret_cast<GUID *>(&lpContabEntryID->muid);
 
 			// check validity of lpContabEntryID

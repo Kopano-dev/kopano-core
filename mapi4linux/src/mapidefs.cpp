@@ -573,7 +573,7 @@ HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	LPABLOGON lpABLogon = NULL;
+	IABLogon *lpABLogon = nullptr;
 	MAPIUID muidEntry;
 
 	if (cbEntryID < sizeof(MAPIUID) + 4 || lpEntryID == NULL)

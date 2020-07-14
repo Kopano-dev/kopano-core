@@ -686,7 +686,7 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 		return hr;
 
 	if (ptrSFEntryIDs->Value.MVbin.cValues <= ULONG(sfWhich)) {
-		LPSBinary lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
+		auto lpbinPrev = ptrSFEntryIDs->Value.MVbin.lpbin;
 
 		hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, reinterpret_cast<void **>(&ptrSFEntryIDs->Value.MVbin.lpbin));
 		if (hr != hrSuccess)

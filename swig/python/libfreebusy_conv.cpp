@@ -19,7 +19,8 @@ void InitFreebusy() {
 	PyTypeFreeBusyBlock = PyObject_GetAttrString(lpMAPIStruct, "FreeBusyBlock");
 }
 
-LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
+FBUser *List_to_p_FBUser(PyObject *list, ULONG *cValues)
+{
 	KC::memory_ptr<FBUser> lpFbUsers;
 	char *buf = 0 ;
 	size_t size;

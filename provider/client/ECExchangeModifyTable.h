@@ -22,8 +22,8 @@ public:
 	virtual HRESULT DisablePushToServer() override;
 
 	/* static creates */
-	static HRESULT CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
-	static HRESULT CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
+	static HRESULT CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, IExchangeModifyTable **);
+	static HRESULT CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, IExchangeModifyTable **);
 
 private:
 	static HRESULT HrSerializeTable(KC::ECMemTable *, char **serout);

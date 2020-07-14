@@ -1183,7 +1183,8 @@ HRESULT M4LMAPISession::Logoff(ULONG_PTR ulUIParam, ULONG ulFlags,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISession::AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin) {
+HRESULT M4LMAPISession::AdminServices(unsigned int flags, IMsgServiceAdmin **lppServiceAdmin)
+{
 	serviceAdmin->QueryInterface(IID_IMsgServiceAdmin, reinterpret_cast<void **>(lppServiceAdmin));
 	return hrSuccess;
 }
@@ -1210,7 +1211,7 @@ HRESULT M4LMAPISession::setStatusRow(ULONG cValues, const SPropValue *lpProps)
 // M4LAddrBook
 // ---
 M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin,
-    LPMAPISUP newlpMAPISup) :
+    IMAPISupport *newlpMAPISup) :
 	m_lpMAPISup(newlpMAPISup)
 {}
 
@@ -1221,7 +1222,9 @@ M4LAddrBook::~M4LAddrBook() {
 		FreeProws(m_lpSavedSearchPath);
 }
 
-HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider) {
+HRESULT M4LAddrBook::addProvider(const std::string &profilename,
+    const std::string &displayname, MAPIUID *lpUID, IABProvider *newProvider)
+{
 	ULONG cbSecurity;
 	memory_ptr<BYTE> lpSecurity;
 	memory_ptr<MAPIERROR> lpMAPIError;

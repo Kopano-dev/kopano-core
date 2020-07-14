@@ -33,7 +33,9 @@ ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *l
 	m_lpLogger(new ECLogger_Null), m_lpFolder(lpFolder)
 {}
 
-HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
+HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder,
+    IExchangeImportContentsChanges **lppExchangeImportContentsChanges)
+{
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<ECExchangeImportContentsChanges> lpEICC(new(std::nothrow) ECExchangeImportContentsChanges(lpFolder));
@@ -423,7 +425,6 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	object_ptr<IMessage> lpConflictMessage;
 	memory_ptr<SPropValue> lpPropAdditionalREN;
 	memory_ptr<SPropValue> lpConflictItems, lpEntryIdProp;
-	LPSBinary lpEntryIds = NULL;
 	unsigned int ulCount = 0, ulObjType = 0;
 	static constexpr const SizedSPropTagArray(5, excludeProps) =
 		{5, {PR_ENTRYID, PR_CONFLICT_ITEMS, PR_SOURCE_KEY,
@@ -483,6 +484,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 		lpConflictItems->Value.MVbin.lpbin = NULL;
 	}
 
+	SBinary *lpEntryIds = nullptr;
 	hr = MAPIAllocateMore(sizeof(SBinary) * (lpConflictItems->Value.MVbin.cValues + 1), lpConflictItems, reinterpret_cast<void **>(&lpEntryIds));
 	if(hr != hrSuccess)
 		return hr;

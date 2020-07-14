@@ -18,10 +18,9 @@ class ECFifoBuffer;
 class ECSerializer;
 class ECAttachmentStorage;
 struct StreamCaps;
-typedef const StreamCaps* LPCSTREAMCAPS;
 
 // Utility Functions
-ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop);
-ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, unsigned long long ullIMAP, ECSerializer *lpSource, struct propValArray **lppPropValArray);
+extern ECRESULT SerializeMessage(ECSession *, ECDatabase *, ECAttachmentStorage *, const StreamCaps *, unsigned int objid, unsigned int objtype, unsigned int storeid, GUID *, unsigned int flags, ECSerializer *sink, bool top);
+extern ECRESULT DeserializeObject(ECSession *, ECDatabase *, ECAttachmentStorage *, const StreamCaps *, unsigned int objid, unsigned int storeid, GUID *, bool newitem, unsigned long long imap, ECSerializer *src, struct propValArray **);
 
 } /* namespace */

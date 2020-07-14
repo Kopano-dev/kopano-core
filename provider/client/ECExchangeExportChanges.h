@@ -24,7 +24,7 @@ class ECExchangeExportChanges KC_FINAL_OPG :
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);
 public:
-	static	HRESULT Create(ECMsgStore *lpStore, REFIID iid, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges);
+	static HRESULT Create(ECMsgStore *, const IID &, const std::string &sourcekey, const wchar_t *display, unsigned int sync_type, IExchangeExportChanges **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT Config(IStream *, unsigned int, IUnknown *collector, SRestriction *, SPropTagArray *inclprop, SPropTagArray *exclprop, unsigned int bufsize) override;

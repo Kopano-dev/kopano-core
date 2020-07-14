@@ -27,7 +27,9 @@ ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder 
 	m_lpFolder(lpFolder)
 {}
 
-HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges){
+HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder,
+    IExchangeImportHierarchyChanges **lppExchangeImportHierarchyChanges)
+{
 	if(!lpFolder)
 		return MAPI_E_INVALID_PARAMETER;
 	return alloc_wrap<ECExchangeImportHierarchyChanges>(lpFolder)

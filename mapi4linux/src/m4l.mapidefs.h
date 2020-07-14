@@ -59,7 +59,7 @@ class M4LMAPIAdviseSink KC_FINAL_OPG :
     public KC::ECUnknown, public IMAPIAdviseSink {
 private:
     void *lpContext;
-    LPNOTIFCALLBACK lpFn;
+	NOTIFCALLBACK *lpFn;
 
 public:
 	M4LMAPIAdviseSink(NOTIFCALLBACK *f, void *ctx) : lpContext(ctx), lpFn(f) {}

@@ -2074,7 +2074,7 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	if (lpSrc->ulEventType != fnevKopanoIcsChange)
 		return MAPI_E_INVALID_PARAMETER;
 
-	LPSBinary lpSBinary = NULL;
+	SBinary *lpSBinary = nullptr;
 	auto hr = MAPIAllocateMore(sizeof(*lpSBinary), lpBase, reinterpret_cast<void **>(&lpSBinary));
 	if (hr != hrSuccess)
 		return hr;

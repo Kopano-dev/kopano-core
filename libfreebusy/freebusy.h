@@ -121,7 +121,6 @@ struct FBUser {
 	ULONG m_ulReserved;		/**< This parameter is reserved for Outlook internal use and is not supported. */
 	LPWSTR m_pwszReserved;	/**< This parameter is reserved for Outlook internal use and is not supported.*/
 };
-typedef struct FBUser *LPFBUser;
 
 /**
  * @interface IFreeBusyUpdate

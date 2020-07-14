@@ -543,7 +543,7 @@ HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(const SBinaryArray
 	return hrSuccess;
 }
 
-HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore **lppArchiveStore)
+HRESULT ECArchiveAwareMsgStore::GetArchiveStore(SBinary *lpStoreEID, ECMsgStore **lppArchiveStore)
 {
 	const std::vector<BYTE> eid(lpStoreEID->lpb, lpStoreEID->lpb + lpStoreEID->cb);
 	auto iterStore = m_mapStores.find(eid);

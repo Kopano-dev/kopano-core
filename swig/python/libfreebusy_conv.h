@@ -7,6 +7,6 @@
 #include <Python.h>
 
 void InitFreebusy();
-LPFBUser List_to_p_FBUser(PyObject *, ULONG *);
+extern FBUser *List_to_p_FBUser(PyObject *, ULONG *);
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *, ULONG *);
 PyObject* List_from_FBBlock_1(LPFBBlock_1, LONG *);

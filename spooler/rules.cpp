@@ -860,7 +860,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	return hr;
 }
 
-// HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress)
 static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
 	SPropValue sNewProps[6]{};

@@ -46,7 +46,7 @@ static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &s
 }
 
 ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
-    ULONG ulFlags, LPMAPISUP lpSupport) :
+    ULONG ulFlags, IMAPISupport *lpSupport) :
 	m_lpSupport(lpSupport), m_lpProvider(lpProvider),
 	m_ulProviderType(ulProviderType)
 {
@@ -90,7 +90,8 @@ ECNotifyClient::~ECNotifyClient()
 	m_mapChangeAdvise.clear();
 }
 
-HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient)
+HRESULT ECNotifyClient::Create(unsigned int ulProviderType, void *lpProvider,
+    unsigned int ulFlags, IMAPISupport *lpSupport, ECNotifyClient**lppNotifyClient)
 {
 	return alloc_wrap<ECNotifyClient>(ulProviderType, lpProvider, ulFlags,
 	       lpSupport).put(lppNotifyClient);
@@ -482,8 +483,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	memset(lpSyncStates->lpbin, 0, sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL);
 
 	for (auto notp : lNotifications) {
-		LPSBinary	tmp = NULL;
-
+		SBinary *tmp = nullptr;
 		hr = CopySOAPChangeNotificationToSyncState(notp, &tmp, lpSyncStates);
 		if (hr != hrSuccess)
 			continue;

@@ -132,7 +132,7 @@ public:
 
 class M4LAddrBook KC_FINAL_OPG : public M4LMAPIProp, public IAddrBook {
 public:
-	M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMAPISup);
+	M4LAddrBook(M4LMsgServiceAdmin *new_sa, IMAPISupport *new_sup);
 	virtual ~M4LAddrBook();
 	virtual HRESULT OpenEntry(unsigned int eid_size, const ENTRYID *eid, const IID *intf, unsigned int flags, unsigned int *obj_type, IUnknown **) override;
 	virtual HRESULT CompareEntryIDs(unsigned int asize, const ENTRYID *a, unsigned int bsize, const ENTRYID *b, unsigned int cmp_flags, unsigned int *result) override;
@@ -152,7 +152,7 @@ private:
 	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);
 
 public:
-	HRESULT addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider);
+	HRESULT addProvider(const std::string &profile, const std::string &displayname, MAPIUID *, IABProvider *);
 };
 
 extern KC::ECConfig *m4l_lpConfig;

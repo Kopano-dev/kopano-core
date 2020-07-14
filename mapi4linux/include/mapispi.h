@@ -114,9 +114,9 @@ typedef HRESULT (PREPROCESSMESSAGE)(
                     LPMESSAGE lpMessage,
                     LPADRBOOK lpAdrBook,
                     LPMAPIFOLDER lpFolder,
-                    LPALLOCATEBUFFER AllocateBuffer,
-                    LPALLOCATEMORE AllocateMore,
-                    LPFREEBUFFER FreeBuffer,
+                    ALLOCATEBUFFER *,
+                    ALLOCATEMORE *,
+                    FREEBUFFER *,
                     ULONG* lpcOutbound,
                     LPMESSAGE** lpppMessage,
                     LPADRLIST* lppRecipList);
@@ -124,17 +124,10 @@ typedef HRESULT (PREPROCESSMESSAGE)(
 /* RemovePreprocessInfo, second ordinal in RegisterPreprocessor(). */
 typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 
-/* Function pointer for GetReleaseInfo */
-
-// we don't want this in linux
-//#warning "please correctly define LPSTORAGE!!"
-//#define LPSTORAGE void*
-
 class IMAPISupport : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NO_SUPPORT; }
-    virtual HRESULT GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer, LPALLOCATEMORE * lpAllocateMore,
-					LPFREEBUFFER * lpFreeBuffer) = 0; 
+	virtual HRESULT GetMemAllocRoutines(ALLOCATEBUFFER **, ALLOCATEMORE **, FREEBUFFER **) = 0;
 	virtual HRESULT Subscribe(const NOTIFKEY *key, ULONG evt_mask, ULONG flags, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unsubscribe(ULONG ulConnection) = 0; 
 	virtual HRESULT Notify(const NOTIFKEY *key, ULONG nnotifs, NOTIFICATION *, ULONG *flags) = 0;
@@ -172,8 +165,8 @@ public:
 	virtual HRESULT StatusRecips(IMessage *, const ADRLIST *recips) { return MAPI_E_NO_SUPPORT; }
 	virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,ENTRYID **lppWrappedEntry) = 0;
     virtual HRESULT ModifyProfile(ULONG ulFlags) = 0; 
-	virtual HRESULT IStorageFromStream(LPUNKNOWN lpUnkIn, LPCIID lpInterface, ULONG ulFlags, LPSTORAGE *lppStorageOut) { return MAPI_E_NO_SUPPORT; }
-	virtual HRESULT GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP *lppSvcSupport) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT IStorageFromStream(IUnknown *, const IID *intf, unsigned int flags, IStorage **) { return MAPI_E_NO_SUPPORT; }
+	virtual HRESULT GetSvcConfigSupportObj(unsigned int flags, IMAPISupport **) { return MAPI_E_NO_SUPPORT; }
 };
 
 /********************************************************************/
@@ -198,7 +191,7 @@ typedef IABLogon* LPABLOGON;
 class IABProvider : public virtual IUnknown {
 public:
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *profname, ULONG ulFlags, ULONG *lpulpcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon) = 0;
+	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profname, unsigned int flags, unsigned int *secsize, BYTE **sec, MAPIERROR **, IABLogon **) = 0;
 };
 
 class IABLogon : public virtual IUnknown {
@@ -218,14 +211,14 @@ public:
 extern "C" {
 typedef HRESULT (ABPROVIDERINIT)(
     HINSTANCE           hInstance,
-    LPMALLOC            lpMalloc,
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPALLOCATEMORE      lpAllocateMore,
-    LPFREEBUFFER        lpFreeBuffer,
+    IMalloc *,
+    ALLOCATEBUFFER *,
+    ALLOCATEMORE *,
+    FREEBUFFER *,
     ULONG               ulFlags,
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
-    LPABPROVIDER *  lppABProvider
+    IABProvider **
 );
 
 KC_EXPORT ABPROVIDERINIT ABProviderInit;
@@ -263,7 +256,7 @@ typedef IXPLogon* LPXPLOGON;
 class IXPProvider : public virtual IUnknown {
 public: 
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, const TCHAR *lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon) = 0;
+	virtual HRESULT TransportLogon(IMAPISupport *, unsigned int ui_param, const TCHAR *profile, unsigned int *flags, MAPIERROR **, IXPLogon **) = 0;
 };
 
 /* OptionData returned from call to RegisterOptions */
@@ -285,11 +278,11 @@ typedef struct OPTIONDATA *LPOPTIONDATA;
 
 typedef SCODE (OPTIONCALLBACK)(
             HINSTANCE           hInst,
-            LPMALLOC            lpMalloc,
+            IMalloc *,
             ULONG               ulFlags,
             ULONG               cbOptionData,
             LPBYTE              lpbOptionData,
-            LPMAPISUP           lpMAPISup,
+            IMAPISupport *,
             LPMAPIPROP          lpDataSource,
             LPMAPIPROP *    lppWrappedSource,
             LPMAPIERROR *   lppMAPIError);
@@ -341,10 +334,10 @@ public:
 /* Transport Provider Entry Point */
 typedef HRESULT (XPPROVIDERINIT)(
     HINSTANCE           hInstance,
-    LPMALLOC            lpMalloc,
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPALLOCATEMORE      lpAllocateMore,
-    LPFREEBUFFER        lpFreeBuffer,
+    IMalloc *,
+    ALLOCATEBUFFER *,
+    ALLOCATEMORE *,
+    FREEBUFFER *,
     ULONG               ulFlags,
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
@@ -418,14 +411,14 @@ public:
 extern "C" {
 typedef HRESULT (MSPROVIDERINIT)(
     HINSTANCE               hInstance,
-    LPMALLOC                lpMalloc,           /* AddRef() if you keep it */
-    LPALLOCATEBUFFER        lpAllocateBuffer,   /* -> AllocateBuffer */
-    LPALLOCATEMORE          lpAllocateMore,     /* -> AllocateMore   */
-    LPFREEBUFFER            lpFreeBuffer,       /* -> FreeBuffer     */
+    IMalloc *, /* AddRef() if you keep it */
+    ALLOCATEBUFFER *, /* -> AllocateBuffer */
+    ALLOCATEMORE *, /* -> AllocateMore */
+    FREEBUFFER *, /* -> FreeBuffer */
     ULONG                   ulFlags,
     ULONG                   ulMAPIVer,
     ULONG *             lpulProviderVer,
-    LPMSPROVIDER *      lppMSProvider
+	IMSProvider **
 );
 
 KC_EXPORT MSPROVIDERINIT MSProviderInit;
@@ -454,14 +447,14 @@ KC_EXPORT MSPROVIDERINIT MSProviderInit;
 extern "C" {
 typedef HRESULT (MSGSERVICEENTRY)(
     HINSTANCE       hInstance,
-    LPMALLOC        lpMalloc,
-    LPMAPISUP       lpMAPISup,
+    IMalloc *,
+    IMAPISupport *,
     ULONG           ulUIParam,
     ULONG           ulFlags,
     ULONG           ulContext,
     ULONG           cValues,
     LPSPropValue    lpProps,
-    LPPROVIDERADMIN lpProviderAdmin,
+    IProviderAdmin *,
     LPMAPIERROR *lppMapiError
 );
 

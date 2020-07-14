@@ -916,7 +916,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 	return hrSuccess;
 }
 
-static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
+static MVPROPMAPENTRY *FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
 {
 	for (unsigned i = 0; i < lpUser->sMVPropmap.cEntries; ++i)
 		if (lpUser->sMVPropmap.lpEntries[i].ulPropId == ulPropTag)
@@ -1115,7 +1115,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	if (lpECUser == nullptr)
 		return hr;
 
-	LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
+	auto lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
 	if (lpArchiveServers == nullptr || lpArchiveServers->cValues == 0)
 		return hr;
 

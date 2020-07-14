@@ -34,7 +34,7 @@ struct SAuxMessageData {
 	unsigned int	ulChangeTypes;
 	unsigned int	ulFlags; // For readstate change
 };
-typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
+typedef std::map<SOURCEKEY, SAuxMessageData> MESSAGESET;
 
 // Forward declarations of interfaces used by ECGetContentChangesHelper
 class IDbQueryCreator;
@@ -53,7 +53,7 @@ private:
 	ECGetContentChangesHelper(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *);
 	ECRESULT Init();
 	ECRESULT MatchRestrictions(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths, const struct restrictTable *lpsRestrict, std::set<SOURCEKEY> *matches);
-	ECRESULT GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages);
+	ECRESULT GetSyncedMessages(unsigned int syncid, unsigned int changeid, MESSAGESET *);
 
 	// Interfaces for delegated processing
 	std::unique_ptr<IDbQueryCreator> m_lpQueryCreator;

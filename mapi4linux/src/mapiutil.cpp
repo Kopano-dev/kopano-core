@@ -97,7 +97,7 @@ void FreePadrlist(LPADRLIST lpAdrlist)
 }
 
 // M4LMAPIAdviseSink is in mapidefs.cpp
-HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
+HRESULT HrAllocAdviseSink(NOTIFCALLBACK *lpFunction, void *lpContext,
     LPMAPIADVISESINK *lppSink)
 {
 	return alloc_wrap<M4LMAPIAdviseSink>(lpFunction, lpContext)

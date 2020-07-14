@@ -20,7 +20,7 @@ class ECExchangeImportContentsChanges KC_FINAL_OPG :
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);
 public:
-	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges);
+	static HRESULT Create(ECMAPIFolder *, IExchangeImportContentsChanges **);
 
 	// IUnknown
 	virtual HRESULT QueryInterface(const IID &, void **) override;

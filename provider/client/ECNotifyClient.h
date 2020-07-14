@@ -25,10 +25,10 @@ class SessionGroupData;
 
 class ECNotifyClient KC_FINAL_OPG : public KC::ECUnknown {
 protected:
-	ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport);
+	ECNotifyClient(unsigned int prov_type, void *prov, unsigned int flags, IMAPISupport *);
 	virtual ~ECNotifyClient();
 public:
-	static HRESULT Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient);
+	static HRESULT Create(unsigned int prov_type, void *prov, unsigned int flags, IMAPISupport *, ECNotifyClient **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT Advise(const ECLISTSYNCSTATE &, KC::IECChangeAdviseSink *, ECLISTCONNECTION *);

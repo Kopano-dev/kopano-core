@@ -426,7 +426,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
  *					Pointer to a IABContainer pointer that will be assigned the
  *					address of the returned addressbook container.
  */
-HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
+HRESULT ArchiverSession::GetGAL(IABContainer **lppAbContainer)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
 	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};

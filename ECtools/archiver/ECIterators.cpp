@@ -10,11 +10,8 @@
 
 namespace KC {
 
-ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags, ULONG ulDepth)
-: m_ptrContainer(lpContainer)
-, m_ulFlags(ulFlags)
-, m_ulDepth(ulDepth)
-, m_ulRowIndex(0)
+ECHierarchyIteratorBase::ECHierarchyIteratorBase(IMAPIContainer *c, unsigned int f, unsigned int d) :
+	m_ptrContainer(c), m_ulFlags(f), m_ulDepth(d), m_ulRowIndex(0)
 {
 	increment();
 }

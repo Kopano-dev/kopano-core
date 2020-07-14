@@ -15,7 +15,7 @@ class ECExchangeImportHierarchyChanges KC_FINAL_OPG :
 protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);
 public:
-	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges);
+	static HRESULT Create(ECMAPIFolder *, IExchangeImportHierarchyChanges **);
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT Config(IStream *, unsigned int flags) override;
