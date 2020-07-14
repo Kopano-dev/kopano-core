@@ -1129,7 +1129,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	ECRESULT er = erSuccess;
 	struct getNamesFromIDsResponse sResponse;
 	struct propTagArray sPropTags;
-	MAPINAMEID **lppNames = nullptr;
+	memory_ptr<MAPINAMEID *> lppNames;
 	convert_context convertContext;
 
 	sPropTags.__size = lpsPropTags->cValues;
@@ -1145,7 +1145,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
+	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, &~lppNames);
 	if (er != erSuccess)
 		goto exitm;
 
@@ -1180,7 +1180,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 
 	*lpcResolved = sResponse.lpsNames.__size;
-	*lpppNames = lppNames;
+	*lpppNames = lppNames.release();
  exitm:
 	return hr;
 }
