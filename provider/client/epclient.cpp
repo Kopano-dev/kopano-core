@@ -81,7 +81,7 @@ static HRESULT RemoveAllProviders(ECMapProvider *mp)
 HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
     LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore,
     LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
-    ULONG *lpulProviderVer, LPMSPROVIDER *ppmsp)
+    unsigned int *lpulProviderVer, IMSProvider **ppmsp)
 {
 	object_ptr<ECMSProviderSwitch> lpMSProvider;
 
@@ -356,7 +356,7 @@ static HRESULT initprov_addrbook(struct initprov &d)
  *
  * @return MAPI error codes
  */
-HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
+HRESULT InitializeProvider(IProviderAdmin *lpAdminProvider,
     IProfSect *lpProfSect, const sGlobalProfileProps &sProfileProps,
     ULONG *lpcStoreID, ENTRYID **lppStoreID)
 {
@@ -440,7 +440,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	return hrSuccess;
 }
 
-static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
+static HRESULT UpdateProviders(IProviderAdmin *lpAdminProviders,
     const sGlobalProfileProps &sProfileProps)
 {
 	object_ptr<IMAPITable> ptrTable;
@@ -493,7 +493,7 @@ static std::string GetServerTypeFromPath(const char *szPath)
 extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
     LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
-    LPPROVIDERADMIN lpAdminProviders, MAPIERROR **lppMapiError)
+    IProviderAdmin *lpAdminProviders, MAPIERROR **lppMapiError)
 {
 	HRESULT hr = hrSuccess;
 	std::string strServerName, strDefStoreServer;
@@ -589,7 +589,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
-    ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
+    unsigned int *lpulProviderVer, IABProvider **lppABProvider)
 {
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;

@@ -92,10 +92,7 @@ extern KC_EXPORT MAPIALLOCATEBUFFER MAPIAllocateBuffer;
 extern KC_EXPORT MAPIALLOCATEMORE MAPIAllocateMore;
 extern KC_EXPORT MAPIFREEBUFFER MAPIFreeBuffer;
 
-typedef HRESULT (MAPIADMINPROFILES)(
-    ULONG ulFlags,
-    LPPROFADMIN *lppProfAdmin
-);
+typedef HRESULT (MAPIADMINPROFILES)(unsigned int flags, IProfAdmin **);
 typedef MAPIADMINPROFILES *LPMAPIADMINPROFILES;
 extern KC_EXPORT MAPIADMINPROFILES MAPIAdminProfiles;
 
@@ -141,7 +138,7 @@ public:
     virtual HRESULT QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
 	virtual HRESULT Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved) = 0;
 	virtual HRESULT SetDefaultStore(ULONG flags, ULONG cbEntryID, const ENTRYID *lpEntryID) { return MAPI_E_NOT_FOUND; }
-    virtual HRESULT AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceAdmin) = 0;
+	virtual HRESULT AdminServices(unsigned int flags, IMsgServiceAdmin **) = 0;
 	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sent, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) { return MAPI_E_NOT_FOUND; }
 	virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG *lpulMessageToken) { return MAPI_E_NOT_FOUND; }
 };

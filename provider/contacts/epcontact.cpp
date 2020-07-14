@@ -24,7 +24,7 @@ HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
     LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
     LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
-    ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
+    unsigned int *lpulProviderVer, IABProvider **lppABProvider)
 {
 	object_ptr<ZCABProvider> lpABProvider;
 

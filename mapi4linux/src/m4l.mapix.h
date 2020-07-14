@@ -152,7 +152,7 @@ private:
 	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);
 
 public:
-	HRESULT addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider);
+	HRESULT addProvider(const std::string &profile, const std::string &displayname, MAPIUID *, IABProvider *);
 };
 
 extern KC::ECConfig *m4l_lpConfig;

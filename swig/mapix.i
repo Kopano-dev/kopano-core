@@ -17,8 +17,6 @@
 class IMsgServiceAdmin;
 class IMAPISession;*/
 
-typedef IProfAdmin* LPPROFADMIN;
-typedef IMsgServiceAdmin* LPSERVICEADMIN;
 typedef IMAPISession* LPMAPISESSION;
 
 

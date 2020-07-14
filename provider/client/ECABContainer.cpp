@@ -669,7 +669,7 @@ HRESULT ECABProvider::Shutdown(ULONG * lpulFlags)
 
 HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
-    LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
+    BYTE **lppbSecurity, MAPIERROR **lppMAPIError, IABLogon **lppABLogon)
 {
 	if (lpMAPISup == nullptr || lppABLogon == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -726,7 +726,7 @@ HRESULT ECABProviderSwitch::Shutdown(ULONG * lpulFlags)
 
 HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
-    LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
+    BYTE **lppbSecurity, MAPIERROR **lppMAPIError, IABLogon **lppABLogon)
 {
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IABLogon> lpABLogon;

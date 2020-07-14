@@ -192,7 +192,7 @@ typedef IABLogon* LPABLOGON;
 class IABProvider : public virtual IUnknown {
 public:
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-	virtual HRESULT Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam, const TCHAR *profname, ULONG ulFlags, ULONG *lpulpcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon) = 0;
+	virtual HRESULT Logon(IMAPISupport *, ULONG_PTR ui_param, const TCHAR *profname, unsigned int flags, unsigned int *secsize, BYTE **sec, MAPIERROR **, IABLogon **) = 0;
 };
 
 class IABLogon : public virtual IUnknown {
@@ -219,7 +219,7 @@ typedef HRESULT (ABPROVIDERINIT)(
     ULONG               ulFlags,
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
-    LPABPROVIDER *  lppABProvider
+    IABProvider **
 );
 
 KC_EXPORT ABPROVIDERINIT ABProviderInit;
@@ -257,7 +257,7 @@ typedef IXPLogon* LPXPLOGON;
 class IXPProvider : public virtual IUnknown {
 public: 
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
-	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, const TCHAR *lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon) = 0;
+	virtual HRESULT TransportLogon(IMAPISupport *, unsigned int ui_param, const TCHAR *profile, unsigned int *flags, MAPIERROR **, IXPLogon **) = 0;
 };
 
 /* OptionData returned from call to RegisterOptions */
@@ -419,7 +419,7 @@ typedef HRESULT (MSPROVIDERINIT)(
     ULONG                   ulFlags,
     ULONG                   ulMAPIVer,
     ULONG *             lpulProviderVer,
-    LPMSPROVIDER *      lppMSProvider
+	IMSProvider **
 );
 
 KC_EXPORT MSPROVIDERINIT MSProviderInit;
@@ -455,7 +455,7 @@ typedef HRESULT (MSGSERVICEENTRY)(
     ULONG           ulContext,
     ULONG           cValues,
     LPSPropValue    lpProps,
-    LPPROVIDERADMIN lpProviderAdmin,
+    IProviderAdmin *,
     LPMAPIERROR *lppMapiError
 );
 
