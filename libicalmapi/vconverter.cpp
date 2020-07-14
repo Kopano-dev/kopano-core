@@ -1442,7 +1442,8 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 	} else {
 		auto lpPropTimeZoneStruct = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY));
 		if (lpPropTimeZoneStruct && lpPropTimeZoneStruct->Value.bin.cb >= sizeof(TIMEZONE_STRUCT) && lpPropTimeZoneStruct->Value.bin.lpb) {
-			ttTZinfo = *(TIMEZONE_STRUCT*)lpPropTimeZoneStruct->Value.bin.lpb;
+			memcpy(&ttTZinfo, lpPropTimeZoneStruct->Value.bin.lpb, sizeof(ttTZinfo));
+			ttTZinfo.le_to_cpu();
 			(*m_mapTimeZones)[strTZid] = ttTZinfo;
 			// keep timezone pointer for recurrence
 			m_iCurrentTimeZone = m_mapTimeZones->find(strTZid);
