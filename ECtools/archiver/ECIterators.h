@@ -15,7 +15,7 @@ public:
 	{
 		// creates the "end" iterator
 	}
-	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
+	ECHierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
 
 	KC_HIDDEN object_ptr<IMAPIContainer> &dereference() const
 	{
@@ -43,8 +43,9 @@ template<typename ContainerPtrType> class ECHierarchyIterator final :
 {
 public:
 	ECHierarchyIterator(void) = default;
-	ECHierarchyIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0)
-		: ECHierarchyIteratorBase(lpContainer, ulFlags, ulDepth) {}
+	ECHierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
+		ECHierarchyIteratorBase(c, flags, depth)
+	{}
 
 	bool operator==(const ECHierarchyIterator<ContainerPtrType> &r) const
 	{
