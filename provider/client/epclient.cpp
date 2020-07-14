@@ -78,9 +78,9 @@ static HRESULT RemoveAllProviders(ECMapProvider *mp)
 // entrypoints
 
 // Called by MAPI to return a MSProvider object when a user opens a store based on our service
-HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
-    LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore,
-    LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
+HRESULT MSProviderInit(HINSTANCE hInstance, IMalloc *,
+    ALLOCATEBUFFER *, ALLOCATEMORE *,
+    FREEBUFFER *, ULONG ulFlags, ULONG ulMAPIver,
     unsigned int *lpulProviderVer, IMSProvider **ppmsp)
 {
 	object_ptr<ECMSProviderSwitch> lpMSProvider;
@@ -491,7 +491,7 @@ static std::string GetServerTypeFromPath(const char *szPath)
 
 // Called by MAPI to configure, or create a service
 extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
-    LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
+    IMalloc *, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,
     ULONG ulContext, ULONG cvals, const SPropValue *pvals,
     IProviderAdmin *lpAdminProviders, MAPIERROR **lppMapiError)
 {
@@ -586,9 +586,9 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	return hr;
 }
 
-HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
-    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
+HRESULT ABProviderInit(HINSTANCE hInstance, IMalloc *,
+    ALLOCATEBUFFER *, ALLOCATEMORE *,
+    FREEBUFFER *, ULONG ulFlags, ULONG ulMAPIVer,
     unsigned int *lpulProviderVer, IABProvider **lppABProvider)
 {
 	if (ulMAPIVer < CURRENT_SPI_VERSION)

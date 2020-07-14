@@ -11,7 +11,7 @@
 
 using namespace KC;
 
-HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
+HRESULT MSGServiceEntry(HINSTANCE hInst, IMalloc *,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,
     ULONG cvals, const SPropValue *pvals, IProviderAdmin *lpAdminProviders,
     MAPIERROR **lppMapiError)
@@ -21,9 +21,9 @@ HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	return hrSuccess;
 }
 
-HRESULT ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
-    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
+HRESULT ABProviderInit(HINSTANCE hInstance, IMalloc *,
+    ALLOCATEBUFFER *, ALLOCATEMORE *,
+    FREEBUFFER *, ULONG ulFlags, ULONG ulMAPIVer,
     unsigned int *lpulProviderVer, IABProvider **lppABProvider)
 {
 	object_ptr<ZCABProvider> lpABProvider;

@@ -114,9 +114,9 @@ typedef HRESULT (PREPROCESSMESSAGE)(
                     LPMESSAGE lpMessage,
                     LPADRBOOK lpAdrBook,
                     LPMAPIFOLDER lpFolder,
-                    LPALLOCATEBUFFER AllocateBuffer,
-                    LPALLOCATEMORE AllocateMore,
-                    LPFREEBUFFER FreeBuffer,
+                    ALLOCATEBUFFER *,
+                    ALLOCATEMORE *,
+                    FREEBUFFER *,
                     ULONG* lpcOutbound,
                     LPMESSAGE** lpppMessage,
                     LPADRLIST* lppRecipList);
@@ -127,8 +127,7 @@ typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 class IMAPISupport : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NO_SUPPORT; }
-    virtual HRESULT GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer, LPALLOCATEMORE * lpAllocateMore,
-					LPFREEBUFFER * lpFreeBuffer) = 0; 
+	virtual HRESULT GetMemAllocRoutines(ALLOCATEBUFFER **, ALLOCATEMORE **, FREEBUFFER **) = 0;
 	virtual HRESULT Subscribe(const NOTIFKEY *key, ULONG evt_mask, ULONG flags, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unsubscribe(ULONG ulConnection) = 0; 
 	virtual HRESULT Notify(const NOTIFKEY *key, ULONG nnotifs, NOTIFICATION *, ULONG *flags) = 0;
@@ -212,10 +211,10 @@ public:
 extern "C" {
 typedef HRESULT (ABPROVIDERINIT)(
     HINSTANCE           hInstance,
-    LPMALLOC            lpMalloc,
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPALLOCATEMORE      lpAllocateMore,
-    LPFREEBUFFER        lpFreeBuffer,
+    IMalloc *,
+    ALLOCATEBUFFER *,
+    ALLOCATEMORE *,
+    FREEBUFFER *,
     ULONG               ulFlags,
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
@@ -279,7 +278,7 @@ typedef struct OPTIONDATA *LPOPTIONDATA;
 
 typedef SCODE (OPTIONCALLBACK)(
             HINSTANCE           hInst,
-            LPMALLOC            lpMalloc,
+            IMalloc *,
             ULONG               ulFlags,
             ULONG               cbOptionData,
             LPBYTE              lpbOptionData,
@@ -335,10 +334,10 @@ public:
 /* Transport Provider Entry Point */
 typedef HRESULT (XPPROVIDERINIT)(
     HINSTANCE           hInstance,
-    LPMALLOC            lpMalloc,
-    LPALLOCATEBUFFER    lpAllocateBuffer,
-    LPALLOCATEMORE      lpAllocateMore,
-    LPFREEBUFFER        lpFreeBuffer,
+    IMalloc *,
+    ALLOCATEBUFFER *,
+    ALLOCATEMORE *,
+    FREEBUFFER *,
     ULONG               ulFlags,
     ULONG               ulMAPIVer,
     ULONG *         lpulProviderVer,
@@ -412,10 +411,10 @@ public:
 extern "C" {
 typedef HRESULT (MSPROVIDERINIT)(
     HINSTANCE               hInstance,
-    LPMALLOC                lpMalloc,           /* AddRef() if you keep it */
-    LPALLOCATEBUFFER        lpAllocateBuffer,   /* -> AllocateBuffer */
-    LPALLOCATEMORE          lpAllocateMore,     /* -> AllocateMore   */
-    LPFREEBUFFER            lpFreeBuffer,       /* -> FreeBuffer     */
+    IMalloc *, /* AddRef() if you keep it */
+    ALLOCATEBUFFER *, /* -> AllocateBuffer */
+    ALLOCATEMORE *, /* -> AllocateMore */
+    FREEBUFFER *, /* -> FreeBuffer */
     ULONG                   ulFlags,
     ULONG                   ulMAPIVer,
     ULONG *             lpulProviderVer,
@@ -448,7 +447,7 @@ KC_EXPORT MSPROVIDERINIT MSProviderInit;
 extern "C" {
 typedef HRESULT (MSGSERVICEENTRY)(
     HINSTANCE       hInstance,
-    LPMALLOC        lpMalloc,
+    IMalloc *,
     LPMAPISUP       lpMAPISup,
     ULONG           ulUIParam,
     ULONG           ulFlags,
