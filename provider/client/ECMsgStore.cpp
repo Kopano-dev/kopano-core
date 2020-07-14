@@ -1899,66 +1899,49 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId,
 		return MAPI_E_INVALID_PARAMETER;
 
 	unsigned int cbStoreId = 0, cbRootId = 0;
-	ENTRYID *lpStoreId = nullptr, *lpRootId = nullptr;
+	memory_ptr<ENTRYID> lpStoreId, lpRootId;
 	GUID guidStore;
 
 	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK)
 		return MAPI_E_CALL_FAILED;
 
-	auto laters = make_scope_success([&]() {
-		if (lpcbStoreId != nullptr && *lpcbStoreId == 0)
-			MAPIFreeBuffer(lpStoreId);
-		if (lpcbRootId != nullptr && *lpcbRootId == 0)
-			MAPIFreeBuffer(lpRootId);
-	});
-
 	if (*lpcbStoreId == 0) {
 		// Create store entryid
-		auto hr = HrCreateEntryId(guidStore, MAPI_STORE, &cbStoreId, &lpStoreId);
+		auto hr = HrCreateEntryId(guidStore, MAPI_STORE, &cbStoreId, &~lpStoreId);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
 		ULONG cbTmp = 0;
-		LPENTRYID lpTmp = NULL;
+		memory_ptr<ENTRYID> lpTmp;
 
-		auto hr = UnWrapStoreEntryID(*lpcbStoreId, *lppStoreId, &cbTmp, &lpTmp);
-		if (hr == MAPI_E_INVALID_ENTRYID) {	// Could just be a non-wrapped entryid
-			cbTmp = *lpcbStoreId;
-			lpTmp = *lppStoreId;
-		}
-		hr = UnWrapServerClientStoreEntry(cbTmp, lpTmp, &cbStoreId, &lpStoreId);
-		if (hr != hrSuccess) {
-			if (lpTmp != *lppStoreId)
-				MAPIFreeBuffer(lpTmp);
-			return hr;
-		}
-	}
-
-	if (*lpcbRootId == 0) {
-		// create root entryid
-		auto hr = HrCreateEntryId(guidStore, MAPI_FOLDER, &cbRootId, &lpRootId);
+		auto hr = UnWrapStoreEntryID(*lpcbStoreId, *lppStoreId, &cbTmp, &~lpTmp);
+		if (hr == MAPI_E_INVALID_ENTRYID) // Could just be a non-wrapped entryid
+			hr = UnWrapServerClientStoreEntry(*lpcbStoreId, *lppStoreId, &cbStoreId, &~lpStoreId);
+		else
+			hr = UnWrapServerClientStoreEntry(cbTmp, lpTmp, &cbStoreId, &~lpStoreId);
 		if (hr != hrSuccess)
 			return hr;
-	} else {
-		cbRootId = *lpcbRootId;
-		lpRootId = *lppRootId;
 	}
 
+	auto hr = *lpcbRootId == 0 ?
+	          HrCreateEntryId(guidStore, MAPI_FOLDER, &cbRootId, &~lpRootId) :
+	          KAllocCopy(*lppRootId, *lpcbRootId, &~lpRootId);
+	if (hr != hrSuccess)
+		return hr;
+
 	// Create the messagestore
-	auto hr = lpTransport->HrCreateStore(ulStoreType, cbUserId, lpUserId, cbStoreId, lpStoreId, cbRootId, lpRootId, ulFlags);
+	hr = lpTransport->HrCreateStore(ulStoreType, cbUserId, lpUserId, cbStoreId, lpStoreId, cbRootId, lpRootId, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
 
 	if (*lppStoreId == 0) {
 		*lpcbStoreId = cbStoreId;
-		*lppStoreId = lpStoreId;
-		lpStoreId = NULL;
+		*lppStoreId = lpStoreId.release();
 	}
 
 	if (*lpcbRootId == 0) {
 		*lpcbRootId = cbRootId;
-		*lppRootId = lpRootId;
-		lpRootId = NULL;
+		*lppRootId = lpRootId.release();
 	}
 	return hrSuccess;
 }
