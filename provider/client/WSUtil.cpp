@@ -1576,9 +1576,9 @@ HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
 	    lppsUsers == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	ECUSER *lpECUsers = NULL;
+	memory_ptr<ECUSER> lpECUsers;
 	convert_context	converter;
-	auto hr = MAPIAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, reinterpret_cast<void **>(&lpECUsers));
+	auto hr = MAPIAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, &~lpECUsers);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECUsers, 0, sizeof(ECUSER) * lpUserArray->__size);
@@ -1589,7 +1589,7 @@ HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
 			return hr;
 	}
 
-	*lppsUsers = lpECUsers;
+	*lppsUsers = lpECUsers.release();
 	*lpcUsers = lpUserArray->__size;
 	return hrSuccess;
 }
