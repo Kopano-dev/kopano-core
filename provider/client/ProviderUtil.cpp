@@ -169,13 +169,13 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 		return MAPI_E_UNKNOWN_FLAGS;
 
 	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
-	char *lpszServerPath = NULL;
+	memory_ptr<char> lpszServerPath;
 	bool bIsPeer = false;
 	WSTransport *lpNewTransport = NULL;
 	utf8string strServerName = convstring(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
 
-	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);
+	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
 	if (bIsPeer) {
