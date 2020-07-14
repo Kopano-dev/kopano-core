@@ -704,7 +704,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strFromSearchKey.size()+1; // include string terminator
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)strFromSearchKey.c_str();
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(strFromSearchKey.c_str()));
 
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
@@ -750,7 +750,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				strSenderSearchKey = strToUpper("SMTP:" + strSenderEmail);
 				msgProps[nProps].ulPropTag = PR_SENDER_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strSenderSearchKey.size()+1; // include string terminator
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)strSenderSearchKey.c_str();
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(strSenderSearchKey.c_str()));
 
 				msgProps[nProps].ulPropTag = PR_SENDER_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
@@ -3192,7 +3192,7 @@ HRESULT VMIMEToMAPI::createIMAPBody(const std::string &input,
 	sProps[0].ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 	sProps[0].Value.ul = input.length();
 	sProps[1].ulPropTag = PR_EC_IMAP_EMAIL;
-	sProps[1].Value.bin.lpb = (BYTE*)input.c_str();
+	sProps[1].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(input.c_str()));
 	sProps[1].Value.bin.cb = input.length();
 	sProps.set(2, PR_EC_IMAP_BODY, std::move(strBody));
 	sProps.set(3, PR_EC_IMAP_BODYSTRUCTURE, std::move(strBodyStructure));

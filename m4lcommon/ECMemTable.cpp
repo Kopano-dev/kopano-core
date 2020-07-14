@@ -352,8 +352,8 @@ ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
 	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpMemTable->lpsColumns->cValues), &~lpsPropTags) != hrSuccess)
 		throw std::bad_alloc();
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
-	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
-
+	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues,
+		lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 	SortTable(sSortDefault, 0);
 }
 

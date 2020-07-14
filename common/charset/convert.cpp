@@ -153,16 +153,12 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 				continue;
 			}
 			// Convert the codepoint to '&#12345;'
-			std::wstring wstrEntity = L"&#";
-			size_t cbEntity;
 			wchar_t code;
-			const char *lpEntity;
 
 			memcpy(&code, lpSrc, sizeof(code));
-			wstrEntity += std::to_wstring(code);
-			wstrEntity += L";";
-			cbEntity = wstrEntity.size() * sizeof(wchar_t);
-			lpEntity = (const char *)wstrEntity.c_str();
+			auto wstrEntity = L"&#" + std::to_wstring(code) + L";";
+			auto cbEntity = wstrEntity.size() * sizeof(wchar_t);
+			auto lpEntity = reinterpret_cast<const char *>(wstrEntity.c_str());
 			// Since we don't know in what charset we are outputting, we have to send
 			// the entity through iconv so that it can convert it to the target charset.
 			err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);

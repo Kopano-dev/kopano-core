@@ -1060,7 +1060,8 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		strFolder = strPath.substr(0, deliPos);
 		strPath = strPath.substr(deliPos + 1);
 		if (!strFolder.empty())
-			hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *)strFolder.c_str(), nullptr, nullptr, MAPI_UNICODE | OPEN_IF_EXISTS, &~lpSubFolder);
+			hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, reinterpret_cast<const TCHAR *>(strFolder.c_str()),
+			     nullptr, nullptr, MAPI_UNICODE | OPEN_IF_EXISTS, &~lpSubFolder);
 		if (hr != hrSuccess || lpSubFolder == NULL) {
 			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
 			return hr;
@@ -2210,7 +2211,7 @@ HRESULT IMAP::HrCmdIdle(const std::string &strTag)
 		HrResponse(RESP_CONTINUE, "Cannot select columns on selected contents table for idle information");
 		goto exit;
 	}
-	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, (void*)this, &~m_lpIdleAdviseSink);
+	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, this, &~m_lpIdleAdviseSink);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_CONTINUE, "Can't allocate memory to idle");
 		goto exit;

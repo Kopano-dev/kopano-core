@@ -201,7 +201,7 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 		}else{
 			databuf -= match;
 			pos -= match;
-			searchbuf = (BYTE*)needle;
+			searchbuf = static_cast<const BYTE *>(needle);
 			match = 0;
 		}
 		++databuf;

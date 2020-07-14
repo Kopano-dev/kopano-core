@@ -162,7 +162,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 			return hr;
 		// terminate unicode string
 		lpPropValue->Value.lpszW[sStatstg.cbSize.QuadPart / sizeof(wchar_t)] = L'\0';
-		wptr = (BYTE*)lpPropValue->Value.lpszW;
+		wptr = reinterpret_cast<BYTE *>(lpPropValue->Value.lpszW);
 	}
 
 	while (1) {
