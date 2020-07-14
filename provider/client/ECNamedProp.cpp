@@ -303,6 +303,7 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,
 		return MAPI_E_NOT_FOUND;
 
 	MAPINAMEID *lpName = nullptr;
+	HRESULT hr = hrSuccess;
 	// Loop through the local names to see if we can reverse-map the id
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
 		bool y = (lpGuid == nullptr || sLocalNames[i].guid == *lpGuid) &&
@@ -311,12 +312,12 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,
 		if (!y)
 			continue;
 		// Found it !
-		auto hr = MAPIAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpName));
+		hr = MAPIAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpName));
 		if (hr != hrSuccess)
-			return hr;
+			goto exit;
 		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpName->lpguid));
 		if (hr != hrSuccess)
-			return hr;
+			goto exit;
 		lpName->ulKind = MNID_ID;
 		memcpy(lpName->lpguid, &sLocalNames[i].guid, sizeof(GUID));
 		lpName->Kind.lID = sLocalNames[i].ulMin + (ulId - sLocalNames[i].ulMappedId);
@@ -325,7 +326,10 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,
 	if (lpName == NULL)
 		return MAPI_E_NOT_FOUND;
 	*lppName = lpName;
-	return hrSuccess;
+ exit:
+	if (hr != hrSuccess && lpBase == nullptr)
+		MAPIFreeBuffer(lpName);
+	return hr;
 }
 
 // Update the cache with the given data
