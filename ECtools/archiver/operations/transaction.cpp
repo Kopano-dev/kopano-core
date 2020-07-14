@@ -59,27 +59,28 @@ HRESULT Transaction::PurgeDeletes(std::shared_ptr<ArchiverSession> ptrSession,
 	IMAPISession *lpSession = ptrSession->GetMAPISession();
 
 	for (const auto &obj : m_lstDelete) {
-		HRESULT hrTmp;
-		if (obj.bDeferredDelete && ptrDeferredTransaction != NULL)
-			hrTmp = ptrDeferredTransaction->Delete(obj.objectEntry);
-
-		else {
-			object_ptr<IMessage> ptrMessage;
-			hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(), obj.objectEntry.sItemEntryId,
-			        &iid_of(ptrMessage), 0, nullptr, &~ptrMessage);
-			if (hrTmp == MAPI_E_NOT_FOUND) {
-				object_ptr<IMsgStore> ptrStore;
-
-				// Try to open the message on the store
-				hrTmp = ptrSession->OpenStore(obj.objectEntry.sStoreEntryId, &~ptrStore);
-				if (hrTmp == hrSuccess)
-					hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(),
-					        obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0,
-					        nullptr, &~ptrMessage);
-			}
-			if (hrTmp == hrSuccess)
-				hrTmp = Util::HrDeleteMessage(lpSession, ptrMessage);
+		if (obj.bDeferredDelete && ptrDeferredTransaction != nullptr) {
+			auto hrTmp = ptrDeferredTransaction->Delete(obj.objectEntry);
+			if (hrTmp != hrSuccess)
+				hr = MAPI_W_ERRORS_RETURNED;
+			continue;
 		}
+		object_ptr<IMessage> ptrMessage;
+		auto hrTmp = lpSession->OpenEntry(obj.objectEntry.sItemEntryId.size(),
+		             obj.objectEntry.sItemEntryId, &iid_of(ptrMessage),
+		             0, nullptr, &~ptrMessage);
+		if (hrTmp == MAPI_E_NOT_FOUND) {
+			object_ptr<IMsgStore> ptrStore;
+
+			// Try to open the message on the store
+			hrTmp = ptrSession->OpenStore(obj.objectEntry.sStoreEntryId, &~ptrStore);
+			if (hrTmp == hrSuccess)
+				hrTmp = ptrStore->OpenEntry(obj.objectEntry.sItemEntryId.size(),
+				        obj.objectEntry.sItemEntryId, &iid_of(ptrMessage), 0,
+				        nullptr, &~ptrMessage);
+		}
+		if (hrTmp == hrSuccess)
+			hrTmp = Util::HrDeleteMessage(lpSession, ptrMessage);
 		if (hrTmp != hrSuccess)
 			hr = MAPI_W_ERRORS_RETURNED;
 	}

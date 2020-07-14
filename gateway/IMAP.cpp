@@ -3942,16 +3942,15 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const std::string &strSeqSet,
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
-		} else {
-			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
-
-			if (sProp.Value.ul > sPropEnd.Value.ul)
-				std::swap(sProp.Value.ul, sPropEnd.Value.ul);
-			*rst += ECAndRestriction(
-				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
-				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
+			continue;
 		}
+		sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
+		sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
+		if (sProp.Value.ul > sPropEnd.Value.ul)
+			std::swap(sProp.Value.ul, sPropEnd.Value.ul);
+		*rst += ECAndRestriction(
+			ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
+			ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
 	}
 	ret.reset(rst);
 	return hrSuccess;
@@ -4053,6 +4052,223 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 	return hrSuccess;
 }
 
+HRESULT IMAP::HrStore_flags(const std::string &strMsgDataItemValue,
+    IMessage *lpMessage, bool &bDelete)
+{
+	static constexpr const SizedSPropTagArray(6, proptags6) =
+		{6, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
+			 PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME, PR_FOLLOWUP_ICON}};
+	unsigned int cValues;
+	memory_ptr<SPropValue> lpPropVal;
+	HRESULT hr;
+	if (strMsgDataItemValue.find("\\SEEN") == strMsgDataItemValue.npos)
+		hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
+	else
+		hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpMessage->GetProps(proptags6, 0, &cValues, &~lpPropVal);
+	if (FAILED(hr))
+		return hr;
+	cValues = 5;
+
+	lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
+	if (strMsgDataItemValue.find("\\FLAGGED") == strMsgDataItemValue.npos) {
+		lpPropVal[1].Value.ul = 0; // PR_FLAG_STATUS
+		lpPropVal[5].Value.ul = 0; // PR_FOLLOWUP_ICON
+	} else {
+		lpPropVal[1].Value.ul = 2;
+		lpPropVal[5].Value.ul = 6;
+	}
+	if (lpPropVal[2].ulPropTag != PR_ICON_INDEX) {
+		lpPropVal[2].ulPropTag = PR_ICON_INDEX;
+		lpPropVal[2].Value.l = ICON_FOLDER_DEFAULT;
+	}
+	if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
+		lpPropVal[0].ulPropTag = PR_MSG_STATUS;
+		lpPropVal[0].Value.ul = 0;
+	}
+
+	if (strMsgDataItemValue.find("\\ANSWERED") == strMsgDataItemValue.npos) {
+		lpPropVal[0].Value.ul &= ~MSGSTATUS_ANSWERED;
+		cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties
+	} else {
+		lpPropVal[0].Value.ul |= MSGSTATUS_ANSWERED;
+		lpPropVal[2].Value.ul = ICON_MAIL_REPLIED;
+		lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTED;
+		lpPropVal[3].Value.ul = NOTEIVERB_REPLYTOSENDER;
+		lpPropVal[4].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
+		GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
+	}
+
+	if (strMsgDataItemValue.find("$FORWARDED") == strMsgDataItemValue.npos) {
+		if (cValues == 5)
+			cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties if still present
+	} else {
+		lpPropVal[2].Value.ul = ICON_MAIL_FORWARDED;
+		lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTED;
+		lpPropVal[3].Value.ul = NOTEIVERB_FORWARD;
+		lpPropVal[4].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
+		GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
+	}
+
+	if (strMsgDataItemValue.find("\\DELETED") == strMsgDataItemValue.npos) {
+		lpPropVal[0].Value.ul &= ~MSGSTATUS_DELMARKED;
+	} else {
+		lpPropVal[0].Value.ul |= MSGSTATUS_DELMARKED;
+		bDelete = true;
+	}
+
+	// remove all "flag" properties
+	hr = lpMessage->DeleteProps(proptags6, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	// set new values (can be partial, see answered and forwarded)
+	hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
+	if (hr != hrSuccess)
+		return hr;
+	return hr;
+}
+
+HRESULT IMAP::HrStore_pflags(IMessage *lpMessage, bool &bDelete,
+    const std::vector<std::string> &lstFlags)
+{
+	static constexpr const SizedSPropTagArray(4, proptags4) =
+		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
+	unsigned int ulCurrent, cValues;
+	memory_ptr<SPropValue> lpPropVal;
+	HRESULT hr = hrSuccess;
+	for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
+		if (lstFlags[ulCurrent] == "\\SEEN") {
+			hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (lstFlags[ulCurrent] == "\\DRAFT") {
+			// not allowed
+		} else if (lstFlags[ulCurrent] == "\\FLAGGED") {
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
+			if (hr != hrSuccess)
+				return hr;
+			lpPropVal->ulPropTag = PR_FLAG_STATUS;
+			lpPropVal->Value.ul = 2; // 0: none, 1: green ok mark, 2: red flag
+			HrSetOneProp(lpMessage, lpPropVal);
+
+			lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
+			lpPropVal->Value.ul = 6;
+			HrSetOneProp(lpMessage, lpPropVal);
+		} else if (lstFlags[ulCurrent] == "\\ANSWERED" || lstFlags[ulCurrent] == "$FORWARDED") {
+			hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
+			if (FAILED(hr))
+				return hr;
+			cValues = 4;
+
+			if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
+				lpPropVal[0].ulPropTag = PR_MSG_STATUS;
+				lpPropVal[0].Value.ul = 0;
+			}
+			// answered
+			if (lstFlags[ulCurrent][0] == '\\')
+				lpPropVal->Value.ul |= MSGSTATUS_ANSWERED;
+
+			lpPropVal[1].ulPropTag = PR_ICON_INDEX;
+			lpPropVal[1].Value.ul = lstFlags[ulCurrent][0] == '\\' ? ICON_MAIL_REPLIED : ICON_MAIL_FORWARDED;
+			lpPropVal[2].ulPropTag = PR_LAST_VERB_EXECUTED;
+			lpPropVal[2].Value.ul = lstFlags[ulCurrent][0] == '\\' ? NOTEIVERB_REPLYTOSENDER : NOTEIVERB_FORWARD;
+			lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
+			GetSystemTimeAsFileTime(&lpPropVal[3].Value.ft);
+
+			hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (lstFlags[ulCurrent] == "\\DELETED") {
+			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
+				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
+				if (hr != hrSuccess)
+					return hr;
+				lpPropVal->ulPropTag = PR_MSG_STATUS;
+				lpPropVal->Value.ul = 0;
+			}
+
+			lpPropVal->Value.ul |= MSGSTATUS_DELMARKED;
+			HrSetOneProp(lpMessage, lpPropVal);
+			bDelete = true;
+		}
+		lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
+	}
+	return hr;
+}
+
+HRESULT IMAP::HrStore_mflags(IMessage *lpMessage,
+    const std::vector<std::string> &lstFlags)
+{
+	static constexpr const SizedSPropTagArray(4, proptags4) =
+		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
+	unsigned int ulCurrent, cValues;
+	memory_ptr<SPropValue> lpPropVal;
+	HRESULT hr;
+	for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
+		if (lstFlags[ulCurrent] == "\\SEEN") {
+			hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (lstFlags[ulCurrent] == "\\DRAFT") {
+			// not allowed
+		} else if (lstFlags[ulCurrent] == "\\FLAGGED") {
+			if (lpPropVal == NULL) {
+				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
+				if (hr != hrSuccess)
+					return hr;
+			}
+
+			lpPropVal->ulPropTag = PR_FLAG_STATUS;
+			lpPropVal->Value.ul = 0;
+			HrSetOneProp(lpMessage, lpPropVal);
+
+			lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
+			lpPropVal->Value.ul = 0;
+			HrSetOneProp(lpMessage, lpPropVal);
+		} else if (lstFlags[ulCurrent] == "\\ANSWERED" || lstFlags[ulCurrent] == "$FORWARDED") {
+			hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
+			if (FAILED(hr))
+				return hr;
+			cValues = 4;
+
+			if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
+				lpPropVal[0].ulPropTag = PR_MSG_STATUS;
+				lpPropVal[0].Value.ul = 0;
+			}
+			lpPropVal->Value.ul &= ~MSGSTATUS_ANSWERED;
+
+			lpPropVal[1].ulPropTag = PR_ICON_INDEX;
+			lpPropVal[1].Value.l = ICON_FOLDER_DEFAULT;
+			lpPropVal[2].ulPropTag = PR_LAST_VERB_EXECUTED;
+			lpPropVal[2].Value.ul = NOTEIVERB_OPEN;
+			lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
+			GetSystemTimeAsFileTime(&lpPropVal[3].Value.ft);
+
+			hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (lstFlags[ulCurrent] == "\\DELETED") {
+			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
+				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
+				if (hr != hrSuccess)
+					return hr;
+				lpPropVal->ulPropTag = PR_MSG_STATUS;
+				lpPropVal->Value.ul = 0;
+			}
+
+			lpPropVal->Value.ul &= ~MSGSTATUS_DELMARKED;
+			HrSetOneProp(lpMessage, lpPropVal);
+		}
+		lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
+	}
+	return hr;
+}
+
 /**
  * Implementation of the STORE command
  *
@@ -4068,15 +4284,8 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
     std::string strMsgDataItemValue, bool *lpbDoDelete)
 {
 	std::vector<std::string> lstFlags;
-	unsigned int ulCurrent, cValues, ulObjType;
-	memory_ptr<SPropValue> lpPropVal;
 	std::string strNewFlags;
 	bool bDelete = false;
-	static constexpr const SizedSPropTagArray(4, proptags4) =
-		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
-	static constexpr const SizedSPropTagArray(6, proptags6) =
-		{6, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
-			 PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME, PR_FOLLOWUP_ICON}};
 
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
@@ -4091,6 +4300,7 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 	for (auto mail_idx : lstMails) {
 		object_ptr<IMessage> lpMessage;
+		unsigned int ulObjType;
 
 		auto hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb,
 		          reinterpret_cast<ENTRYID *>(lstFolderMailEIDs[mail_idx].sEntryID.lpb),
@@ -4101,191 +4311,17 @@ HRESULT IMAP::HrStore(const std::list<ULONG> &lstMails, std::string strMsgDataIt
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
-			if (strMsgDataItemValue.find("\\SEEN") == strMsgDataItemValue.npos)
-				hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
-			else
-				hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpMessage->GetProps(proptags6, 0, &cValues, &~lpPropVal);
-			if (FAILED(hr))
-				return hr;
-			cValues = 5;
-
-			lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
-			if (strMsgDataItemValue.find("\\FLAGGED") == strMsgDataItemValue.npos) {
-				lpPropVal[1].Value.ul = 0; // PR_FLAG_STATUS
-				lpPropVal[5].Value.ul = 0; // PR_FOLLOWUP_ICON
-			} else {
-				lpPropVal[1].Value.ul = 2;
-				lpPropVal[5].Value.ul = 6;
-			}
-			if (lpPropVal[2].ulPropTag != PR_ICON_INDEX) {
-				lpPropVal[2].ulPropTag = PR_ICON_INDEX;
-				lpPropVal[2].Value.l = ICON_FOLDER_DEFAULT;
-			}
-			if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
-				lpPropVal[0].ulPropTag = PR_MSG_STATUS;
-				lpPropVal[0].Value.ul = 0;
-			}
-
-			if (strMsgDataItemValue.find("\\ANSWERED") == strMsgDataItemValue.npos) {
-				lpPropVal[0].Value.ul &= ~MSGSTATUS_ANSWERED;
-				cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties
-			} else {
-				lpPropVal[0].Value.ul |= MSGSTATUS_ANSWERED;
-				lpPropVal[2].Value.ul = ICON_MAIL_REPLIED;
-				lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTED;
-				lpPropVal[3].Value.ul = NOTEIVERB_REPLYTOSENDER;
-				lpPropVal[4].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
-				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
-			}
-
-			if (strMsgDataItemValue.find("$FORWARDED") == strMsgDataItemValue.npos) {
-				if (cValues == 5)
-					cValues -= 2;	// leave PR_LAST_VERB_EXECUTED properties if still present
-			} else {
-				lpPropVal[2].Value.ul = ICON_MAIL_FORWARDED;
-				lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTED;
-				lpPropVal[3].Value.ul = NOTEIVERB_FORWARD;
-				lpPropVal[4].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
-				GetSystemTimeAsFileTime(&lpPropVal[4].Value.ft);
-			}
-
-			if (strMsgDataItemValue.find("\\DELETED") == strMsgDataItemValue.npos) {
-				lpPropVal[0].Value.ul &= ~MSGSTATUS_DELMARKED;
-			} else {
-				lpPropVal[0].Value.ul |= MSGSTATUS_DELMARKED;
-				bDelete = true;
-			}
-
-			// remove all "flag" properties
-			hr = lpMessage->DeleteProps(proptags6, NULL);
-			if (hr != hrSuccess)
-				return hr;
-			// set new values (can be partial, see answered and forwarded)
-			hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
-			if (hr != hrSuccess)
-				return hr;
-			hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
+			hr = HrStore_flags(strMsgDataItemValue, lpMessage, bDelete);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (strMsgDataItemName.compare(0, 6, "+FLAGS") == 0) {
-			for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
-				if (lstFlags[ulCurrent] == "\\SEEN") {
-					hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
-					if (hr != hrSuccess)
-						return hr;
-				} else if (lstFlags[ulCurrent] == "\\DRAFT") {
-					// not allowed
-				} else if (lstFlags[ulCurrent] == "\\FLAGGED") {
-					hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
-					if (hr != hrSuccess)
-						return hr;
-					lpPropVal->ulPropTag = PR_FLAG_STATUS;
-					lpPropVal->Value.ul = 2; // 0: none, 1: green ok mark, 2: red flag
-					HrSetOneProp(lpMessage, lpPropVal);
-
-					lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
-					lpPropVal->Value.ul = 6;
-					HrSetOneProp(lpMessage, lpPropVal);
-				} else if (lstFlags[ulCurrent] == "\\ANSWERED" || lstFlags[ulCurrent] == "$FORWARDED") {
-					hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
-					if (FAILED(hr))
-						return hr;
-					cValues = 4;
-
-					if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
-						lpPropVal[0].ulPropTag = PR_MSG_STATUS;
-						lpPropVal[0].Value.ul = 0;
-					}
-					// answered
-					if (lstFlags[ulCurrent][0] == '\\')
-						lpPropVal->Value.ul |= MSGSTATUS_ANSWERED;
-
-					lpPropVal[1].ulPropTag = PR_ICON_INDEX;
-					lpPropVal[1].Value.ul = lstFlags[ulCurrent][0] == '\\' ? ICON_MAIL_REPLIED : ICON_MAIL_FORWARDED;
-					lpPropVal[2].ulPropTag = PR_LAST_VERB_EXECUTED;
-					lpPropVal[2].Value.ul = lstFlags[ulCurrent][0] == '\\' ? NOTEIVERB_REPLYTOSENDER : NOTEIVERB_FORWARD;
-					lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
-					GetSystemTimeAsFileTime(&lpPropVal[3].Value.ft);
-
-					hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
-					if (hr != hrSuccess)
-						return hr;
-				} else if (lstFlags[ulCurrent] == "\\DELETED") {
-					if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
-						hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
-						if (hr != hrSuccess)
-							return hr;
-						lpPropVal->ulPropTag = PR_MSG_STATUS;
-						lpPropVal->Value.ul = 0;
-					}
-
-					lpPropVal->Value.ul |= MSGSTATUS_DELMARKED;
-					HrSetOneProp(lpMessage, lpPropVal);
-					bDelete = true;
-				}
-				lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
-			}
+			hr = HrStore_pflags(lpMessage, bDelete, lstFlags);
+			if (hr != hrSuccess)
+				return hr;
 		} else if (strMsgDataItemName.compare(0, 6, "-FLAGS") == 0) {
-			for (ulCurrent = 0; ulCurrent < lstFlags.size(); ++ulCurrent) {
-				if (lstFlags[ulCurrent] == "\\SEEN") {
-					hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
-					if (hr != hrSuccess)
-						return hr;
-				} else if (lstFlags[ulCurrent] == "\\DRAFT") {
-					// not allowed
-				} else if (lstFlags[ulCurrent] == "\\FLAGGED") {
-					if (lpPropVal == NULL) {
-						hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
-						if (hr != hrSuccess)
-							return hr;
-					}
-
-					lpPropVal->ulPropTag = PR_FLAG_STATUS;
-					lpPropVal->Value.ul = 0;
-					HrSetOneProp(lpMessage, lpPropVal);
-
-					lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
-					lpPropVal->Value.ul = 0;
-					HrSetOneProp(lpMessage, lpPropVal);
-				} else if (lstFlags[ulCurrent] == "\\ANSWERED" || lstFlags[ulCurrent] == "$FORWARDED") {
-					hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
-					if (FAILED(hr))
-						return hr;
-					cValues = 4;
-
-					if (lpPropVal[0].ulPropTag != PR_MSG_STATUS) {
-						lpPropVal[0].ulPropTag = PR_MSG_STATUS;
-						lpPropVal[0].Value.ul = 0;
-					}
-					lpPropVal->Value.ul &= ~MSGSTATUS_ANSWERED;
-
-					lpPropVal[1].ulPropTag = PR_ICON_INDEX;
-					lpPropVal[1].Value.l = ICON_FOLDER_DEFAULT;
-					lpPropVal[2].ulPropTag = PR_LAST_VERB_EXECUTED;
-					lpPropVal[2].Value.ul = NOTEIVERB_OPEN;
-					lpPropVal[3].ulPropTag = PR_LAST_VERB_EXECUTION_TIME;
-					GetSystemTimeAsFileTime(&lpPropVal[3].Value.ft);
-
-					hr = lpMessage->SetProps(cValues, lpPropVal, NULL);
-					if (hr != hrSuccess)
-						return hr;
-				} else if (lstFlags[ulCurrent] == "\\DELETED") {
-					if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
-						hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
-						if (hr != hrSuccess)
-							return hr;
-						lpPropVal->ulPropTag = PR_MSG_STATUS;
-						lpPropVal->Value.ul = 0;
-					}
-
-					lpPropVal->Value.ul &= ~MSGSTATUS_DELMARKED;
-					HrSetOneProp(lpMessage, lpPropVal);
-				}
-				lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
-			}
+			hr = HrStore_mflags(lpMessage, lstFlags);
+			if (hr != hrSuccess)
+				return hr;
 		}
 
 		/* Get the newly updated flags */

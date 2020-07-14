@@ -637,23 +637,16 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
     const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
     void **lpBase, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
-
-	switch(lpsPropValSrc->ulPropTag) {
-	case CHANGE_PROP_TYPE(PR_AB_PROVIDER_ID, PT_ERROR):
-		lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
-		lpsPropValDst->Value.bin.cb = sizeof(GUID);
-		hr = MAPIAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
-		if (hr != hrSuccess)
-			break;
-		memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
-		break;
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
-	}
-
-	return hr;
+	if (lpsPropValSrc->ulPropTag != CHANGE_PROP_TYPE(PR_AB_PROVIDER_ID, PT_ERROR))
+		return MAPI_E_NOT_FOUND;
+	lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
+	lpsPropValDst->Value.bin.cb = sizeof(GUID);
+	auto hr = MAPIAllocateMore(sizeof(GUID), lpBase,
+	          reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(lpsPropValDst->Value.bin.lpb, &MUIDECSAB, sizeof(GUID));
+	return hrSuccess;
 }
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)

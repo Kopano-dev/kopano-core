@@ -304,20 +304,16 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
     const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp,
     LPSPropValue lpBase)
 {
-	if ((ulFlags & MAPI_UNICODE) == 0 && PROP_TYPE(i->second.ulPropTag) == PT_UNICODE) {
-		std::string strAnsi;
-		// copy from unicode to string8
-		lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
-		strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
-		auto hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase, reinterpret_cast<void **>(&lpProp->Value.lpszA));
-		if (hr != hrSuccess)
-			return hr;
-		strcpy(lpProp->Value.lpszA, strAnsi.c_str());
-	} else {
-		auto hr = Util::HrCopyProperty(lpProp, &i->second, lpBase);
-		if (hr != hrSuccess)
-			return hr;
-	}
+	if ((ulFlags & MAPI_UNICODE) || PROP_TYPE(i->second.ulPropTag) != PT_UNICODE)
+		return Util::HrCopyProperty(lpProp, &i->second, lpBase);
+	// copy from unicode to string8
+	lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
+	auto strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
+	auto hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase,
+	          reinterpret_cast<void **>(&lpProp->Value.lpszA));
+	if (hr != hrSuccess)
+		return hr;
+	strcpy(lpProp->Value.lpszA, strAnsi.c_str());
 	return hrSuccess;
 }
 

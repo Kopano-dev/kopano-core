@@ -2069,24 +2069,19 @@ static HRESULT make_special_folder(ECMAPIProp *folder_propset_in,
 			return hr;
 	}
 
-	if (lpszContainerClass && _tcslen(lpszContainerClass) > 0) {
-		memory_ptr<SPropValue> lpPropValue;
-		auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
-		if (hr != hrSuccess)
-			return hr;
-		lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
-		hr = MAPIAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue,
-		     reinterpret_cast<void **>(&lpPropValue[0].Value.LPSZ));
-		if (hr != hrSuccess)
-			return hr;
-		_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
-
-		// Set the property
-		hr = lpMAPIFolder->SetProps(1, lpPropValue, NULL);
-		if(hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	if (lpszContainerClass == nullptr || _tcslen(lpszContainerClass) == 0)
+		return hrSuccess;
+	memory_ptr<SPropValue> lpPropValue;
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
+	if (hr != hrSuccess)
+		return hr;
+	lpPropValue[0].ulPropTag = PR_CONTAINER_CLASS;
+	hr = MAPIAllocateMore((_tcslen(lpszContainerClass) + 1) * sizeof(TCHAR), lpPropValue,
+	     reinterpret_cast<void **>(&lpPropValue[0].Value.LPSZ));
+	if (hr != hrSuccess)
+		return hr;
+	_tcscpy(lpPropValue[0].Value.LPSZ, lpszContainerClass);
+	return lpMAPIFolder->SetProps(1, lpPropValue, nullptr);
 }
 
 HRESULT ECMsgStore::CreateUser(ECUSER *lpECUser, ULONG ulFlags,
