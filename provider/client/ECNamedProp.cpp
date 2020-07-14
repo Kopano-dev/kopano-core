@@ -393,7 +393,7 @@ HRESULT ECNamedProp::HrCopyNameId(MAPINAMEID *lpSrc, MAPINAMEID **lppDst, void *
 		     lpBase != nullptr ? lpBase : lpDst,
 		     reinterpret_cast<void **>(&lpDst->Kind.lpwstrName));
 		if (hr != hrSuccess)
-			return hr;
+			goto exit;
 		wcscpy(lpDst->Kind.lpwstrName, lpSrc->Kind.lpwstrName);
 		break;
 	default:
