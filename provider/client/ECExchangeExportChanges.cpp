@@ -138,10 +138,9 @@ HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterfa
 }
 
 HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
-	HRESULT		hr = hrSuccess;
 	memory_ptr<TCHAR> lpszErrorMsg;
 	//FIXME: give synchronization errors messages
-	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
+	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		return hr;
 	memory_ptr<MAPIERROR> lpMapiError;
@@ -435,15 +434,13 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 
 HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
 {
-	HRESULT			hr = hrSuccess;
-
 	if(!m_bConfiged){
 		zlog("Config() not called before Synchronize()");
 		return MAPI_E_UNCONFIGURED;
 	}
 	if(m_ulFlags & SYNC_CATCHUP){
 		m_ulChangeId = std::max(m_ulMaxChangeId, m_ulChangeId);
-		hr = UpdateStream(m_lpStream);
+		auto hr = UpdateStream(m_lpStream);
 		if (hr == hrSuccess)
 			*lpulProgress = *lpulSteps = 0;
 		return hr;
@@ -451,6 +448,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 	if (*lpulProgress == 0 && ec_log_get()->Log(EC_LOGLEVEL_DEBUG))
 		m_clkStart = times(&m_tmsStart);
 
+	HRESULT hr;
 	if(m_ulSyncType == ICS_SYNC_CONTENTS){
 		hr = ExportMessageChanges();
 		if(hr == SYNC_W_PROGRESS)
@@ -1066,11 +1064,10 @@ next:
 }
 
 HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
-	HRESULT			hr = hrSuccess;
 	memory_ptr<ENTRYLIST> lpEntryList;
 
 	if(!m_lstSoftDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
+		auto hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if (hr != hrSuccess)
 			return zlog("Unable to create folder deletion entry list", hr);
 		hr = m_lpImportHierarchy->ImportFolderDeletion(SYNC_SOFT_DELETE, lpEntryList);
@@ -1084,7 +1081,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 	}
 
 	if(!m_lstHardDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
+		auto hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if (hr != hrSuccess)
 			return zlog("Unable to create folder hard delete entry list", hr);
 		hr = m_lpImportHierarchy->ImportFolderDeletion(0, lpEntryList);
@@ -1153,11 +1150,10 @@ exit:
 
 //convert (delete) changes to entrylist for message and folder deletion.
 HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList){
-	HRESULT 		hr = hrSuccess;
 	memory_ptr<ENTRYLIST> lpEntryList;
 	ULONG			ulCount = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		return hr;
 

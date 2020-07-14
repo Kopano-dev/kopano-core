@@ -681,7 +681,6 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 	    !Util::ValidatePropTagArray(lpPropTagArray))
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT			hrT = hrSuccess;
 	memory_ptr<SPropTagArray> lpGetPropTagArray;
 	GetPropCallBack	lpfnGetProp = NULL;
 
@@ -698,6 +697,8 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {
 		ECGenericProp *lpParam = nullptr;
+		HRESULT hrT = hrSuccess;
+
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
 			lpsPropValue[i].ulPropTag = lpPropTagArray->aulPropTag[i];
 			hrT = lpfnGetProp(lpPropTagArray->aulPropTag[i], lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
@@ -779,7 +780,6 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	if (lpPropArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT				hrT = hrSuccess;
 	memory_ptr<SPropProblemArray> lpProblems;
 	int					nProblem = 0;
 	SetPropCallBack		lpfnSetProp = NULL;
@@ -795,6 +795,8 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 			continue;
 
 		ECGenericProp *lpParam = nullptr;
+		HRESULT hrT = hrSuccess;
+
 		if (HrGetHandler(lpPropArray[i].ulPropTag, &lpfnSetProp, NULL, &lpParam) == hrSuccess)
 			hrT = lpfnSetProp(lpPropArray[i].ulPropTag, lpProvider, &lpPropArray[i], lpParam);
 		else

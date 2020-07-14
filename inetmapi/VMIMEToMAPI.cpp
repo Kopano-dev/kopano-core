@@ -1730,7 +1730,6 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage,
     unsigned int flags)
 {
-	HRESULT	hr = hrSuccess;
 	object_ptr<IStream> lpStream;
 	SPropValue sPropSMIMEClass;
 	bool bIsAttachment = false;
@@ -1763,11 +1762,11 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			else if (!bIsAttachment)
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Transfer-Encoding. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
-			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
+			auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (mt->getType() == "multipart") {
-			hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags & ~DIS_IMMEDIATE_FLAGS);
+			auto hr = dissect_multipart(vmHeader, vmBody, lpMessage, flags & ~DIS_IMMEDIATE_FLAGS);
 			if (hr != hrSuccess)
 				return hr;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
@@ -1777,18 +1776,18 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && flags & DIS_APPEND_BODY)) {
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
-				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? (flags & DIS_APPEND_BODY) : false);
+				auto hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? (flags & DIS_APPEND_BODY) : false);
 				if (hr != hrSuccess)
 					return kc_perror("Unable to parse mail HTML text", hr);
 			} else {
-				hr = handleTextpart(vmHeader, vmBody, lpMessage, flags & DIS_APPEND_BODY);
+				auto hr = handleTextpart(vmHeader, vmBody, lpMessage, flags & DIS_APPEND_BODY);
 				if (hr != hrSuccess)
 					return hr;
 			}
 		} else if (mt->getType() == vmime::mediaTypes::MESSAGE) {
 			dissect_message(vmBody, lpMessage);
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
-			hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
+			auto hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 			if(hr != hrSuccess)
 				return hr;
 
@@ -1809,7 +1808,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 			hr = hrSuccess;
 		} else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar") {
-			hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
+			auto hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
 			if (hr != hrSuccess)
 				return hr;
 		} else if ((flags & DIS_FILTER_DOUBLE) && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
@@ -1830,7 +1829,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			 * RFC 8551 §3.2: everything else that S/MIME has to give.
 			 * MS-OXOSMIME §2.1.3.2 "Opaque-Signed and Encrypted S/MIME Message".
 			 */
-			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"smime.p7m", false);
+			auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"smime.p7m", false);
 			if (hr == MAPI_E_NOT_FOUND)
 				// skip empty attachment
 				return hrSuccess;
@@ -1847,7 +1846,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (vmime::dynamicCast<vmime::contentDispositionField>(vmHeader->ContentDisposition())->hasParameter("filename") ||
 			    vmime::dynamicCast<vmime::contentTypeField>(vmHeader->ContentType())->hasParameter("name")) {
 				// should be attachment
-				hr = handleAttachment(vmHeader, vmBody, lpMessage);
+				auto hr = handleAttachment(vmHeader, vmBody, lpMessage);
 				if (hr != hrSuccess)
 					return hr;
 			} else {
@@ -1861,7 +1860,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				 * whether it was originally text-* or
 				 * application-*.
 				 */
-				hr = handleTextpart(vmHeader, vmBody, lpMessage, false);
+				auto hr = handleTextpart(vmHeader, vmBody, lpMessage, false);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1871,7 +1870,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s, the highest-ranking alternative in a set and hence chosen, is insuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
 			else
 				m_mailState.cvt_notes.push_back(format(KC_A("MIME part %s unsuitable for display: Unknown Content-Type. It is made available as an attachment instead."), m_mailState.part_text().c_str()));
-			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
+			auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1886,7 +1885,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		ec_log_err("Unknown generic exception occurred on parsing body");
 		return MAPI_E_CALL_FAILED;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 /**

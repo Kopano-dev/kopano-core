@@ -701,7 +701,6 @@ vmime::mailbox MAPIToVMIME::make_mailbox(const std::wstring &name, const std::ws
 HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
     vmime::shared_ptr<vmime::message> *lpvmMessage)
 {
-	HRESULT				hr = hrSuccess;
 	vmime::shared_ptr<vmime::message> vmMessage;
 	object_ptr<IStream> lpBodyStream;
 	memory_ptr<SPropValue> lpiNetMsgId, lpMsgClass, lpSubject;
@@ -732,7 +731,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		}
 
 		// Create Recipient
-		hr = lpMessage->GetRecipientTable(MAPI_DEFERRED_ERRORS, &~lpRecipientTable);
+		auto hr = lpMessage->GetRecipientTable(MAPI_DEFERRED_ERRORS, &~lpRecipientTable);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open MDN recipient table", hr);
 		hr = HrQueryAllRows(lpRecipientTable, nullptr, nullptr, nullptr, 0, &~pRows);

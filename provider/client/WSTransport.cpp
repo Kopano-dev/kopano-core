@@ -3362,7 +3362,6 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	if (lpszPseudoUrl == nullptr || lppszServerPath == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
 	struct resolvePseudoUrlResponse sResponse;
 	char							*lpszServerPath = NULL;
@@ -3372,7 +3371,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 
 	// First try the cache
 	ulock_rec l_cache(m_ResolveResultCacheMutex);
-	er = m_ResolveResultCache.GetCacheItem(lpszPseudoUrl, &lpCachedResult);
+	auto er = m_ResolveResultCache.GetCacheItem(lpszPseudoUrl, &lpCachedResult);
 	if (er == erSuccess) {
 		hr = lpCachedResult->hr;
 		if (hr == hrSuccess) {
