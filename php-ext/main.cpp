@@ -3114,9 +3114,9 @@ ZEND_FUNCTION(mapi_getprops)
 	} else if (type == le_mapi_msgstore) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 	} else if( type == le_mapi_mailuser) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAILUSER, &res, -1, name_mapi_mailuser, le_mapi_mailuser);
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, IMailUser *, &res, -1, name_mapi_mailuser, le_mapi_mailuser);
 	} else if( type == le_mapi_distlist) {
-		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPDISTLIST, &res, -1, name_mapi_distlist, le_mapi_distlist);
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, IDistList *, &res, -1, name_mapi_distlist, le_mapi_distlist);
 	} else if( type == le_mapi_abcont) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPABCONT, &res, -1, name_mapi_abcont, le_mapi_abcont);
 	} else if( type == le_mapi_property) {
