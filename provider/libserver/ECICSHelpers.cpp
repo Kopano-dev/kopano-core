@@ -213,7 +213,7 @@ public:
 	virtual ~IMessageProcessor(void) = default;
 	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;
 	virtual ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) = 0;
-	virtual ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) = 0;
+	virtual ECRESULT GetResidualMessages(MESSAGESET *residuals) = 0;
 	virtual unsigned int GetMaxChangeId() const = 0;
 };
 
@@ -438,7 +438,7 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	return erSuccess;
 }
 
-ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
+ECRESULT LegacyProcessor::GetResidualMessages(MESSAGESET *lpsetResiduals)
 {
 	assert(lpsetResiduals != NULL);
 	std::copy(m_setMessages.begin(), m_setMessages.end(), std::inserter(*lpsetResiduals, lpsetResiduals->begin()));
@@ -957,7 +957,8 @@ exit:
 	return er;
 }
 
-ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages)
+ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId,
+    unsigned int ulChangeId, MESSAGESET *lpsetMessages)
 {
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;

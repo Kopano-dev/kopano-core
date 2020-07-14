@@ -780,7 +780,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 }
 
 static ECRESULT SerializeProps(struct propValArray *lpPropVals,
-    LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink,
+    const StreamCaps *lpStreamCaps, ECSerializer *lpSink,
     const NamedPropDefMap *lpNamedPropDefs)
 {
 	unsigned int ulCount = lpPropVals->__size;
@@ -812,7 +812,7 @@ static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
 }
 
 static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
-    ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps,
+    ECAttachmentStorage *lpAttachmentStorage, const StreamCaps *lpStreamCaps,
     unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId,
     GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
@@ -923,7 +923,10 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
  * @param[in] bTop					Specifies that this is a toplevel message. Must be true excep
  * 									when called by SerializeMessage itself.
  */
-ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
+ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase,
+    ECAttachmentStorage *lpAttachmentStorage, const StreamCaps *lpStreamCaps,
+    unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId,
+    GUID *lpsGuid, unsigned int ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int ulStreamVersion = STREAM_VERSION, ulCount = 0;
@@ -1079,7 +1082,7 @@ exit:
 }
 
 static ECRESULT DeserializePropVal(struct soap *soap,
-    LPCSTREAMCAPS lpStreamCaps, NamedPropertyMapper &namedPropertyMapper,
+    const StreamCaps *lpStreamCaps, NamedPropertyMapper &namedPropertyMapper,
     propVal **lppsPropval, ECSerializer *lpSource)
 {
 	gsoap_size_t ulCount;
@@ -1479,7 +1482,11 @@ exit:
 	return er;
 }
 
-ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, unsigned long long ullIMAP, ECSerializer *lpSource, struct propValArray **lppPropValArray)
+ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase,
+    ECAttachmentStorage *lpAttachmentStorage, const StreamCaps *lpStreamCaps,
+    unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem,
+    unsigned long long ullIMAP, ECSerializer *lpSource,
+    struct propValArray **lppPropValArray)
 {
 	ECRESULT		er = erSuccess;
 	unsigned int ulStreamVersion = 0, ulObjType = 0, ulRealObjType = 0;

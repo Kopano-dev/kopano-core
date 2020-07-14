@@ -8430,8 +8430,6 @@ struct MTOMStreamInfo {
 	MTOMSessionInfo *lpSessionInfo;
 };
 
-typedef MTOMStreamInfo * LPMTOMStreamInfo;
-
 static ECRESULT SerializeObject(void *arg)
 {
 	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(arg);
@@ -8488,7 +8486,7 @@ static size_t MTOMRead(struct soap * /*soap*/, void *handle,
     char *buf, size_t len)
 {
 	ECRESULT			er = erSuccess;
-	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(handle);
 	ECFifoBuffer::size_type	cbRead = 0;
 
 	assert(lpStreamInfo->lpFifoBuffer != NULL);
@@ -8500,8 +8498,7 @@ static size_t MTOMRead(struct soap * /*soap*/, void *handle,
 
 static void MTOMReadClose(struct soap *soap, void *handle)
 {
-	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
-
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(handle);
 	assert(lpStreamInfo->lpFifoBuffer != NULL);
 	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = NULL; // Cleanup done
 
