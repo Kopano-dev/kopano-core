@@ -56,7 +56,7 @@ struct MAPIOBJECT {
 	std::list<ULONG> lstAvailable; /* proptags server->client only */
 	std::list<ECProperty> lstModified; /* propval client->server only */
 	std::list<ECProperty> lstProperties; /* propval client->server but not serialized and server->client  */
-	LPSIEID lpInstanceID = nullptr; /* Single Instance ID */
+	SIEID *lpInstanceID = nullptr; /* Single Instance ID */
 	ULONG cbInstanceID = 0; /* Single Instance ID length */
 	BOOL bChangedInstance = false; /* Single Instance ID changed */
 	BOOL bChanged = false; /* this is a saved child, otherwise only loaded */
