@@ -987,7 +987,6 @@ int Util::CompareSBinary(const SBinary &sbin1, const SBinary &sbin2)
 HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
     const ECLocale &locale, int *lpCompareResult)
 {
-	HRESULT	hr = hrSuccess;
 	int		nCompareResult = 0;
 
 	if (lpProp1 == NULL || lpProp2 == NULL || lpCompareResult == NULL)
@@ -1162,7 +1161,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	}
 
 	*lpCompareResult = nCompareResult;
-	return hr;
+	return hrSuccess;
 }
 
 /** 

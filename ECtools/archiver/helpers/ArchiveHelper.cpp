@@ -136,14 +136,12 @@ ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder,
  */
 HRESULT ArchiveHelper::Init()
 {
-	HRESULT	hr = hrSuccess;
-
 	PROPMAP_INIT_NAMED_ID(ATTACHED_USER_ENTRYID, PT_BINARY, PSETID_Archive, dispidAttachedUser)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_TYPE, PT_LONG, PSETID_Archive, dispidType)
 	PROPMAP_INIT_NAMED_ID(ATTACH_TYPE, PT_LONG, PSETID_Archive, dispidAttachType)
 	PROPMAP_INIT_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidSpecialFolderEntryIds);
 	PROPMAP_INIT(m_ptrArchiveStore)
-	return hr;
+	return hrSuccess;
 }
 
 /**
