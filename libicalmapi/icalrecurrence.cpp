@@ -627,12 +627,10 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
  */
 HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage)
 {
-	memory_ptr<char> lpRecBlob;
-	size_t ulRecBlob = 0;
 	memory_ptr<SPropValue> lpsPropRecPattern;
-	std::string strHRS;
+	std::string strHRS, lpRecBlob;
 
-	auto hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
+	auto hr = lpRecurrence->HrGetRecurrenceState(lpRecBlob);
 	if (hr != hrSuccess)
 		return hr;
 	lpRecurrence->HrGetHumanReadableString(&strHRS);
@@ -648,12 +646,12 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_W, &~prop);
 	if (hr == hrSuccess && wcscasecmp(prop->Value.lpszW, L"IPM.Task") == 0) {
 		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
-		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
-		pv[2].Value.bin.cb = ulRecBlob;
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(lpRecBlob.data()));
+		pv[2].Value.bin.cb = lpRecBlob.size();
 	} else {
 		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
-		pv[2].Value.bin.cb = ulRecBlob;
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(lpRecBlob.data()));
+		pv[2].Value.bin.cb = lpRecBlob.size();
 	}
 
 	unsigned int i = 3;

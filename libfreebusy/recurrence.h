@@ -20,7 +20,7 @@ namespace KC {
 class KC_EXPORT recurrence KC_FINAL {
 public:
 	HRESULT HrLoadRecurrenceState(const char *data, size_t len, ULONG flags) { return m_sRecState.ParseBlob(data, len, flags); }
-	HRESULT HrGetRecurrenceState(char **lppData, size_t *lpulLen, void *base = NULL);
+	HRESULT HrGetRecurrenceState(std::string &);
 	void HrGetHumanReadableString(std::string *);
 	HRESULT HrGetItems(time_t start, time_t end, const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
 	enum freq_type { DAILY, WEEKLY, MONTHLY, YEARLY };
