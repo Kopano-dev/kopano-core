@@ -124,12 +124,6 @@ typedef HRESULT (PREPROCESSMESSAGE)(
 /* RemovePreprocessInfo, second ordinal in RegisterPreprocessor(). */
 typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 
-/* Function pointer for GetReleaseInfo */
-
-// we don't want this in linux
-//#warning "please correctly define LPSTORAGE!!"
-//#define LPSTORAGE void*
-
 class IMAPISupport : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NO_SUPPORT; }
