@@ -975,7 +975,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
     const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo,
     ULONG *lpcValues, bool last)
 {
-	HRESULT hr = 0;
 	OccrInfo *lpOccrInfoAll = *lppOccrInfo;
 	std::vector<RecurrenceState::Exception> lstExceptions;
 	RecurrenceState::Exception lpException;
@@ -1148,6 +1147,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 	}
 	}
 
+	HRESULT hr = hrSuccess;
 	for (lstExceptions = m_sRecState.lstExceptions; lstExceptions.size() != 0; lstExceptions.pop_back()) {
 		OccrInfo sOccrInfo;
 

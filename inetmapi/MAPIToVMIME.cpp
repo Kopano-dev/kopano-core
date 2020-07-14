@@ -301,7 +301,6 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
  * @return Mapi error code
  */
 HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, vmime::messageBuilder *lpVMMessageBuilder) {
-	HRESULT			hr					= hrSuccess;
 	object_ptr<IStream> lpStream;
 	object_ptr<IAttach> lpAttach;
 	memory_ptr<SPropValue> lpContentId, lpContentLocation, lpHidden;
@@ -335,7 +334,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		std::string strBuff;
 		vmime::utility::outputStreamStringAdapter mout(strBuff);
 
-		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
+		auto hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open message attachment %d: %s (%x)",
 				ulAttachmentNum, GetMAPIErrorMessage(hr), hr);
@@ -380,7 +379,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		sopt = sopt_keep;
 		lpVMMessageBuilder->appendAttachment(vmime::make_shared<vmime::parsedMessageAttachment>(vmNewMess));
 	} else if (ulAttachmentMethod == ATTACH_BY_VALUE) {
-		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
+		auto hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open attachment %d: %s (%x)",
 				ulAttachmentNum, GetMAPIErrorMessage(hr), hr);
@@ -470,10 +469,10 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	    // Ignore ATTACH_OLE attachments, they are handled in handleTNEF()
 	} else {
 		ec_log_err("Attachment %d contains invalid method %d.", ulAttachmentNum, ulAttachmentMethod);
-		hr = MAPI_E_INVALID_PARAMETER;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 	// ATTN: lpMapiAttach are linked in the VMMessageBuilder. The VMMessageBuilder will delete() it.
-	return hr;
+	return hrSuccess;
 }
 
 /**

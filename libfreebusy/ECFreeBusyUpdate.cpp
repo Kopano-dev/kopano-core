@@ -48,7 +48,6 @@ HRESULT ECFreeBusyUpdate::ResetPublishedFreeBusy()
 HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
     const FILETIME &ftEnd)
 {
-	HRESULT			hr = hrSuccess;
 	unsigned int cValues = 0, cProps = 0, ulMonths;
 	memory_ptr<SPropValue> lpPropArray, lpPropFBDataArray;
 	FILETIME		ft;	
@@ -89,7 +88,7 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
 
 	cValues = 9;
 	cProps = 0;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropArray);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 

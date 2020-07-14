@@ -127,7 +127,6 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ZCABContainer> lpRootContainer;
 	object_ptr<IUnknown> lpContact;
 	object_ptr<IProfSect> lpProfileSection;
@@ -143,7 +142,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
 		// this is the "Kopano Contacts Folders" container. Get the hierarchy of this folder. SetEntryID(0000 + guid + MAPI_ABCONT + ?) ofzo?
-		hr = ZCABContainer::Create(nullptr, nullptr, m_lpMAPISup, this, &~lpRootContainer);
+		auto hr = ZCABContainer::Create(nullptr, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
 			return hr;
 	} else if (cbEntryID < 4 + sizeof(GUID) || lpEntryID == nullptr) {
@@ -152,7 +151,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		// you can only open the top level container
 		if (memcmp((LPBYTE)lpEntryID +4, &MUIDZCSAB, sizeof(GUID)) != 0)
 			return MAPI_E_UNKNOWN_ENTRYID;
-		hr = m_lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), 0, &~lpProfileSection);
+		auto hr = m_lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), 0, &~lpProfileSection);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &~lpFolderProps);
@@ -185,6 +184,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		}
 	}
 
+	HRESULT hr = hrSuccess;
 	if (lpContact) {
 		hr = lpContact->QueryInterface(lpInterface != nullptr ? *lpInterface : IID_IDistList, reinterpret_cast<void **>(lppUnk));
 	} else {
