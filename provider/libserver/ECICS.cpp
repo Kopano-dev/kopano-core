@@ -439,7 +439,14 @@ static ECRESULT getchanges_nab(ECSession *lpSession, ECDatabase *lpDatabase,
 		}
 		auto dummy = atoui(lpDBRow[2]);
 		if (dummy != ulChangeType) {
-			ec_log_err("K-1203: unexpected change type %u/%u", dummy, ulChangeType);
+			/*
+			 * This can happen if the server state was wiped (and
+			 * has meanwhile re-grown), and a client is working off
+			 * old state. The client should respect the return
+			 * value of .Config() calls and reset itself.
+			 */
+			ec_log_debug("K-1203: Client requested (sync %u, change %u, type %u), but DBrow has type %u",
+				ulSyncId, ulChangeId, ulChangeType, dummy);
 			return KCERR_COLLISION;
 		}
 	} else {
@@ -455,8 +462,14 @@ static ECRESULT getchanges_nab(ECSession *lpSession, ECDatabase *lpDatabase,
 		if (lpDBRow == nullptr) {
 			std::string username;
 			er = lpSession->GetSecurity()->GetUsername(&username);
-			ec_log_warn("K-1204: The sync ID %u does not exist. Session user name: %s.",
-				ulSyncId, username.c_str());
+			/*
+			 * This can happen if the server state was wiped and a
+			 * client is working off old state. The client ought to
+			 * respect the return value of .Config() calls and
+			 * reset itself.
+			 */
+			ec_log_debug("K-1204: (user %s) requested changes for syncid %u which does not exist.",
+				username.c_str(), ulSyncId);
 			return KCERR_DATABASE_ERROR;
 		} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr) {
 			std::string username;
