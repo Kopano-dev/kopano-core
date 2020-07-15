@@ -568,7 +568,7 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 					        0, &ulCompareResult);
 				if (hrTmp != hrSuccess) {
 					m_lpLogger->perr("Failed to compare entry ids", hrTmp);
-					ulCompareResult = FALSE;	// Let's assume it's not the IPM Subtree.
+					ulCompareResult = false; // Let's assume it's not the IPM Subtree.
 				}
 			}
 			if (ptrStoreProps[IDX_STORE_RECORD_KEY].ulPropTag == PR_STORE_RECORD_KEY)
@@ -584,7 +584,7 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 			continue;
 		}
 
-		if (lpszIpmSubtreeSubstitude && ulCompareResult == TRUE) {
+		if (lpszIpmSubtreeSubstitude && ulCompareResult == true) {
 			assert(lpszIpmSubtreeSubstitude != NULL);
 			entry.FolderName = lpszIpmSubtreeSubstitude;
 		} else {

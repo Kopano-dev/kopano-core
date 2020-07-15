@@ -1408,7 +1408,8 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	// PR_CONVERSATION_INDEX
 	if (HrGetFullProp(lpMessage, PR_CONVERSATION_INDEX, &~lpConversationIndex) == hrSuccess) {
 		vmime::string inString;
-		inString.assign((const char*)lpConversationIndex->Value.bin.lpb, lpConversationIndex->Value.bin.cb);
+		inString.assign(reinterpret_cast<const char *>(lpConversationIndex->Value.bin.lpb),
+			lpConversationIndex->Value.bin.cb);
 
 		vmime::shared_ptr<vmime::utility::encoder::encoder> enc = vmime::utility::encoder::encoderFactory::getInstance()->create("base64");
 		vmime::utility::inputStreamStringAdapter in(inString);
@@ -1902,7 +1903,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 					ec_log_info(strTnefReason);
 
 tnef_anyway:
-				hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
+				hr = CreateStreamOnHGlobal(nullptr, true, &~lpStream);
 				if (hr != hrSuccess)
 					return kc_perror("Unable to create stream for TNEF attachment", hr);
 

@@ -34,7 +34,7 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		return MAPI_E_INVALID_ENTRYID;
 
 	HRESULT hr = hrSuccess;
-	BOOL fTheSame = FALSE;
+	bool fTheSame = false;
 	auto peid1 = reinterpret_cast<const EID *>(lpEntryID1);
 	auto peid2 = reinterpret_cast<const EID *>(lpEntryID2);
 
@@ -59,7 +59,7 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 			goto exit;
 	}
 
-	fTheSame = TRUE;
+	fTheSame = true;
 exit:
 	if(lpulResult)
 		*lpulResult = fTheSame;
@@ -147,7 +147,7 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 	if (hr != hrSuccess)
 		return hr;
 	// Set up the message store to use this storage
-	hr = lpMsgStore->HrSetPropStorage(lpStorage, FALSE);
+	hr = lpMsgStore->HrSetPropStorage(lpStorage, false);
 	if (hr != hrSuccess)
 		return hr;
 	// Setup callback for session change

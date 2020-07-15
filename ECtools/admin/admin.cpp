@@ -1659,7 +1659,7 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 	auto i = sFeatures.cbegin();
 	// @note we store char* data in a LPTSTR (whcar_t by -DUNICODE) pointer.
 	for (unsigned int n = 0; i != sFeatures.cend(); ++i, ++n)
-		sECUser.sMVPropmap.lpEntries[index].lpszValues[n] = (TCHAR*)i->c_str();
+		sECUser.sMVPropmap.lpEntries[index].lpszValues[n] = reinterpret_cast<TCHAR *>(const_cast<char *>(i->c_str()));
 	return hrSuccess;
 }
 
@@ -2659,11 +2659,13 @@ int main(int argc, char **argv)
 		// lpECUser memory will be kept alive to let the SetUser() call work
 		for (ULONG i = 0; i < lpECUser->sMVPropmap.cEntries; ++i) {
 			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A)
-				sEnabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
-						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
+				sEnabled.insert(reinterpret_cast<char **>(lpECUser->sMVPropmap.lpEntries[i].lpszValues),
+					reinterpret_cast<char **>(lpECUser->sMVPropmap.lpEntries[i].lpszValues) +
+					lpECUser->sMVPropmap.lpEntries[i].cValues);
 			else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A)
-				sDisabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
-						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
+				sDisabled.insert(reinterpret_cast<char **>(lpECUser->sMVPropmap.lpEntries[i].lpszValues),
+					reinterpret_cast<char **>(lpECUser->sMVPropmap.lpEntries[i].lpszValues) +
+					lpECUser->sMVPropmap.lpEntries[i].cValues);
 		}
 
 		if (feature) {

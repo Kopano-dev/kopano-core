@@ -158,8 +158,7 @@ HRESULT iCal::HrHandleIcalPost()
 
 	//Map of server Entries.
 	//Generate map of UID : Modification time & UID : ENTRYID.
-	while (TRUE)
-	{
+	while (true) {
 		rowset_ptr lpRows;
 		hr = lpContTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)
@@ -420,8 +419,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 		return hr;
 	}
 
-	while (TRUE)
-	{
+	while (true) {
 		rowset_ptr lpRows;
 		hr = lpTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)

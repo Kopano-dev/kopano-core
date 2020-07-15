@@ -83,7 +83,7 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	PROPMAP_INIT(lpProp);
 
 	sPropOrphan.ulPropTag = PR_EC_DELETED_STORE;
-	sPropOrphan.Value.b = TRUE;
+	sPropOrphan.Value.b = true;
 
 	return ECAndRestriction(
 		ECNotRestriction(

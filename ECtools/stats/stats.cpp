@@ -214,8 +214,7 @@ static void showtop(LPMDB lpStore)
 	cbreak();
     noecho();
     nonl();
-    nodelay(win, TRUE);
-
+	nodelay(win, true);
     getmaxyx(win, wy, wx);
 
     while(1) {

@@ -2157,7 +2157,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		}
 
 		if (lpArgs->bNewmailNotify) {
-			ULONG ulNewMailNotify = TRUE;
+			unsigned int ulNewMailNotify = true;
 
 			hr = lppyMapiPlugin->RequestCallExecution("SendNewMailNotify",  lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulNewMailNotify, &ulResult);
 			if (hr != hrSuccess) {

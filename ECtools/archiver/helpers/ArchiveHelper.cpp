@@ -641,8 +641,7 @@ HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 						0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-
-	*lpbResult = (ulResult != FALSE);
+	*lpbResult = ulResult != false;
 	return hrSuccess;
 }
 
@@ -822,8 +821,7 @@ HRESULT ArchiveHelper::IsSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER lpFolde
 						cbSpecialEntryID, ptrSpecialEntryID, 0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-
-	*lpbResult = (ulResult != FALSE);
+	*lpbResult = ulResult != false;
 	return hrSuccess;
 }
 

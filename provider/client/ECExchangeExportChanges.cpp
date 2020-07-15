@@ -159,13 +159,12 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
-
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszError), wstrErrorMsg.c_str());
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszComponent), wstrCompName.c_str());
 	} else {
 		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		auto strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -198,8 +197,7 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 		bool operator()(const SBinary &l, const SBinary &r) const { return Util::CompareSBinary(l, r) < 0; }
 	};
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
-	BOOL		bCanStream = FALSE;
-	bool		bForceImplicitStateUpdate = false;
+	bool bCanStream = false, bForceImplicitStateUpdate = false;
 	std::map<SBinary, ChangeListIter, sbcmp> mapChanges;
 	ChangeList		lstChange;
 	std::string	sourcekey;
@@ -230,7 +228,7 @@ HRESULT ECExchangeExportChanges::Config(IStream *lpStream, unsigned int ulFlags,
 			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
 			if (hr == hrSuccess) {
 				m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
-				if (bCanStream == TRUE) {
+				if (bCanStream) {
 					zlog("Exporter supports enhanced ICS, checking importer...");
 					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, &~m_lpImportStreamedContents);
 					if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {

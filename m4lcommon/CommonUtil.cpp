@@ -307,7 +307,7 @@ static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
 	if(hr != hrSuccess)
 		return hr;
 
-	while(TRUE) {
+	while (true) {
 		hr = lpStoreTable->QueryRows(1, 0, &~lpRows);
 		if (hr != hrSuccess || lpRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
@@ -992,9 +992,9 @@ public:
 					return hr;
 				strcpy(lpProps[i].Value.lpszA, strTmp.c_str());
 			} else if (PROP_TYPE(lpFind->ulPropTag) != PROP_TYPE(lpTags->aulPropTag[i])) {
-				bError = TRUE;
+				bError = true;
 			} else if (Util::HrCopyProperty(&lpProps[i], lpFind, lpProps) != hrSuccess) {
-				bError = TRUE;
+				bError = true;
 			}
 
 			if(bError) {
@@ -1409,7 +1409,7 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
 	if (hr != hrSuccess)
 		return hr;
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
@@ -1734,7 +1734,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
 			lpProps[i].Value.lpszA[strData.size()] = 0;
 			break;
 		case PT_UNICODE:
-			lpProps[i].Value.lpszW = (wchar_t *)lpData;
+			lpProps[i].Value.lpszW = static_cast<wchar_t *>(lpData);
 			lpProps[i].Value.lpszW[strData.size() / sizeof(wchar_t)] = 0;
 			break;
 		case PT_BINARY:
@@ -2073,11 +2073,11 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept,
 
 	// Meaning of these values are unknown, but are always TRUE in cases seen until now
 	FBProps[0].ulPropTag = PR_SCHDINFO_BOSS_WANTS_COPY;
-	FBProps[0].Value.b = TRUE;
+	FBProps[0].Value.b = true;
 	FBProps[1].ulPropTag = PR_SCHDINFO_DONT_MAIL_DELEGATES;
-	FBProps[1].Value.b = TRUE;
+	FBProps[1].Value.b = true;
 	FBProps[2].ulPropTag = PR_SCHDINFO_BOSS_WANTS_INFO;
-	FBProps[2].Value.b = TRUE;
+	FBProps[2].Value.b = true;
 
 	FBProps[3].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
 	FBProps[3].Value.b = bAutoAccept;

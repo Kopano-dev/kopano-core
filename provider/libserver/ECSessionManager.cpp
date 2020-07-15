@@ -78,7 +78,7 @@ ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
 ECSessionManager::~ECSessionManager()
 {
 	ulock_normal l_exit(m_hExitMutex);
-	bExit = TRUE;
+	bExit = true;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
 

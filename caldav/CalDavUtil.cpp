@@ -166,7 +166,9 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		folder = std::move(lpOutbox);
 	}
 	if (folder) {
-		auto hr = lpMsgStore->OpenEntry(folder->Value.bin.cb, reinterpret_cast<ENTRYID *>(folder->Value.bin.lpb), &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
+		auto hr = lpMsgStore->OpenEntry(folder->Value.bin.cb, reinterpret_cast<ENTRYID *>(folder->Value.bin.lpb),
+		          &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType,
+		          reinterpret_cast<IUnknown **>(lppUsrFld));
 		if (hr != hrSuccess)
 			hr_lerr(hr, "Cannot open folder \"%ls\"", wstrFldId.c_str());
 		// we're done either way

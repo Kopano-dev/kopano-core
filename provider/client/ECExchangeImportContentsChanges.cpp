@@ -50,14 +50,14 @@ HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder,
 
 HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	BOOL	bCanStream = FALSE;
+	bool bCanStream = false;
 
 	REGISTER_INTERFACE2(ECExchangeImportContentsChanges, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
 
 	if (refiid == IID_IECImportContentsChanges) {
 		m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
-		if (bCanStream == FALSE)
+		if (!bCanStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		REGISTER_INTERFACE2(IECImportContentsChanges, this);
 	}
@@ -86,12 +86,12 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszError));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszError), wstrErrorMsg.c_str());
 		hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1),
 		     lpMapiError, reinterpret_cast<void **>(&lpMapiError->lpszComponent));
 		if (hr != hrSuccess)
 			return hr;
-		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
+		wcscpy(reinterpret_cast<wchar_t *>(lpMapiError->lpszComponent), wstrCompName.c_str());
 	} else {
 		auto strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		auto strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -245,7 +245,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	if(hr != hrSuccess)
 		return hr;
 	// Mark as ICS object
-	hr = lpECMessage->SetICSObject(TRUE);
+	hr = lpECMessage->SetICSObject(true);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);

@@ -145,7 +145,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		    HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpEntryID) == hrSuccess &&
 		    m_lpActiveStore->CompareEntryIDs(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb,
 		    lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, 0, &ulRes) == hrSuccess &&
-		    ulRes == TRUE)
+		    ulRes == true)
 		{
 			// disable delete default folder, and enable fb publish
 			m_blFolderAccess = false;
@@ -206,7 +206,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			return hr;
 		hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
 		     lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
-		if (hr != hrSuccess || ulCmp == TRUE)
+		if (hr != hrSuccess || ulCmp == true)
 			m_blFolderAccess = false;
 	}
 	if (!m_blFolderAccess)

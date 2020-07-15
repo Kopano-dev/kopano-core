@@ -215,7 +215,7 @@ public:
 	HRESULT HrSetLockState(unsigned int eid_size, const ENTRYID *, bool locked);
 
 	/* expose capabilities */
-	HRESULT HrCheckCapabilityFlags(unsigned int flags, BOOL *result);
+	HRESULT HrCheckCapabilityFlags(unsigned int flags, bool *result);
 
 	/* Test protocol */
 	HRESULT HrTestPerform(const char *cmd, unsigned int argc, char **args);

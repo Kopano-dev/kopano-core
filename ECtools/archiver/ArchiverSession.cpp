@@ -501,7 +501,7 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
 					   0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-	*lpbResult = (ulResult == TRUE);
+	*lpbResult = ulResult == true;
 	return hrSuccess;
 }
 
@@ -523,7 +523,7 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
 	          sEntryId2.size(), sEntryId2, 0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-	*lpbResult = (ulResult == TRUE);
+	*lpbResult = ulResult == true;
 	return hrSuccess;
 }
 

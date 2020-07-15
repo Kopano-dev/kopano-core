@@ -198,7 +198,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(unsigned int ulPropTag,
 	case PROP_ID(PR_SUBFOLDERS):
 		if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree) {
 			lpsPropValue->ulPropTag = PR_SUBFOLDERS;
-			lpsPropValue->Value.b = TRUE;
+			lpsPropValue->Value.b = true;
 		} else {
 			hr = ECMAPIFolder::GetPropHandler(PR_SUBFOLDERS, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase);
 		}

@@ -435,7 +435,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	if (PROP_TYPE(lpReplyRecipient[0].ulPropTag) != PT_ERROR && PROP_TYPE(lpFrom[0].ulPropTag ) != PT_ERROR) {
 		hr = lpSession->CompareEntryIDs(lpReplyRecipient[0].Value.bin.cb, (LPENTRYID)lpReplyRecipient[0].Value.bin.lpb,
 		     lpFrom[0].Value.bin.cb, (LPENTRYID)lpFrom[0].Value.bin.lpb, 0, &ulCmp);
-		if (hr == hrSuccess && ulCmp == TRUE)
+		if (hr == hrSuccess && ulCmp == true)
 			return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
@@ -824,7 +824,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	ULONG cfp = 0;
 	sForwardProps[cfp].ulPropTag = PR_AUTO_FORWARDED;
-	sForwardProps[cfp++].Value.b = TRUE;
+	sForwardProps[cfp++].Value.b = true;
 	sForwardProps[cfp].ulPropTag = PR_SUBJECT;
 	sForwardProps[cfp++].Value.lpszW = const_cast<wchar_t *>(strSubject.c_str());
 	sForwardProps[cfp].ulPropTag = PR_SENTMAIL_ENTRYID;
@@ -889,9 +889,9 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 
 	// TODO: delete PR_RECEIVED_BY_ values?
 	sNewProps[0].ulPropTag = PR_DELEGATED_BY_RULE;
-	sNewProps[0].Value.b = TRUE;
+	sNewProps[0].Value.b = true;
 	sNewProps[1].ulPropTag = PR_DELETE_AFTER_SUBMIT;
-	sNewProps[1].Value.b = TRUE;
+	sNewProps[1].Value.b = true;
 	hr = lpMessage->SetProps(2, sNewProps, NULL);
 	if (hr != hrSuccess)
 		return hr;

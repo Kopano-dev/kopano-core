@@ -383,7 +383,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 						// other lpXmlChildAttr->name .. like "end" maybe?
 						continue;
 					// timestamp from ical
-					icaltimetype iTime = icaltime_from_string((const char *)lpXmlChildAttr->content);
+					icaltimetype iTime = icaltime_from_string(x2s(lpXmlChildAttr->content));
 					sReptQuery.sFilter.tStart = icaltime_as_timet(iTime);
 					// @note this is still being ignored in CalDavProto::HrListCalEntries
 				}

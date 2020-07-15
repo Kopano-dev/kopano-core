@@ -379,11 +379,11 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_ATTACHMENT_HIDDEN;
-	sPropVal.Value.b = TRUE;
+	sPropVal.Value.b = true;
 	lpEx->lstAttachProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_HIDE_ATTACH], PT_BOOLEAN);;
-	sPropVal.Value.b = TRUE;
+	sPropVal.Value.b = true;
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = PR_ATTACHMENT_FLAGS;
@@ -610,7 +610,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 		if (hr != hrSuccess)
 			return hr;
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
-		sPropVal.Value.b = FALSE;
+		sPropVal.Value.b = false;
 		lpEx->lstMsgProps.emplace_back(sPropVal);
 	}
 	return hrSuccess;
@@ -637,7 +637,7 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	// adjust number of props
 	SPropValue pv[4];
 	pv[0].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
-	pv[0].Value.b = TRUE;
+	pv[0].Value.b = true;
 	// TODO: combine with icon index in vevent .. the item may be a meeting request (meeting+recurring==1027)
 	pv[1].ulPropTag = PR_ICON_INDEX;
 	pv[1].Value.ul = ICON_APPT_RECURRING;

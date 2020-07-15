@@ -35,7 +35,9 @@ unsigned int rtf_get_uncompressed_length(const char *lpData,
 		return 0;
 	
 	// Return the size
-	return ((RTFHeader *)lpData)->ulUncompressedSize;
+	RTFHeader h;
+	memcpy(&h, lpData, sizeof(h));
+	return le16_to_cpu(h.ulUncompressedSize);
 }
 
 /*

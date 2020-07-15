@@ -95,8 +95,8 @@ BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 		return false;
 	for (auto p : lpObject->lstChildren)
 		if (this == p || IsChildOf(p))
-			return TRUE;
-	return FALSE;
+			return true;
+	return false;
 }
 
 // We kill the local object if there are no external (AddRef()) and no internal

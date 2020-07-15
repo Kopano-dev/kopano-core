@@ -149,13 +149,13 @@ HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, const ENTRYID *lpEntry1,
     ULONG *lpulResult)
 {
 	if (cbEntry1 != cbEntry2)
-		*lpulResult = FALSE;
+		*lpulResult = false;
 	else if (!lpEntry1 || !lpEntry2)
 		return MAPI_E_INVALID_ENTRYID;
 	else if (memcmp(lpEntry1, lpEntry2, cbEntry1) != 0)
-		*lpulResult = FALSE;
+		*lpulResult = false;
 	else
-		*lpulResult = TRUE;
+		*lpulResult = true;
 	return hrSuccess;
 }
 

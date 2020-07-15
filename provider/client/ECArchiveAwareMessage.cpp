@@ -46,8 +46,8 @@ HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 	// is not archive aware, the message won't.
 	if (fNew || bEmbedded || lpArchiveAwareStore == NULL)
 		return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lppMessage);
-
-	return ECArchiveAwareMessage::Create(lpArchiveAwareStore, FALSE, fModify, ulFlags, lppMessage);
+	return ECArchiveAwareMessage::Create(lpArchiveAwareStore, false,
+	       fModify, ulFlags, lppMessage);
 }
 
 ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
@@ -180,7 +180,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 			// The message is not stubbed once destubbed.
 			// This fixes all kind of weird copy issues where the stubbed property does not
 			// represent the actual state of the message.
-			copy.Value.b = FALSE;
+			copy.Value.b = false;
 		}
 		else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
 			if (lpsPropValue->Value.b)
@@ -288,7 +288,7 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 		SPropValue propDirty;
 
 		propDirty.ulPropTag = PROP_DIRTY;
-		propDirty.Value.b = TRUE;
+		propDirty.Value.b = true;
 		auto hr = SetProps(1, &propDirty, nullptr);
 		if (hr != hrSuccess)
 			return hr;
@@ -596,7 +596,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(SBinary *lpStoreEID, ECMsgStore 
 	if (hr != hrSuccess)
 		return hr;
 	// Set up the message store to use this storage
-	hr = ptrArchiveStore->HrSetPropStorage(ptrPropStorage, FALSE);
+	hr = ptrArchiveStore->HrSetPropStorage(ptrPropStorage, false);
 	if (hr != hrSuccess)
 		return hr;
 	// Setup callback for session change

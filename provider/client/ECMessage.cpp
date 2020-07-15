@@ -322,7 +322,7 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 	const BOOL fModifyOld = fModify;
 	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
 	// Temporary enable write access
-	fModify = TRUE;
+	fModify = true;
 
 	if (m_ulBodyType == bodyTypePlain) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
@@ -352,9 +352,9 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 HRESULT ECMessage::SyncPlainToRtf()
 {
 	assert(!m_bInhibitSync);
-	m_bInhibitSync = TRUE;
+	m_bInhibitSync = true;
 
-	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	auto laters = make_scope_success([&]() { m_bInhibitSync = false; });
 	object_ptr<IStream> ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
@@ -396,9 +396,9 @@ HRESULT ECMessage::SyncPlainToHtml()
 {
 	unsigned int ulCodePage = 0;
 	assert(!m_bInhibitSync);
-	m_bInhibitSync = TRUE;
+	m_bInhibitSync = true;
 
-	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	auto laters = make_scope_success([&]() { m_bInhibitSync = false; });
 	object_ptr<IStream> ptrBodyStream, ptrHtmlStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
@@ -437,9 +437,9 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 	ULONG ulWritten = 0;
 	eRTFType rtfType = RTFTypeOther;
 	assert(!m_bInhibitSync);
-	m_bInhibitSync = TRUE;
+	m_bInhibitSync = true;
 
-	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	auto laters = make_scope_success([&]() { m_bInhibitSync = false; });
 	auto hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
@@ -549,10 +549,10 @@ HRESULT ECMessage::SyncRtf(const std::string &strRTF)
 HRESULT ECMessage::SyncHtmlToPlain()
 {
 	unsigned int ulCodePage;
-	assert(m_bInhibitSync == FALSE);
-	m_bInhibitSync = TRUE;
+	assert(!m_bInhibitSync);
+	m_bInhibitSync = true;
 
-	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	auto laters = make_scope_success([&]() { m_bInhibitSync = false; });
 	object_ptr<IStream> ptrHtmlStream, ptrBodyStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
@@ -579,9 +579,9 @@ HRESULT ECMessage::SyncHtmlToRtf()
 {
 	unsigned int ulCodePage;
 	assert(!m_bInhibitSync);
-	m_bInhibitSync = TRUE;
+	m_bInhibitSync = true;
 
-	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+	auto laters = make_scope_success([&]() { m_bInhibitSync = false; });
 	object_ptr<IStream> ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
@@ -828,7 +828,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	     &~lpParentStorage);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpAttach->HrSetPropStorage(lpParentStorage, TRUE);
+	hr = lpAttach->HrSetPropStorage(lpParentStorage, true);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpAttach->QueryInterface(IID_IAttachment, reinterpret_cast<void **>(lppAttach));
@@ -1085,7 +1085,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 			return hr;
 	}
 
-	m_bRecipsDirty = TRUE;
+	m_bRecipsDirty = true;
 	return hrSuccess;
 }
 
@@ -1128,7 +1128,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		return MAPI_E_NO_RECIPIENTS;
 
 	// Step through recipient list, set PR_RESPONSIBILITY to FALSE for all recipients
-	while(TRUE){
+	while (true) {
 		rowset_ptr lpsRow;
 		hr = lpRecipientTable->QueryRows(1, 0, &~lpsRow);
 		if (hr != hrSuccess)
@@ -1137,7 +1137,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 			break;
 
 		sPropResponsibility.ulPropTag = PR_RESPONSIBILITY;
-		sPropResponsibility.Value.b = FALSE;
+		sPropResponsibility.Value.b = false;
 
 		// Set PR_RESPONSIBILITY
 		hr = Util::HrAddToPropertyArray(lpsRow[0].lpProps,
@@ -1223,7 +1223,7 @@ HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 		if((ulFlags & (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT)) == (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT) )
 		{
 			sProp.ulPropTag = PR_READ_RECEIPT_REQUESTED;
-			sProp.Value.b = FALSE;
+			sProp.Value.b = false;
 			hr = HrSetOneProp(lpThisMessage, &sProp);
 			if (hr != hrSuccess)
 				return hr;
@@ -1322,7 +1322,7 @@ HRESULT ECMessage::SyncRecips()
 	if (hr != hrSuccess)
 		/* ignore */;
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRows;
 		hr = lpTable->QueryRows(1, 0, &~lpRows);
 		if (hr != hrSuccess || lpRows->cRows != 1)
@@ -1366,7 +1366,7 @@ HRESULT ECMessage::SyncRecips()
 	sPropRecip.Value.lpszW = const_cast<wchar_t *>(wstrBcc.c_str());
 	HrSetRealProp(&sPropRecip);
 
-	m_bRecipsDirty = FALSE;
+	m_bRecipsDirty = false;
 	return hr;
 }
 
@@ -1580,10 +1580,9 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 
 	// don't re-sync bodies that are returned from server
 	assert(!m_bInhibitSync);
-	m_bInhibitSync = TRUE;
+	m_bInhibitSync = true;
 	auto hr = ECMAPIProp::SaveChanges(ulFlags);
-	m_bInhibitSync = FALSE;
-	m_bExplicitSubjectPrefix = FALSE;
+	m_bInhibitSync = m_bExplicitSubjectPrefix = false;
 
 	if(hr != hrSuccess)
 		return hr;
@@ -1621,11 +1620,12 @@ HRESULT ECMessage::SyncSubject()
 	unsigned int hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
 
 	// if both not present or not dirty
-	if( (hr1 != hrSuccess && hr2 != hrSuccess) || (hr1 == hr2 && bDirtySubject == FALSE && bDirtySubjectPrefix == FALSE) )
+	if ((hr1 != hrSuccess && hr2 != hrSuccess) ||
+	    (hr1 == hr2 && !bDirtySubject && !bDirtySubjectPrefix))
 		return hrSuccess;
 	// If subject is deleted but the prefix is not, delete it
 	if(hr1 != hrSuccess && hr2 == hrSuccess)
-		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
+		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), false);
 
 	// Check if subject and prefix in sync
 	memory_ptr<SPropValue> lpPropArray;
@@ -1668,8 +1668,7 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
 	const BOOL bInhibitSyncOld = m_bInhibitSync;
-	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
-
+	m_bInhibitSync = true; // We want to override the logic in ECMessage::HrSetRealProp.
 	auto laters = make_scope_success([&]() { m_bInhibitSync = bInhibitSyncOld; });
 
 	// Send to IMAPIProp first
@@ -1687,8 +1686,8 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	auto pvalSubject = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED));
 	auto pvalSubjectPrefix = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED));
 	if (pvalSubjectPrefix)
-		m_bExplicitSubjectPrefix = TRUE;
-	if (pvalSubject && m_bExplicitSubjectPrefix == FALSE)
+		m_bExplicitSubjectPrefix = true;
+	if (pvalSubject != nullptr && !m_bExplicitSubjectPrefix)
 		SyncSubject();
 
 	// Now, sync RTF
@@ -1709,11 +1708,11 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	} else if (pvalHtml) {
 		m_ulBodyType = bodyTypeHTML;
 		SyncHtmlToPlain();
-		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
+		HrDeleteRealProp(PR_RTF_COMPRESSED, false);
 	} else if(pvalBody) {
 		m_ulBodyType = bodyTypePlain;
-		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
-		HrDeleteRealProp(PR_HTML, FALSE);
+		HrDeleteRealProp(PR_RTF_COMPRESSED, false);
+		HrDeleteRealProp(PR_HTML, false);
 	}
 	return hrSuccess;
 }
@@ -1730,12 +1729,14 @@ HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
 		return hr;
 
 	// If the PR_SUBJECT is removed and we generated the prefix, we need to remove that property too.
-	if (m_bExplicitSubjectPrefix == FALSE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED)) >= 0)
+	if (!m_bExplicitSubjectPrefix &&
+	    Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED)) >= 0)
 		ECMAPIProp::DeleteProps(sSubjectPrefix, NULL);
 
 	// If an explicit prefix was set and now removed, we must sync it again on the next SetProps of the subject
-	if (m_bExplicitSubjectPrefix == TRUE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)) >= 0)
-		m_bExplicitSubjectPrefix = FALSE;
+	if (m_bExplicitSubjectPrefix &&
+	    Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)) >= 0)
+		m_bExplicitSubjectPrefix = false;
 
 	return hrSuccess;
 }
@@ -1768,7 +1769,7 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_RTF_IN_SYNC):
 		lpsPropValue->ulPropTag = PR_RTF_IN_SYNC;
-		lpsPropValue->Value.ul = TRUE; // Always in sync because we sync internally
+		lpsPropValue->Value.ul = true; // Always in sync because we sync internally
 		break;
 	case PROP_ID(PR_HASATTACH):
 		lpsPropValue->ulPropTag = PR_HASATTACH;
@@ -2057,9 +2058,9 @@ HRESULT ECMessage::HrLoadProps()
 	ULONG cValues = 0;
 	BOOL fBodyOK = false, fRTFOK = false, fHTMLOK = false;
 
-	m_bInhibitSync = TRUE; // We don't want the logic in ECMessage::HrSetRealProp to kick in yet.
+	m_bInhibitSync = true; // We don't want the logic in ECMessage::HrSetRealProp to kick in yet.
 	auto hr = ECMAPIProp::HrLoadProps();
-	m_bInhibitSync = FALSE;
+	m_bInhibitSync = false;
 
 	if (hr != hrSuccess)
 		return hr;
@@ -2082,15 +2083,15 @@ HRESULT ECMessage::HrLoadProps()
 	if (lpsBodyProps[0].ulPropTag == PR_BODY_W ||
 	    (lpsBodyProps[0].ulPropTag == CHANGE_PROP_TYPE(PR_BODY, PT_ERROR) &&
 	    lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
-		fBodyOK = TRUE;
+		fBodyOK = true;
 	if (lpsBodyProps[1].ulPropTag == PR_RTF_COMPRESSED ||
 	    (lpsBodyProps[1].ulPropTag == CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_ERROR) &&
 	    lpsBodyProps[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
-		fRTFOK = TRUE;
+		fRTFOK = true;
 	if (lpsBodyProps[2].ulPropTag == PR_HTML ||
 	    (lpsBodyProps[2].ulPropTag == CHANGE_PROP_TYPE(PR_HTML, PT_ERROR) &&
 	    lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
-		fHTMLOK = TRUE;
+		fHTMLOK = true;
 
 	if (fRTFOK) {
 		std::string rtf;
@@ -2144,11 +2145,11 @@ HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 	} else if (lpsPropValue->ulPropTag == PR_HTML) {
 		m_ulBodyType = bodyTypeHTML;
 		SyncHtmlToPlain();
-		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
+		HrDeleteRealProp(PR_RTF_COMPRESSED, false);
 	} else if (lpsPropValue->ulPropTag == PR_BODY_W || lpsPropValue->ulPropTag == PR_BODY_A) {
 		m_ulBodyType = bodyTypePlain;
-		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
-		HrDeleteRealProp(PR_HTML, FALSE);
+		HrDeleteRealProp(PR_RTF_COMPRESSED, false);
+		HrDeleteRealProp(PR_HTML, false);
 	}
 	return hrSuccess;
 }

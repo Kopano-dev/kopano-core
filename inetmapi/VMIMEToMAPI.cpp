@@ -704,7 +704,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strFromSearchKey.size()+1; // include string terminator
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)strFromSearchKey.c_str();
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(strFromSearchKey.c_str()));
 
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
@@ -750,7 +750,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				strSenderSearchKey = strToUpper("SMTP:" + strSenderEmail);
 				msgProps[nProps].ulPropTag = PR_SENDER_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strSenderSearchKey.size()+1; // include string terminator
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)strSenderSearchKey.c_str();
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(strSenderSearchKey.c_str()));
 
 				msgProps[nProps].ulPropTag = PR_SENDER_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
@@ -1629,7 +1629,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		sAttProps[0].ulPropTag = PR_ATTACH_METHOD;
 		sAttProps[0].Value.ul = ATTACH_EMBEDDED_MSG;
 		sAttProps[1].ulPropTag = PR_ATTACHMENT_HIDDEN;
-		sAttProps[1].Value.b = FALSE;
+		sAttProps[1].Value.b = false;
 		sAttProps[2].ulPropTag = PR_ATTACH_FLAGS;
 		sAttProps[2].Value.ul = 0;
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
@@ -1787,7 +1787,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if (mt->getType() == vmime::mediaTypes::MESSAGE) {
 			dissect_message(vmBody, lpMessage);
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
-			auto hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
+			auto hr = CreateStreamOnHGlobal(nullptr, true, &~lpStream);
 			if(hr != hrSuccess)
 				return hr;
 
@@ -2450,7 +2450,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			 (!strLocation.empty() && strcasestr(m_mailState.strHTMLBody.c_str(), strLocation.c_str())) ))
 		{
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
-			attProps[nProps++].Value.b = TRUE;
+			attProps[nProps++].Value.b = true;
 			attProps[nProps].ulPropTag = PR_ATTACH_FLAGS;
 			attProps[nProps++].Value.ul = 4; // ATT_MHTML_REF
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_FLAGS;
@@ -2459,7 +2459,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 				m_mailState.attachLevel = ATTACH_INLINE;
 		} else {
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
-			attProps[nProps++].Value.b = FALSE;
+			attProps[nProps++].Value.b = false;
 			attProps[nProps].ulPropTag = PR_ATTACH_FLAGS;
 			attProps[nProps++].Value.ul = 0;
 			m_mailState.attachLevel = ATTACH_NORMAL;
@@ -3192,7 +3192,7 @@ HRESULT VMIMEToMAPI::createIMAPBody(const std::string &input,
 	sProps[0].ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 	sProps[0].Value.ul = input.length();
 	sProps[1].ulPropTag = PR_EC_IMAP_EMAIL;
-	sProps[1].Value.bin.lpb = (BYTE*)input.c_str();
+	sProps[1].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(input.c_str()));
 	sProps[1].Value.bin.cb = input.length();
 	sProps.set(2, PR_EC_IMAP_BODY, std::move(strBody));
 	sProps.set(3, PR_EC_IMAP_BODYSTRUCTURE, std::move(strBodyStructure));

@@ -320,7 +320,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
@@ -442,7 +442,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
@@ -481,7 +481,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
 
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
@@ -1070,7 +1070,7 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 		return kc_perrorf("SetColumns failed", hr);
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
-	while (TRUE) {
+	while (true) {
 		rowset_ptr lpRowSet;
 		hr = lpMembersTable->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess)
@@ -1087,7 +1087,7 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 		else if (lpRowSet[0].lpProps[1].Value.ul == MAPI_DISTLIST)
 			hr = HrFindUserInGroup(lpAdrBook, owner,
 			     lpRowSet[0].lpProps[0].Value.bin, &ulCmp, level + 1);
-		if (hr == hrSuccess && ulCmp == TRUE) {
+		if (hr == hrSuccess && ulCmp == true) {
 			*lpulCmp = true;
 			break;
 		}
@@ -1184,7 +1184,7 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 			continue;
 		}
 
-		if (hr == hrSuccess && ulCmpRes == TRUE) {
+		if (hr == hrSuccess && ulCmpRes == true) {
 			if (lpulObjType != nullptr)
 				*lpulObjType = ulObjType;
 			*lpbAllowed = true;
@@ -1687,7 +1687,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		}
 		hr = lpAddrBook->CompareEntryIDs(lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
 		     lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, 0, &ulCmpRes);
-		if (hr == hrSuccess && ulCmpRes == FALSE) {
+		if (hr == hrSuccess && ulCmpRes == false) {
 			if (strcmp(g_lpConfig->GetSetting("always_send_delegates"), "yes") == 0) {
 				// pre 6.20 behaviour
 				bAllowDelegate = true;

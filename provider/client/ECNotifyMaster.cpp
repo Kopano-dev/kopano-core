@@ -170,7 +170,7 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	}
 	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "notify_watch");
-	m_bThreadRunning = TRUE;
+	m_bThreadRunning = true;
 	return hrSuccess;
 }
 
@@ -185,7 +185,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 
 	/* Let the thread exit during its busy looping */
 	biglock.lock();
-	m_bThreadExit = TRUE;
+	m_bThreadExit = true;
 
 	if (m_lpTransport) {
 		/* Get another transport so we can tell the server to end the session. We
@@ -206,7 +206,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	biglock.unlock();
 	if (pthread_join(m_hThread, NULL) != 0)
 		ec_log_debug("ECNotifyMaster::StopNotifyWatch: Invalid thread join");
-	m_bThreadRunning = FALSE;
+	m_bThreadRunning = false;
 	return hrSuccess;
 }
 

@@ -241,14 +241,13 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 		return MAPI_E_NOT_FOUND;
 
 	if(ulUpdateType == ECKeyTable::TABLE_ROW_DELETE) {
-		iterRows->second.fDeleted = TRUE;
-		iterRows->second.fDirty = FALSE;
-		iterRows->second.fNew = FALSE;
+		iterRows->second.fDeleted = true;
+		iterRows->second.fDirty = iterRows->second.fNew = false;
 	}
 
 	if(ulUpdateType == ECKeyTable::TABLE_ROW_MODIFY) {
-		iterRows->second.fDeleted = FALSE;
-		iterRows->second.fDirty = TRUE;
+		iterRows->second.fDeleted = false;
+		iterRows->second.fDirty = true;
 
 		if(lpPropVals) {
 			// We want to support users calling ModifyRow with data that itself
@@ -273,9 +272,8 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 		if(hr != hrSuccess)
 			return hr;
 
-		entry.fDeleted = FALSE;
-		entry.fDirty = TRUE;
-		entry.fNew = TRUE;
+		entry.fDeleted = false;
+		entry.fDirty = entry.fNew = true;
 		
 		if(lpsID) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~entry.lpsID);
@@ -317,9 +315,8 @@ HRESULT ECMemTable::HrDeleteAll()
 {
 	scoped_rlock l_data(m_hDataMutex);
 	for (auto &rowp : mapRows) {
-		rowp.second.fDeleted = TRUE;
-		rowp.second.fDirty = FALSE;
-		rowp.second.fNew = FALSE;
+		rowp.second.fDeleted = true;
+		rowp.second.fDirty = rowp.second.fNew = false;
 	}
 	for (auto viewp : lstViews)
 		viewp->Clear();
@@ -352,8 +349,8 @@ ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
 	if (MAPIAllocateBuffer(CbNewSPropTagArray(lpMemTable->lpsColumns->cValues), &~lpsPropTags) != hrSuccess)
 		throw std::bad_alloc();
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
-	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
-
+	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues,
+		lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 	SortTable(sSortDefault, 0);
 }
 
