@@ -4,6 +4,7 @@
  */
 #include <list>
 #include <stdexcept>
+#include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include "WSMAPIPropStorage.h"
 #include <kopano/ECGuid.h>
@@ -207,8 +208,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpsPropValDst = NULL;
-
+	memory_ptr<SPropValue> lpsPropValDst;
 	struct loadPropResponse	sResponse;
 	soap_lock_guard spg(*m_lpTransport);
 
@@ -227,17 +227,15 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 	END_SOAP_CALL
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsPropValDst));
-	if(hr != hrSuccess)
-		goto exit;
-
 	if(sResponse.lpPropVal == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValDst);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, sResponse.lpPropVal, lpsPropValDst);
-	*lppsPropValue = lpsPropValDst;
+	*lppsPropValue = lpsPropValDst.release();
 exit:
 	return hr;
 }

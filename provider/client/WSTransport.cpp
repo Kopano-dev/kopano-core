@@ -1129,7 +1129,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	ECRESULT er = erSuccess;
 	struct getNamesFromIDsResponse sResponse;
 	struct propTagArray sPropTags;
-	MAPINAMEID **lppNames = nullptr;
+	memory_ptr<MAPINAMEID *> lppNames;
 	convert_context convertContext;
 
 	sPropTags.__size = lpsPropTags->cValues;
@@ -1145,7 +1145,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, reinterpret_cast<void **>(&lppNames));
+	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, &~lppNames);
 	if (er != erSuccess)
 		goto exitm;
 
@@ -1180,7 +1180,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 
 	*lpcResolved = sResponse.lpsNames.__size;
-	*lpppNames = lppNames;
+	*lpppNames = lppNames.release();
  exitm:
 	return hr;
 }
@@ -1190,7 +1190,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 {
 	struct receiveFolderTableResponse sReceiveFolders;
 	ECRESULT	er = erSuccess;
-	LPSRowSet	lpsRowSet = NULL;
+	rowset_ptr lpsRowSet;
 	ULONG ulRowId = 0, cbUnWrapStoreID = 0;
 	int			nLen = 0;
 	entryId sEntryId; // Do not free
@@ -1215,7 +1215,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), reinterpret_cast<void **>(&lpsRowSet));
+	er = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), &~lpsRowSet);
 	if (er != erSuccess)
 		goto exitm;
 	lpsRowSet->cRows = 0;
@@ -1275,7 +1275,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		}
 	}
 
-	*lppsRowSet = lpsRowSet;
+	*lppsRowSet = lpsRowSet.release();
  exitm:
 	return hr;
 }

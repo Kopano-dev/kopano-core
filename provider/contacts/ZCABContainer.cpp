@@ -798,7 +798,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			std::vector<zcabFolderEntry>::iterator i;
 			// find the store of this folder
 			for (i = m_lpFolders->begin();
-			     i != m_lpFolders->end(); ++i) {
+			     i != m_lpFolders->cend(); ++i) {
 				ULONG res;
 				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
 					break;
