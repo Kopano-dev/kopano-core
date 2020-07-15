@@ -275,7 +275,8 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		object_ptr<IStream> ptrStream;
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
-			Util::HrStreamToString(ptrStream, strHTML);
+			if (Util::HrStreamToString(ptrStream, strHTML) != hrSuccess)
+				/* ignore */;
 		// icase <body> tag
 		auto pos = str_ifind(strHTML.c_str(), "<body");
 		pos = pos ? pos + strlen("<body") : strHTML.c_str();

@@ -688,7 +688,9 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
-		lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
+		hr = lpStream->Read(buffer, sStat.cbSize.QuadPart, &ulSize);
+		if (hr != hrSuccess)
+			return hr;
 		buffer[ulSize] = '\0';
 		lpPropValue->Value.lpszA = buffer;
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
@@ -698,7 +700,9 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
-		lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
+		hr = lpStream->Read(buffer, sStat.cbSize.QuadPart, &ulSize);
+		if (hr != hrSuccess)
+			return hr;
 		/* no point in dealing with an incomplete multibyte sequence */
 		ulSize = ulSize / sizeof(wchar_t);
 		buffer[ulSize] = '\0';

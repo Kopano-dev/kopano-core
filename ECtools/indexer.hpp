@@ -17,10 +17,10 @@ class KC_EXPORT IIndexer {
 	public:
 	struct client_state {
 		private:
-		GUID m_server_guid, m_store_guid;
+		GUID m_server_guid{}, m_store_guid{};
 		std::string m_orig;
 		std::vector<unsigned int> m_folder_ids;
-		FIELDTERMS m_fields_terms;
+		FIELDTERMS m_fields_terms{};
 		friend class ECIndexService;
 	};
 
