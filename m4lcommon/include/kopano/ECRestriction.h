@@ -145,7 +145,7 @@ class IRestrictionPush : public ECRestriction {
 
 class KC_EXPORT ECAndRestriction KC_FINAL : public IRestrictionPush {
 public:
-	KC_HIDDEN ECAndRestriction() {}
+	KC_HIDDEN ECAndRestriction() = default;
 	ECAndRestriction(const ECRestrictionList &list);
 	KC_HIDDEN ECAndRestriction(ECRestrictionList &&o) :
 		m_lstRestrictions(std::move(o.m_list))
@@ -174,7 +174,7 @@ private:
 
 class KC_EXPORT ECOrRestriction KC_FINAL : public IRestrictionPush {
 public:
-	KC_HIDDEN ECOrRestriction() {}
+	KC_HIDDEN ECOrRestriction() = default;
 	ECOrRestriction(const ECRestrictionList &list);
 	KC_HIDDEN ECOrRestriction(ECRestrictionList &&o) :
 		m_lstRestrictions(std::move(o.m_list))

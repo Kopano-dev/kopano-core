@@ -25,7 +25,7 @@ typedef std::set<unsigned int> setindexprops_t;
 
 class ECSearchClient {
 public:
-	virtual ~ECSearchClient() {}
+	virtual ~ECSearchClient() = default;
 	ECRESULT GetProperties(setindexprops_t &mapProps);
 	ECRESULT Query(const GUID *server_guid, const GUID *store_guid, const std::list<unsigned int> &folders, const std::list<SIndexedTerm> &searches, std::list<unsigned int> &matches, std::string &suggestion);
 	ECRESULT SyncRun();

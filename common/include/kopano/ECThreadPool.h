@@ -24,7 +24,7 @@ class ECWatchdog;
 class KC_EXPORT ECThreadWorker {
 	public:
 	ECThreadWorker(ECThreadPool *);
-	virtual ~ECThreadWorker() {}
+	virtual ~ECThreadWorker() = default;
 	virtual bool init() { return true; }
 	virtual void exit() {}
 
@@ -98,7 +98,7 @@ public:
 
 protected:
 	virtual void run(void) = 0;
-	ECTask(void) {};
+	ECTask() = default;
 
 private:
 	// Make the object non-copyable

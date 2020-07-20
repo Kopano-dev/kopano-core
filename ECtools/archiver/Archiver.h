@@ -48,7 +48,7 @@ public:
 	KC_HIDDEN virtual ECLogger *GetLogger(eLogType which = DefaultLog) const = 0;
 
 protected:
-	KC_HIDDEN Archiver() {}
+	KC_HIDDEN Archiver() = default;
 };
 
 } /* namespace */
