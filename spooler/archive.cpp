@@ -179,7 +179,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	static constexpr SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
 	auto cleanup = make_scope_success([&]() {

@@ -54,7 +54,7 @@ static const struct option long_options[] = {
 };
 
 // sort on something invalid to get the order in which the server added the rows
-static constexpr SizedSSortOrderSet(2, tableSortSystem) =
+static constexpr SizedSSortOrderSet(1, tableSortSystem) =
 	{1, 0, 0, {{PR_NULL, TABLE_SORT_DESCEND}}};
 static constexpr SizedSSortOrderSet(2, tableSortSession) =
 { 2, 0, 0,
@@ -70,9 +70,9 @@ static constexpr SizedSSortOrderSet(2, tableSortUser) =
 	  { PR_EC_USERNAME_A, TABLE_SORT_ASCEND },
   }
 };
-static constexpr SizedSSortOrderSet(2, tableSortCompany) =
+static constexpr SizedSSortOrderSet(1, tableSortCompany) =
 	{1, 0, 0, {{PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND}}};
-static constexpr SizedSSortOrderSet(2, tableSortServers) =
+static constexpr SizedSSortOrderSet(1, tableSortServers) =
 	{1, 0, 0, {{PR_EC_STATS_SERVER_NAME, TABLE_SORT_ASCEND}}};
 static const SSortOrderSet *const sortorders[] = {
 	tableSortSystem, tableSortSession,

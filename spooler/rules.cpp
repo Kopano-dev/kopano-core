@@ -1205,7 +1205,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 	// get OOF-state for recipient-store
         struct rulexec rei = {sc, lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, lppMessage, recip.c_str()};
-	static constexpr SizedSPropTagArray(5, sptaStoreProps) =
+	static constexpr SizedSPropTagArray(3, sptaStoreProps) =
 		{3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
 		PR_EC_OUTOFOFFICE_UNTIL}};
 	hr = lpOrigStore->GetProps(sptaStoreProps, 0, &cValues, &~OOFProps);
