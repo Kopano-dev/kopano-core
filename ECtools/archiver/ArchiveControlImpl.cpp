@@ -344,7 +344,10 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 	// Create and hook the three dependent steps
 	if (m_bArchiveEnable && m_ulArchiveAfter >= 0) {
-		SizedSPropTagArray(5, sptaExcludeProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
+		const SizedSPropTagArray(5, sptaExcludeProps) =
+			{5, {PROP_ARCHIVE_STORE_ENTRYIDS,
+			PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY,
+			PROP_ORIGINAL_SOURCEKEY}};
 		ptrCopyOp = std::make_shared<Copier>(m_ptrSession, m_lpConfig, m_lpLogger,
 			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true);
 	}

@@ -565,11 +565,8 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(IProfSect *lpGlobalProfSe
 
 	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
-	SizedSPropTagArray(1, sPropTagArray);
+	static constexpr SizedSPropTagArray(1, sPropTagArray) = {1, {PR_STORE_PROVIDERS}};
 	memory_ptr<BYTE> lpDelegateStores;
-
-	sPropTagArray.cValues = 1;
-	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
 	auto hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
 	if(hr != hrSuccess)
 		return hr;

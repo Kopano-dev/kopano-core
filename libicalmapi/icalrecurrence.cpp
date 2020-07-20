@@ -292,7 +292,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	bool bReminderSet = false;
 	convert_context converter;
 	bool abOldPresent[8] = {false}, abNewPresent[8] = {false};
-	SizedSPropTagArray(8, sptaCopy) = { 8, {
+	const SizedSPropTagArray(8, sptaCopy) = {8, {
 			PR_SUBJECT,
 			CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_STRING8),
 			PR_BODY,

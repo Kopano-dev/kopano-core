@@ -1758,7 +1758,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &~lpRepMessage);
 		// possible error is logged in function.
 	if (lpRepStore != nullptr && strcmp(cts, "move-to-rep") == 0) {
-		SizedSPropTagArray(1, dp) = {1, {PR_SENTMAIL_ENTRYID}};
+		static constexpr SizedSPropTagArray(1, dp) = {1, {PR_SENTMAIL_ENTRYID}};
 		/* don't move to SentItems of delegate (leave in Outbox) */
 		lpMessage->DeleteProps(dp, nullptr);
 		/* Trigger deletion from Outbox */

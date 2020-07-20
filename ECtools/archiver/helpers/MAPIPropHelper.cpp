@@ -75,7 +75,9 @@ HRESULT MAPIPropHelper::GetMessageState(std::shared_ptr<ArchiverSession> ptrSess
 	unsigned int cMessageProps = 0, ulState = 0;
 	int result = 0;
 
-	SizedSPropTagArray(6, sptaMessageProps) = {6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY, PROP_ORIGINAL_SOURCEKEY, PR_EC_HIERARCHYID}};
+	const SizedSPropTagArray(6, sptaMessageProps) =
+		{6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY,
+		PROP_ORIGINAL_SOURCEKEY, PR_EC_HIERARCHYID}};
 	enum {IDX_ENTRYID, IDX_STUBBED, IDX_DIRTY, IDX_SOURCE_KEY, IDX_ORIGINAL_SOURCEKEY, IDX_HIERARCHYID};
 
 	if (lpState == NULL)
@@ -228,7 +230,9 @@ HRESULT MAPIPropHelper::GetArchiveList(std::list<SObjectEntry> *lplstArchives, b
 	ULONG cbValues = 0;
 	memory_ptr<SPropValue> ptrPropArray;
 	int result = 0;
-	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
+	const SizedSPropTagArray(4, sptaArchiveProps) =
+		{4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS,
+		PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
 	enum {
 		IDX_ARCHIVE_STORE_ENTRYIDS,
@@ -387,8 +391,8 @@ HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicit
 
 HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 {
-	SizedSPropTagArray(2, sptaReferenceProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
-
+	const SizedSPropTagArray(2, sptaReferenceProps) =
+		{2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 	auto hr = m_ptrMapiProp->DeleteProps(sptaReferenceProps, NULL);
 	if (hr != hrSuccess)
 		return hr;
@@ -400,7 +404,8 @@ HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 {
 	ULONG cMessageProps = 0;
-	SizedSPropTagArray(2, sptaMessageProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
+	const SizedSPropTagArray(2, sptaMessageProps) =
+		{2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 	enum {IDX_REF_STORE_ENTRYID, IDX_REF_ITEM_ENTRYID};
 
 	if (lpEntry == NULL)
@@ -471,13 +476,13 @@ HRESULT MAPIPropHelper::OpenPrevious(std::shared_ptr<ArchiverSession> ptrSession
  */
 HRESULT MAPIPropHelper::RemoveStub()
 {
-	SizedSPropTagArray(1, sptaArchiveProps) = {1, {PROP_STUBBED}};
+	const SizedSPropTagArray(1, sptaArchiveProps) = {1, {PROP_STUBBED}};
 	return m_ptrMapiProp->DeleteProps(sptaArchiveProps, NULL);
 }
 
 HRESULT MAPIPropHelper::SetClean()
 {
-	SizedSPropTagArray(1, sptaDirtyProps) = {1, {PROP_DIRTY}};
+	const SizedSPropTagArray(1, sptaDirtyProps) = {1, {PROP_DIRTY}};
 	return m_ptrMapiProp->DeleteProps(sptaDirtyProps, NULL);
 }
 
@@ -487,7 +492,9 @@ HRESULT MAPIPropHelper::SetClean()
  */
 HRESULT MAPIPropHelper::DetachFromArchives()
 {
-	SizedSPropTagArray(5, sptaArchiveProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
+	const SizedSPropTagArray(5, sptaArchiveProps) =
+		{5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS,
+		PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
 	return m_ptrMapiProp->DeleteProps(sptaArchiveProps, NULL);
 }
 

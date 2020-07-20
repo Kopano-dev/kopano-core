@@ -649,7 +649,9 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
 					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
 {
-	SizedSPropTagArray(4, sptaProps) = { 4, { ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress } };
+	const SizedSPropTagArray(4, sptaProps) =
+		{4, {ulPropTagEntryID, ulPropTagName, ulPropTagType,
+		ulPropTagEmailAddress}};
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
@@ -1299,7 +1301,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 		hr = TestRelop(lpCondition->res.resSize.relop, result, &fMatch);
 		break;
 	case RES_EXIST: {
-		SizedSPropTagArray(1, spta) = {1, {lpCondition->res.resExist.ulPropTag}};
+		const SizedSPropTagArray(1, spta) = {1, {lpCondition->res.resExist.ulPropTag}};
 		unsigned int nvals = 0;
 		hr = lpMessage->GetProps(spta, 0, &nvals, &~lpProp);
 		if (HR_FAILED(hr)) {
@@ -1746,7 +1748,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
  */
 HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **pvout)
 {
-	SizedSPropTagArray(1, taglist) = {1, {tag}};
+	const SizedSPropTagArray(1, taglist) = {1, {tag}};
 	unsigned int nvals = 0;
 	memory_ptr<SPropValue> pv;
 	auto ret = prop->GetProps(taglist, 0, &nvals, &~pv);

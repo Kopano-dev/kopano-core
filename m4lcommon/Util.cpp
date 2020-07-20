@@ -2246,12 +2246,8 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
 	memory_ptr<SPropValue> ptrBodies;
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
-	SizedSPropTagArray (4, sBodyTags) = { 4, {
-			ulBodyTag,
-			PR_HTML,
-			PR_RTF_COMPRESSED,
-			PR_RTF_IN_SYNC
-		} };
+	const SizedSPropTagArray(4, sBodyTags) =
+		{4, {ulBodyTag, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC}};
 	ULONG cValues = 0;
 	auto hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))

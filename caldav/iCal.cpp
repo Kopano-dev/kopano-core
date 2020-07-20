@@ -118,7 +118,7 @@ HRESULT iCal::HrHandleIcalPost()
 	decltype(mpIcalEntries)::const_iterator mpIterI;
 	decltype(mpSrvEntries)::const_iterator mpIterJ;
 	unsigned int ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
+	const SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
 
 	//retrieve entries from ical data.

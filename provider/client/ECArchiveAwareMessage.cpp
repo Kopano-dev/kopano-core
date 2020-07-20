@@ -269,7 +269,7 @@ HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
 
 HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 {
-	SizedSPropTagArray(1, sptaStubbedProp) = {1, {PROP_STUBBED}};
+	const SizedSPropTagArray(1, sptaStubbedProp) = {1, {PROP_STUBBED}};
 
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;

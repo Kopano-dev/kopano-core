@@ -2797,7 +2797,10 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 		return hrSuccess;
 
 	// IPM.Schedule.Meeting.*
-	SizedSPropTagArray(6, sptaMeetingReqProps) = {6, {PROP_RESPONSESTATUS, PROP_RECURRING, PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE, PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX}};
+	const SizedSPropTagArray(6, sptaMeetingReqProps) =
+		{6, {PROP_RESPONSESTATUS, PROP_RECURRING,
+		PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE,
+		PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX}};
 	hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		return hr;
@@ -2847,7 +2850,8 @@ static HRESULT postWriteFixups(IMessage *lpMessage)
 	// found in the recurrence state. Since these properties are completely redundant we always
 	// write them to correct any possible errors in the incoming message.
 	SPropValue sMeetingProps[14];
-	SizedSPropTagArray(3, sptaRecProps) = {3, {PROP_RECURRENCESTATE, PROP_CLIPSTART, PROP_CLIPEND}};
+	const SizedSPropTagArray(3, sptaRecProps) =
+		{3, {PROP_RECURRENCESTATE, PROP_CLIPSTART, PROP_CLIPEND}};
 	RecurrenceState rec;
 
 	// @todo, if all properties are not available: remove recurrence true marker

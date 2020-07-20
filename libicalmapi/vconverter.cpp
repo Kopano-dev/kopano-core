@@ -2296,7 +2296,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	unsigned int cbsize = 0, ulFlag = 0, ulRecurrenceStateTag;
 	std::list<icalcomponent*> lstExceptions;
 	TIMEZONE_STRUCT zone;
-	SizedSPropTagArray(6, proptags) =
+	const SizedSPropTagArray(6, proptags) =
 		{6, {PR_MESSAGE_CLASS_A,
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY),
@@ -2750,7 +2750,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	memory_ptr<SPropValue> lpSpropValArray;
 	std::unique_ptr<icaltimezone, icalmapi_delete> lpicTZinfo;
 	std::string strTZid;
-	SizedSPropTagArray(3, proptags) = {3,
+	const SizedSPropTagArray(3, proptags) = {3,
 		{CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISRECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};

@@ -780,8 +780,8 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
 	memory_ptr<ENTRYID> lpStoreEntryID;
-
-	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_RECORD_KEY, PR_PROVIDER_UID} };
+	static constexpr SizedSPropTagArray(2, sptaProviders) =
+		{2, {PR_RECORD_KEY, PR_PROVIDER_UID}};
 
 	if (lpEntryID == NULL || lppMDB == NULL) {
 		ec_log_err("M4LMAPISession::OpenMsgStore() invalid parameters");
@@ -956,7 +956,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	object_ptr<IAddrBook> lpAddrBook;
     ULONG cbUnWrappedID = 0;
 	memory_ptr<ENTRYID> lpUnWrappedID;
-	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
+	static constexpr SizedSPropTagArray(3, sptaProviders) =
+		{3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE}};
 	GUID guidProvider;
 	bool bStoreEntryID = false;
 

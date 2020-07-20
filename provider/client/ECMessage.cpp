@@ -1720,7 +1720,7 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	SizedSPropTagArray(1, sSubjectPrefix) =
+	static constexpr SizedSPropTagArray(1, sSubjectPrefix) =
 		{1, {CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)}};
 
 	// Send to IMAPIProp first
