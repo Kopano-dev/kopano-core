@@ -606,7 +606,7 @@ std::string format(const char *const fmt, ...) {
         va_list ap;
 
         va_start(ap, fmt);
-        (void)vasprintf(&buffer, fmt, ap);
+        vasprintf(&buffer, fmt, ap);
         va_end(ap);
 
         std::string result = buffer;

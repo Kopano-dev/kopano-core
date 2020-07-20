@@ -1541,7 +1541,7 @@ void ECFileAttachment::my_readahead(int fd) {
 	struct stat st;
 
 	if (fstat(fd, &st) == 0)
-		(void)readahead(fd, 0, st.st_size);
+		readahead(fd, 0, st.st_size);
 #endif
 }
 
