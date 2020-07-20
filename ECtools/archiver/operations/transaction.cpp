@@ -112,7 +112,7 @@ HRESULT Rollback::Delete(std::shared_ptr<ArchiverSession> ptrSession, IMessage *
 {
 	unsigned int cMsgProps;
 	DelEntry entry;
-	static constexpr const SizedSPropTagArray(2, sptaMsgProps) =
+	static constexpr SizedSPropTagArray(2, sptaMsgProps) =
 		{2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_PARENT_ENTRYID};
 

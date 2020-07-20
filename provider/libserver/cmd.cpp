@@ -591,9 +591,9 @@ int KCmdService::logon(const char *user, const char *pass,
 	 * and would otherwise turn on compression again.
 	 */
 #ifdef WITH_ZLIB
-	static constexpr const bool has_zlib = true;
+	static constexpr bool has_zlib = true;
 #else
-	static constexpr const bool has_zlib = false;
+	static constexpr bool has_zlib = false;
 #endif
 	if (has_zlib && zcp_peerfd_is_local(soap->socket) <= 0 && clientCaps & KOPANO_CAP_COMPRESSION) {
 		lpsResponse->ulCapabilities |= KOPANO_CAP_COMPRESSION;
@@ -1963,7 +1963,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	    setInserted.find(PR_CREATION_TIME) == setInserted.cend()) {
 		// New item, make sure PR_CREATION_TIME and PR_LAST_MODIFICATION_TIME are available
 		struct propVal sPropTime;
-		static constexpr const unsigned int tags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
+		static constexpr unsigned int tags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 
 		// Get current time
 		auto ft = UnixTimeToFileTime(time(nullptr));
@@ -2051,7 +2051,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	sObjectTableKey key;
 	struct propVal  sPropVal;
 	// block removal of certain properties (per object type?), properties handled in WriteProps
-	static constexpr const unsigned int ulPropTags[] = {PR_MESSAGE_FLAGS, PR_CREATION_TIME, PR_LAST_MODIFICATION_TIME, PR_LAST_MODIFIER_ENTRYID, PR_LAST_MODIFIER_NAME_W, PR_SOURCE_KEY};
+	static constexpr unsigned int ulPropTags[] = {PR_MESSAGE_FLAGS, PR_CREATION_TIME, PR_LAST_MODIFICATION_TIME, PR_LAST_MODIFIER_ENTRYID, PR_LAST_MODIFIER_NAME_W, PR_SOURCE_KEY};
 	std::set<unsigned int> setNotDeletable(ulPropTags, ulPropTags + ARRAY_SIZE(ulPropTags));
 
 	// Delete one or more properties of an object
@@ -2895,8 +2895,8 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	bool bExist = false, bFreeNewEntryId = false;
 	GUID			guid;
 	SOURCEKEY		sSourceKey;
-	static constexpr const unsigned int tags[] = {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_ASSOC_CONTENT_COUNT, PR_DELETED_MSG_COUNT, PR_DELETED_FOLDER_COUNT, PR_DELETED_ASSOC_MSG_COUNT, PR_FOLDER_CHILD_COUNT};
-	static constexpr const unsigned int timeTags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
+	static constexpr unsigned int tags[] = {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_ASSOC_CONTENT_COUNT, PR_DELETED_MSG_COUNT, PR_DELETED_FOLDER_COUNT, PR_DELETED_ASSOC_MSG_COUNT, PR_FOLDER_CHILD_COUNT};
+	static constexpr unsigned int timeTags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 	struct propVal  sProp;
     struct hiloLong sHilo;
 	std::list<propVal> propList;
@@ -4780,7 +4780,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	bool			bHasLocalStore = false;
 	SOURCEKEY		sSourceKey;
 	GUID			guidStore;
-	static constexpr const unsigned int timeProps[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
+	static constexpr unsigned int timeProps[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 	struct propVal 	sProp;
 	struct hiloLong sHilo;
 	struct rightsArray srightsArray;
@@ -7600,7 +7600,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 	// while they shouldn't be present (or at least MAPI_E_NOT_FOUND)
 
 	// These properties must be of type PT_UNICODE for string properties
-	static constexpr const unsigned int sProps[] = {
+	static constexpr unsigned int sProps[] = {
 		/* Don't touch the order of the first 7 elements!!! */
 		PR_ENTRYID, PR_CONTAINER_FLAGS, PR_DEPTH, PR_EMS_AB_CONTAINERID, PR_DISPLAY_NAME, PR_EMS_AB_IS_MASTER, PR_EMS_AB_PARENT_ENTRYID,
 		PR_EMAIL_ADDRESS, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_SEARCH_KEY, PR_PARENT_ENTRYID, PR_ADDRTYPE, PR_RECORD_KEY, PR_ACCOUNT,
@@ -7610,7 +7610,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 		PR_EC_ENABLED_FEATURES, PR_EC_DISABLED_FEATURES, PR_EC_ARCHIVE_SERVERS, PR_EC_ARCHIVE_COUPLINGS, PR_EMS_AB_ROOM_CAPACITY, PR_EMS_AB_ROOM_DESCRIPTION,
 		PR_ASSISTANT
 	};
-	static constexpr const unsigned int sPropsContainerRoot[] = {
+	static constexpr unsigned int sPropsContainerRoot[] = {
 		/* Don't touch the order of the first 7 elements!!! */
 		PR_ENTRYID, PR_CONTAINER_FLAGS, PR_DEPTH, PR_EMS_AB_CONTAINERID, PR_DISPLAY_NAME, PR_EMS_AB_IS_MASTER, PR_EMS_AB_PARENT_ENTRYID,
 		PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_SEARCH_KEY, PR_RECORD_KEY, PR_PARENT_ENTRYID, PR_AB_PROVIDER_ID, PR_EMS_AB_HIERARCHY_PATH, PR_ACCOUNT,

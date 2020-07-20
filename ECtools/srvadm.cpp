@@ -24,7 +24,7 @@ static unsigned int opt_cache_bits;
 static const char *opt_config_file, *opt_host, *opt_clear_cache;
 static std::unique_ptr<ECConfig> adm_config;
 
-static constexpr const struct HXoption adm_options[] = {
+static constexpr struct HXoption adm_options[] = {
 	{"clear-cache", 0, HXTYPE_STRING, &opt_clear_cache, nullptr, nullptr, 0, "Clear one or more caches"},
 	{"purge-deferred", 0, HXTYPE_NONE, &opt_purge_deferred, nullptr, nullptr, 0, "Purge all items in the deferred update table"},
 	{"purge-softdelete", 0, HXTYPE_INT, &opt_purge_softdelete, nullptr, nullptr, 0, "Purge softdeleted items older than N days"},
@@ -34,7 +34,7 @@ static constexpr const struct HXoption adm_options[] = {
 	HXOPT_TABLEEND,
 };
 
-static constexpr const configsetting_t adm_config_defaults[] = {
+static constexpr configsetting_t adm_config_defaults[] = {
 	{"default_store_locale", ""},
 	{"server_socket", "default:"},
 	{"sslkey_file", ""},

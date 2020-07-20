@@ -31,7 +31,7 @@ static char *oof_from, *oof_until, *oof_subject, *oof_msgfile;
 static char *oof_host, *oof_user, *oof_pass, *oof_sslkey, *oof_sslpass;
 static struct tm oof_fromtm, oof_untiltm;
 static int oof_mode = -1, oof_passpr, oof_sslpr;
-static constexpr const struct HXoption oof_options[] = {
+static constexpr struct HXoption oof_options[] = {
 	{"user", 'u', HXTYPE_STRING, &oof_user, nullptr, nullptr, 0, "User to set out of office message for", "NAME"},
 	{nullptr, 'x', HXTYPE_NONE, &oof_passpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},
 	{"mode", 'm', HXTYPE_INT, &oof_mode, nullptr, nullptr, 0, "0 to disable out of office, 1 to enable", "INT"},
@@ -61,7 +61,7 @@ static HRESULT oof_parse_options(int &argc, const char **&argv)
 		fprintf(stderr, "No username specified.\n");
 		return MAPI_E_CALL_FAILED;
 	}
-	static constexpr const char formula[] = "%Y-%m-%d %H:%M"; /* ISO 8601 */
+	static constexpr char formula[] = "%Y-%m-%d %H:%M"; /* ISO 8601 */
 	if (oof_from != nullptr && !oof_infinite(oof_from)) {
 		auto p = strptime(oof_from, formula, &oof_fromtm);
 		if (p == nullptr || *p != '\0') {
@@ -89,7 +89,7 @@ static HRESULT oof_parse_options(int &argc, const char **&argv)
 
 static int oof_show(IMsgStore *store)
 {
-	static constexpr const SizedSPropTagArray(5, proplist) =
+	static constexpr SizedSPropTagArray(5, proplist) =
 		{5, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 		PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG}};
 	ULONG nprops = 0;

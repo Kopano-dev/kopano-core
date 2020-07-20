@@ -241,7 +241,7 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
 	memory_ptr<SPropValue> lpSourceName;
 	unsigned int ulObjType = 0, ulFolderFlags = 0;
-	static constexpr const SizedSPropTagArray (1, sExcludeProps) = {1, {PR_DISPLAY_NAME_A}};
+	static constexpr SizedSPropTagArray (1, sExcludeProps) = {1, {PR_DISPLAY_NAME_A}};
 
 	if (lpSrcInterface == nullptr || lpSrcFolder == nullptr ||
 	    cbEntryID == 0 || lpEntryID == nullptr || lpDestFolder == nullptr)

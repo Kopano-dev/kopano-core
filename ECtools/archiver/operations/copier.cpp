@@ -86,7 +86,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		ptrArchiveFolder = iArchiveFolder->second;
 	}
 
-	static constexpr const SizedSPropTagArray(2, sptaProps) =
+	static constexpr SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	memory_ptr<SPropValue> props;
 	ULONG cb;
@@ -151,7 +151,7 @@ HRESULT Copier::Helper::UpdateIIDs(IMessage *lpSource, IMessage *lpDest,
 
 	unsigned int ulSourceRows = 0, ulDestRows = 0;
 	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
-	static constexpr const SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 	enum {IDX_ATTACH_NUM};
 
 	auto hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
@@ -650,7 +650,7 @@ HRESULT Copier::DoTrackAndRearchive(IMessage *lpMessage,
 
 static HRESULT delete_recipients(IMessage *msg)
 {
-	static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_ROWID}};
+	static constexpr SizedSPropTagArray(1, tags) = {1, {PR_ROWID}};
 	if (msg == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	object_ptr<IMAPITable> tbl;

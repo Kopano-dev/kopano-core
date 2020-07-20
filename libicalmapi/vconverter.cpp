@@ -929,7 +929,7 @@ HRESULT VConverter::resolve_organizer(std::wstring &email, std::wstring &name, s
 	*entryid = nullptr;
 
 	if (bIsUserLoggedIn(email) || force_mailuser) {
-		static constexpr const SizedSPropTagArray(4, sPropTags) =
+		static constexpr SizedSPropTagArray(4, sPropTags) =
 			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 		ULONG count;
 		memory_ptr<SPropValue> propvals;
@@ -1802,7 +1802,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	std::wstring strName, strType, strEmailAddress;
-	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
+	static constexpr SizedSPropTagArray(7, sptaRecipProps) =
 		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
 		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
 		PR_RECIPIENT_TRACKSTATUS}};

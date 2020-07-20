@@ -414,9 +414,9 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(IMAPIFolder *ptrSourceFolder,
 	memory_ptr<SPropValue> ptrStoreEntryId, ptrFolderType, ptrFolderEntryId, ptrPropArray;
 	unsigned int cValues = 0;
 	SObjectEntry objectEntry;
-	static constexpr const SizedSPropTagArray(3, sptaFolderPropsForCreate) =
+	static constexpr SizedSPropTagArray(3, sptaFolderPropsForCreate) =
 		{3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
-	static constexpr const SizedSPropTagArray(2, sptaFolderPropsForReference) =
+	static constexpr SizedSPropTagArray(2, sptaFolderPropsForReference) =
 		{2, {PR_ENTRYID, PR_STORE_ENTRYID}};
 
 	auto hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);

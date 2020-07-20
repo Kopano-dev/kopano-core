@@ -89,11 +89,10 @@ using namespace std::string_literals;
 
 static void ec_log_bt(unsigned int, const char *, ...);
 
-static constexpr const size_t EC_LOG_TSSIZE = 64;
-static constexpr const size_t LOG_PFXSIZE = EC_LOG_TSSIZE + 32 + 16; /* +threadname+pid */
-static constexpr const size_t LOG_LVLSIZE = 12;
-
-static const char *const ll_names[] = {
+static constexpr size_t EC_LOG_TSSIZE = 64;
+static constexpr size_t LOG_PFXSIZE = EC_LOG_TSSIZE + 32 + 16; /* +threadname+pid */
+static constexpr size_t LOG_LVLSIZE = 12;
+static constexpr const char *ll_names[] = {
 	"=======",
 	"crit   ",
 	"error  ",

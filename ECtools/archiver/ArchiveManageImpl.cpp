@@ -519,7 +519,9 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 	for (const auto &arc : lstArchives) {
 		unsigned int cStoreProps = 0, ulCompareResult = false;
 		ArchiveEntry entry;
-		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
+		static constexpr SizedSPropTagArray(4, sptaStoreProps) =
+			{4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID,
+			PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
 		entry.Rights = ARCHIVE_RIGHTS_UNKNOWN;
@@ -710,7 +712,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	SPropValue sPropUser;
 	rowset_ptr ptrRows;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
 
 	// In an ideal world we would use the user entryid for the restriction.
 	// However, the ACL table is a client side table, which doesn't implement

@@ -503,7 +503,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
 HRESULT MAPIPropHelper::GetParentFolder(std::shared_ptr<ArchiverSession> ptrSession, IMAPIFolder **lppFolder)
 {
 	unsigned int cValues = 0;
-	static constexpr const SizedSPropTagArray(2, sptaProps) =
+	static constexpr SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 
 	if (ptrSession == NULL)

@@ -69,7 +69,7 @@ HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
 {
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
-	static constexpr const SizedSPropTagArray(4, sPropACLs) =
+	static constexpr SizedSPropTagArray(4, sPropACLs) =
 		{4, { PR_MEMBER_ID, PR_MEMBER_ENTRYID, PR_MEMBER_RIGHTS,
 		PR_MEMBER_NAME}};
 
@@ -96,7 +96,7 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 	STATSTG statRulesData;
 	unsigned int ulRead, ulRuleId = 1;
 	object_ptr<ECMemTable> ecTable;
-	static constexpr const SizedSPropTagArray(7, sPropRules) =
+	static constexpr SizedSPropTagArray(7, sPropRules) =
 		{7, {PR_RULE_ID, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_USER_FLAGS,
 		PR_RULE_PROVIDER}};

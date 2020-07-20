@@ -281,8 +281,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const std::string &input, IMessage *lpMe
 HRESULT VMIMEToMAPI::save_raw_smime(const std::string &input, size_t posHeaderEnd,
     const vmime::shared_ptr<vmime::header> &vmHeader, IMessage *lpMessage)
 {
-	static constexpr const SizedSPropTagArray(2, sptaAttach) =
-			{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
+	static constexpr SizedSPropTagArray(2, sptaAttach) =
+		{2, {PR_ATTACH_NUM, PR_ATTACHMENT_HIDDEN}};
 	object_ptr<IMAPITable> lpAttachTable;
 	object_ptr<IStream> lpStream;
 	ULONG ulAttNr, nProps = 0;
@@ -585,13 +585,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	memory_ptr<SPropValue> lpRecipProps, lpPropNormalizedSubject;
 
 	// order and types are important for modifyFromAddressBook()
-	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSentRepr) = {7, {
+	static constexpr SizedSPropTagArray(7, sptaRecipPropsSentRepr) = {7, {
 		PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
 		PR_NULL /* PR_xxx_DISPLAY_TYPE not available */,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID,
 		PR_SENT_REPRESENTING_SEARCH_KEY, PR_NULL /* PR_xxx_SMTP_ADDRESS not available */
 	} };
-	static constexpr const SizedSPropTagArray(7, sptaRecipPropsSender) = {7, {
+	static constexpr SizedSPropTagArray(7, sptaRecipPropsSender) = {7, {
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W,
 		PR_NULL /* PR_xxx_DISPLAY_TYPE not available */,
 		PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID,
@@ -1122,7 +1122,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 	std::wstring	wstrName;
 
 	// order and types are important for modifyFromAddressBook()
-	static constexpr const SizedSPropTagArray(7, sptaRecipientProps) =
+	static constexpr SizedSPropTagArray(7, sptaRecipientProps) =
 		{7, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE,
 		PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY,
 		PR_SMTP_ADDRESS_W}};
@@ -1266,7 +1266,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
 	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> lpFlagList;
 	SPropValue sRecipProps[9]; // 8 from addressbook + PR_RECIPIENT_TYPE == max
-	static constexpr const SizedSPropTagArray(8, sptaAddress) =
+	static constexpr SizedSPropTagArray(8, sptaAddress) =
 		{8, {PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
 		PR_DISPLAY_TYPE, PR_DISPLAY_NAME_W, PR_ENTRYID, PR_SEARCH_KEY,
 		PR_OBJECT_TYPE}};

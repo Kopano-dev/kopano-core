@@ -337,7 +337,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	memory_ptr<SPropValue> lpProps;
 	ULONG cProps = 0, cMaxProps = 0, ulRowId = 0;
 	SPropValue sKeyProp;
-	static constexpr const SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
+	static constexpr SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
 			PR_ENTRYID, PR_DISPLAY_NAME_W,
 			PR_CONTENT_COUNT, PR_CONTENT_UNREAD,
 			PR_STORE_ENTRYID, PR_STORE_RECORD_KEY,

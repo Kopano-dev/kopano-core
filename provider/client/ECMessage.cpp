@@ -1210,7 +1210,7 @@ HRESULT ECMessage::SetReadFlag2(unsigned int ulFlags)
 	object_ptr<IMsgStore> lpDefMsgStore;
 
 	// see if read receipts are requested
-	static constexpr const SizedSPropTagArray(2, proptags) =
+	static constexpr SizedSPropTagArray(2, proptags) =
 		{2, {PR_MESSAGE_FLAGS, PR_READ_RECEIPT_REQUESTED}};
 	auto hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &~lpReadReceiptRequest);
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
@@ -1308,7 +1308,7 @@ HRESULT ECMessage::SyncRecips()
 	std::wstring wstrTo, wstrCc, wstrBcc;
 	SPropValue sPropRecip;
 	object_ptr<IMAPITable> lpTable;
-	static constexpr const SizedSPropTagArray(2, sPropDisplay) =
+	static constexpr SizedSPropTagArray(2, sPropDisplay) =
 		{2, {PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W}};
 
 	if (lpRecips == nullptr) {
@@ -1614,7 +1614,7 @@ HRESULT ECMessage::SyncSubject()
 	ULONG			cValues = 0;
 	wchar_t *lpszColon = nullptr, *lpszEnd = nullptr;
 	int				sizePrefix1 = 0;
-	static constexpr const SizedSPropTagArray(2, sPropSubjects) =
+	static constexpr SizedSPropTagArray(2, sPropSubjects) =
 		{2, {PR_SUBJECT_W, PR_SUBJECT_PREFIX_W}};
 	unsigned int hr1 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED), &bDirtySubject);
 	unsigned int hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
@@ -2053,7 +2053,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 // when saving.
 HRESULT ECMessage::HrLoadProps()
 {
-	static constexpr const SizedSPropTagArray(3, sPropBodyTags) =
+	static constexpr SizedSPropTagArray(3, sPropBodyTags) =
 		{3, {PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML}};
 	ULONG cValues = 0;
 	BOOL fBodyOK = false, fRTFOK = false, fHTMLOK = false;

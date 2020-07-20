@@ -23,7 +23,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const std::shared_ptr<InstanceIdMappe
 	memory_ptr<SPropValue> ptrSourceServerUID, ptrDestServerUID;
 	memory_ptr<ENTRYID> ptrSourceInstanceID, ptrDestInstanceID;
 	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	auto hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
 	if (hr != hrSuccess)

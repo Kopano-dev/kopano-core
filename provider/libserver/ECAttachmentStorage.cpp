@@ -181,7 +181,7 @@ static const char fa_hex[] = "0123456789abcdef";
  * and simply request the dagent to resend the attachment and to obtain a new attachment id.
  */
 
-static constexpr const size_t UAS_FILENAME_BUFSIZE = SHA256_DIGEST_LENGTH * 2 + 2;
+static constexpr size_t UAS_FILENAME_BUFSIZE = SHA256_DIGEST_LENGTH * 2 + 2;
 
 /*
  * UAS:

@@ -652,7 +652,7 @@ ECRESULT ECDatabase::CreateDatabase(void)
 		return er;
 
 	// database default data
-	static constexpr const sSQLDatabase_t sDatabaseData[] = {
+	static constexpr sSQLDatabase_t sDatabaseData[] = {
 		{"users", Z_TABLEDATA_USERS},
 		{"stores", Z_TABLEDATA_STORES},
 		{"hierarchy", Z_TABLEDATA_HIERARCHY},
@@ -882,7 +882,7 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	return DoInsert(strQuery);
 }
 
-static constexpr const sSQLDatabase_t kcsrv_tables[] = {
+static constexpr sSQLDatabase_t kcsrv_tables[] = {
 	{"acl", Z_TABLEDEF_ACL},
 	{"hierarchy", Z_TABLEDEF_HIERARCHY},
 	{"names", Z_TABLEDEF_NAMES},

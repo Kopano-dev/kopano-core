@@ -11,7 +11,7 @@ namespace KC {
 ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 {
 	/* The max length of a group_concat function */
-	static constexpr const unsigned int gcm = 32768;
+	static constexpr unsigned int gcm = 32768;
 	/*
 	 * Set auto reconnect. mysql < 5.0.4 default on, mysql 5.0.4 >
 	 * reconnection default off. Archiver always wants to reconnect.
@@ -47,7 +47,7 @@ ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 		FOREIGN KEY (`instance_id`, `tag`) REFERENCES za_instances(`id`, `tag`) ON UPDATE RESTRICT ON DELETE CASCADE \
 	) ENGINE=%s CHARACTER SET %s"
 
-static constexpr const struct sSQLDatabase_t kcmsql_tables[] = {
+static constexpr struct sSQLDatabase_t kcmsql_tables[] = {
 	{"servers", ZA_TABLEDEF_SERVERS},
 	{"instances", ZA_TABLEDEF_INSTANCES},
 	{"mappings", ZA_TABLEDEF_MAPPINGS},

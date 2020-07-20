@@ -143,7 +143,7 @@ bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
-	static constexpr const SizedSPropTagArray(2, sptaDisplay) =
+	static constexpr SizedSPropTagArray(2, sptaDisplay) =
 		{2, {PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE}};
 
 	wstrTo.clear();
@@ -189,9 +189,9 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
 	memory_ptr<SPropValue> ptrBodies, ptrInfo;
-	static constexpr const SizedSPropTagArray(4, sBody) =
+	static constexpr SizedSPropTagArray(4, sBody) =
 		{4, {PR_BODY_W, PR_HTML, PR_RTF_IN_SYNC, PR_INTERNET_CPID}};
-	static constexpr const SizedSPropTagArray(4, sInfo) =
+	static constexpr SizedSPropTagArray(4, sInfo) =
 		{4, {PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_MESSAGE_DELIVERY_TIME,
 		PR_SUBJECT_W}};
@@ -356,11 +356,11 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	std::wstring strwSubject;
 	ULONG cValues = 0, ulCmp = 0;
 	SizedADRLIST(1, sRecip) = {0, {}};
-	static constexpr const SizedSPropTagArray(5, sFrom) =
+	static constexpr SizedSPropTagArray(5, sFrom) =
 		{5, {PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_NAME,
 		PR_RECEIVED_BY_ADDRTYPE, PR_RECEIVED_BY_EMAIL_ADDRESS,
 		PR_RECEIVED_BY_SEARCH_KEY}};
-	static constexpr const SizedSPropTagArray(6, sReplyRecipient) =
+	static constexpr SizedSPropTagArray(6, sReplyRecipient) =
 		{6, {PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE,
 		PR_SENDER_EMAIL_ADDRESS, PR_SENDER_SEARCH_KEY, PR_NULL}};
 
@@ -715,7 +715,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	memory_ptr<SPropTagArray> lpExclude;
 	adrlist_ptr filtered_recips;
 	ULONG ulANr = 0;
-	static constexpr const SizedSPropTagArray(10, sExcludeFromCopyForward) = {10, {
+	static constexpr SizedSPropTagArray(10, sExcludeFromCopyForward) = {10, {
 		PR_TRANSPORT_MESSAGE_HEADERS,
 		PR_SENT_REPRESENTING_ENTRYID,
 		PR_SENT_REPRESENTING_NAME,
@@ -727,12 +727,12 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		PR_MESSAGE_FLAGS,
 		PR_MESSAGE_RECIPIENTS, // This must be the last entry, see bDoNotMunge
 	} };
-	static constexpr const SizedSPropTagArray (3, sExcludeFromCopyRedirect) = {3, {
+	static constexpr SizedSPropTagArray(3, sExcludeFromCopyRedirect) = {3, {
 		PR_TRANSPORT_MESSAGE_HEADERS,
 		PR_MESSAGE_FLAGS,
 		PR_MESSAGE_RECIPIENTS, // This must be the last entry, see bDoNotMunge
 	} };
-	static constexpr const SizedSPropTagArray(1, sExcludeFromAttachedForward) =
+	static constexpr SizedSPropTagArray(1, sExcludeFromAttachedForward) =
 		{1, {PR_TRANSPORT_MESSAGE_HEADERS}};
 	SPropValue sForwardProps[5];
 	std::wstring strSubject;
@@ -850,7 +850,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	if (!bDoNotMunge && !bForwardAsAttachment) {
 		// because we're forwarding this as a new message, clear the old received message id
-		static constexpr const SizedSPropTagArray(1, sptaDeleteProps) =
+		static constexpr SizedSPropTagArray(1, sptaDeleteProps) =
 			{1, {PR_INTERNET_MESSAGE_ID}};
 		hr = lpFwdMsg->DeleteProps(sptaDeleteProps, NULL);
 		if(hr != hrSuccess)
@@ -866,7 +866,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	SPropValue sNewProps[6]{};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
-	static constexpr const SizedSPropTagArray(5, sptaRecipProps) =
+	static constexpr SizedSPropTagArray(5, sptaRecipProps) =
 		{5, {PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_ADDRTYPE,
 		PR_RECEIVED_BY_EMAIL_ADDRESS, PR_RECEIVED_BY_NAME,
 		PR_RECEIVED_BY_SEARCH_KEY}};
@@ -1165,12 +1165,12 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
 	bool bOOFactive = false;
-	static constexpr const SizedSPropTagArray(11, sptaRules) =
+	static constexpr SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
 		PR_RULE_PROVIDER, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8),
 		PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA}};
-	static constexpr const SizedSSortOrderSet(1, sosRules) =
+	static constexpr SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
 	std::string strRule;
 	const SRestriction *lpCondition = nullptr;
@@ -1205,7 +1205,9 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 	// get OOF-state for recipient-store
         struct rulexec rei = {sc, lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, lppMessage, recip.c_str()};
-	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,}};
+	static constexpr SizedSPropTagArray(5, sptaStoreProps) =
+		{3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
+		PR_EC_OUTOFOFFICE_UNTIL}};
 	hr = lpOrigStore->GetProps(sptaStoreProps, 0, &cValues, &~OOFProps);
 	if (FAILED(hr)) {
 		ec_log_err("lpOrigStore->GetProps failed: %s (%x) - OOF-state unavailable",

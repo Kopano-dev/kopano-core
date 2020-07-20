@@ -88,9 +88,9 @@ static rowset_ptr kpxx_hierarchy_table(IMsgStore *store)
 	if (ret != hrSuccess)
 		return nullptr;
 
-	static constexpr const SizedSPropTagArray(3, spta) =
+	static constexpr SizedSPropTagArray(3, spta) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME}};
-	static constexpr const SizedSSortOrderSet(1, order) =
+	static constexpr SizedSSortOrderSet(1, order) =
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 	ret = table->SetColumns(spta, TBL_BATCH);
 	if (ret != hrSuccess)
@@ -165,8 +165,9 @@ int kpxx_folder_get(void *vstor, const char *name, void **fldp)
 	unsigned int pidx = 0;
 
 	while (pidx < path.size()) {
-		static constexpr const SizedSPropTagArray(2, spta) = {2, {PR_DISPLAY_NAME, PR_ENTRYID}};
-		static constexpr const SizedSSortOrderSet(1, order) =
+		static constexpr SizedSPropTagArray(2, spta) =
+			{2, {PR_DISPLAY_NAME, PR_ENTRYID}};
+		static constexpr SizedSSortOrderSet(1, order) =
 			{1, 0, 0, {{PR_DISPLAY_NAME, TABLE_SORT_ASCEND}}};
 		object_ptr<IMAPITable> table;
 

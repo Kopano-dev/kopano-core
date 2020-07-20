@@ -54,43 +54,26 @@ static const struct option long_options[] = {
 };
 
 // sort on something invalid to get the order in which the server added the rows
-static constexpr const SizedSSortOrderSet(2, tableSortSystem) =
-{ 1, 0, 0,
-  {
-	  { PR_NULL, TABLE_SORT_DESCEND }
-  }
-}
-;
-static constexpr const SizedSSortOrderSet(2, tableSortSession) =
+static constexpr SizedSSortOrderSet(2, tableSortSystem) =
+	{1, 0, 0, {{PR_NULL, TABLE_SORT_DESCEND}}};
+static constexpr SizedSSortOrderSet(2, tableSortSession) =
 { 2, 0, 0,
   {
 	  { PR_EC_STATS_SESSION_IPADDRESS, TABLE_SORT_ASCEND },
 	  { PR_EC_STATS_SESSION_IDLETIME, TABLE_SORT_DESCEND }
   }
 };
-
-static constexpr const SizedSSortOrderSet(2, tableSortUser) =
+static constexpr SizedSSortOrderSet(2, tableSortUser) =
 { 2, 0, 0,
   {
 	  { PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND },
 	  { PR_EC_USERNAME_A, TABLE_SORT_ASCEND },
   }
 };
-
-static constexpr const SizedSSortOrderSet(2, tableSortCompany) =
-{ 1, 0, 0,
-  {
-	  { PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND }
-  }
-};
-
-static constexpr const SizedSSortOrderSet(2, tableSortServers) =
-{ 1, 0, 0,
-  {
-	  { PR_EC_STATS_SERVER_NAME, TABLE_SORT_ASCEND }
-  }
-};
-
+static constexpr SizedSSortOrderSet(2, tableSortCompany) =
+	{1, 0, 0, {{PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND}}};
+static constexpr SizedSSortOrderSet(2, tableSortServers) =
+	{1, 0, 0, {{PR_EC_STATS_SERVER_NAME, TABLE_SORT_ASCEND}}};
 static const SSortOrderSet *const sortorders[] = {
 	tableSortSystem, tableSortSession,
 	tableSortUser, tableSortCompany, tableSortServers
@@ -199,9 +182,11 @@ static void showtop(LPMDB lpStore)
 	static const unsigned int cols[] = {0, 4, 21, 8, 25, 16, 20, 8, 8, 7, 7, 5};
 	unsigned int ofs = 0;
 	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true,true}; // key 1 through err?
-	static constexpr const SortFuncPtr fSort[] = {nullptr, sort_sessionid, sort_version, sort_user, sort_ippeer, sort_app, nullptr}; // key a through g
+	static constexpr SortFuncPtr fSort[] =
+		{nullptr, sort_sessionid, sort_version, sort_user,
+		sort_ippeer, sort_app, nullptr}; // key a through g
 	bool bReverse = false;
-	static constexpr const SizedSPropTagArray(2, sptaSystem) =
+	static constexpr SizedSPropTagArray(2, sptaSystem) =
 		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 
     // Init ncurses

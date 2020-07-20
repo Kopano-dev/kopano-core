@@ -57,15 +57,8 @@ static HRESULT HrOpenECPublicStore(IMAPISession *, ULONG flags, IMsgStore **out)
 static HRESULT HrOpenUserMsgStore(IMAPISession *, IMsgStore *, const wchar_t *user, IMsgStore **out);
 
 /* Newmail Notify columns */
-static constexpr const SizedSPropTagArray(4, sPropNewMailColumns) = {
-	4,
-	{
-		PR_ENTRYID,
-		PR_PARENT_ENTRYID,
-		PR_MESSAGE_CLASS_A,
-		PR_MESSAGE_FLAGS,
-	}
-};
+static constexpr SizedSPropTagArray(4, sPropNewMailColumns) =
+	{4, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_MESSAGE_CLASS_A, PR_MESSAGE_FLAGS}};
 
 } /* namespace */
 
@@ -847,7 +840,7 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
 	object_ptr<IMailUser> lpMailUser;
 	unsigned int ulType = 0, cMailUserValues = 0;
 	memory_ptr<SPropValue> lpMailUserProps;
-	static constexpr const SizedSPropTagArray(4, sptaAddressProps) =
+	static constexpr SizedSPropTagArray(4, sptaAddressProps) =
 		{4, {PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
 		PR_SMTP_ADDRESS_W}};
 
@@ -883,7 +876,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	memory_ptr<SPropValue> lpPropValue;
 	unsigned int cValues = 0, ulType = 0;
 	enum esPropDoSentMail{ DSM_ENTRYID, DSM_PARENT_ENTRYID, DSM_SENTMAIL_ENTRYID, DSM_DELETE_AFTER_SUBMIT, DSM_STORE_ENTRYID};
-	static constexpr const SizedSPropTagArray(5, sPropDoSentMail) =
+	static constexpr SizedSPropTagArray(5, sPropDoSentMail) =
 		{5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID,
 		PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID}};
 
@@ -1403,7 +1396,7 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
     SPropValue **lppFolderProp)
 {
 	ULONG nValues;
-	static constexpr const SizedSPropTagArray(2, sptaName) =
+	static constexpr SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	auto hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)

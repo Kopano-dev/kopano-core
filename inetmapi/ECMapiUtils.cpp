@@ -38,7 +38,7 @@ vmime::datetime FiletimeTovmimeDatetime(const FILETIME &ft)
 	return vmime::datetime(convert.tm_year + 1900, convert.tm_mon + 1, convert.tm_mday, convert.tm_hour, convert.tm_min, convert.tm_sec);
 }
 
-static constexpr const struct {
+static constexpr struct {
 	const char *ext, *mime_type;
 } mime_types[] = {
 	{"bin", "application/octet-stream"},

@@ -89,7 +89,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	SPropValue sProps[3]{}, sProp{};
 	ULONG ulAttachNum = 0;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
 	auto hr = VerifyRestriction(lpMessage);
 	if (hr == MAPI_E_NOT_FOUND) {

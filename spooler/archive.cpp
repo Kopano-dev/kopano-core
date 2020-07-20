@@ -64,7 +64,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
+	static constexpr SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
@@ -179,7 +179,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
+	static constexpr SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
 	auto cleanup = make_scope_success([&]() {

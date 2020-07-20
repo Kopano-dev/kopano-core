@@ -810,7 +810,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     bool auto_proc, const std::list<ArchiveEntry> &lstArchives)
 {
 	memory_ptr<SPropValue> lpProps;
-	static constexpr const SizedSPropTagArray(6, sptaProps) =
+	static constexpr SizedSPropTagArray(6, sptaProps) =
 		{6, {PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
 		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
 		PR_EC_OUTOFOFFICE_UNTIL, CHANGE_PROP_TYPE(PR_EC_SERVER_VERSION, PT_STRING8)}};
@@ -1302,9 +1302,9 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
 	bool			bFail = false;
-	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal, sObjTypePropVal, sDispTypePropVal;
-	static constexpr const SizedSPropTagArray(2, sContentsProps) =
+	static constexpr SizedSPropTagArray(2, sContentsProps) =
 		{2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
 
 	auto hr = lpSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);
@@ -1427,7 +1427,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ULONG ulNonActiveLow = 0; //!< at least non-active users allowed
 	ULONG ulActiveAsNonActive = 0;		//!< non-active users taken from active count
 	ConsoleTable ct(3, 4);
-	static constexpr const SizedSPropTagArray(2, sptaStatsProps) =
+	static constexpr SizedSPropTagArray(2, sptaStatsProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE}};
 	enum {IDX_DISPLAY_NAME_A, IDX_EC_STATS_SYSTEM_VALUE};
 	enum {COL_ALLOWED=1, COL_USED, COL_AVAILABLE};
@@ -1549,7 +1549,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	object_ptr<IExchangeManageStore> ptrEMS;
 	unsigned int cbEntryID, ulUpdates = 0, ulTotalUpdates = 0;
 	bool bFailures = false;
-	static constexpr const SizedSPropTagArray(2, sptaTableProps) =
+	static constexpr SizedSPropTagArray(2, sptaTableProps) =
 		{2, {PR_DISPLAY_NAME_A, PR_ENTRYID}};
 	enum {IDX_DISPLAY_NAME, IDX_ENTRYID};
 

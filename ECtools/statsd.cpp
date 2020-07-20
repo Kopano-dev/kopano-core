@@ -44,13 +44,13 @@ static std::shared_ptr<ECConfig> sd_config;
 static std::condition_variable sd_cond_exit;
 static bool sd_quit;
 
-static constexpr const struct HXoption sd_options[] = {
+static constexpr struct HXoption sd_options[] = {
 	{nullptr, 'c', HXTYPE_STRING, &opt_config_file, nullptr, nullptr, 0, "Specify alternate config file"},
 	HXOPT_AUTOHELP,
 	HXOPT_TABLEEND,
 };
 
-static constexpr const configsetting_t sd_config_defaults[] = {
+static constexpr configsetting_t sd_config_defaults[] = {
 	{"statsd_listen", "unix:/var/run/kopano/statsd.sock"},
 	{"statsd_rrd", "/var/lib/kopano/rrd"},
 	{"run_as_user", "kopano"},

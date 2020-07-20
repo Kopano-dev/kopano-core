@@ -426,7 +426,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	memory_ptr<SPropValue> lpPropAdditionalREN;
 	memory_ptr<SPropValue> lpConflictItems, lpEntryIdProp;
 	unsigned int ulCount = 0, ulObjType = 0;
-	static constexpr const SizedSPropTagArray(5, excludeProps) =
+	static constexpr SizedSPropTagArray(5, excludeProps) =
 		{5, {PR_ENTRYID, PR_CONFLICT_ITEMS, PR_SOURCE_KEY,
 		PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST}};
 
@@ -830,7 +830,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	SPropValue sPropValConflicts = {PR_PARENT_ENTRYID, 0};
 	SPropValue sPropValLocalFailures = {PR_PARENT_ENTRYID, 0};
 	SPropValue sPropValServerFailures = {PR_PARENT_ENTRYID, 0};
-	static constexpr const SizedSPropTagArray(2, sptaREMProps) =
+	static constexpr SizedSPropTagArray(2, sptaREMProps) =
 		{2, {PR_REM_ONLINE_ENTRYID, PR_REM_OFFLINE_ENTRYID}};
 
 	auto hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &~ptrREMProps);

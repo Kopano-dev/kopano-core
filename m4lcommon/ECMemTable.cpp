@@ -23,7 +23,7 @@
 
 namespace KC {
 
-static constexpr const SizedSSortOrderSet(1, sSortDefault) = { 0, 0, 0, {} } ;
+static constexpr SizedSSortOrderSet(1, sSortDefault) = {};
 
 class FixStringType final {
 public:

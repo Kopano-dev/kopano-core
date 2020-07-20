@@ -1252,7 +1252,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 	object_ptr<IStream> lpStream;
     ULONG cValues = 0;
     AttachRendData sData;
-	static constexpr const SizedSPropTagArray(2, sptaTags) =
+	static constexpr SizedSPropTagArray(2, sptaTags) =
 		{2, {PR_ATTACH_METHOD, PR_RENDERING_POSITION}};
 	auto sTnefAttach = make_unique_nt<tnefattachment>();
 	if (sTnefAttach == nullptr)

@@ -343,7 +343,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 	if (lpstrFullname || lpbAclCapable) {
 		unsigned int cValues = 0;
 		object_ptr<IMailUser> ptrUser;
-		static constexpr const SizedSPropTagArray(2, sptaUserProps) =
+		static constexpr SizedSPropTagArray(2, sptaUserProps) =
 			{2, {PR_DISPLAY_NAME, PR_DISPLAY_TYPE_EX}};
 		enum {IDX_DISPLAY_NAME, IDX_DISPLAY_TYPE_EX};
 
@@ -391,7 +391,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 	unsigned int cUserProps = 0;
 	object_ptr<IMAPIProp> ptrUser;
 	memory_ptr<SPropValue> ptrUserProps;
-	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
+	static constexpr SizedSPropTagArray(2, sptaUserProps) =
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
 	enum {IDX_ACCOUNT, IDX_DISPLAY_NAME};
 
@@ -429,7 +429,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 HRESULT ArchiverSession::GetGAL(IABContainer **lppAbContainer)
 {
 	object_ptr<IAddrBook> ptrAdrBook;
-	static constexpr const SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sGALProps) = {1, {PR_ENTRYID}};
 	SPropValue sGALPropVal{};
 
 	auto hr = m_ptrSession->OpenAddressBook(0, &iid_of(ptrAdrBook), AB_NO_DIALOG, &~ptrAdrBook);

@@ -300,7 +300,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 HRESULT StoreHelper::GetSubFolder(IMAPIFolder *ptrFolder,
     const tstring &strFolder, bool bCreate, IMAPIFolder **lppFolder)
 {
-	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue sResPropValue{};
 
 	sResPropValue.ulPropTag = PR_DISPLAY_NAME;

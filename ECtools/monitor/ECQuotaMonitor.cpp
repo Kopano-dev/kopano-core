@@ -303,7 +303,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	object_ptr<IMAPITable> lpTable;
 	ECQUOTASTATUS sQuotaStatus;
 	ULONG i, u;
-	static constexpr const SizedSPropTagArray(5, sCols) =
+	static constexpr SizedSPropTagArray(5, sCols) =
 		{5, {PR_EC_USERNAME_A, PR_MESSAGE_SIZE_EXTENDED,
 		PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD,
 		PR_QUOTA_RECEIVE_THRESHOLD}};
@@ -873,7 +873,7 @@ static HRESULT GetConfigMessage(IMsgStore *lpStore, const char *szMessageName,
 	memory_ptr<SPropValue> ptrEntryIDs;
 	unsigned int cValues;
 	SPropValue propSubject;
-	static constexpr const SizedSPropTagArray(2, sptaTreeProps) =
+	static constexpr SizedSPropTagArray(2, sptaTreeProps) =
 		{2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
 	auto hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);

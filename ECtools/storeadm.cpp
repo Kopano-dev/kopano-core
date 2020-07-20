@@ -44,7 +44,7 @@ static const char *opt_entity_name, *opt_entity_type;
 static const char *opt_companyname, *opt_lang;
 static std::unique_ptr<ECConfig> adm_config;
 
-static constexpr const struct HXoption adm_options[] = {
+static constexpr struct HXoption adm_options[] = {
 	{nullptr, 'A', HXTYPE_STRING, &opt_attach_store, nullptr, nullptr, 0, "Attach an orphaned store by GUID to a user account (with -n)", "GUID"},
 	{nullptr, 'C', HXTYPE_NONE, &opt_create_store, nullptr, nullptr, 0, "Create a store and attach it to a user account (with -n)"},
 	{nullptr, 'D', HXTYPE_NONE, &opt_detach_store, nullptr, nullptr, 0, "Detach a user's store (with -n) and make it orphan"},
@@ -66,7 +66,7 @@ static constexpr const struct HXoption adm_options[] = {
 	HXOPT_TABLEEND,
 };
 
-static constexpr const configsetting_t adm_config_defaults[] = {
+static constexpr configsetting_t adm_config_defaults[] = {
 	{"default_store_locale", ""},
 	{"server_socket", "default:"},
 	{"sslkey_file", ""},
@@ -136,7 +136,7 @@ static inline std::string objclass_to_str(const SPropValue *p)
  */
 static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 {
-	static constexpr const SizedSSortOrderSet(2, sort_order) =
+	static constexpr SizedSSortOrderSet(2, sort_order) =
 		{2, 0, 0, {
 			{PR_EC_USERNAME, TABLE_SORT_ASCEND},
 			{PR_EC_STOREGUID, TABLE_SORT_ASCEND},
@@ -227,7 +227,7 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 	ret = ms->GetMailboxTable(nullptr, &~table, MAPI_DEFERRED_ERRORS);
 	if (ret != hrSuccess)
 		return ret;
-	static constexpr const SizedSPropTagArray(6, sp) =
+	static constexpr SizedSPropTagArray(6, sp) =
 		{6, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
 		PR_STORE_RECORD_KEY, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME,
 		PR_MESSAGE_SIZE_EXTENDED}};

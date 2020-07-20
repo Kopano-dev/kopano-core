@@ -80,9 +80,9 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	BOOL fModifyCopy = fModify;
 	auto lpMsgStore = GetMsgStore();
 	// @todo: Put in MergePropsFromStub
-	static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
+	static constexpr SizedSPropTagArray(4, sptaDeleteProps) =
 		{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
-	static constexpr const SizedSPropTagArray(6, sptaRestoreProps) =
+	static constexpr SizedSPropTagArray(6, sptaRestoreProps) =
 		{6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX,
 		PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
 

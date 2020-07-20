@@ -574,7 +574,7 @@ static int mpt_main_malloc(void)
 
 static int mpt_main_bin2hex()
 {
-	static constexpr const size_t bufsize = 1048576;
+	static constexpr size_t bufsize = 1048576;
 	auto temp = std::make_unique<char[]>(bufsize);
 	memset(temp.get(), 0, bufsize);
 	while (mpt_repeat-- > 0) {
