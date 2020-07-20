@@ -1738,7 +1738,7 @@ HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, const SRowSet *lpSearchPath)
 HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
-	ULONG cValues = 0, ulType = 0;
+	unsigned int cValues = 0;
 
 	//FIXME: lpPropTagArray can be NULL, this means that doesn't have extra properties to update only the 
 	//       properties in the lpRecipList array.
@@ -1756,7 +1756,8 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 		auto lpEntryId = lpRecipList->aEntries[i].cfind(PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
-		auto hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
+		auto hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
+		          &IID_IMailUser, 0, nullptr, &~lpMailUser);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenEntry failed", hr);
 		hr = lpMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpProps);

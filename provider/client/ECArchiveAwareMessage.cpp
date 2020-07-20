@@ -499,14 +499,14 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	auto iterIterEID = lstItemEIDs.begin();
 	for (; iterStoreEID != lstStoreEIDs.end(); ++iterStoreEID, ++iterIterEID) {
 		object_ptr<ECMsgStore> ptrArchiveStore;
-		ULONG			ulType = 0;
 
 		hr = GetArchiveStore(*iterStoreEID, &~ptrArchiveStore);
 		if (hr == MAPI_E_NO_SUPPORT)
 			return hr;	// No need to try any other archives.
 		if (hr != hrSuccess)
 			continue;
-		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, reinterpret_cast<ENTRYID *>((*iterIterEID)->lpb), &IID_ECMessage, 0, &ulType, &~ptrArchiveMessage);
+		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, reinterpret_cast<ENTRYID *>((*iterIterEID)->lpb),
+		     &IID_ECMessage, 0, nullptr, &~ptrArchiveMessage);
 		if (hr != hrSuccess)
 			continue;
 		break;

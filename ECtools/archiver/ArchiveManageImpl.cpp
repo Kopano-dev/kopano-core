@@ -315,7 +315,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 {
 	entryid_t sUserEntryId;
 	std::unique_ptr<StoreHelper> ptrStoreHelper;
-	ULONG ulType = 0;
 	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
@@ -376,7 +375,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	if (lpszFolder) {
 		while (iArchive != lstArchives.end()) {
 			object_ptr<IMAPIFolder> ptrArchiveFolder;
-			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
+			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, nullptr, &~ptrArchiveFolder);
 			if (hr != hrSuccess) {
 				m_lpLogger->perr("Failed to open archive folder", hr);
 				return MAPIErrorToArchiveError(hr);
@@ -502,7 +501,6 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 {
 	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	bool bAclCapable = true;
-	ULONG ulType = 0;
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
@@ -578,7 +576,7 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 		}
 
 		object_ptr<IMAPIFolder> ptrArchiveFolder;
-		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
+		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, nullptr, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open folder", hrTmp);
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hr) + " (" + stringify_hex(hrTmp) + ")";

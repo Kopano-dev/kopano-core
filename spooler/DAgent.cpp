@@ -379,7 +379,6 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	const char *autoresponder = g_lpConfig->GetSetting("mr_autoaccepter");
 	std::string strEntryID;
 	memory_ptr<SPropValue> lpEntryID;
-	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 	auto dblStart = std::chrono::steady_clock::now();
 
@@ -388,7 +387,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	// saved so that it can find the message to open. Since we can't save the passed lpMessage (it
 	// must be processed by the rules engine first), we make a copy, and let the autoaccept script
 	// work on the copy.
-	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
+	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, nullptr, &~lpRootFolder);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
@@ -447,13 +446,12 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 	object_ptr<IMessage> lpMessageCopy;
 	const char *autoprocessor = g_lpConfig->GetSetting("mr_autoprocessor");
 	memory_ptr<SPropValue> lpEntryID;
-	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 	auto dblStart = std::chrono::steady_clock::now();
 
 	sc->inc(SCN_DAGENT_AUTOPROCESS);
 	// Pass a copy to the external script
-	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
+	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, nullptr, &~lpRootFolder);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);

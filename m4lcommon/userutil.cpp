@@ -118,13 +118,12 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 		for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
 				continue;
-			ULONG ulType;
 			object_ptr<IMAPIProp> ptrUser;
 			memory_ptr<SPropValue> ptrAccount;
 
 			auto hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
 			        reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
-			        &iid_of(ptrUser), 0, &ulType, &~ptrUser);
+			        &iid_of(ptrUser), 0, nullptr, &~ptrUser);
 			if (hrTmp != hrSuccess)
 				continue;
 			hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);

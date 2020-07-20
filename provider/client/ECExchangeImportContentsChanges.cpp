@@ -719,10 +719,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
 		object_ptr<IMessage> ptrMessage;
-		ULONG ulType = 0;
 
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &iid_of(ptrMessage), MAPI_MODIFY, &ulType, &~ptrMessage);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &iid_of(ptrMessage), MAPI_MODIFY, nullptr, &~ptrMessage);
 		if (hr == MAPI_E_NOT_FOUND) {
 			// This shouldn't happen as we just got a conflict.
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item seems to have disappeared");
@@ -823,7 +822,7 @@ HrVerifyRemindersRestriction(const SRestriction *lpRestriction,
 HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder,
     const SPropValue *lpAdditionalREN)
 {
-	unsigned int cREMProps, ulType = 0, ulOrigSearchState = 0;
+	unsigned int cREMProps, ulOrigSearchState = 0;
 	memory_ptr<SPropValue> ptrREMProps;
 	LPSPropValue lpREMEntryID = NULL;
 	ECAndRestriction resPre;
@@ -845,7 +844,8 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 		return MAPI_E_NOT_FOUND;
 
 	object_ptr<IMAPIFolder> ptrRemindersFolder;
-	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb), &iid_of(ptrRemindersFolder), MAPI_BEST_ACCESS, &ulType, &~ptrRemindersFolder);
+	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb),
+	     &iid_of(ptrRemindersFolder), MAPI_BEST_ACCESS, nullptr, &~ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
 	memory_ptr<ENTRYLIST> ptrOrigContainerList;
