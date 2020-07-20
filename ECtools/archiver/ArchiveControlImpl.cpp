@@ -866,12 +866,11 @@ HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
 {
 	BYTE prefixData[4+sizeof(GUID)]{};
 	static constexpr ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
-	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT(lpFolder)
-	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS;
+	const SizedSPropTagArray(1, sptaContentProps) = {1, {PROP_ITEM_ENTRYIDS}};
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
 
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
