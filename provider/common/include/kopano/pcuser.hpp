@@ -16,7 +16,7 @@ namespace KC {
 
 /* Extern object */
 struct objectid_t final {
-	objectid_t(void) = default;
+	objectid_t() = default;
 	objectid_t(objectclass_t xoc) : objclass(xoc) {}
 	objectid_t(const std::string &xid, objectclass_t xoc) :
 		id(xid), objclass(xoc)
@@ -77,7 +77,7 @@ typedef std::map<property_key_t, std::list<std::string> > property_mv_map;
  */
 class objectdetails_t {
 public:
-	objectdetails_t(void) = default;
+	objectdetails_t() = default;
 	objectdetails_t(const objectdetails_t &o) = default;
 	objectdetails_t(objectclass_t xoc) : m_objclass(xoc) {}
 
@@ -111,8 +111,8 @@ public:
 
 	void			SetClass(objectclass_t objclass);
 	objectclass_t	GetClass() const;
-	virtual size_t GetObjectSize(void) const;
-	std::string ToStr(void) const;
+	virtual size_t GetObjectSize() const;
+	std::string ToStr() const;
 
 private:
 	objectclass_t m_objclass = OBJECTCLASS_UNKNOWN;
@@ -155,7 +155,7 @@ public:
 	std::string	GetFilePath() const;
 	std::string	GetHttpPath() const;
 	std::string	GetSslPath() const;
-	const std::string &GetProxyPath(void) const;
+	const std::string &GetProxyPath() const;
 	size_t get_object_size() const;
 
 private:

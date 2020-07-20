@@ -23,7 +23,7 @@ namespace KC {
 
 class localobjectdetails_t final : public objectdetails_t {
 public:
-	localobjectdetails_t(void) = default;
+	localobjectdetails_t() = default;
 	localobjectdetails_t(unsigned int id, objectclass_t objclass) : objectdetails_t(objclass), ulId(id) {};
 	localobjectdetails_t(unsigned int id, const objectdetails_t &details) : objectdetails_t(details), ulId(id) {};
 	bool operator==(const localobjectdetails_t &obj) const noexcept { return ulId == obj.ulId; };

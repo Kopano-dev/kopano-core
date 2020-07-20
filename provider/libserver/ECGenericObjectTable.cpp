@@ -2518,7 +2518,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
  *
  * @return Object size in bytes
  */
-size_t ECGenericObjectTable::GetObjectSize(void)
+size_t ECGenericObjectTable::GetObjectSize()
 {
 	size_t ulSize = sizeof(*this);
 	scoped_rlock biglock(m_hLock);
@@ -2691,7 +2691,7 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
  *
  * @return Object size in bytes
  */
-size_t ECCategory::GetObjectSize(void) const
+size_t ECCategory::GetObjectSize() const
 {
 	size_t ulSize = 0;
 

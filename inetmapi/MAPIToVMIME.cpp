@@ -837,7 +837,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
  *
  * @return Description of the error if convertMAPIToVMIME returned an error.
  */
-std::wstring MAPIToVMIME::getConversionError(void) const
+std::wstring MAPIToVMIME::getConversionError() const
 {
 	return m_strError;
 }

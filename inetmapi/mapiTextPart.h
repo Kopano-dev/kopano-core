@@ -81,19 +81,19 @@ public:
 		  *
 		  * @return data encoding
 		  */
-		const vmime::encoding &getEncoding(void) const { return m_encoding; }
+		const vmime::encoding &getEncoding() const { return m_encoding; }
 
 		/** Return the identifier of this embedded object.
 		  *
 		  * @return object identifier
 		  */
-		const std::string &getId(void) const { return m_id; }
+		const std::string &getId() const { return m_id; }
 
 		/** Return the location (URL) of this embedded object.
 		  *
 		  * @return object location url
 		  */
-		const std::string &getLocation(void) const { return m_loc; }
+		const std::string &getLocation() const { return m_loc; }
 
 		/** Return the content type of data stored in
 		  * this embedded object.
@@ -106,7 +106,7 @@ public:
 		 *
 		 * @return object name
 		 */
-		const std::string &getName(void) const { return m_name; }
+		const std::string &getName() const { return m_name; }
 
 	private:
 		vmime::shared_ptr<vmime::contentHandler> m_data;
@@ -137,7 +137,7 @@ public:
 	  *
 	  * @return number of embedded objects
 	  */
-	int getObjectCount(void) const { return m_objects.size(); }
+	int getObjectCount() const { return m_objects.size(); }
 
 	/** Return the embedded object at the specified position.
 	  *

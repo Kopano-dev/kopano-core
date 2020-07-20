@@ -48,7 +48,7 @@ class MAPISMTPTransport final : public vmime::net::transport {
 public:
 	MAPISMTPTransport(vmime::shared_ptr<vmime::net::session> sess, vmime::shared_ptr<vmime::security::authenticator> auth, const bool secured = false);
 	~MAPISMTPTransport();
-	const std::string getProtocolName(void) const { return "mapismtp"; }
+	const std::string getProtocolName() const { return "mapismtp"; }
 	static const vmime::net::serviceInfos &getInfosInstance() { return sm_infos; }
 	const vmime::net::serviceInfos &getInfos() const { return sm_infos; }
 	void connect();
@@ -56,7 +56,7 @@ public:
 	void disconnect();
 	void noop();
 	void send(const vmime::mailbox &expeditor, const vmime::mailboxList &recipients, vmime::utility::inputStream &, size_t, vmime::utility::progressListener * = nullptr, const vmime::mailbox &sender = {});
-	bool isSecuredConnection(void) const { return m_secured; }
+	bool isSecuredConnection() const { return m_secured; }
 	vmime::shared_ptr<vmime::net::connectionInfos> getConnectionInfos() const { return m_cntInfos; }
 
 	// additional functions

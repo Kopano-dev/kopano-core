@@ -44,7 +44,7 @@ ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData) :
 	memset(&m_hThread, 0, sizeof(m_hThread));
 }
 
-ECNotifyMaster::~ECNotifyMaster(void)
+ECNotifyMaster::~ECNotifyMaster()
 {
 	assert(m_listNotifyClients.empty());
 	/* Disable Notifications */

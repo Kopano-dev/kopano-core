@@ -24,7 +24,7 @@
  */
 class MAPIInitializer {
 	public:
-	MAPIInitializer(void)
+	MAPIInitializer()
 	{
 		MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
 		if (MAPIInitialize(&init) != erSuccess) {
@@ -32,7 +32,7 @@ class MAPIInitializer {
 			abort();
 		}
 	}
-	~MAPIInitializer(void)
+	~MAPIInitializer()
 	{
 		MAPIUninitialize();
 	}
@@ -153,7 +153,7 @@ public:
 			*lpOutput = buffer;
 			return hrSuccess;
 		}
-		~ISequentialStream(void)
+		~ISequentialStream()
 		{
 			self->Release();
 		}

@@ -10,7 +10,7 @@
 
 using namespace KC;
 
-int main(void)
+int main()
 {
 	MD5_CTX d;
 	std::string h;

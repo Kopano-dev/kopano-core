@@ -140,7 +140,7 @@ enum {
 
 class DeliveryArgs final {
 public:
-	DeliveryArgs(void)
+	DeliveryArgs()
 	{
 		imopt_default_delivery_options(&sDeliveryOpts);
 	}

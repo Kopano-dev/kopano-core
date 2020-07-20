@@ -356,12 +356,12 @@ ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
  *
  * Currently this means we're updating all the stored procedure definitions
  */
-ECRESULT ECDatabase::InitializeDBState(void)
+ECRESULT ECDatabase::InitializeDBState()
 {
 	return InitializeDBStateInner();
 }
 
-ECRESULT ECDatabase::InitializeDBStateInner(void)
+ECRESULT ECDatabase::InitializeDBStateInner()
 {
 	for (size_t i = 0; i < ARRAY_SIZE(stored_procedures); ++i) {
 		auto er = DoUpdate("DROP PROCEDURE IF EXISTS "s + stored_procedures[i].szName);
@@ -383,7 +383,7 @@ ECRESULT ECDatabase::InitializeDBStateInner(void)
 	return erSuccess;
 }
 
-void ECDatabase::UnloadLibrary(void)
+void ECDatabase::UnloadLibrary()
 {
 	/*
 	 * MySQL will timeout waiting for its own threads if the mysql
@@ -397,7 +397,7 @@ void ECDatabase::UnloadLibrary(void)
 	mysql_library_end();
 }
 
-ECRESULT ECDatabase::Connect(void)
+ECRESULT ECDatabase::Connect()
 {
 	auto gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
 	if (gcm < 1024)
@@ -569,7 +569,7 @@ exit:
  * that the results have ended. This must be consumed here, otherwise the database will be left in a bad
  * state.
  */
-ECRESULT ECDatabase::FinalizeMulti(void)
+ECRESULT ECDatabase::FinalizeMulti()
 {
 	autolock alk(*this);
 
@@ -631,17 +631,17 @@ bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 	return std::exchange(m_bSuppressLockErrorLogging, bSuppress);
 }
 
-void ECDatabase::ThreadInit(void)
+void ECDatabase::ThreadInit()
 {
 	mysql_thread_init();
 }
 
-void ECDatabase::ThreadEnd(void)
+void ECDatabase::ThreadEnd()
 {
 	mysql_thread_end();
 }
 
-ECRESULT ECDatabase::CreateDatabase(void)
+ECRESULT ECDatabase::CreateDatabase()
 {
 	auto er = KDatabase::CreateDatabase(m_lpConfig.get(), false);
 	if (er != erSuccess)
@@ -911,7 +911,7 @@ static constexpr sSQLDatabase_t kcsrv_tables[] = {
 	{nullptr, nullptr},
 };
 
-const struct sSQLDatabase_t *ECDatabase::GetDatabaseDefs(void)
+const struct sSQLDatabase_t *ECDatabase::GetDatabaseDefs()
 {
 	return kcsrv_tables;
 }

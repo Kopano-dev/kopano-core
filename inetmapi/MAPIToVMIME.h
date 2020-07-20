@@ -28,7 +28,7 @@ public:
 	MAPIToVMIME();
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);
 	HRESULT convertMAPIToVMIME(IMessage *in, vmime::shared_ptr<vmime::message> *out, unsigned int = MTV_NONE);
-	std::wstring getConversionError(void) const;
+	std::wstring getConversionError() const;
 
 private:
 	vmime::parsingContext m_parsectx;

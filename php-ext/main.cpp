@@ -178,7 +178,7 @@ using namespace KC;
 class pmeasure {
 public:
 	pmeasure(const std::string &);
-	~pmeasure(void);
+	~pmeasure();
 
 private:
 	std::string what;
@@ -206,7 +206,7 @@ pmeasure::pmeasure(const std::string &whatIn)
 	start_ts = decltype(start_ts)::clock::now();
 }
 
-pmeasure::~pmeasure(void)
+pmeasure::~pmeasure()
 {
 	if (perf_measure_file == NULL || *perf_measure_file == '\0')
 		return;
@@ -421,7 +421,7 @@ zend_module_entry mapi_module_entry =
 
 #if COMPILE_DL_MAPI
 BEGIN_EXTERN_C()
-	ZEND_DLEXPORT zend_module_entry *get_module(void);
+	ZEND_DLEXPORT zend_module_entry *get_module();
 	ZEND_GET_MODULE(mapi)
 END_EXTERN_C()
 #endif
@@ -440,7 +440,7 @@ PHP_MINFO_FUNCTION(mapi)
 #define CE_PHP_MAPI_PERFORMANCE_TRACE_FILE "php_mapi_performance_trace_file"
 #define CE_PHP_MAPI_DEBUG "php_mapi_debug"
 
-static int LoadSettingsFile(void)
+static int LoadSettingsFile()
 {
 	const char *const cfg_file = ECConfig::GetDefaultPath("php-mapi.cfg");
 	struct stat st;

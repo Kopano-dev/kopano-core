@@ -20,7 +20,7 @@ public:
 	ECNotification& operator=(const notification &srcNotification);
 	void SetConnection(unsigned int ulConnection);
 	void GetCopy(struct soap *, notification &) const;
-	size_t GetObjectSize(void) const;
+	size_t GetObjectSize() const;
 
 protected:
 	void Init();

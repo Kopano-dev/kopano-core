@@ -20,7 +20,7 @@ private:
 	std::list<LPSPropValue> properties;
 
 public:
-	virtual ~M4LMAPIProp(void);
+	virtual ~M4LMAPIProp();
 	virtual HRESULT GetLastError(HRESULT, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT SaveChanges(unsigned int flags) override;
 	virtual HRESULT GetProps(const SPropTagArray *proptag, unsigned int flags, unsigned int *nvals, SPropValue **prop) override;
@@ -46,7 +46,7 @@ private:
 
 public:
 	M4LProviderAdmin(M4LMsgServiceAdmin *, const char *service);
-	virtual ~M4LProviderAdmin(void);
+	virtual ~M4LProviderAdmin();
 	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT GetProviderTable(unsigned int flags, IMAPITable **table) override;
 	virtual HRESULT CreateProvider(const TCHAR *name, ULONG nprops, const SPropValue *, ULONG ui_param, unsigned int flags, MAPIUID *uid) override;

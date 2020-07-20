@@ -237,7 +237,7 @@ void objectdetails_t::MergeFrom(objectdetails_t &&from)
  *
  * @return Memory usage of this object in bytes
  */
-size_t objectdetails_t::GetObjectSize(void) const
+size_t objectdetails_t::GetObjectSize() const
 {
 	size_t ulSize = sizeof(*this);
 
@@ -252,7 +252,7 @@ size_t objectdetails_t::GetObjectSize(void) const
 	return ulSize;
 }
 
-std::string objectdetails_t::ToStr(void) const
+std::string objectdetails_t::ToStr() const
 {
 	std::string str = "propmap: ";
 	for (auto i = m_mapProps.cbegin(); i != m_mapProps.cend(); ++i) {

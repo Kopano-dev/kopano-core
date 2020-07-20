@@ -217,7 +217,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &from,
  */
 class KC_EXPORT convert_context KC_FINAL {
 public:
-	convert_context(void) = default;
+	convert_context() = default;
 	~convert_context();
 
 	/**
@@ -485,7 +485,7 @@ private:
 	 * @return				A pointer to a iconv_context.
 	 */
 	template<typename To_Type, typename From_Type>
-	KC_HIDDEN iconv_context<To_Type, From_Type> *get_context(void)
+	KC_HIDDEN iconv_context<To_Type, From_Type> *get_context()
 	{
 		context_key key(create_key<To_Type, From_Type>(NULL, NULL));
 		context_map::const_iterator iContext = m_contexts.find(key);

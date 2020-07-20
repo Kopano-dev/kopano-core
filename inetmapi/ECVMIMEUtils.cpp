@@ -48,7 +48,7 @@ private:
 
 class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {
 public:
-	vmime::shared_ptr<vmime::net::timeoutHandler> create(void) override
+	vmime::shared_ptr<vmime::net::timeoutHandler> create() override
 	{
 		return vmime::make_shared<mapiTimeoutHandler>();
 	};

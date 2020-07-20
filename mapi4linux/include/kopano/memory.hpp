@@ -20,7 +20,7 @@ namespace KC {
 template<typename T> class memory_proxy KC_FINAL {
 	public:
 	explicit memory_proxy(T **p) noexcept : m_ptr(p) {}
-	operator T **(void) noexcept { return m_ptr; }
+	operator T **() noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(T *), "This hack won't work");
 		return reinterpret_cast<void **>(m_ptr);
@@ -41,12 +41,12 @@ template<typename T> class memory_proxy2 KC_FINAL {
 template<typename T> class object_proxy KC_FINAL {
 	public:
 	explicit object_proxy(T **p) noexcept : m_ptr(p) {}
-	operator T **(void) noexcept { return m_ptr; }
+	operator T **() noexcept { return m_ptr; }
 	operator void **() noexcept { return as<void>(); }
 	operator IUnknown **() noexcept { return as<IUnknown>(); }
 
 	private:
-	template<typename U> U **as(void) const noexcept
+	template<typename U> U **as() const noexcept
 	{
 		static_assert(sizeof(U *) == sizeof(T *), "This hack won't work");
 		return reinterpret_cast<U **>(m_ptr);
@@ -58,7 +58,7 @@ template<typename T> class object_proxy KC_FINAL {
 template<> class object_proxy<IUnknown> KC_FINAL {
 	public:
 	explicit object_proxy(IUnknown **p) noexcept : m_ptr(p) {}
-	operator IUnknown **(void) noexcept { return m_ptr; }
+	operator IUnknown **() noexcept { return m_ptr; }
 	operator void **() noexcept {
 		static_assert(sizeof(void *) == sizeof(IUnknown *), "This hack won't work");
 		return reinterpret_cast<void **>(m_ptr);
@@ -87,7 +87,7 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 	constexpr memory_ptr() noexcept = default;
 	constexpr memory_ptr(std::nullptr_t) noexcept {}
 	explicit memory_ptr(T *p) noexcept : m_ptr(p) {}
-	~memory_ptr(void)
+	~memory_ptr()
 	{
 		if (m_ptr != nullptr)
 			Deleter()(m_ptr);
@@ -101,12 +101,12 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 	memory_ptr(const memory_ptr &) = delete;
 	memory_ptr(memory_ptr &&o) noexcept : m_ptr(o.release()) {}
 	/* Observers */
-	T &operator*(void) const { return *m_ptr; }
-	T *operator->(void) const noexcept { return m_ptr; }
-	T *get(void) const noexcept { return m_ptr; }
-	operator T *(void) const noexcept { return m_ptr; }
+	T &operator*() const { return *m_ptr; }
+	T *operator->() const noexcept { return m_ptr; }
+	T *get() const noexcept { return m_ptr; }
+	operator T *() const noexcept { return m_ptr; }
 	/* Modifiers */
-	T *release(void) noexcept
+	T *release() noexcept
 	{
 		T *p = get();
 		m_ptr = pointer();
@@ -123,12 +123,12 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 	{
 		std::swap(m_ptr, o.m_ptr);
 	}
-	memory_proxy2<T> operator~(void)
+	memory_proxy2<T> operator~()
 	{
 		reset();
 		return memory_proxy2<T>(&m_ptr);
 	}
-	memory_proxy2<T> operator+(void)
+	memory_proxy2<T> operator+()
 	{
 		return memory_proxy2<T>(&m_ptr);
 	}
@@ -177,7 +177,7 @@ template<typename T> class object_ptr {
 		if (m_ptr != pointer())
 			m_ptr->AddRef();
 	}
-	~object_ptr(void)
+	~object_ptr()
 	{
 		if (m_ptr != pointer())
 			m_ptr->Release();
@@ -189,17 +189,17 @@ template<typename T> class object_ptr {
 	}
 	object_ptr(object_ptr &&o) noexcept : m_ptr(o.m_ptr) { o.m_ptr = pointer(); }
 	/* Observers */
-	T &operator*(void) const { return *m_ptr; }
+	T &operator*() const { return *m_ptr; }
 #ifdef KC_DISALLOW_OBJECTPTR_REFMOD
 	object_rcguard<T> *operator->() const noexcept { return reinterpret_cast<object_rcguard<T> *>(m_ptr); }
 #else
 	T *operator->() const noexcept { return m_ptr; }
 #endif
-	T *get(void) const noexcept { return m_ptr; }
-	operator T *(void) const noexcept { return m_ptr; }
+	T *get() const noexcept { return m_ptr; }
+	operator T *() const noexcept { return m_ptr; }
 
 	/* Modifiers */
-	T *release(void) noexcept
+	T *release() noexcept
 	{
 		T *p = get();
 		m_ptr = pointer();
@@ -217,12 +217,12 @@ template<typename T> class object_ptr {
 	{
 		std::swap(m_ptr, o.m_ptr);
 	}
-	object_proxy2<T> operator~(void)
+	object_proxy2<T> operator~()
 	{
 		reset();
 		return object_proxy2<T>(&m_ptr);
 	}
-	object_proxy2<T> operator+(void)
+	object_proxy2<T> operator+()
 	{
 		return object_proxy2<T>(&m_ptr);
 	}

@@ -25,7 +25,7 @@
 
 namespace KC {
 
-DB_RESULT::~DB_RESULT(void)
+DB_RESULT::~DB_RESULT()
 {
 	if (m_res == nullptr)
 		return;
@@ -49,22 +49,22 @@ DB_RESULT &DB_RESULT::operator=(DB_RESULT &&o) noexcept
 	return *this;
 }
 
-size_t DB_RESULT::get_num_rows(void) const
+size_t DB_RESULT::get_num_rows() const
 {
 	return mysql_num_rows(static_cast<MYSQL_RES *>(m_res));
 }
 
-DB_ROW DB_RESULT::fetch_row(void)
+DB_ROW DB_RESULT::fetch_row()
 {
 	return mysql_fetch_row(static_cast<MYSQL_RES *>(m_res));
 }
 
-DB_LENGTHS DB_RESULT::fetch_row_lengths(void)
+DB_LENGTHS DB_RESULT::fetch_row_lengths()
 {
 	return mysql_fetch_lengths(static_cast<MYSQL_RES *>(m_res));
 }
 
-KDatabase::KDatabase(void)
+KDatabase::KDatabase()
 {
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
@@ -262,7 +262,7 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg, const char **charsetp)
 	return erSuccess;
 }
 
-ECRESULT KDatabase::Close(void)
+ECRESULT KDatabase::Close()
 {
 	/* No locking here */
 	m_bConnected = false;
@@ -442,24 +442,24 @@ void KDatabase::FreeResult_internal(void *r) noexcept
 		mysql_free_result(static_cast<MYSQL_RES *>(r));
 }
 
-unsigned int KDatabase::GetAffectedRows(void)
+unsigned int KDatabase::GetAffectedRows()
 {
 	return mysql_affected_rows(&m_lpMySQL);
 }
 
-const char *KDatabase::GetError(void)
+const char *KDatabase::GetError()
 {
 	if (!m_bMysqlInitialize)
 		return "MYSQL not initialized";
 	return mysql_error(&m_lpMySQL);
 }
 
-unsigned int KDatabase::GetInsertId(void)
+unsigned int KDatabase::GetInsertId()
 {
 	return mysql_insert_id(&m_lpMySQL);
 }
 
-DB_ERROR KDatabase::GetLastError(void)
+DB_ERROR KDatabase::GetLastError()
 {
 	switch (mysql_errno(&m_lpMySQL)) {
 	case ER_LOCK_WAIT_TIMEOUT:

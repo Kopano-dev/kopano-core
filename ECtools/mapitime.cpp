@@ -88,7 +88,7 @@ static void mpt_stat_record(const duration &delta, size_t limit = 300)
 	}
 }
 
-static int mpt_main_init(void)
+static int mpt_main_init()
 {
 	while (mpt_repeat-- > 0) {
 		auto start = clk::now();
@@ -551,7 +551,7 @@ static int mpt_main_cast(bool which)
 	return EXIT_SUCCESS;
 }
 
-static int mpt_main_malloc(void)
+static int mpt_main_malloc()
 {
 	while (mpt_repeat-- > 0) {
 		auto start = clk::now();
@@ -586,7 +586,7 @@ static int mpt_main_bin2hex()
 	return EXIT_SUCCESS;
 }
 
-static void mpt_usage(void)
+static void mpt_usage()
 {
 	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] benchmark_choice\n");
 	fprintf(stderr, "  -z count    Run this many iterations (default: finite but almost forever)\n");

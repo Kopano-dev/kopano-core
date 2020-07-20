@@ -10,7 +10,7 @@ class vcftomapi {
 	 * @o: a MAPI object to use for resolving named properties
 	 */
 	vcftomapi(IMAPIProp *o) : m_propobj(o) {}
-	virtual ~vcftomapi(void) = default;
+	virtual ~vcftomapi() = default;
 
 	/**
 	 * Parses the contents of a .vcf file and adds recognized vCards to the

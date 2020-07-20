@@ -18,7 +18,7 @@ public:
 		m_strPath(szServerPath), lpChannel(std::move(ch)),
 		lpConfig(std::move(cfg)), m_ulFailedLogins(0)
 	{};
-	virtual ~ClientProto(void) = default;
+	virtual ~ClientProto() = default;
 	virtual int getTimeoutMinutes() const = 0;
 	virtual bool isContinue() const { return false; }; // imap only
 	virtual HRESULT HrSendGreeting(const KC::string_view &host) = 0;

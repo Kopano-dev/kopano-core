@@ -36,7 +36,7 @@ public:
 		LogOnly			= 1
 	};
 
-	static const char *GetConfigPath(void);
+	static const char *GetConfigPath();
 	KC_HIDDEN static const configsetting_t *GetConfigDefaults();
 	static eResult Create(std::unique_ptr<Archiver> *);
 	KC_HIDDEN virtual ~Archiver() = default;

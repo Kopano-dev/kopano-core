@@ -24,8 +24,8 @@ public:
 	bool null_or_empty() const;
 
 	operator utf8string() const;
-	operator std::string(void) const;
-	operator std::wstring(void) const;
+	operator std::string() const;
+	operator std::wstring() const;
 	const char *c_str() const;
 	const char *u8_str() const;
 

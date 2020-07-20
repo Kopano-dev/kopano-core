@@ -66,7 +66,7 @@
 
 /* ENTRYID */
 struct ENTRYID {
-	ENTRYID(void) = delete;
+	ENTRYID() = delete;
 	template<typename T> ENTRYID(std::initializer_list<T>) = delete;
 	BYTE abFlags[4], ab[MAPI_DIM];
 };
@@ -213,7 +213,7 @@ typedef struct MAPIUID *LPMAPIUID;
 
 /* Property Tag Array */
 struct SPropTagArray {
-	SPropTagArray(void) = delete;
+	SPropTagArray() = delete;
 	template<typename T> SPropTagArray(std::initializer_list<T>) = delete;
 	unsigned int cValues, aulPropTag[MAPI_DIM];
 };
@@ -229,7 +229,7 @@ typedef struct SPropTagArray *LPSPropTagArray;
 struct SPropTagArray_ ## name { \
 	unsigned int cValues, aulPropTag[ctag]; \
 	operator SPropTagArray &() { return *reinterpret_cast<SPropTagArray *>(this); } \
-	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
+	operator const SPropTagArray *() const { return reinterpret_cast<const SPropTagArray *>(this); } \
 } name
 
 /* Property Value */
@@ -362,7 +362,7 @@ struct SPropProblem {
 typedef struct SPropProblem *LPSPropProblem;
 
 struct SPropProblemArray {
-	SPropProblemArray(void) = delete;
+	SPropProblemArray() = delete;
 	template<typename T> SPropProblemArray(std::initializer_list<T>) = delete;
     ULONG           cProblem;
     SPropProblem    aProblem[MAPI_DIM];
@@ -384,7 +384,7 @@ struct SPropProblemArray_ ## name { \
 typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
 
 struct FLATENTRY {
-	FLATENTRY(void) = delete;
+	FLATENTRY() = delete;
 	template<typename T> FLATENTRY(std::initializer_list<T>) = delete;
     ULONG cb;
     BYTE abEntry[MAPI_DIM];
@@ -392,7 +392,7 @@ struct FLATENTRY {
 typedef struct FLATENTRY *LPFLATENTRY;
 
 struct FLATENTRYLIST {
-	FLATENTRYLIST(void) = delete;
+	FLATENTRYLIST() = delete;
 	template<typename T> FLATENTRYLIST(std::initializer_list<T>) = delete;
 	ULONG cEntries, cbEntries;
     BYTE        abEntries[MAPI_DIM];
@@ -400,7 +400,7 @@ struct FLATENTRYLIST {
 typedef struct FLATENTRYLIST *LPFLATENTRYLIST;
 
 struct MTSID {
-	MTSID(void) = delete;
+	MTSID() = delete;
 	template<typename T> MTSID(std::initializer_list<T>) = delete;
     ULONG       cb;
     BYTE        ab[MAPI_DIM];
@@ -408,7 +408,7 @@ struct MTSID {
 typedef struct MTSID *LPMTSID;
 
 struct FLATMTSIDLIST {
-	FLATMTSIDLIST(void) = delete;
+	FLATMTSIDLIST() = delete;
 	template<typename T> FLATMTSIDLIST(std::initializer_list<T>) = delete;
 	ULONG cMTSIDs, cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
@@ -434,7 +434,7 @@ struct ADRENTRY {
 typedef struct ADRENTRY *LPADRENTRY;
 
 struct ADRLIST {
-	ADRLIST(void) = delete;
+	ADRLIST() = delete;
 	template<typename T> ADRLIST(std::initializer_list<T>) = delete;
     ULONG           cEntries;
     ADRENTRY        aEntries[MAPI_DIM];
@@ -449,7 +449,7 @@ typedef struct ADRLIST *LPADRLIST;
 struct ADRLIST_ ## name { \
     ULONG           cEntries; \
 	ADRENTRY aEntries[centries]; \
-    operator const ADRLIST *(void) const { return reinterpret_cast<const ADRLIST *>(this); } \
+    operator const ADRLIST *() const { return reinterpret_cast<const ADRLIST *>(this); } \
 } name
 
 /* SRow, SRowSet */
@@ -462,11 +462,11 @@ struct SRow {
 typedef struct SRow *LPSRow;
 
 struct SRowSet {
-	SRowSet(void) = delete;
+	SRowSet() = delete;
 	template<typename T> SRowSet(std::initializer_list<T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
-	operator const SRowSet *(void) const { return reinterpret_cast<const SRowSet *>(this); }
+	operator const SRowSet *() const { return reinterpret_cast<const SRowSet *>(this); }
 };
 typedef struct SRowSet *LPSRowSet;
 
@@ -606,7 +606,7 @@ struct IEnumSTATSTG : public virtual IUnknown {
 	public:
 	virtual HRESULT Next(ULONG celt, STATSTG *rgelt, ULONG *pceltFetched) = 0;
 	virtual HRESULT Skip(ULONG celt) = 0;
-	virtual HRESULT Reset(void) = 0;
+	virtual HRESULT Reset() = 0;
 	virtual HRESULT Clone(IEnumSTATSTG **ppenum) = 0;
 };
 #if !defined(INITGUID) || defined(USES_IID_IEnumSTATSTG)
@@ -636,7 +636,7 @@ struct IMalloc : public virtual IUnknown {
 	virtual void Free(void *pv) = 0;
 	virtual ULONG GetSize(void *pv) = 0;
 	virtual int DidAlloc(void *pv) = 0;
-	virtual void HeapMinimize(void) = 0;
+	virtual void HeapMinimize() = 0;
 };
 typedef IMalloc *LPMALLOC;
 
@@ -649,7 +649,7 @@ struct IStorage : public virtual IUnknown {
 	virtual HRESULT CopyTo(DWORD ciidExclude, const IID *rgiidExclude, SNB snbExclude, IStorage *pstgDest) = 0;
 	virtual HRESULT MoveElementTo(const OLECHAR *pwcsName, IStorage *pstgDest, const OLECHAR *pwcsNewName, DWORD grfFlags) = 0;
 	virtual HRESULT Commit(DWORD grfCommitFlags) = 0; 
-	virtual HRESULT Revert(void) = 0;
+	virtual HRESULT Revert() = 0;
 	virtual HRESULT EnumElements(DWORD reserved1, void *reserved2, DWORD reserved3, IEnumSTATSTG **ppenum) = 0; 
 	virtual HRESULT DestroyElement(const OLECHAR *pwcsName) = 0;
 	virtual HRESULT RenameElement(const OLECHAR *pwcsOldName, const OLECHAR *pwcsNewName) = 0;
@@ -901,7 +901,7 @@ struct SSortOrder {
 typedef struct SSortOrder *LPSSortOrder;
 
 struct SSortOrderSet {
-	SSortOrderSet(void) = delete;
+	SSortOrderSet() = delete;
 	template<typename T> SSortOrderSet(std::initializer_list<T>) = delete;
     ULONG           cSorts;     /* Number of sort columns in aSort below*/
     ULONG           cCategories;    /* 0 for non-categorized, up to cSorts */
@@ -920,7 +920,7 @@ typedef struct SSortOrderSet *LPSSortOrderSet;
 struct SSortOrderSet_ ## name { \
 	ULONG cSorts, cCategories, cExpanded; \
 	SSortOrder aSort[csort]; \
-	operator const SSortOrderSet *(void) const { return reinterpret_cast<const SSortOrderSet *>(this); } \
+	operator const SSortOrderSet *() const { return reinterpret_cast<const SSortOrderSet *>(this); } \
 } name
 
 #define FOLDER_ROOT             ((ULONG) 0x00000000)
@@ -1043,7 +1043,7 @@ IID_OF2(IAttach, IAttachment)
  *  bits are set, it is an error.
  */
 struct FlagList {
-	FlagList(void) = delete;
+	FlagList() = delete;
 	template<typename T> FlagList(std::initializer_list<T>) = delete;
 	unsigned int cFlags, ulFlag[MAPI_DIM];
 };

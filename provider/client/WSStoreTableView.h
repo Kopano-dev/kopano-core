@@ -10,7 +10,7 @@
 class WSStoreTableView : public WSTableView {
 protected:
 	WSStoreTableView(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
-	virtual ~WSStoreTableView(void) = default;
+	virtual ~WSStoreTableView() = default;
 public:
 	static HRESULT Create(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableView **);
 	ALLOC_WRAP_FRIEND;

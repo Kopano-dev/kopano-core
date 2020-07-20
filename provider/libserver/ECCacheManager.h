@@ -100,7 +100,7 @@ public:
 
 class ECsIndexProp final : public ECsCacheEntry {
 public:
-	ECsIndexProp(void) = default;
+	ECsIndexProp() = default;
 	~ECsIndexProp() {
 		delete[] lpData;
 	}
@@ -151,7 +151,7 @@ public:
 
 class ECsCells final : public ECsCacheEntry {
 public:
-	ECsCells(void) = default;
+	ECsCells() = default;
 	~ECsCells();
 	ECsCells(const ECsCells &);
 	ECsCells &operator=(const ECsCells &);
@@ -172,7 +172,7 @@ public:
 
 class ECsACLs final : public ECsCacheEntry {
 public:
-	ECsACLs(void) = default;
+	ECsACLs() = default;
 	ECsACLs(const ECsACLs &src) : ulACLs(src.ulACLs)
 	{
 		aACL.reset(new ACL[ulACLs]);

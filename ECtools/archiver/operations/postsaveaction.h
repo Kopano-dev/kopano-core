@@ -14,7 +14,7 @@ namespace KC { namespace operations {
  */
 class IPostSaveAction {
 public:
-	virtual ~IPostSaveAction(void) = default;
+	virtual ~IPostSaveAction() = default;
 	virtual HRESULT Execute() = 0;
 };
 

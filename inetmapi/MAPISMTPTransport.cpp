@@ -570,7 +570,7 @@ void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 		m_socket->send(buffer);
 }
 
-vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse(void)
+vmime::shared_ptr<SMTPResponse> MAPISMTPTransport::readResponse()
 {
 	vmime::shared_ptr<tracer> t;
 	auto resp = SMTPResponse::readResponse(t, m_socket, m_timeoutHandler, m_response_state);

@@ -19,7 +19,7 @@ namespace KC {
 /* Variable size, but can also be prominently 22 bytes */
 class SOURCEKEY final {
 public:
-	SOURCEKEY(void) : ulSize(0) {}
+	SOURCEKEY() : ulSize(0) {}
 	SOURCEKEY(const SOURCEKEY &s) : ulSize(s.ulSize)
 	{
 		if (ulSize > 0) {
@@ -89,7 +89,7 @@ public:
 		}
 	}
 
-	operator const unsigned char *(void) const { return reinterpret_cast<const unsigned char *>(lpData != nullptr ? lpData.get() : ""); }
+	operator const unsigned char *() const { return reinterpret_cast<const unsigned char *>(lpData != nullptr ? lpData.get() : ""); }
 	explicit operator std::string() const { return std::string(lpData != nullptr ? lpData.get() : "", ulSize); }
 	operator SBinary() const { return SBinary{ulSize, reinterpret_cast<BYTE *>(lpData.get())}; }
     unsigned int 	size() const { return ulSize; }

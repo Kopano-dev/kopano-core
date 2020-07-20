@@ -194,7 +194,7 @@ static void PrintHelp(const char *name)
 	cout << endl;
 }
 
-static void PrintVersion(void)
+static void PrintVersion()
 {
 	cout << "kopano-ical " PROJECT_VERSION << endl;
 }

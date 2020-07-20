@@ -92,12 +92,12 @@ public:
  */
 class KC_EXPORT ECTask {
 public:
-	virtual ~ECTask(void) = default;
-	virtual void execute(void);
+	virtual ~ECTask() = default;
+	virtual void execute();
 	ECThreadWorker *m_worker = nullptr;
 
 protected:
-	virtual void run(void) = 0;
+	virtual void run() = 0;
 	ECTask() = default;
 
 private:

@@ -353,7 +353,7 @@ static void print_help(const char *name)
  *
  * @return	char	The typed password if ok, or NULL when failed.
  */
-static char *get_password(void)
+static char *get_password()
 {
 	static char password[80];
 	auto s = get_password("Type password:");

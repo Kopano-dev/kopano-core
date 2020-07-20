@@ -13,7 +13,7 @@ class ECMsgStore;
 class ECAttach : public ECMAPIProp, public IAttach {
 protected:
 	ECAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
-	virtual ~ECAttach(void) = default;
+	virtual ~ECAttach() = default;
 public:
 	virtual HRESULT QueryInterface(const IID &, void **) override;
 	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);

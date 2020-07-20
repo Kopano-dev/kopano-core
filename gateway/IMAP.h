@@ -78,7 +78,7 @@ public:
 		lpb = new BYTE[bin.cb];
 		memcpy(lpb, bin.lpb, bin.cb);
 	}
-	~BinaryArray(void)
+	~BinaryArray()
 	{
 		if (!bcheap)
 			delete[] lpb;

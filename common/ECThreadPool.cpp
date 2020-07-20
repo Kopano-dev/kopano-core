@@ -419,7 +419,7 @@ bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 	case 0:
 		return (m_state & waitMask) != 0;
 	case WAIT_INFINITE:
-		m_hCondition.wait(locker, [&](void) { return m_state & waitMask; });
+		m_hCondition.wait(locker, [&]() { return m_state & waitMask; });
 		return true;
 	default:
 		while (!(m_state & waitMask))

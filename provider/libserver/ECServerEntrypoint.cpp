@@ -42,7 +42,7 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	return er;
 }
 
-ECRESULT kopano_unloadlibrary(void)
+ECRESULT kopano_unloadlibrary()
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;

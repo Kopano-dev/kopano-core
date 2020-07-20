@@ -24,7 +24,7 @@
 
 namespace KC {
 
-CHtmlToTextParser::CHtmlToTextParser(void)
+CHtmlToTextParser::CHtmlToTextParser()
 {
 	tagMap[L"head"] = tagParser(false, &CHtmlToTextParser::parseTagHEAD);
 	tagMap[L"/head"] = tagParser(false, &CHtmlToTextParser::parseTagBHEAD);

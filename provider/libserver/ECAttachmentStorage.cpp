@@ -87,7 +87,7 @@ class ECFileAttachment : public ECAttachmentStorage {
 	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, unsigned int l1, unsigned int l2, bool sync);
 
 	protected:
-	virtual ~ECFileAttachment(void);
+	virtual ~ECFileAttachment();
 
 	/* Single Instance Attachment handlers */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;

@@ -32,7 +32,7 @@ public:
 	HRESULT CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulPropTag);
 	HRESULT CopyToByRef(LPSPropValue lpsProp) const;
 	bool operator==(const ECProperty &property) const;
-	SPropValue GetMAPIPropValRef(void) const;
+	SPropValue GetMAPIPropValRef() const;
 	ULONG GetSize() const { return ulSize; }
 	ULONG GetPropTag() const { return ulPropTag; }
 	DWORD GetLastError() const { return dwLastError; }

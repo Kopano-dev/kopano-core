@@ -255,7 +255,7 @@ ECChannel::~ECChannel() {
 	close(fd);
 }
 
-HRESULT ECChannel::HrEnableTLS(void)
+HRESULT ECChannel::HrEnableTLS()
 {
 	int rc = -1;
 	if (lpSSL != nullptr) {
@@ -737,7 +737,7 @@ int zcp_peerfd_is_local(int fd)
 	return zcp_peeraddr_is_local(sa, slen);
 }
 
-int ECChannel::peer_is_local(void) const
+int ECChannel::peer_is_local() const
 {
 	return zcp_peeraddr_is_local(reinterpret_cast<const struct sockaddr *>(&peer_sockaddr), peer_salen);
 }

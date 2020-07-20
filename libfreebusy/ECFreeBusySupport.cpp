@@ -15,7 +15,7 @@
 
 namespace KC {
 
-ECFreeBusySupport::ECFreeBusySupport(void)
+ECFreeBusySupport::ECFreeBusySupport()
 {
 	GetClientVersion(&m_ulOutlookVersion);
 }

@@ -88,7 +88,7 @@ class ECFifoSerializer final : public ECSerializer {
 	enum eMode { serialize, deserialize };
 
 	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
-	virtual ~ECFifoSerializer(void);
+	virtual ~ECFifoSerializer();
 	virtual ECRESULT SetBuffer(void *) override;
 	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) override;
 	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) override;
@@ -308,7 +308,7 @@ ECFifoSerializer::ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode) :
 	SetBuffer(lpBuffer);
 }
 
-ECFifoSerializer::~ECFifoSerializer(void)
+ECFifoSerializer::~ECFifoSerializer()
 {
 	if (m_lpBuffer == nullptr)
 		return;
@@ -4748,7 +4748,7 @@ SOAP_ENTRY_START(purgeSoftDelete, *result, unsigned int ulDays, unsigned int *re
 }
 SOAP_ENTRY_END()
 
-static inline void kc_purge_cache_tcmalloc(void)
+static inline void kc_purge_cache_tcmalloc()
 {
 #ifdef HAVE_TCMALLOC
 	auto rfm = reinterpret_cast<decltype(MallocExtension_ReleaseFreeMemory) *>

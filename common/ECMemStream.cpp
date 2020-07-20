@@ -556,7 +556,7 @@ ECRESULT ECFifoBuffer::Flush()
 
 	ulock_normal locker(m_hMutex);
 	m_hCondFlushed.wait(locker,
-		[this](void) { return IsClosed(cfWrite) || IsEmpty(); });
+		[this]() { return IsClosed(cfWrite) || IsEmpty(); });
 	return erSuccess;
 }
 

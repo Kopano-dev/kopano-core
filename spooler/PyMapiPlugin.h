@@ -36,7 +36,7 @@ public:
 	HRESULT create_plugin(KC::ECConfig *, const char *mgr_class, pym_plugin_intf **);
 
 private:
-	void (*m_exit)(void) = nullptr;
+	void (*m_exit)() = nullptr;
 
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;

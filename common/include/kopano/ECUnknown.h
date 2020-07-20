@@ -46,7 +46,7 @@ namespace KC {
 
 class KC_EXPORT ECUnknown : public virtual IUnknown {
 public:
-	virtual ~ECUnknown(void);
+	virtual ~ECUnknown();
 	virtual ULONG AddRef() KC_OVERRIDE;
 	virtual ULONG Release() KC_OVERRIDE;
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) KC_OVERRIDE;

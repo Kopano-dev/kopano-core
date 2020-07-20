@@ -2049,7 +2049,7 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
  * object from that library you still * have will be unusable,
  * and will make your program crash when used.
  */
-void MAPIUninitialize(void)
+void MAPIUninitialize()
 {
 	scoped_lock l_mapi(g_MAPILock);
 

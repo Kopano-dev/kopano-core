@@ -58,7 +58,7 @@ typedef IMAPISupport* LPMAPISUP;
 
 /* Notification key structure for the MAPI notification engine */
 struct NOTIFKEY {
-	NOTIFKEY(void) = delete;
+	NOTIFKEY() = delete;
 	template<typename T> NOTIFKEY(std::initializer_list<T>) = delete;
     ULONG       cb;             /* How big the key is */
     BYTE        ab[MAPI_DIM];   /* Key contents */

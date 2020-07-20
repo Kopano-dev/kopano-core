@@ -36,7 +36,7 @@ public:
 		ReadOnly = 4
 	};
 
-	virtual ~ArchiveManage(void) = default;
+	virtual ~ArchiveManage() = default;
 	KC_EXPORT static HRESULT Create(IMAPISession *, std::shared_ptr<ECLogger>, const TCHAR *user, std::unique_ptr<ArchiveManage> *manage);
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
@@ -48,7 +48,7 @@ public:
 	virtual eResult AutoAttach(unsigned int ulFlags) = 0;
 
 protected:
-	ArchiveManage(void) = default;
+	ArchiveManage() = default;
 };
 
 } /* namespace */

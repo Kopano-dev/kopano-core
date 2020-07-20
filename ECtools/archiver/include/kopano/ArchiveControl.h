@@ -21,14 +21,14 @@ enum eResult {
 
 class ArchiveControl {
 public:
-	virtual ~ArchiveControl(void) = default;
+	virtual ~ArchiveControl() = default;
 	virtual eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) = 0;
 	virtual eResult Archive(const tstring& strUser, bool bAutoAttach, unsigned int ulFlags) = 0;
 	virtual eResult CleanupAll(bool bLocalOnly) = 0;
 	virtual eResult Cleanup(const tstring& strUser) = 0;
 
 protected:
-	ArchiveControl(void) = default;
+	ArchiveControl() = default;
 };
 
 } /* namespace */

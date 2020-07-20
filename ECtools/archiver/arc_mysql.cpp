@@ -54,7 +54,7 @@ static constexpr struct sSQLDatabase_t kcmsql_tables[] = {
 	{nullptr, nullptr},
 };
 
-const struct sSQLDatabase_t *KCMDatabaseMySQL::GetDatabaseDefs(void)
+const struct sSQLDatabase_t *KCMDatabaseMySQL::GetDatabaseDefs()
 {
 	return kcmsql_tables;
 }

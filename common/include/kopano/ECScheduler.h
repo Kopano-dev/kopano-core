@@ -34,7 +34,7 @@ typedef std::list<ECSCHEDULE> ECScheduleList;
 class KC_EXPORT ECScheduler KC_FINAL {
 public:
 	ECScheduler();
-	~ECScheduler(void);
+	~ECScheduler();
 	HRESULT AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData = NULL);
 
 private:

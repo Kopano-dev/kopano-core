@@ -40,7 +40,7 @@ private:
 class ECNotifyMaster final : public KC::ECUnknown {
 protected:
 	ECNotifyMaster(SessionGroupData *lpData);
-	virtual ~ECNotifyMaster(void);
+	virtual ~ECNotifyMaster();
 
 public:
 	static HRESULT Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster);
