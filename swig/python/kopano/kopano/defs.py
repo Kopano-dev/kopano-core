@@ -276,12 +276,12 @@ FB_STATUS = {
 STATUS_FB = dict((b, a) for (a, b) in FB_STATUS.items())
 
 RESPONSE_STATUS = {
-        respNone: 'None',
-        respOrganized: 'Organizer',
-        respTentative: 'TentativelyAccepted',
-        respAccepted: 'Accepted',
-        respDeclined: 'Declined',
-        respNotResponded: 'NotResponded',
+    respNone: 'None',
+    respOrganized: 'Organizer',
+    respTentative: 'TentativelyAccepted',
+    respAccepted: 'Accepted',
+    respDeclined: 'Declined',
+    respNotResponded: 'NotResponded',
 }
 
 STATUS_RESPONSE = dict((b, a) for (a, b) in RESPONSE_STATUS.items())
