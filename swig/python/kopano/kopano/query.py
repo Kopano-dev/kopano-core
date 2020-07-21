@@ -43,7 +43,7 @@ from MAPI.Struct import (
     SPropValue, SPropertyRestriction, SBitMaskRestriction, SSubRestriction,
 )
 
-from MAPI.Time import FileTime
+from MAPI.Time import FileTime, NANOSECS_BETWEEN_EPOCH
 from MAPI.Defs import PROP_TYPE
 
 from .errors import ArgumentError
@@ -144,7 +144,6 @@ OP_RELOP = {
 }
 
 # TODO merge with freebusy version
-NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
     return FileTime(
         int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
