@@ -7,10 +7,8 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 
 import datetime
 import time
-try:
-    import libfreebusy
-except ImportError: # pragma: no cover
-    pass
+
+import libfreebusy
 
 from MAPI.Time import NANOSECS_BETWEEN_EPOCH
 
