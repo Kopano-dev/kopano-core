@@ -12,6 +12,8 @@ try:
 except ImportError: # pragma: no cover
     pass
 
+from MAPI.Time import NANOSECS_BETWEEN_EPOCH
+
 from .defs import (
     STATUS_FB,
 )
@@ -31,7 +33,6 @@ from .errors import (
 )
 
 # TODO to utils.py?
-NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
     return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
