@@ -327,7 +327,8 @@ kopano_server_LDADD = \
 	libkcutil.la libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
 	${clock_LIBS} ${CRYPTO_LIBS} ${DL_LIBS} ${libHX_LIBS} ${icu_uc_LIBS} \
 	${icu_i18n_LIBS} \
-	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
+	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} ${kustomer_LIBS} \
+	-lpthread
 kopano_server_LDFLAGS = ${AM_LDFLAGS}
 
 

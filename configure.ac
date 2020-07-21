@@ -649,6 +649,16 @@ AS_IF([test "$have_icu" = 0], [
 ])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
+# check libkustomer support
+PKG_CHECK_EXISTS([libkustomer], [have_kustomer=1], [have_kustomer=0])
+AC_ARG_ENABLE([kustomer], AS_HELP_STRING([--enable-kustomer], [require libkustomer]), [want_kustomer=yes], [want_kustomer=no])
+AS_IF([test "$want_kustomer" = "yes"], [
+	PKG_CHECK_MODULES([kustomer], [libkustomer])
+	AC_SUBST([kustomer_LIBS])
+	AC_DEFINE(HAVE_KUSTOMER, [1], [libkustomer available])
+	ZCPPFLAGS="$ZCPPFLAGS $kustomer_CFLAGS"
+])
+
 # done testing C++ requirements
 AC_LANG_POP
 dnl Set default project flags. On overriding AM_CXXFLAGS, include ${ZCXXFLAGS}
