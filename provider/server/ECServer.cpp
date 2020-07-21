@@ -58,6 +58,10 @@
 #ifdef HAVE_KCOIDC_H
 #include <kcoidc.h>
 #endif
+#ifdef HAVE_KUSTOMER
+#include <kustomer.h>
+#include <kustomer_errors.h>
+#endif
 
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
@@ -92,6 +96,54 @@ static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
+
+#ifdef HAVE_KUSTOMER
+static const char *kustomerProductName = "groupware";
+
+static void kustomer_log_info_cb(char *s)
+{
+	ec_log_info("%s", s);
+	free(s); // Release memory allocated in the C heap by cgo with malloc.
+}
+
+static int kustomer_log_ensured_claims()
+{
+	auto transaction = kustomer_begin_ensure();
+	if (transaction.r0 != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to start transaction: 0x%llx, %s", transaction.r0, kustomer_err_numeric_text(transaction.r0));
+		return transaction.r0;
+	}
+	auto ensured = kustomer_dump_ensure(transaction.r1);
+	if (ensured.r0 != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to dump ensured claims: 0x%llx, %s", ensured.r0, kustomer_err_numeric_text(ensured.r0));
+		return ensured.r0;
+	}
+	ec_log_info("KUSTOMER ensured claims: %s", ensured.r1);
+	free(ensured.r1); // Release memory allocated in the C heap by cgo with malloc.
+	auto res = kustomer_ensure_ok(transaction.r1, const_cast<char *>(kustomerProductName));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_notice("KUSTOMER was unable to find a '%s' license: 0x%llx, %s", kustomerProductName, res, kustomer_err_numeric_text(res));
+	}
+	res = kustomer_end_ensure(transaction.r1);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to end transaction: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return res;
+	}
+
+	return KUSTOMER_ERRSTATUSSUCCESS;
+}
+
+static void kustomer_notify_update_cb()
+{
+	ec_log_info("KUSTOMER ensured claim notify received");
+	kustomer_log_ensured_claims();
+}
+
+static void kustomer_notify_exit_cb()
+{
+	ec_log_info("KUSTOMER ensured claim notify watch exit");
+}
+#endif
 
 server_stats::server_stats(std::shared_ptr<ECConfig> cfg) :
 	ECStatsCollector(cfg)
@@ -797,6 +849,9 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 #ifdef HAVE_KCOIDC_H
 	bool kcoidc_initialized = false;
 #endif
+#ifdef HAVE_KUSTOMER
+	bool kustomer_initialized = false;
+#endif
 
 static void cleanup(ECRESULT er)
 {
@@ -825,6 +880,14 @@ static void cleanup(ECRESULT er)
 		auto res = kcoidc_uninitialize();
 		if (res != 0)
 			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx", res);
+	}
+#endif
+#ifdef HAVE_KUSTOMER
+	if (kustomer_initialized) {
+		auto res = kustomer_uninitialize();
+		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+			ec_log_always("KUSTOMER failed to uninitialize: 0x%llx", res);
+		}
 	}
 #endif
 	kopano_unloadlibrary();
@@ -996,6 +1059,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "kcoidc_insecure_skip_verify", "no", 0},
 		{ "kcoidc_initialize_timeout", "60", 0 },
 #endif
+#ifdef HAVE_KUSTOMER
+		{ "kustomer_initialize_timeout", "60", 0 },
+		{ "kustomer_debug", "", 0 },
+#endif
 		{"cache_cellcache_reads", "yes", CONFIGSETTING_RELOADABLE},
 		{ NULL, NULL },
 	};
@@ -1133,6 +1200,54 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
     soap_ssl_init(); // Always call this in the main thread once!
     ssl_threading_setup();
+#ifdef HAVE_KUSTOMER
+	int kustomerDebug = -1;
+	long long unsigned int res;
+	std::string strKustomerDebug = g_lpConfig->GetSetting("kustomer_debug");
+	if (!strKustomerDebug.empty()) {
+		if (parseBool(g_lpConfig->GetSetting("kustomer_debug")))
+			kustomerDebug = 1;
+		else
+			kustomerDebug = 0;
+	}
+	ec_log_info("KUSTOMER initializing");
+	res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return retval;
+	}
+	res = kustomer_set_autorefresh(1);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return retval;
+	}
+	res = kustomer_initialize(const_cast<char *>(kustomerProductName));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return retval;
+	}
+	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
+	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
+	if (kustomer_initialize_timeout > KUSTOMER_ERRSTATUSSUCCESS) {
+		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
+		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+			return retval;
+		}
+		ec_log_info("KUSTOMER initialized");
+	}
+	kustomer_initialized = true;
+	res = kustomer_log_ensured_claims();
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		return retval;
+	}
+	res = kustomer_set_notify_when_updated(kustomer_notify_update_cb, kustomer_notify_exit_cb);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to watch for updates: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return retval;
+	}
+
+#endif
 #ifdef HAVE_KCOIDC_H
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
 		auto res = kcoidc_insecure_skip_verify(1);
