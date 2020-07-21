@@ -6,7 +6,6 @@ Copyright 2018 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import datetime
-import time
 import re
 
 import dateutil.parser
@@ -43,7 +42,7 @@ from MAPI.Struct import (
     SPropValue, SPropertyRestriction, SBitMaskRestriction, SSubRestriction,
 )
 
-from MAPI.Time import FileTime, NANOSECS_BETWEEN_EPOCH
+from MAPI.Time import datetime_to_filetime
 from MAPI.Defs import PROP_TYPE
 
 from .errors import ArgumentError
@@ -143,10 +142,6 @@ OP_RELOP = {
     '<>': RELOP_NE,
 }
 
-# TODO merge with freebusy version
-def datetime_to_filetime(d):
-    return FileTime(
-        int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 def _interval_restriction(proptag, start, end):
     start = datetime_to_filetime(start)

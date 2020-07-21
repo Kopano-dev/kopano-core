@@ -6,14 +6,12 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import datetime
-import time
 
 import libfreebusy
 
-from MAPI.Time import NANOSECS_BETWEEN_EPOCH
-
 from MAPI.Time import (
     FileTime,
+    datetime_to_filetime,
 )
 
 import MAPI.Struct
@@ -30,9 +28,6 @@ from .errors import (
     NotFoundError
 )
 
-# TODO to utils.py?
-def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 def datetime_to_rtime(d):
     return datetime_to_filetime(d).filetime / 600000000
