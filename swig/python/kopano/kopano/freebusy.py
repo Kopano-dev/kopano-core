@@ -12,10 +12,6 @@ import libfreebusy
 
 from MAPI.Time import NANOSECS_BETWEEN_EPOCH
 
-from .defs import (
-    STATUS_FB,
-)
-
 from MAPI.Time import (
     FileTime,
 )
@@ -24,6 +20,10 @@ import MAPI.Struct
 
 from .compat import (
     bdec as _bdec
+)
+
+from .defs import (
+    FB_STATUS, STATUS_FB,
 )
 
 from .errors import (
@@ -41,20 +41,12 @@ def rtime_to_datetime(r):
     return datetime.datetime.fromtimestamp(FileTime(r * 600000000).unixtime)
 
 
-CODE_STATUS = {
-    0: 'free',
-    1: 'tentative',
-    2: 'busy',
-    3: 'outofoffice',
-}
-
-
 class FreeBusyBlock(object):
     """FreeBusyBlock class"""
 
     def __init__(self, block):
         #: Freebusy block status (free, tentative, busy or outofoffice)
-        self.status = CODE_STATUS[block.status]
+        self.status = FB_STATUS[block.status]
         #: Freebusy block start
         self.start = rtime_to_datetime(block.start)
         #: Freebusy block end
@@ -137,7 +129,7 @@ class FreeBusy(object):
             start = datetime_to_rtime(occ.start)
             end = datetime_to_rtime(occ.end)
             # Fall back on busy, same as WebApp
-            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else 2))
+            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else STATUS_FB['busy']))
 
         update.PublishFreeBusy(blocks)
         update.SaveChanges(ftstart, ftend)
