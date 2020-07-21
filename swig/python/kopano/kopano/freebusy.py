@@ -24,17 +24,16 @@ import MAPI.Struct
 
 from .compat import (
     bdec as _bdec
-    )
+)
 
 from .errors import (
-        NotFoundError
+    NotFoundError
 )
 
 # TODO to utils.py?
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + \
-        NANOSECS_BETWEEN_EPOCH)
+    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 def datetime_to_rtime(d):
     return datetime_to_filetime(d).filetime / 600000000
@@ -49,6 +48,7 @@ CODE_STATUS = {
     2: 'busy',
     3: 'outofoffice',
 }
+
 
 class FreeBusyBlock(object):
     """FreeBusyBlock class"""
@@ -66,6 +66,7 @@ class FreeBusyBlock(object):
 
     def __repr__(self):
         return self.__unicode__()
+
 
 class FreeBusy(object):
     """FreeBusy class
@@ -101,7 +102,7 @@ class FreeBusy(object):
         except MAPI.Struct.MAPIErrorNotFound:
             raise NotFoundError("public store not found")
         fbdata = fb.LoadFreeBusyData([eid], None)
-        if fbdata in (0, 1): # TODO what?
+        if fbdata in (0, 1):  # TODO what?
             return
         data, status = fbdata
         fb.Close()
@@ -121,9 +122,9 @@ class FreeBusy(object):
         :param start: start of period
         :param end: end of period
         """
-        eid = _bdec(self.store.user.userid) # TODO merge with blocks
-        ftstart = datetime_to_filetime(start) # TODO tz?
-        ftend = datetime_to_filetime(end) # TODO tz?
+        eid = _bdec(self.store.user.userid)  # TODO merge with blocks
+        ftstart = datetime_to_filetime(start)  # TODO tz?
+        ftend = datetime_to_filetime(end)  # TODO tz?
 
         fb = libfreebusy.IFreeBusySupport()
         try:
@@ -137,8 +138,7 @@ class FreeBusy(object):
             start = datetime_to_rtime(occ.start)
             end = datetime_to_rtime(occ.end)
             # Fall back on busy, same as WebApp
-            blocks.append(MAPI.Struct.FreeBusyBlock(start, end,
-                STATUS_FB[occ.busystatus] if occ.busystatus else 2))
+            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else 2))
 
         update.PublishFreeBusy(blocks)
         update.SaveChanges(ftstart, ftend)
