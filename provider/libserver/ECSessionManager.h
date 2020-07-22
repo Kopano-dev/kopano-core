@@ -151,6 +151,7 @@ public:
 	virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);
 	_kc_hidden virtual ECRESULT RemoveSession(ECSESSIONID);
 	virtual void RemoveSessionInternal(ECSession *);
+	void shutdown();
 
 	// Persistent connections: sessions with persistent connections (named pipes) are guaranteed not to timeout
 	// between calls to SetSessionPersistentConnection() and RemoveSessionPersistentConnection. The persistent connection ID

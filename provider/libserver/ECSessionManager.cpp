@@ -67,19 +67,26 @@ ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
 	m_lpNotificationManager.reset(new ECNotificationManager());
 }
 
-ECSessionManager::~ECSessionManager()
+void ECSessionManager::shutdown()
 {
 	ulock_normal l_exit(m_hExitMutex);
 	bExit = TRUE;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
 
+	/*
+	 * Terminate threads way ahead of ~ECSessionManager,
+	 * because when ~ECSM runs, g_lpSessionManager may already be nullptr.
+	 */
 	if (m_thread_active) {
 		auto err = pthread_join(m_hSessionCleanerThread, nullptr);
 		if (err != 0)
 			ec_log_crit("Unable to join session cleaner thread: %s", strerror(err));
 	}
+	m_lpNotificationManager.reset();
+	ec_log_debug("Terminating tpropspurge");
 	m_lpTPropsPurge.reset();
+	ec_log_debug("Closing database");
 	m_lpDatabase.reset();
 	m_lpDatabaseFactory.reset();
 	/* Clean up all sessions */
@@ -87,8 +94,10 @@ ECSessionManager::~ECSessionManager()
 	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();
 	     s = m_mapSessions.erase(s))
 		delete s->second;
-	// Clearing the cache takes too long while shutting down
 }
+
+ECSessionManager::~ECSessionManager()
+{}
 
 ECRESULT ECSessionManager::LoadSettings(){
 	ECDatabase *	lpDatabase = NULL;
