@@ -3,8 +3,7 @@
 kopano\-srvadm \(em server management utility
 .SH Synopsis
 \fBkopano\-srvadm\fP [\fB\-c\fP \fIconfig\fP] [\fB\-h\fP \fIhost\fP]
-{\fB\-\-clear\-cache\fP
-\fItype\fP|\fB\-\-purge\-deferred\fP|\fB\-\-purge\-softdelete\fP \fIdays\fP}
+\fIcommand\fP
 .SH Description
 .PP
 This tool is used to control certain aspects of the Kopano server, specifically
@@ -20,6 +19,7 @@ Default: \fI/etc/kopano/admin.cfg\fP
 URI for a specific server to connect to and execute the action on.
 .PP
 Default: \fIdefault:\fP
+.SH Commands
 .TP
 \fB\-\-clear\-cache \fP\fIpool\fP[\fB,\fP\fIpool\fP...]
 Flushes one or more of the server's cache pools. The argument shall be a
@@ -31,6 +31,16 @@ Although this operation never causes any data loss, it can affect the
 performance of the server, since any data requested after the cache has been
 cleared needs to be re-requested from the database or LDAP server. Normally,
 this option is never needed; it is mostly used as a diagnostic.
+.TP
+\fB\-\-ct\-create\fP=\fInum\fP
+For cache testing, create this many dummy messages in the admin store root.
+.TP
+\fB\-\-ct\-read\fP
+For cache testing, read all messages in the admin store's root (as created by
+\-\-ct\-create) back into the cache.
+.TP
+\fB\-\-ct\-size\fP=\fIbytes\fP
+For \-\-ct\-create, specifies the size of the bodytext.
 .TP
 \fB\-\-purge\-deferred\fP
 The server has an optimization in which changes to the "tproperties" table are
