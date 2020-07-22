@@ -196,7 +196,7 @@ static bool idx_parse_options(int &argc, const char **&argv)
 	return true;
 }
 
-int main(int argc, const char **argv) try
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
@@ -204,6 +204,4 @@ int main(int argc, const char **argv) try
 		return EXIT_FAILURE;
 	auto ret = opt_from_stdin ? idx_startup_stdin(argv) : idx_startup_net(argv);
 	return ret == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
-} catch (...) {
-	std::terminate();
 }
