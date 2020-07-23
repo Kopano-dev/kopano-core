@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/platform.h>
 #include <kopano/scope.hpp>
 
@@ -972,8 +973,6 @@ ECRESULT ECStoreObjectTable::Load()
 
     unsigned int ulMaxItems = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("folder_max_items"));
 
-    std::list<unsigned int> lstObjIds;
-
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -1009,6 +1008,7 @@ ECRESULT ECStoreObjectTable::Load()
         if(er != erSuccess)
 		return er;
 
+	std::vector<unsigned int> lstObjIds;
 	unsigned int i = 0;
         while(1) {
 		auto lpDBRow = lpDBResult.fetch_row();
@@ -1028,7 +1028,7 @@ ECRESULT ECStoreObjectTable::Load()
 			++i;
         }
 
-        LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
+        LoadRows(std::move(lstObjIds), 0);
 	return erSuccess;
 }
 

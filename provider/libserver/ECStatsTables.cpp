@@ -9,6 +9,8 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 #include <ctime>
 #include <libHX/misc.h>
 #include <kopano/tie.hpp>
@@ -516,19 +518,19 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	auto sesmgr = lpSession->GetSessionManager();
 	bool bDistrib = sesmgr->IsDistributedSupported();
 	auto server = sesmgr->GetConfig()->GetSetting("server_name");
-	std::list<unsigned int> lstObjId;
 
 	auto er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
 	          ulCompanyId, lpsRestrict, objs, 0);
 	if (FAILED(er))
 		return er;
+	std::vector<unsigned int> lstObjId;
 	for (const auto &obj : objs) {
 		// we only return users present on this server
 		if (bDistrib && obj.GetPropString(OB_PROP_S_SERVERNAME).compare(server) != 0)
 			continue;
-		lstObjId.emplace_back(obj.ulId);
+		lstObjId.push_back(obj.ulId);
 	}
-	UpdateRows(ECKeyTable::TABLE_ROW_ADD, {lstObjId.cbegin(), lstObjId.cend()}, 0, false);
+	UpdateRows(ECKeyTable::TABLE_ROW_ADD, std::move(lstObjId), 0, false);
 	return erSuccess;
 }
 

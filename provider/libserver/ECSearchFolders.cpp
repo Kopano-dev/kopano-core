@@ -683,7 +683,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 	if (er != erSuccess)
 		return er_lerrf(er, "SELECT failed");
 
-	std::list<unsigned int> lst;
+	std::vector<unsigned int> lst;
 	er = ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
 	if (er != erSuccess)
 		return er;
@@ -692,7 +692,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 		return er_lerrf(er, "DB commit failed");
 
 	// Add matched row and send a notification to update views of this search (if any are open)
-	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, {lst.cbegin(), lst.cend()}, MAPI_MESSAGE);
+	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, std::move(lst), MAPI_MESSAGE);
 	cache->Update(fnevObjectModified, ulFolderId);
 	m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
 	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
@@ -706,7 +706,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale)
 {
-	std::list<unsigned int> lst;
+	std::vector<unsigned int> lst;
 	return ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
 }
 
@@ -735,11 +735,11 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
     unsigned int ulStoreId, unsigned int ulFolderId, ECODStore &lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
-    const ECLocale &locale, std::list<unsigned int> &lstMatches)
+    const ECLocale &locale, std::vector<unsigned int> &lstMatches)
 {
 	struct rowSet *lpRowSet = NULL;
 	bool fMatch = false;
-	std::list<unsigned int> lstFlags;
+	std::vector<unsigned int> lstFlags;
 	SUBRESTRICTIONRESULTS sub_results;
 
 	assert(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
@@ -767,12 +767,13 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
         if(lpRowSet->__ptr[j].__ptr[0].ulPropTag != PR_MESSAGE_FLAGS)
             continue;
 		unsigned int ulObjFlags = lpRowSet->__ptr[j].__ptr[0].Value.ul & MSGFLAG_READ;
-		lstMatches.emplace_back(iterRows->ulObjId);
-		lstFlags.emplace_back(ulObjFlags);
+		lstMatches.push_back(iterRows->ulObjId);
+		lstFlags.push_back(ulObjFlags);
     }
 
     // Add matched row to database
-	er = AddResults(ulFolderId, {lstMatches.cbegin(), lstMatches.cend()}, {lstFlags.cbegin(), lstFlags.cend()}, &lCount, &lUnreadCount);
+	er = AddResults(ulFolderId, std::move(lstMatches), std::move(lstFlags),
+	     &lCount, &lUnreadCount);
 	if (er != erSuccess)
 		return er_lerrf(er, "AddResults failed");
 	if (lCount == 0 && lUnreadCount == 0)
@@ -1258,7 +1259,8 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 }
 
 // Get all results of a certain search folder in a list of hierarchy IDs
-ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int ulFolderId,  std::list<unsigned int> *lstObjIds)
+ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId,
+    unsigned int ulFolderId, std::vector<unsigned int> *lstObjIds)
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
@@ -1275,7 +1277,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 		auto lpRow = lpResult.fetch_row();
         if(lpRow == NULL || lpRow[0] == NULL)
             break;
-		lstObjIds->emplace_back(atoui(lpRow[0]));
+		lstObjIds->push_back(atoui(lpRow[0]));
     }
 	return erSuccess;
 }
