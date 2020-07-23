@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <algorithm>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <new>
@@ -743,9 +745,8 @@ ECRESULT ECSearchObjectTable::Load()
 			continue;
 		priv.emplace(atoui(row[0]));
 	}
-	for (auto i = objlist.begin(); i != objlist.end(); ++i)
-		if (priv.find(*i) == priv.end())
-			objlist2.emplace_back(*i);
+	std::copy_if(objlist.cbegin(), objlist.cend(), std::back_inserter(objlist2),
+		[&](const auto &e) { return priv.find(e) == priv.end(); });
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, std::move(objlist2), 0, true);
 }
 

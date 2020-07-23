@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
+#include <iterator>
 #include <list>
 #include <map>
 #include <memory>
@@ -1288,9 +1290,9 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType,
     case ECKeyTable::TABLE_ROW_MODIFY:
     case ECKeyTable::TABLE_ROW_ADD:
         // Filter out any item we cannot access (for example, in search-results tables)
-		for (const auto &obj_id : lstObjId_in)
-			if (CheckPermissions(obj_id) == erSuccess)
-				lstFilteredIds.emplace_back(obj_id);
+		std::copy_if(lstObjId_in.cbegin(), lstObjId_in.cend(),
+			std::back_inserter(lstFilteredIds),
+			[&](unsigned int id) { return CheckPermissions(id) == erSuccess; });
         // Use our filtered list now
 		lstObjId = &lstFilteredIds;
     	break;
