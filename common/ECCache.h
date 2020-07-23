@@ -235,6 +235,7 @@ public:
 	ECRESULT AddToSize(int64_t ulSize)
 	{
 		m_ulSize += ulSize;
+		UpdateCache(0.05);
 		return erSuccess;
 	}
 
