@@ -253,17 +253,18 @@ private:
 		std::sort(lstEntries.begin(), lstEntries.end(),
 			[](const auto &i, const auto &j) { return i->second.ulLastAccess < j->second.ulLastAccess; });
 		// We now have a list of all cache items, sorted by access time, (oldest first)
-		size_t ulDelete = m_map.size() * ratio;
+		size_t shrinkto = m_map.size() - m_map.size() * ratio;
 
-		// Remove the oldest ulDelete entries from the cache, removing [ratio] % of all
-		// cache entries.
-		for (auto iterEntry = lstEntries.cbegin();
-		     iterEntry != lstEntries.cend() && ulDelete > 0;
-		     ++iterEntry, --ulDelete) {
-			auto iterMap = *iterEntry;
+		/*
+		 * Remove [ratio] % of all cache entries, and then some more
+		 * until the size constraint is met.
+		 */
+		for (auto iterMap : lstEntries) {
 			m_ulSize -= GetCacheAdditionalSize(iterMap->second);
 			m_ulSize -= GetCacheAdditionalSize(iterMap->first);
 			m_map.erase(iterMap);
+			if (m_map.size() <= shrinkto && Size() <= MaxSize())
+				break;
 		}
 
 		return erSuccess;
