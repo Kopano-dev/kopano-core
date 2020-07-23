@@ -279,7 +279,7 @@ ECRESULT ECUserStoreTable::Load() {
 		m_mapUserStoreData.emplace(iRowId++, std::move(sUserStore));
 	}
 
-	LoadRows(lstObjIds, 0);
+	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
 	return erSuccess;
 }
 

@@ -528,7 +528,7 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 			continue;
 		lstObjId.emplace_back(obj.ulId);
 	}
-	UpdateRows(ECKeyTable::TABLE_ROW_ADD, lstObjId, 0, false);
+	UpdateRows(ECKeyTable::TABLE_ROW_ADD, {lstObjId.cbegin(), lstObjId.cend()}, 0, false);
 	return erSuccess;
 }
 

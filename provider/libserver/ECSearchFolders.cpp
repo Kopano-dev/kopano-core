@@ -692,7 +692,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 		return er_lerrf(er, "DB commit failed");
 
 	// Add matched row and send a notification to update views of this search (if any are open)
-	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, lst, MAPI_MESSAGE);
+	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, {lst.cbegin(), lst.cend()}, MAPI_MESSAGE);
 	cache->Update(fnevObjectModified, ulFolderId);
 	m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
 	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
@@ -772,7 +772,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     }
 
     // Add matched row to database
-    er = AddResults(ulFolderId, lstMatches, lstFlags, &lCount, &lUnreadCount);
+	er = AddResults(ulFolderId, {lstMatches.cbegin(), lstMatches.cend()}, {lstFlags.cbegin(), lstFlags.cend()}, &lCount, &lUnreadCount);
 	if (er != erSuccess)
 		return er_lerrf(er, "AddResults failed");
 	if (lCount == 0 && lUnreadCount == 0)
@@ -1145,7 +1145,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
 }
 
 ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId,
-    const std::list<unsigned int> &lstObjId, const std::list<unsigned int> &lstFlags,
+    const std::vector<unsigned int> &lstObjId, const std::vector<unsigned int> &lstFlags,
     int *lpulCount, int *lpulUnread)
 {
     ECDatabase *lpDatabase = NULL;

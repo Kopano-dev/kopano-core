@@ -4,10 +4,10 @@
  */
 #pragma once
 #include <kopano/zcdefs.h>
-#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 #include "ECDatabase.h"
 #include "ECGenericObjectTable.h"
 #include <kopano/kcodes.h>
@@ -64,8 +64,8 @@ public:
 	ECRESULT	OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId);
 	ECRESULT	GetTable(unsigned int lpulTableId, ECGenericObjectTable **lppTable);
 	ECRESULT	CloseTable(unsigned int lpulTableId);
-	ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, const std::list<unsigned int> &objids, unsigned int flags, unsigned int objtype);
-	ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int objid, const std::list<unsigned int> &children, unsigned int objtype);
+	ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, const std::vector<unsigned int> &objids, unsigned int flags, unsigned int objtype);
+	ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int objid, const std::vector<unsigned int> &children, unsigned int objtype);
 	ECRESULT	GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize);
 
 private:

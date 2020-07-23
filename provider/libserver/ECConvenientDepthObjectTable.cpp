@@ -110,7 +110,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	lstFolders.remove(m_ulFolderId);
 	lstObjIds = std::move(lstFolders);
-	LoadRows(lstObjIds, 0);
+	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
 	return erSuccess;
 }
 

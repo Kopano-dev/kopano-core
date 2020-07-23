@@ -1232,9 +1232,7 @@ exit:
 
 ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObjId, unsigned int ulFlags)
 {
-    std::list<unsigned int> lstObjId;
-	lstObjId.emplace_back(ulObjId);
-	return UpdateRows(ulType, lstObjId, ulFlags, false);
+	return UpdateRows(ulType, {ulObjId}, ulFlags, false);
 }
 
 /**
@@ -1246,7 +1244,7 @@ ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObj
  * @param lstObjId List of hierarchy IDs for the objects to load
  * @param ulFlags 0, MSGFLAG_DELETED, MAPI_ASSOCIATED or combination
  */
-ECRESULT ECGenericObjectTable::LoadRows(const std::list<unsigned int> &lstObjId, unsigned int ulFlags)
+ECRESULT ECGenericObjectTable::LoadRows(const std::vector<unsigned int> &lstObjId, unsigned int ulFlags)
 {
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, lstObjId, ulFlags, true);
 }
@@ -1272,15 +1270,15 @@ ECRESULT ECGenericObjectTable::LoadRows(const std::list<unsigned int> &lstObjId,
  * @param bLoad Indicates that this is the initial load or reload of the table, and not an update
  */
 ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType,
-    const std::list<unsigned int> &lstObjId_in, unsigned int ulFlags, bool bLoad)
+    const std::vector<unsigned int> &lstObjId_in, unsigned int ulFlags, bool bLoad)
 {
 	ECRESULT				er = erSuccess;
 	unsigned int ulRead = 0;
-	std::list<unsigned int> lstFilteredIds;
+	std::vector<unsigned int> lstFilteredIds;
 	ECObjectTableList ecRowsItem, ecRowsDeleted;
 	sObjectTableKey		sRow;
 	scoped_rlock biglock(m_hLock);
-	const std::list<unsigned int> *lstObjId = &lstObjId_in;
+	const std::vector<unsigned int> *lstObjId = &lstObjId_in;
 
 	// Perform security checks for this object
 	switch(ulType) {
