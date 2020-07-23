@@ -731,7 +731,10 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
         sPropTagArray.__size = 3;
 
         er = lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray);
-        if (er != erSuccess || !sPropValArray.__ptr) {
+	if (er != erSuccess) {
+		*lppStoreName = soap_strdup(soap, KC_A("Inbox for a removed user"));
+		return erSuccess;
+	} else if (sPropValArray.__ptr == nullptr) {
             er = KCERR_NOT_FOUND;
             goto exit;
         }
