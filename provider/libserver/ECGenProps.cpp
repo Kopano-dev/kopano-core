@@ -720,6 +720,10 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 		return er;
 
 	// When the userid belongs to a company or group everybody, the store is considered a public store.
+	if (ulUserId == 0) {
+		*lppStoreName = soap_strdup(soap, KC_A("Orphaned store"));
+		return erSuccess;
+	}
 	if(ulUserId == KOPANO_UID_EVERYONE || ulUserId == ulCompanyId) {
 		*lppStoreName = soap_strdup(soap, KC_A("Public Folders"));
 		return erSuccess;

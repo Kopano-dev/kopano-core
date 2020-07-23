@@ -291,7 +291,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 {
 	ECsObjects		sObjects;
 
-	if(ulParent == 0 || ulObjId == 0 || ulOwner == 0)
+	if (ulParent == 0 || ulObjId == 0)
 		return 1;
 	assert(ulType == MAPI_FOLDER || (ulFlags & ~(MSGFLAG_ASSOCIATED | MSGFLAG_DELETED)) == 0);
 	sObjects.ulParent	= ulParent;
