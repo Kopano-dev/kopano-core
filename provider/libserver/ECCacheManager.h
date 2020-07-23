@@ -323,23 +323,23 @@ private:
 
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);
-	ECRESULT I_DelACLs(unsigned int obj_id);
+	void I_DelACLs(unsigned int obj_id);
 	ECRESULT I_GetObject(unsigned int obj_id, unsigned int *parent, unsigned int *owner, unsigned int *flags, unsigned int *type);
-	ECRESULT I_DelObject(unsigned int obj_id);
+	void I_DelObject(unsigned int obj_id);
 	ECRESULT I_GetStore(unsigned int obj_id, unsigned int *store, GUID *, unsigned int *type);
-	ECRESULT I_DelStore(unsigned int obj_id);
+	void I_DelStore(unsigned int obj_id);
 	ECRESULT I_AddUserObject(unsigned int user_id, const objectclass_t &, unsigned int company_id, const std::string &ext_id, const std::string &signautre);
 	ECRESULT I_GetUserObject(unsigned int user_id, objectclass_t *, unsigned int *company_id, std::string *extern_id, std::string *signature);
-	ECRESULT I_DelUserObject(unsigned int user_id);
+	void I_DelUserObject(unsigned int user_id);
 	ECRESULT I_AddUEIdObject(const std::string &ext_id, const objectclass_t &, unsigned int company_id, unsigned int user_id, const std::string &signature);
 	ECRESULT I_GetUEIdObject(const std::string &ext_id, objectclass_t, unsigned int *company_id, unsigned int *user_id, std::string *signature);
-	ECRESULT I_DelUEIdObject(const std::string &ext_id, objectclass_t);
+	void I_DelUEIdObject(const std::string &ext_id, objectclass_t);
 	ECRESULT I_AddUserObjectDetails(unsigned int, const objectdetails_t &);
 	ECRESULT I_GetUserObjectDetails(unsigned int user_id, objectdetails_t *);
-	ECRESULT I_DelUserObjectDetails(unsigned int user_id);
-	ECRESULT I_DelCell(unsigned int obj_id);
+	void I_DelUserObjectDetails(unsigned int user_id);
+	void I_DelCell(unsigned int obj_id);
 	ECRESULT I_GetQuota(unsigned int user_id, bool bIsDefaultQuota, quotadetails_t *quota);
-	ECRESULT I_DelQuota(unsigned int user_id, bool bIsDefaultQuota);
+	void I_DelQuota(unsigned int user_id, bool is_dfl_quota);
 
 	// Cache Index properties
 	ECRESULT I_AddIndexData(const ECsIndexObject &, const ECsIndexProp &);

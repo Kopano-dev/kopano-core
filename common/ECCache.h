@@ -101,12 +101,11 @@ public:
 		, m_ulSize(0)
 	{ }
 
-	ECRESULT ClearCache()
+	void ClearCache()
 	{
 		m_map.clear();
 		m_ulSize = 0;
 		ClearCounters();
-		return erSuccess;
 	}
 
 	count_type ItemCount() const override
@@ -232,11 +231,10 @@ public:
 #endif
 
 	// Used in ECCacheManager::SetCell, where the content of a cache item is modified.
-	ECRESULT AddToSize(int64_t ulSize)
+	void AddToSize(int64_t ulSize)
 	{
 		m_ulSize += ulSize;
 		UpdateCache(0.05);
-		return erSuccess;
 	}
 
 private:
