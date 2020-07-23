@@ -234,6 +234,7 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 	if (ret != hrSuccess)
 		return ret;
 
+	Json::Value root;
 	while (true) {
 		rowset_ptr rowset;
 		ret = table->QueryRows(INT_MAX, 0, &~rowset);
@@ -257,9 +258,10 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p[4].Value.ft));
 			if (p[5].ulPropTag == PR_MESSAGE_SIZE_EXTENDED)
 				outrow["size"] = static_cast<Json::Value::Int64>(p[5].Value.li.QuadPart);
-			puts(Json::writeString(Json::StreamWriterBuilder(), outrow).c_str());
+			root.append(std::move(outrow));
 		}
 	}
+	puts(Json::writeString(Json::StreamWriterBuilder(), std::move(root)).c_str());
 	return hrSuccess;
 }
 
