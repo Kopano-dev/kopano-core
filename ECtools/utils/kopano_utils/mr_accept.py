@@ -14,6 +14,7 @@ DT_EQUIPMENT = 8
 
 # XXX ZCP-9901 still relevant without outlook?
 
+
 def capacity(user):  # XXX pyko?
     """ equipment resources can be overbooked up to N times """
 
@@ -28,6 +29,7 @@ def capacity(user):  # XXX pyko?
         return capacity
     else:
         return 1
+
 
 class Marker(object):  # XXX kill?
     def __init__(self, occurrence):
@@ -73,11 +75,13 @@ def conflict_occurrences(user, item):
 
     return [m.occurrence for m in conflict_markers]
 
+
 def conflict_message(occurrences):
     lines = ['The requested time slots are unavailable on the following dates:', '']
     for occ in occurrences:
         lines.append('%s - %s' % (occ.start, occ.end))
     return '\n'.join(lines)
+
 
 def main():
     args = sys.argv[1:]
