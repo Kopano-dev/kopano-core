@@ -51,5 +51,12 @@ setup(name='kopano-utils',
       packages=find_packages(),
       install_requires=[
       ],
-      cmdclass={'build_py': my_build_py}
+      cmdclass={'build_py': my_build_py},
+      entry_points={
+          'console_scripts': [
+              'kopano-mr-process=kopano_utils.mr_process:main',
+              'kopano-mr-accept=kopano_utils.mr_accept:main',
+              'kopano-autorespond=kopano_utils.autorespond:main',
+          ]
+      }
 )

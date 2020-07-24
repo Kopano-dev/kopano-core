@@ -1,7 +1,0 @@
-#!@PYTHON@
-import sys
-from kopano_utils import autorespond
-from kopano_utils import __version__
-
-if __name__ == '__main__':
-    sys.exit(autorespond.main())
