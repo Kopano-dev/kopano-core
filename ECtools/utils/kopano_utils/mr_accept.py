@@ -83,18 +83,12 @@ def conflict_message(occurrences):
     return '\n'.join(lines)
 
 
-def main():
-    args = sys.argv[1:]
-    username, config_file = args[:2]
-
-    config = kopano.Config(filename=config_file)
-    server = kopano.server(config=config)
-
+def accept(username, server, entryid=None):
     user = server.user(username)
     autoaccept = user.autoaccept
 
-    if len(args) > 2:
-        items = [user.item(args[2])]
+    if entryid:
+        items = [user.item(entryid)]
     else:
         items = []
         for item in user.inbox:
@@ -132,4 +126,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()  # pragma: no cover
+    args = sys.argv[1:]
+    username, config_file = args[:2]
+
+    entryid = args[2] if len(args) > 2 else None
+    config = kopano.Config(filename=config_file)
+    server = kopano.server(config=config)
+
+    accept(username, server, entryid)  # pragma: no cover
