@@ -204,9 +204,6 @@ static ECRESULT main2(int argc, char **argv)
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
-		/* Create fatal logger without a timestamp to stderr. */
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 		return E_FAIL;
 	}

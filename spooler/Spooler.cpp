@@ -1022,11 +1022,6 @@ static int main2(int argc, char **argv)
 	if (!g_lpConfig->LoadSettings(szConfig, !sp_exp_config) ||
 	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		/* Create info logger without a timestamp to stderr. */
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
-		if (g_lpLogger == nullptr)
-			return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig.get());
 		return EXIT_FAILURE; /* E_FAIL */
 	}

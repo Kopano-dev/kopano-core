@@ -1088,13 +1088,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
-		/* Create info logger without a timestamp to stderr. */
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
-		if (g_lpLogger == nullptr) {
-			er = MAPI_E_NOT_ENOUGH_MEMORY;
-			return retval;
-		}
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig.get());
 		er = MAPI_E_UNCONFIGURED;
 		return retval;
