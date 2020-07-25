@@ -948,8 +948,8 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 					setuid(pw->pw_uid);
 				auto test = fopen(log_file, "a");
 				if (!test) {
-					fprintf(stderr, "Unable to open logfile '%s' as user '%s'\n",
-					        log_file, pw != nullptr ? pw->pw_name : "???");
+					fprintf(stderr, "Unable to open logfile %s as user %s: %s. Reverting to stderr.\n",
+					        log_file, pw != nullptr ? pw->pw_name : "?", strerror(errno));
 					_exit(1);
 				}
 				else {
@@ -967,7 +967,6 @@ std::shared_ptr<ECLogger> CreateLogger(ECConfig *lpConfig, const char *argv0,
 	}
 
 	if (ret != 0) {
-		fprintf(stderr, "Not enough permissions to append logfile \"%s\". Reverting to stderr.\n", log_file);
 		auto logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
 		return std::make_shared<ECLogger_File>(loglevel, logtimestamp, "-", false);
 	}
