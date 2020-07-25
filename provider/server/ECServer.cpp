@@ -90,7 +90,7 @@ static bool m_bIgnoreUnknownConfigOptions = false;
 static bool m_bIgnoreDbThreadStackSize = false;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
-static std::shared_ptr<ECLogger> g_lpLogger, g_lpAudit;
+static std::shared_ptr<ECLogger> g_lpAudit;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
@@ -283,8 +283,8 @@ void sv_sighup_sync()
 	g_lpSessionManager->GetPluginFactory()->SignalPlugins(SIGHUP);
 	auto ll = g_lpConfig->GetSetting("log_level");
 	auto new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
-	g_lpLogger->SetLoglevel(new_ll);
-	g_lpLogger->Reset();
+	ec_log_get()->SetLoglevel(new_ll);
+	ec_log_get()->Reset();
 	ec_log_warn("Log connection was reset");
 
 	if (g_lpAudit) {
@@ -1096,7 +1096,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
 
 	// setup logging
-	g_lpLogger = CreateLogger(g_lpConfig.get(), szName);
+	auto g_lpLogger = CreateLogger(g_lpConfig.get(), szName);
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
