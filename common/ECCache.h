@@ -7,6 +7,7 @@
 #define ECCACHE_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <algorithm>
 #include <list>
 #include <string>
 #include <vector>
@@ -16,19 +17,9 @@
 #include <kopano/ECLogger.h>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h> /* ECRESULT */
+#include <kopano/timeutil.hpp>
 
 namespace KC {
-
-template<typename Key> class KeyEntry KC_FINAL {
-public:
-	Key key;
-	time_t ulLastAccess;
-};
-
-template<typename Key>
-bool KeyEntryOrder(const KeyEntry<Key> &a, const KeyEntry<Key> &b) {
-	return a.ulLastAccess < b.ulLastAccess;
-}
 
 template<typename Value> inline size_t GetCacheAdditionalSize(const Value &val)
 {
@@ -92,8 +83,9 @@ protected:
 	KC_HIDDEN void IncrementValidCount() { ++m_ulCacheValid; }
 	KC_HIDDEN void ClearCounters() { m_ulCacheHit = m_ulCacheValid = 0; }
 
-private:
 	const std::string	m_strCachename;
+
+private:
 	size_type		m_ulMaxSize;
 	const long			m_lMaxAge;
 	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
@@ -243,35 +235,37 @@ public:
 	ECRESULT AddToSize(int64_t ulSize)
 	{
 		m_ulSize += ulSize;
+		UpdateCache(0.05);
 		return erSuccess;
 	}
 
 private:
 	ECRESULT PurgeCache(float ratio)
 	{
-		std::list<KeyEntry<key_type> > lstEntries;
+		std::vector<decltype(m_map.begin())> lstEntries;
 
-		for (const auto &im : m_map) {
-			KeyEntry<key_type> k;
-			k.key = im.first;
-			k.ulLastAccess = im.second.ulLastAccess;
-			lstEntries.emplace_back(std::move(k));
-		}
-
-		lstEntries.sort(KeyEntryOrder<key_type>);
+		/*
+		 * Creating a list of iterators requires that .erase() is
+		 * non-invalidating, which limits ECCache<> to be used with
+		 * (unordered_)map only.
+		 */
+		for (auto i = m_map.begin(); i != m_map.end(); ++i)
+			lstEntries.emplace_back(i);
+		std::sort(lstEntries.begin(), lstEntries.end(),
+			[](const auto &i, const auto &j) { return i->second.ulLastAccess < j->second.ulLastAccess; });
 		// We now have a list of all cache items, sorted by access time, (oldest first)
-		size_t ulDelete = m_map.size() * ratio;
+		size_t shrinkto = m_map.size() - m_map.size() * ratio;
 
-		// Remove the oldest ulDelete entries from the cache, removing [ratio] % of all
-		// cache entries.
-		for (auto iterEntry = lstEntries.cbegin();
-		     iterEntry != lstEntries.cend() && ulDelete > 0;
-		     ++iterEntry, --ulDelete) {
-			auto iterMap = m_map.find(iterEntry->key);
-			assert(iterMap != m_map.end());
+		/*
+		 * Remove [ratio] % of all cache entries, and then some more
+		 * until the size constraint is met.
+		 */
+		for (auto iterMap : lstEntries) {
 			m_ulSize -= GetCacheAdditionalSize(iterMap->second);
 			m_ulSize -= GetCacheAdditionalSize(iterMap->first);
 			m_map.erase(iterMap);
+			if (m_map.size() <= shrinkto && Size() <= MaxSize())
+				break;
 		}
 
 		return erSuccess;
@@ -279,8 +273,18 @@ private:
 
 	ECRESULT UpdateCache(float ratio)
 	{
-		if (Size() > MaxSize())
-			PurgeCache(ratio);
+		if (Size() <= MaxSize())
+			return erSuccess;
+#ifdef CACHE_PURGE_TIMING
+		auto olditems = m_map.size();
+		KC::time_point start_ts = decltype(start_ts)::clock::now();
+		PurgeCache(ratio);
+		auto end_ts = decltype(start_ts)::clock::now();
+		printf("%s: %zu items. %lu ns\n", m_strCachename.c_str(),
+			olditems, (end_ts - start_ts).count());
+#else
+		PurgeCache(ratio);
+#endif
 		return erSuccess;
 	}
 
