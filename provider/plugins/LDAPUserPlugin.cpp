@@ -26,6 +26,7 @@
 #include <kopano/ECPluginSharedData.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "StatsClient.h"
 #include <kopano/stringutil.h>
 #include "LDAPCache.h"
@@ -488,6 +489,67 @@ void LDAPUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	}
 }
 
+int LDAPUserPlugin::setup_ldap(const char *server, bool tls, LDAP **ldp)
+{
+	static const int limit = 0, version = LDAP_VERSION3;
+	LDAP *ld = nullptr;
+	auto xxld = make_scope_success([&]() { if (ld != nullptr) ldap_unbind_s(ld); });
+
+	auto rc = ldap_initialize(&ld, server);
+	if (rc != LDAP_SUCCESS) {
+		m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
+		ec_log_crit("Failed to initialize LDAP for \"%s\": %s", server, ldap_err2string(rc));
+		return rc;
+	}
+
+	LOG_PLUGIN_DEBUG("Trying to connect to %s", server);
+	rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
+	if (rc != LDAP_OPT_SUCCESS) {
+		ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
+		return rc;
+	}
+	// Disable response message size restrictions (but the server's
+	// restrictions still apply)
+	rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit);
+	if (rc != LDAP_OPT_SUCCESS) {
+		ec_log_err("LDAP_OPT_SIZELIMIT failed: %s", ldap_err2string(rc));
+		return rc;
+	}
+	// Search referrals are never accepted  - FIXME maybe needs config option
+	rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
+	if (rc != LDAP_OPT_SUCCESS) {
+		ec_log_err("LDAP_OPT_REFERRALS failed: %s", ldap_err2string(rc));
+		return rc;
+	}
+	// Set network timeout (for connect)
+	rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout);
+	if (rc != LDAP_OPT_SUCCESS) {
+		ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
+		return rc;
+	}
+	if (tls) {
+#ifdef HAVE_LDAP_START_TLS_S
+		/*
+		 * Initialize TLS-secured connection - this is the first
+		 * command after ldap_init, so it will be the call that
+		 * actually connects to the server.
+		 */
+		rc = ldap_start_tls_s(ld, nullptr, nullptr);
+		if (rc != LDAP_SUCCESS) {
+			ec_log_err("Failed to enable TLS on LDAP session %s: %s",
+				server, ldap_err2string(rc));
+			return rc;
+		}
+#else
+		ec_log_err("LDAP library does not have STARTTLS");
+		return LDAP_PROTOCOL_ERROR;
+#endif /* HAVE_LDAP_START_TLS_S */
+	}
+	*ldp = ld;
+	ld = nullptr;
+	return LDAP_SUCCESS;
+}
+
 LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 {
 	int rc = -1;
@@ -508,72 +570,19 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 
 	// Initialize LDAP struct
 	for (unsigned long int loop = 0; loop < ldap_servers.size(); ++loop) {
-		static const int limit = 0, version = LDAP_VERSION3;
-		std::string currentServer = ldap_servers.at(ldapServerIndex);
-
-		rc = ldap_initialize(&ld, currentServer.c_str());
-		if (rc != LDAP_SUCCESS) {
-			m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
-			ec_log_crit("Failed to initialize LDAP for \"%s\": %s", currentServer.c_str(), ldap_err2string(rc));
-			goto fail2;
+		rc = setup_ldap(ldap_servers.at(ldapServerIndex).c_str(), starttls, &ld);
+		if (rc == LDAP_SUCCESS) {
+			// Bind
+			// For these two values: if they are both NULL, anonymous bind
+			// will be used (ldap_binddn, ldap_bindpw)
+			LOG_PLUGIN_DEBUG("Issuing LDAP bind");
+			rc = ldap_simple_bind_s(ld, bind_dn, bind_pw);
+			if (rc == LDAP_SUCCESS)
+				break;
+			ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
+			if (ldap_unbind_s(ld) == -1)
+				ec_log_err("LDAP unbind failed");
 		}
-
-		LOG_PLUGIN_DEBUG("Trying to connect to %s", currentServer.c_str());
-		rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-		if (rc != LDAP_OPT_SUCCESS) {
-			ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
-			goto fail;
-		}
-		// Disable response message size restrictions (but the server's
-		// restrictions still apply)
-		rc = ldap_set_option(ld, LDAP_OPT_SIZELIMIT, &limit);
-		if (rc != LDAP_OPT_SUCCESS) {
-			ec_log_err("LDAP_OPT_SIZELIMIT failed: %s", ldap_err2string(rc));
-			goto fail;
-		}
-		// Search referrals are never accepted  - FIXME maybe needs config option
-		rc = ldap_set_option(ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
-		if (rc != LDAP_OPT_SUCCESS) {
-			ec_log_err("LDAP_OPT_REFERRALS failed: %s", ldap_err2string(rc));
-			goto fail;
-		}
-		// Set network timeout (for connect)
-		rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout);
-		if (rc != LDAP_OPT_SUCCESS) {
-			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
-			goto fail;
-		}
-		if (starttls) {
-#ifdef HAVE_LDAP_START_TLS_S
-			/*
-			 * Initialize TLS-secured connection - this is the first
-			 * command after ldap_init, so it will be the call that
-			 * actually connects to the server.
-			 */
-			rc = ldap_start_tls_s(ld, nullptr, nullptr);
-			if (rc != LDAP_SUCCESS) {
-				ec_log_err("Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
-				goto fail;
-			}
-#else
-			ec_log_err("LDAP library does not have STARTTLS");
-			rc = LDAP_PROTOCOL_ERROR;
-			goto fail;
-#endif /* HAVE_LDAP_START_TLS_S */
-		}
-
-		// Bind
-		// For these two values: if they are both NULL, anonymous bind
-		// will be used (ldap_binddn, ldap_bindpw)
-		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
-		rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw);
-		if (rc == LDAP_SUCCESS)
-			break;
-		ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
-	fail:
-		if (ldap_unbind_s(ld) == -1)
-			ec_log_err("LDAP unbind failed");
-	fail2:
 		// see if another (if any) server does work
 		++ldapServerIndex;
 		if (ldapServerIndex >= ldap_servers.size())
