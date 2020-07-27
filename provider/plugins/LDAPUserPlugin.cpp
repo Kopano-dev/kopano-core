@@ -497,12 +497,9 @@ int LDAPUserPlugin::setup_ldap(const char *server, bool tls, LDAP **ldp)
 
 	auto rc = ldap_initialize(&ld, server);
 	if (rc != LDAP_SUCCESS) {
-		m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 		ec_log_crit("Failed to initialize LDAP for \"%s\": %s", server, ldap_err2string(rc));
 		return rc;
 	}
-
-	LOG_PLUGIN_DEBUG("Trying to connect to %s", server);
 	rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 	if (rc != LDAP_OPT_SUCCESS) {
 		ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
@@ -587,10 +584,11 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 		++ldapServerIndex;
 		if (ldapServerIndex >= ldap_servers.size())
 			ldapServerIndex = 0;
-		m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 		ld = NULL;
-		if (loop == ldap_servers.size() - 1)
+		if (loop == ldap_servers.size() - 1) {
+			m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 			throw ldap_error("Failure connecting any of the LDAP servers");
+		}
 	}
 
 	auto llelapsedtime = dur2us(decltype(tstart)::clock::now() - tstart);
