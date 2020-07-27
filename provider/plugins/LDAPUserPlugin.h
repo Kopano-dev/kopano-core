@@ -321,8 +321,9 @@ public:
 protected:
 	/**
 	 * Pointer to the LDAP state struct.
+	 * One for general searches, one for authentication.
 	 */
-	LDAP *m_ldap;
+	LDAP *m_ldap = nullptr, *m_ldap2 = nullptr;
 
 	/**
 	 * converter FROM ldap TO kopano-server and vice-versa

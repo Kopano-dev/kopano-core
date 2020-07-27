@@ -1455,8 +1455,8 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 
 objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, const string &password, const objectid_t &company)
 {
-	LDAP*		ld = NULL;
 	objectsignature_t	signature;
+	int rc;
 
 	try {
 		signature = resolveName(ACTIVE_USER, username, company);
@@ -1465,15 +1465,20 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		 * skipping the cache.
 		 */
 		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
-		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
+		if (m_ldap2 == nullptr)
+			/* pick a server */
+			m_ldap2 = ConnectLDAP(nullptr, nullptr);
+		rc = ldap_simple_bind_s(m_ldap2, dn.c_str(), m_iconvrev->convert(password).c_str());
 	} catch (const std::exception &e) {
-		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
+		throw login_error("ldap2 auth channel: "s + e.what());
 	}
-	if (ld == nullptr)
-		throw runtime_error("Trying to authenticate failed: connection failed");
-	if (ldap_unbind_s(ld) == -1)
-		ec_log_err("LDAP unbind failed");
-
+	if (rc == LDAP_INVALID_CREDENTIALS) {
+		throw login_error(format("LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
+	} else if (rc != LDAP_SUCCESS) {
+		ldap_unbind_ext_s(m_ldap2, nullptr, nullptr);
+		m_ldap2 = nullptr; /* pick new server on next try */
+		throw login_error(format("LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
+	}
 	return signature;
 }
 
