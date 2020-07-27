@@ -1,3 +1,11 @@
+8.7.16 (2020-07-27)
+===================
+Fixes:
+* srvadm: read admin.cfg by default [KC-1815]
+* srvadm: do pass TLS certificates to server [KC-1815]
+* libserver: resolve crash in notify_mgr thread on shutdown [KS-45804]
+
+
 8.7.15 (2020-07-09)
 ===================
 Fixes:
