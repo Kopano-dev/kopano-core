@@ -384,7 +384,7 @@ private:
 	 * @return LDAP pointer
 	 * @throw ldap_error When no connection could be established
 	 */
-	LDAP *ConnectLDAP(const char *bind_dn, const char *bind_pw, bool starttls);
+	LDAP *ConnectLDAP(const char *bind_dn, const char *bind_pw);
 
 	/**
 	 * Authenticate by user bind

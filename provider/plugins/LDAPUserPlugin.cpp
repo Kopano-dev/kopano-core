@@ -105,7 +105,7 @@ typedef std::unique_ptr<struct berval *[], ldap_deleter> auto_free_ldap_berval;
 	do { \
 		if (m_ldap == NULL) \
 			/* this either returns a connection or throws an exception */ \
-			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd"), parseBool(m_config->GetSetting("ldap_starttls"))); \
+			m_ldap = ConnectLDAP(nullptr, nullptr); \
 		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
 		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &~pageControl); \
 		if (rc != LDAP_SUCCESS) \
@@ -472,12 +472,9 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 void LDAPUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
 	m_lpStatsCollector = std::move(sc);
-	const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
-	const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
-	auto starttls = parseBool(m_config->GetSetting("ldap_starttls"));
 
 	/* FIXME encode the user and password, now it depends on which charset the config is saved in */
-	m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
+	m_ldap = ConnectLDAP(nullptr, nullptr);
 	const char *ldap_server_charset = m_config->GetSetting("ldap_server_charset");
 	try {
 		m_iconv.reset(new decltype(m_iconv)::element_type("UTF-8", ldap_server_charset));
@@ -491,13 +488,17 @@ void LDAPUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 	}
 }
 
-LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
-    const char *bind_pw, bool starttls)
+LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 {
 	int rc = -1;
 	LDAP *ld = NULL;
 	auto tstart = std::chrono::steady_clock::now();
+	auto starttls = m_config->GetSetting("ldap_starttls");
 
+	if (bind_dn == nullptr && bind_pw == nullptr) {
+		bind_dn = m_config->GetSetting("ldap_bind_user");
+		bind_pw = m_config->GetSetting("ldap_bind_passwd");
+	}
 	if ((bind_dn != nullptr && bind_dn[0] != '\0') &&
 	    (bind_pw == nullptr || bind_pw[0] == '\0'))
 		// Username specified, but no password. Apparently, OpenLDAP will attempt
@@ -629,10 +630,6 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		         attrsonly, serverControls, nullptr, &m_timeout, 0, &~res);
 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
-		const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
-		const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
-		auto starttls = parseBool(m_config->GetSetting("ldap_starttls"));
-
 		if (m_ldap != NULL) {
 			ec_log_err("LDAP search error: %s. Will unbind, reconnect and retry.", ldap_err2string(result));
 			if (ldap_unbind_s(m_ldap) == -1)
@@ -640,7 +637,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 			m_ldap = NULL;
 		}
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
-		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
+		m_ldap = ConnectLDAP(nullptr, nullptr);
 		m_lpStatsCollector->inc(SCN_LDAP_RECONNECTS);
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
 		          attrsonly, serverControls, nullptr, nullptr, 0, &~res);
@@ -1461,8 +1458,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		 * skipping the cache.
 		 */
 		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
-		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str(),
-			parseBool(m_config->GetSetting("ldap_starttls")));
+		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
 	} catch (const std::exception &e) {
 		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
 	}
