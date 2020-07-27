@@ -151,6 +151,7 @@ public:
 	virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);
 	KC_HIDDEN virtual ECRESULT RemoveSession(ECSESSIONID);
 	virtual void RemoveSessionInternal(ECSession *);
+	void shutdown();
 
 	KC_HIDDEN virtual ECRESULT GetSessionGroup(ECSESSIONGROUPID, ECSession *, ECSessionGroup **);
 	KC_HIDDEN virtual ECRESULT DeleteIfOrphaned(ECSessionGroup *);

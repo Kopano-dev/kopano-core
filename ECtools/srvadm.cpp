@@ -175,6 +175,8 @@ static HRESULT adm_perform()
 	if (opt_host == nullptr)
 		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
 	srvctx.m_host = opt_host;
+	srvctx.m_ssl_keyfile = adm_config->GetSetting("sslkey_file", "", nullptr);
+	srvctx.m_ssl_keypass = adm_config->GetSetting("sslkey_pass", "", nullptr);
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
@@ -228,14 +230,13 @@ static unsigned int adm_parse_cache(const char *arglist)
 static bool adm_parse_options(int &argc, const char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
-	const char *cfile = ECConfig::GetDefaultPath("admin.cfg");
+	adm_config->LoadSettings(ECConfig::GetDefaultPath("admin.cfg"));
+
 	if (HX_getopt(adm_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return false;
-	if (opt_config_file != nullptr)
-		cfile = opt_config_file;
-	if (cfile != nullptr) {
+	if (opt_config_file != nullptr) {
 		adm_config->LoadSettings(opt_config_file);
-		if (cfile != nullptr && adm_config->HasErrors()) {
+		if (adm_config->HasErrors()) {
 			/* Only complain when -c was used */
 			fprintf(stderr, "Error reading config file %s\n", opt_config_file);
 			LogConfigErrors(adm_config.get());
