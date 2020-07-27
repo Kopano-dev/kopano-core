@@ -510,10 +510,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		static const int limit = 0, version = LDAP_VERSION3;
 		std::string currentServer = ldap_servers.at(ldapServerIndex);
 
-		ulock_normal biglock(m_plugin_lock);
 		rc = ldap_initialize(&ld, currentServer.c_str());
-		biglock.unlock();
-
 		if (rc != LDAP_SUCCESS) {
 			m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 			ec_log_crit("Failed to initialize LDAP for \"%s\": %s", currentServer.c_str(), ldap_err2string(rc));
