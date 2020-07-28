@@ -713,16 +713,21 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	auto sec = lpSession->GetSecurity();
 	auto er = sec->GetStoreOwner(ulStoreId, &ulUserId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	// get the companyid to which the logged in user belongs to.
 	er = sec->GetUserCompany(&ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// When the userid belongs to a company or group everybody, the store is considered a public store.
+	if (ulUserId == 0) {
+		*lppStoreName = soap_strdup(soap, KC_A("Orphaned store"));
+		return erSuccess;
+	}
 	if(ulUserId == KOPANO_UID_EVERYONE || ulUserId == ulCompanyId) {
-		strFormat = KC_A("Public Folders");
-	} else {
+		*lppStoreName = soap_strdup(soap, KC_A("Public Folders"));
+		return erSuccess;
+	}
 		sPropTagArray.__ptr = soap_new_unsignedInt(nullptr, 3);
         sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
         sPropTagArray.__ptr[1] = PR_ACCOUNT;
@@ -730,7 +735,10 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
         sPropTagArray.__size = 3;
 
         er = lpSession->GetUserManagement()->GetProps(soap, ulUserId, &sPropTagArray, &sPropValArray);
-        if (er != erSuccess || !sPropValArray.__ptr) {
+	if (er != erSuccess) {
+		*lppStoreName = soap_strdup(soap, KC_A("Inbox for a removed user"));
+		return erSuccess;
+	} else if (sPropValArray.__ptr == nullptr) {
             er = KCERR_NOT_FOUND;
             goto exit;
         }
@@ -766,7 +774,6 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 			strFormat = KC_A("Archive") + " - "s + strFormat;
 		else
 			assert(false);
-    }
 
 	*lppStoreName = soap_strdup(soap, strFormat.c_str());
 exit:

@@ -7509,7 +7509,8 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 	if (er != erSuccess)
 		return er;
 
-	strQuery = "SELECT guid FROM stores WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType) + " LIMIT 1";
+	strQuery = "SELECT guid, hierarchy_id FROM stores WHERE user_id=" + stringify(ulUserId) +
+	           " AND type=" + stringify(ulStoreType) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -7519,7 +7520,15 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 		// store not on this server
 		return er = KCERR_NOT_FOUND;
 	strGUID = bin2hex(lpDBLen[0], lpDBRow[0]);
+	auto hier_id = lpDBRow[1] != nullptr ? atoui(lpDBRow[1]) : 0;
 
+	/* Unset owner. */
+	strQuery = "UPDATE hierarchy SET owner=0 WHERE id=" + stringify(hier_id);
+	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
+	if (er != erSuccess || ulAffected != 1)
+		ec_log_warn("K-1256: unhook: store root object owner unchanged (user %u, type %u)", ulUserId, ulStoreType);
+
+	/* Unhook. */
 	strQuery = "UPDATE stores SET user_id=0 WHERE user_id=" + stringify(ulUserId) + " AND type=" + stringify(ulStoreType);
 	er = lpDatabase->DoUpdate(strQuery, &ulAffected);
 	if (er != erSuccess)
