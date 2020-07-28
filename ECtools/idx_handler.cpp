@@ -189,7 +189,7 @@ class FolderOpener final : public ScanTask {
 	std::string m_feid;
 };
 
-static constexpr const configsetting_t idx_defaults[] = {
+static constexpr configsetting_t idx_defaults[] = {
 	{"index_attachments", "yes", CONFIGSETTING_RELOADABLE},
 	{"index_attachment_extension_filter", "", CONFIGSETTING_UNUSED},
 	{"index_attachment_mime_filter", "", CONFIGSETTING_UNUSED},
@@ -225,7 +225,7 @@ static constexpr const configsetting_t idx_defaults[] = {
 	{nullptr, nullptr},
 };
 
-static constexpr const SizedSPropTagArray(5, spta_mbox) =
+static constexpr SizedSPropTagArray(5, spta_mbox) =
 	{5, {PR_ENTRYID, PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
 	PR_OBJECT_TYPE, PR_DISPLAY_NAME_W}};
 

@@ -192,7 +192,6 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 {
 	memory_ptr<SPropTagArray> lpPropListMessage;
 	memory_ptr<SPropValue> lpPropValue, lpStreamValue;
-	SizedSPropTagArray(1, sPropTagArray);
 	ULONG			cValue = 0;
 
 	// Loop through all the properties on the message, and only
@@ -221,8 +220,7 @@ HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 		a     |= flags & TNEF_PROP_EXCLUDE && !fPropTagInList;
 		if (!a)
 			continue;
-		sPropTagArray.cValues = 1;
-		sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
+		const SizedSPropTagArray(1, sPropTagArray) = {1, {lpPropListMessage->aulPropTag[i]}};
 		hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &~lpPropValue);
 		if (hr == hrSuccess)
 			lstProps.emplace_back(std::move(lpPropValue));
@@ -471,7 +469,6 @@ HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropV
  */
 HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
-	SizedSPropTagArray(1, sPropTagArray);
 	ULONG cNames = 0, ulLen = 0, ulMVProp = 0, ulCount = 0;
 	memory_ptr<MAPINAMEID *> lppNames;
 	convert_context converter;
@@ -480,8 +477,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	if(PROP_ID(lpProp->ulPropTag) >= 0x8000) {
 		memory_ptr<SPropTagArray> lpsPropTagArray;
 		// Get named property GUID and ID or name
-		sPropTagArray.cValues = 1;
-		sPropTagArray.aulPropTag[0] = lpProp->ulPropTag;
+		const SizedSPropTagArray(1, sPropTagArray) = {1, {lpProp->ulPropTag}};
 
 		auto hr = Util::HrCopyPropTagArray(sPropTagArray, &~lpsPropTagArray);
 		if (hr != hrSuccess)
@@ -1252,7 +1248,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 	object_ptr<IStream> lpStream;
     ULONG cValues = 0;
     AttachRendData sData;
-	static constexpr const SizedSPropTagArray(2, sptaTags) =
+	static constexpr SizedSPropTagArray(2, sptaTags) =
 		{2, {PR_ATTACH_METHOD, PR_RENDERING_POSITION}};
 	auto sTnefAttach = make_unique_nt<tnefattachment>();
 	if (sTnefAttach == nullptr)

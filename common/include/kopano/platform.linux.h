@@ -107,7 +107,7 @@ typedef GUID  UUID;		// needed? existing?
 #define GUID_EXT extern "C"
 #define KC_DECLARE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT KC_EXPORT const GUID n
 #define KC_DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-	GUID_EXT KC_EXPORT constexpr const GUID n = \
+	GUID_EXT KC_EXPORT constexpr GUID n = \
 		{cpu_to_le32(l), cpu_to_le16(w1), cpu_to_le16(w2), \
 		{b1, b2, b3, b4, b5, b6, b7, b8}}
 #ifndef INITGUID

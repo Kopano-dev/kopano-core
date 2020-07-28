@@ -926,7 +926,7 @@ ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId) const
  *
  * @return admin level of user
  */
-int ECSecurity::GetAdminLevel(void) const
+int ECSecurity::GetAdminLevel() const
 {
 	return m_details.GetPropInt(OB_PROP_I_ADMINLEVEL);
 }
@@ -1312,7 +1312,7 @@ ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator) const
  *
  * @return Object size in bytes
  */
-size_t ECSecurity::GetObjectSize(void) const
+size_t ECSecurity::GetObjectSize() const
 {
 	size_t ulSize = sizeof(*this);
 	ulSize += m_details.GetObjectSize();

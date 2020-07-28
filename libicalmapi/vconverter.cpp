@@ -929,7 +929,7 @@ HRESULT VConverter::resolve_organizer(std::wstring &email, std::wstring &name, s
 	*entryid = nullptr;
 
 	if (bIsUserLoggedIn(email) || force_mailuser) {
-		static constexpr const SizedSPropTagArray(4, sPropTags) =
+		static constexpr SizedSPropTagArray(4, sPropTags) =
 			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
 		ULONG count;
 		memory_ptr<SPropValue> propvals;
@@ -1802,7 +1802,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	std::wstring strName, strType, strEmailAddress;
-	static constexpr const SizedSPropTagArray(7, sptaRecipProps) =
+	static constexpr SizedSPropTagArray(7, sptaRecipProps) =
 		{7, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A,
 		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
 		PR_RECIPIENT_TRACKSTATUS}};
@@ -2296,7 +2296,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	unsigned int cbsize = 0, ulFlag = 0, ulRecurrenceStateTag;
 	std::list<icalcomponent*> lstExceptions;
 	TIMEZONE_STRUCT zone;
-	SizedSPropTagArray(6, proptags) =
+	const SizedSPropTagArray(6, proptags) =
 		{6, {PR_MESSAGE_CLASS_A,
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY),
@@ -2750,7 +2750,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	memory_ptr<SPropValue> lpSpropValArray;
 	std::unique_ptr<icaltimezone, icalmapi_delete> lpicTZinfo;
 	std::string strTZid;
-	SizedSPropTagArray(3, proptags) = {3,
+	const SizedSPropTagArray(3, proptags) = {3,
 		{CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISRECURRING], PT_BOOLEAN),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};

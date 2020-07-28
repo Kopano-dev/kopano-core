@@ -42,7 +42,7 @@ template<typename ContainerPtrType> class ECHierarchyIterator final :
     public ECHierarchyIteratorBase
 {
 public:
-	ECHierarchyIterator(void) = default;
+	ECHierarchyIterator() = default;
 	ECHierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
 		ECHierarchyIteratorBase(c, flags, depth)
 	{}
@@ -55,12 +55,12 @@ public:
 	{
 		return !operator==(r);
 	}
-	ECHierarchyIterator<ContainerPtrType> &operator++(void)
+	ECHierarchyIterator<ContainerPtrType> &operator++()
 	{
 		ECHierarchyIteratorBase::increment();
 		return *this;
 	}
-	ContainerPtrType &operator*(void) const
+	ContainerPtrType &operator*() const
 	{
 		ECHierarchyIteratorBase::dereference()->QueryInterface(iid_of(m_ptr), &~m_ptr);
 		return m_ptr;

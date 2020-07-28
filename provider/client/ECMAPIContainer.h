@@ -11,7 +11,7 @@
 class ECMAPIContainer : public ECMAPIProp, public virtual IMAPIContainer {
 public:
 	ECMAPIContainer(ECMsgStore *, unsigned int obj_type, BOOL modify);
-	virtual ~ECMAPIContainer(void) = default;
+	virtual ~ECMAPIContainer() = default;
 
 	// IUnknown
 	virtual HRESULT	QueryInterface(const IID &, void **) override;

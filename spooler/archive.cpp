@@ -59,12 +59,12 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
     std::shared_ptr<ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
-	unsigned int cMsgProps, ulType;
+	unsigned int cMsgProps;
 	SObjectEntry refMsgEntry;
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
+	static constexpr SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
@@ -106,7 +106,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
-	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+	     &iid_of(ptrFolder), MAPI_MODIFY, nullptr, &~ptrFolder);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed", hr);
 	hr = ArchiverSession::Create(m_ptrSession, logger, &ptrSession);
@@ -179,7 +179,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	std::shared_ptr<ArchiverSession> ptrSession;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	ArchiveResult result;
-	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
 	auto cleanup = make_scope_success([&]() {

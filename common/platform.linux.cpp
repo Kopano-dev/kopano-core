@@ -93,7 +93,7 @@ void rand_get(char *p, int n)
 	arc4random_buf(p, n);
 }
 #else
-static void rand_fail(void)
+static void rand_fail()
 {
 	fprintf(stderr, "Cannot access/use /dev/urandom, this is fatal (%s)\n", strerror(errno));
 	kill(0, SIGTERM);
@@ -170,7 +170,7 @@ time_t GetProcessTime()
 	return t;
 }
 
-std::vector<std::string> get_backtrace(void)
+std::vector<std::string> get_backtrace()
 {
 #define BT_MAX 256
 	std::vector<std::string> result;
@@ -229,7 +229,7 @@ static void dump_fdtable_summary(pid_t pid)
  */
 int ec_relocate_fd(int fd)
 {
-	static constexpr const int typical_limit = 1024;
+	static constexpr int typical_limit = 1024;
 
 	if (fd >= typical_limit)
 		/* No action needed */

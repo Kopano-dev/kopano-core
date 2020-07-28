@@ -33,7 +33,7 @@ extern std::shared_ptr<ECLogger> g_lpLogger;
  **/
 class IDbQueryCreator {
 public:
-	virtual ~IDbQueryCreator(void) = default;
+	virtual ~IDbQueryCreator() = default;
 	virtual std::string CreateQuery() const = 0;
 };
 
@@ -210,7 +210,7 @@ std::string NullQueryCreator::CreateOrderQuery() const
  **/
 struct IMessageProcessor {
 public:
-	virtual ~IMessageProcessor(void) = default;
+	virtual ~IMessageProcessor() = default;
 	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;
 	virtual ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) = 0;
 	virtual ECRESULT GetResidualMessages(MESSAGESET *residuals) = 0;

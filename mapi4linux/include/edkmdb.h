@@ -570,7 +570,7 @@ struct ROWENTRY {
 typedef struct ROWENTRY *LPROWENTRY;
 
 struct ROWLIST {
-	ROWLIST(void) = delete;
+	ROWLIST() = delete;
 	template<typename T> ROWLIST(std::initializer_list<T>) = delete;
 	ULONG			cEntries;
 	ROWENTRY		aEntries[MAPI_DIM];

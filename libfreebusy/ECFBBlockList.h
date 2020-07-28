@@ -21,7 +21,7 @@ typedef std::map<LONG, FBBlock_1>mapFB;
 
 class ECFBBlockList KC_FINAL {
 public:
-	ECFBBlockList(void);
+	ECFBBlockList();
 	ECFBBlockList(const ECFBBlockList &);
 	void operator=(const ECFBBlockList &) = delete; /* not implemented */
 	HRESULT Add(const FBBlock_1 &);

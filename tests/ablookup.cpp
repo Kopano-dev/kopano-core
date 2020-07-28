@@ -42,7 +42,9 @@ static HRESULT container_contents(IABContainer *cont, unsigned int lvl)
 		return kc_perrorf("RestrictTable", ret);
 #endif
 
-	static constexpr const SizedSPropTagArray(4, cols) = {4, {PR_DISPLAY_NAME, PR_COMPANY_NAME, PR_MOBILE_TELEPHONE_NUMBER, PR_BUSINESS_TELEPHONE_NUMBER}};
+	static constexpr SizedSPropTagArray(4, cols) =
+		{4, {PR_DISPLAY_NAME, PR_COMPANY_NAME, PR_MOBILE_TELEPHONE_NUMBER,
+		PR_BUSINESS_TELEPHONE_NUMBER}};
 	ret = tbl->SetColumns(cols, 0);
 	if (ret != hrSuccess)
 		return kc_perrorf("SetColumns", ret);

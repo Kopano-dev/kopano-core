@@ -349,7 +349,7 @@ std::string bin2hex(size_t inLength, const void *vinput)
 {
 	if (vinput == nullptr)
 		return "";
-	static constexpr const char digits[] = "0123456789ABCDEF";
+	static constexpr char digits[] = "0123456789ABCDEF";
 	auto input = static_cast<const char *>(vinput);
 	std::string buffer;
 	buffer.resize(inLength * 2);
@@ -606,7 +606,7 @@ std::string format(const char *const fmt, ...) {
         va_list ap;
 
         va_start(ap, fmt);
-        (void)vasprintf(&buffer, fmt, ap);
+        vasprintf(&buffer, fmt, ap);
         va_end(ap);
 
         std::string result = buffer;

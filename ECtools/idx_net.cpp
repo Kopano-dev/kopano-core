@@ -37,7 +37,7 @@ static unsigned int opt_from_stdin;
 static bool g_quit;
 static std::unique_ptr<IIndexer> g_indexer;
 
-static constexpr const struct HXoption idx_options[] = {
+static constexpr struct HXoption idx_options[] = {
 	{nullptr, 'c', HXTYPE_STRING, &opt_config_file, nullptr, nullptr, 0, "Alternate config file", "FILENAME"},
 	{nullptr, 'S', HXTYPE_NONE, &opt_from_stdin, nullptr, nullptr, 0, "Take commands from stdin"},
 	HXOPT_AUTOHELP,

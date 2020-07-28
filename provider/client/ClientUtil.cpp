@@ -29,7 +29,7 @@
 using namespace KC;
 
 // profile properties
-static constexpr const SizedSPropTagArray(20, sptaKopanoProfile) =
+static constexpr SizedSPropTagArray(20, sptaKopanoProfile) =
 	{20, {PR_EC_PATH, PR_PROFILE_NAME_A, PR_EC_USERNAME_A,
 	PR_EC_USERNAME_W, PR_EC_USERPASSWORD_A, PR_EC_USERPASSWORD_W,
 	PR_EC_IMPERSONATEUSER_A, PR_EC_IMPERSONATEUSER_W, PR_EC_FLAGS,
@@ -201,7 +201,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 							RR_INTERNET_MESSAGE_ID, RR_DELIVER_TIME, RR_SENT_REPRESENTING_ADDRTYPE, RR_SENT_REPRESENTING_EMAIL_ADDRESS,
 							RR_MDN_DISPOSITION_TYPE, RR_MDN_DISPOSITION_SENDINGMODE};
 
-	static constexpr const SizedSPropTagArray(39, sPropReadReceipt) =
+	static constexpr SizedSPropTagArray(39, sPropReadReceipt) =
 		{39, { PR_REPORT_TAG, PR_CONVERSATION_TOPIC,
 		PR_CONVERSATION_INDEX, PR_SEARCH_KEY, PR_MESSAGE_CLASS,
 		PR_SENDER_SEARCH_KEY, PR_SUBJECT, PR_SUBJECT_PREFIX,
@@ -565,11 +565,8 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(IProfSect *lpGlobalProfSe
 
 	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
-	SizedSPropTagArray(1, sPropTagArray);
+	static constexpr SizedSPropTagArray(1, sPropTagArray) = {1, {PR_STORE_PROVIDERS}};
 	memory_ptr<BYTE> lpDelegateStores;
-
-	sPropTagArray.cValues = 1;
-	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
 	auto hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
 	if(hr != hrSuccess)
 		return hr;

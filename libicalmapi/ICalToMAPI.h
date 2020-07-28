@@ -23,7 +23,7 @@ public:
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
 	ICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients) : m_lpPropObj(lpPropObj), m_lpAdrBook(lpAdrBook), m_bNoRecipients(bNoRecipients) {};
-	virtual ~ICalToMapi(void) = default;
+	virtual ~ICalToMapi() = default;
 	virtual HRESULT ParseICal2(const char *ical, const std::string &charset, const std::string &server_tz, IMailUser *, unsigned int flags) = 0;
 	HRESULT ParseICal(const std::string &ical, const std::string &charset, const std::string &server_tz, IMailUser *mu, unsigned int flags)
 	{

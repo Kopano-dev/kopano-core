@@ -69,7 +69,7 @@ static std::string generate_message_id(IMessage *msg)
 {
 #define IDLEN 38
 	memory_ptr<SPropValue> prop;
-	static constexpr const SizedSPropTagArray(2, tags) =
+	static constexpr SizedSPropTagArray(2, tags) =
 		{2, {PR_RECORD_KEY, PR_LAST_MODIFICATION_TIME}};
 	unsigned int nvals = 0;
 	auto hr = msg->GetProps(tags, 0, &nvals, &~prop);
@@ -227,7 +227,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	vmime::shared_ptr<vmime::message> vmMessage;
 	auto mailer = dynamic_cast<ECVMIMESender *>(mailer_base);
 	memory_ptr<SPropValue> ptrProps;
-	static constexpr const SizedSPropTagArray(2, sptaForwardProps) =
+	static constexpr SizedSPropTagArray(2, sptaForwardProps) =
 		{2, {PR_AUTO_FORWARDED, PR_INTERNET_MESSAGE_ID_A}};
 	ULONG cValues = 0;
 

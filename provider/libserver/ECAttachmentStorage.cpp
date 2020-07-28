@@ -87,7 +87,7 @@ class ECFileAttachment : public ECAttachmentStorage {
 	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, unsigned int l1, unsigned int l2, bool sync);
 
 	protected:
-	virtual ~ECFileAttachment(void);
+	virtual ~ECFileAttachment();
 
 	/* Single Instance Attachment handlers */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
@@ -181,7 +181,7 @@ static const char fa_hex[] = "0123456789abcdef";
  * and simply request the dagent to resend the attachment and to obtain a new attachment id.
  */
 
-static constexpr const size_t UAS_FILENAME_BUFSIZE = SHA256_DIGEST_LENGTH * 2 + 2;
+static constexpr size_t UAS_FILENAME_BUFSIZE = SHA256_DIGEST_LENGTH * 2 + 2;
 
 /*
  * UAS:
@@ -1541,7 +1541,7 @@ void ECFileAttachment::my_readahead(int fd) {
 	struct stat st;
 
 	if (fstat(fd, &st) == 0)
-		(void)readahead(fd, 0, st.st_size);
+		readahead(fd, 0, st.st_size);
 #endif
 }
 

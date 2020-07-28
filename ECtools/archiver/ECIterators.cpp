@@ -22,7 +22,7 @@ void ECHierarchyIteratorBase::increment()
 
 	if (!m_ptrTable) {
 		memory_ptr<SPropValue> ptrFolderType;
-		static constexpr const SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
+		static constexpr SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
 		auto hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);
 		if (hr == hrSuccess && ptrFolderType->Value.ul == FOLDER_SEARCH) {

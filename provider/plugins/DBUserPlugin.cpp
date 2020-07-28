@@ -229,8 +229,7 @@ objectsignature_t DBUserPlugin::authenticateUser(const std::string &username,
 signatures_t
 DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
-	static constexpr const char *const search_props[] =
-	{
+	static constexpr const char *search_props[] = {
 		OP_LOGINNAME, OP_FULLNAME, OP_EMAILADDRESS,	/* This will match all users */
 		OP_GROUPNAME,								/* This will match all groups */
 		OP_COMPANYNAME,								/* This will match all companies */

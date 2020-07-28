@@ -78,7 +78,7 @@ class ECLogger_Syslog KC_FINAL : public ECLogger {
 
 	public:
 	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
-	~ECLogger_Syslog(void);
+	~ECLogger_Syslog();
 	KC_HIDDEN virtual void Reset() override;
 	KC_HIDDEN virtual void log(unsigned int level, const char *msg) override;
 	KC_HIDDEN virtual void logf(unsigned int level, const char *fmt, ...) override KC_LIKE_PRINTF(3, 4);
@@ -89,11 +89,10 @@ using namespace std::string_literals;
 
 static void ec_log_bt(unsigned int, const char *, ...);
 
-static constexpr const size_t EC_LOG_TSSIZE = 64;
-static constexpr const size_t LOG_PFXSIZE = EC_LOG_TSSIZE + 32 + 16; /* +threadname+pid */
-static constexpr const size_t LOG_LVLSIZE = 12;
-
-static const char *const ll_names[] = {
+static constexpr size_t EC_LOG_TSSIZE = 64;
+static constexpr size_t LOG_PFXSIZE = EC_LOG_TSSIZE + 32 + 16; /* +threadname+pid */
+static constexpr size_t LOG_LVLSIZE = 12;
+static constexpr const char *ll_names[] = {
 	"=======",
 	"crit   ",
 	"error  ",
@@ -239,7 +238,7 @@ ECLogger_File::~ECLogger_File() {
 		fnClose(fh);
 }
 
-void ECLogger_File::init_for_stderr(void)
+void ECLogger_File::init_for_stderr()
 {
 	fh = stderr;
 	fnOpen = nullptr;
@@ -249,7 +248,7 @@ void ECLogger_File::init_for_stderr(void)
 	szMode = nullptr;
 }
 
-void ECLogger_File::init_for_file(void)
+void ECLogger_File::init_for_file()
 {
 	fnOpen = reinterpret_cast<open_func>(&fopen);
 	fnClose = reinterpret_cast<close_func>(&fclose);
@@ -258,7 +257,7 @@ void ECLogger_File::init_for_file(void)
 	szMode = "a";
 }
 
-void ECLogger_File::init_for_gzfile(void)
+void ECLogger_File::init_for_gzfile()
 {
 	fnOpen = reinterpret_cast<open_func>(&gzopen);
 	fnClose = reinterpret_cast<close_func>(&gzclose);
@@ -502,7 +501,7 @@ ECLogger_Tee::ECLogger_Tee(): ECLogger(EC_LOGLEVEL_DEBUG) {
 /**
  * Reset all loggers attached to this logger.
  */
-void ECLogger_Tee::Reset(void)
+void ECLogger_Tee::Reset()
 {
 	for (auto log : m_loggers)
 		log->Reset();
@@ -1080,7 +1079,7 @@ void ec_log_set(std::shared_ptr<ECLogger> logger)
 	ec_log_target = (logger == nullptr) ? &ec_log_fallback_target : logger.get();
 }
 
-ECLogger *ec_log_get(void)
+ECLogger *ec_log_get()
 {
 	return ec_log_target;
 }

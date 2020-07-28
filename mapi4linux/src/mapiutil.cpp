@@ -244,7 +244,7 @@ HRESULT HrQueryAllRows(LPMAPITABLE lpTable, const SPropTagArray *lpPropTags,
 HRESULT HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag,
     LPSPropValue *lppPropVal)
 {
-	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
+	const SizedSPropTagArray(1, sPropTag) = {1, { ulPropTag}};
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpPropVal;
 

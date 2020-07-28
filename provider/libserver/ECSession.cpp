@@ -547,7 +547,7 @@ ECAuthSession::~ECAuthSession()
 
 	/* Wait until all locks have been closed */
 	std::unique_lock<std::mutex> l_thread(m_hThreadReleasedMutex);
-	m_hThreadReleased.wait(l_thread, [this](void) { return !IsLocked(); });
+	m_hThreadReleased.wait(l_thread, [this]() { return !IsLocked(); });
 	l_thread.unlock();
 	if (m_NTLM_pid == -1)
 		return;

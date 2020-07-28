@@ -780,8 +780,8 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
 	memory_ptr<ENTRYID> lpStoreEntryID;
-
-	SizedSPropTagArray(2, sptaProviders) = { 2, {PR_RECORD_KEY, PR_PROVIDER_UID} };
+	static constexpr SizedSPropTagArray(2, sptaProviders) =
+		{2, {PR_RECORD_KEY, PR_PROVIDER_UID}};
 
 	if (lpEntryID == NULL || lppMDB == NULL) {
 		ec_log_err("M4LMAPISession::OpenMsgStore() invalid parameters");
@@ -956,7 +956,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	object_ptr<IAddrBook> lpAddrBook;
     ULONG cbUnWrappedID = 0;
 	memory_ptr<ENTRYID> lpUnWrappedID;
-	SizedSPropTagArray(3, sptaProviders) = { 3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE} };
+	static constexpr SizedSPropTagArray(3, sptaProviders) =
+		{3, {PR_ENTRYID, PR_RECORD_KEY, PR_RESOURCE_TYPE}};
 	GUID guidProvider;
 	bool bStoreEntryID = false;
 
@@ -1737,7 +1738,7 @@ HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, const SRowSet *lpSearchPath)
 HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
-	ULONG cValues = 0, ulType = 0;
+	unsigned int cValues = 0;
 
 	//FIXME: lpPropTagArray can be NULL, this means that doesn't have extra properties to update only the 
 	//       properties in the lpRecipList array.
@@ -1755,7 +1756,8 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 		auto lpEntryId = lpRecipList->aEntries[i].cfind(PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
-		auto hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
+		auto hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb),
+		          &IID_IMailUser, 0, nullptr, &~lpMailUser);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenEntry failed", hr);
 		hr = lpMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpProps);
@@ -2048,7 +2050,7 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
  * object from that library you still * have will be unusable,
  * and will make your program crash when used.
  */
-void MAPIUninitialize(void)
+void MAPIUninitialize()
 {
 	scoped_lock l_mapi(g_MAPILock);
 

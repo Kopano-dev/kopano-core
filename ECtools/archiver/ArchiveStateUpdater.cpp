@@ -238,7 +238,6 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Processing %zu archives for implicitly attached archives", lstArchives.size());
 	for (const auto &i : lstArchives) {
 		object_ptr<IMsgStore> ptrArchStore;
-		ULONG ulType;
 		AttachType attachType;
 
 		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &~ptrArchStore);
@@ -252,7 +251,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId,
 			return hr;
 		}
 		object_ptr<IMAPIFolder> ptrArchFolder;
-		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &iid_of(ptrArchFolder), 0, &ulType, &~ptrArchFolder);
+		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &iid_of(ptrArchFolder), 0, nullptr, &~ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->perr("Failed to open archive root", hr);
 			if (hr == MAPI_E_NOT_FOUND) {

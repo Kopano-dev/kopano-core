@@ -344,7 +344,10 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 	// Create and hook the three dependent steps
 	if (m_bArchiveEnable && m_ulArchiveAfter >= 0) {
-		SizedSPropTagArray(5, sptaExcludeProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
+		const SizedSPropTagArray(5, sptaExcludeProps) =
+			{5, {PROP_ARCHIVE_STORE_ENTRYIDS,
+			PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY,
+			PROP_ORIGINAL_SOURCEKEY}};
 		ptrCopyOp = std::make_shared<Copier>(m_ptrSession, m_lpConfig, m_lpLogger,
 			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true);
 	}
@@ -509,9 +512,9 @@ HRESULT ArchiveControlImpl::ProcessFolder2(IMAPIFolder *ptrFolder,
 {
 	object_ptr<IMAPITable> ptrTable;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
-	static constexpr const SizedSPropTagArray(3, sptaProps) =
+	static constexpr SizedSPropTagArray(3, sptaProps) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
-	static constexpr const SizedSSortOrderSet(1, sptaOrder) =
+	static constexpr SizedSSortOrderSet(1, sptaOrder) =
 		{1, 0, 0, {{PR_PARENT_ENTRYID, TABLE_SORT_ASCEND}}};
 
 	auto hr = ptrFolder->GetContentsTable(fMapiDeferredErrors, &~ptrTable);
@@ -579,7 +582,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const std::list<SObjectEntry> &lstArch
 	memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
 	rowset_ptr ptrRowSet;
-	static constexpr const SizedSPropTagArray(2, sptaFolderProps) =
+	static constexpr SizedSPropTagArray(2, sptaFolderProps) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME}};
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
 
@@ -679,7 +682,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(IMsgStore *ptrArchive,
 	object_ptr<IMAPIFolder> ptrFolder;
 	std::list<entryid_t> lstEntries;
 	ULONG ulIdx = 0;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
 	auto hr = ptrArchive->OpenEntry(folderEntryID.size(), folderEntryID,
 	          &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
@@ -865,13 +868,12 @@ HRESULT ArchiveControlImpl::AppendAllReferences(IMAPIFolder *lpFolder,
     const GUID *lpArchiveGuid, EntryIDSet *lpReferences)
 {
 	BYTE prefixData[4+sizeof(GUID)]{};
-	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
-	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
+	static constexpr ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT(lpFolder)
-	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS;
+	const SizedSPropTagArray(1, sptaContentProps) = {1, {PROP_ITEM_ENTRYIDS}};
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
 
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
@@ -968,7 +970,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(std::shared_ptr<ArchiveHelper> ptrArch
 HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpEntries)
 {
 	ECAndRestriction resContent;
-	static constexpr const SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
@@ -1023,7 +1025,8 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(std::shared_ptr<ArchiveHelper> ptrA
     IMAPIFolder *lpArchiveRoot, IMsgStore *lpUserStore)
 {
 	object_ptr<IMAPITable> ptrTable;
-	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
+	static constexpr SizedSSortOrderSet(1, ssosHierarchy) =
+		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
 
@@ -1291,7 +1294,7 @@ HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries)
 {
 	memory_ptr<SPropValue> ptrProp;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
 	auto hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)

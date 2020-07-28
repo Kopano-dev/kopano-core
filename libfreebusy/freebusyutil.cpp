@@ -80,7 +80,7 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 	unsigned int cValuesFreeBusy = 0, ulObjType = 0;
 	memory_ptr<SPropValue> lpPropArrayFreeBusy;
 	object_ptr<IMAPIFolder> lpMapiFolder;
-	static constexpr const SizedSPropTagArray(1, sPropsFreeBusy) =
+	static constexpr SizedSPropTagArray(1, sPropsFreeBusy) =
 		{1, {PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID}};
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
@@ -112,7 +112,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	memory_ptr<SPropValue> lpPropfbEntryidsNew, lpPropFBMessage;
 	memory_ptr<SPropValue> lpPropName, lpPropEmail;
 	memory_ptr<ENTRYID> lpInboxEntry;
-	static constexpr const SizedSPropTagArray(1, sPropsFreebusyTable) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sPropsFreebusyTable) = {1, {PR_ENTRYID}};
 	enum eFreeBusyTablePos{ FBPOS_ENTRYID};
 
 	if(lpSession == NULL || lpPublicStore == NULL || lppMessage == NULL)
@@ -316,7 +316,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 {
 	ULONG			cValuesFBData = 0;
 	memory_ptr<SPropValue> lpPropArrayFBData;
-	static constexpr const SizedSPropTagArray(9, sPropsFreeBusyData) = {
+	static constexpr SizedSPropTagArray(9, sPropsFreeBusyData) = {
 		9,
 		{
 			//PR_FREEBUSY_ALL_EVENTS,

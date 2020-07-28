@@ -55,7 +55,7 @@ public:
 	/**
 	 * Creates an empty objectid with empty signature
 	 */
-	objectsignature_t(void) = default;
+	objectsignature_t() = default;
 
 	/**
 	 * Object signature equality comparison
@@ -122,7 +122,7 @@ public:
 		m_bDistributed(shareddata->IsDistributed())
 	{}
 
-	virtual ~UserPlugin(void) = default;
+	virtual ~UserPlugin() = default;
 
 	/**
 	 * Initialize plugin

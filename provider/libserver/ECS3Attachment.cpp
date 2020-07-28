@@ -45,7 +45,7 @@ class ECS3Attachment final : public ECAttachmentStorage {
 	ECS3Attachment(ECS3Config &, ECDatabase *);
 
 	protected:
-	virtual ~ECS3Attachment(void);
+	virtual ~ECS3Attachment();
 
 	/* Single Instance Attachment handlers */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
@@ -69,7 +69,7 @@ class ECS3Attachment final : public ECAttachmentStorage {
 	int put_obj(int, char *, void *);
 	std::string make_att_filename(const ext_siid &);
 	bool should_retry(unsigned int &);
-	struct s3_cd create_cd(void);
+	struct s3_cd create_cd();
 	ECRESULT del_marked_att(const ext_siid &);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
@@ -291,7 +291,7 @@ ECS3Attachment::ECS3Attachment(ECS3Config &config, ECDatabase *db) :
 	ECAttachmentStorage(db, config.m_comp), m_config(config)
 {}
 
-ECS3Attachment::~ECS3Attachment(void)
+ECS3Attachment::~ECS3Attachment()
 {
 	assert(!m_transact);
 }
@@ -830,7 +830,7 @@ kd_trans ECS3Attachment::Begin(ECRESULT &trigger)
 	return kd_trans(*this, trigger);
 }
 
-ECRESULT ECS3Attachment::Commit(void)
+ECRESULT ECS3Attachment::Commit()
 {
 	bool error = false;
 
@@ -852,7 +852,7 @@ ECRESULT ECS3Attachment::Commit(void)
 	return error ? KCERR_DATABASE_ERROR : erSuccess;
 }
 
-ECRESULT ECS3Attachment::Rollback(void)
+ECRESULT ECS3Attachment::Rollback()
 {
 	bool error = false;
 

@@ -632,7 +632,7 @@ HRESULT WSTransport::HrLogOff()
 	return hrSuccess; // NOTE hrSuccess, never fails since we don't really mind that it failed.
 }
 
-HRESULT WSTransport::logoff_nd(void)
+HRESULT WSTransport::logoff_nd()
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;

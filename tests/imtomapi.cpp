@@ -38,7 +38,7 @@ ECLogger_File t_logger(EC_LOGLEVEL_DEBUG, false, "-", 0);
 
 struct ictx final {
 	public:
-	void complete_init(void);
+	void complete_init();
 	const SPropValue *find(unsigned int) const;
 
 	memory_ptr<SPropValue> props;
@@ -64,7 +64,7 @@ class t_base {
 		m_dopt.ascii_upgrade = t_ascii_upgrade;
 		m_analyze = func;
 	}
-	virtual void setup(void) {};
+	virtual void setup() {};
 	virtual int verify(const struct ictx &ctx)
 	{
 		return (m_analyze != NULL) ? (*m_analyze)(ctx) : TEST_OK;
@@ -76,7 +76,7 @@ const SPropValue *ictx::find(unsigned int tag) const
 	return PCpropFindProp(props, count, tag);
 }
 
-void ictx::complete_init(void)
+void ictx::complete_init()
 {
 	auto prop = find(PR_INTERNET_CPID);
 	cpid = (prop != NULL) ? prop->Value.ul : 0;
@@ -186,7 +186,7 @@ static int test_mimecset01(const struct ictx &ctx)
 
 class test_mimecset03 final : public t_base {
 	public:
-	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
+	void setup() { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);
 };
 
@@ -330,7 +330,7 @@ static int test_html_cset_01(const struct ictx &ctx)
 
 class test_html_cset_02 final : public t_base {
 	public:
-	void setup(void) { m_dopt.charset_strict_rfc = false; };
+	void setup() { m_dopt.charset_strict_rfc = false; };
 	int verify(const struct ictx &);
 };
 
@@ -342,7 +342,7 @@ int test_html_cset_02::verify(const struct ictx &ctx)
 
 class test_cset_big5 final : public t_base {
 	public:
-	void setup(void) { m_dopt.ascii_upgrade = "big5"; };
+	void setup() { m_dopt.ascii_upgrade = "big5"; };
 	int verify(const struct ictx &);
 };
 
@@ -401,7 +401,7 @@ static int test_zcp_11699(const struct ictx &ctx)
 
 class test_zcp_11713 final : public t_base {
 	public:
-	void setup(void) { m_dopt.charset_strict_rfc = false; }
+	void setup() { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &ctx);
 };
 
@@ -428,7 +428,7 @@ int test_zcp_11713::verify(const struct ictx &ctx)
 
 class test_zcp_12930 final : public t_base {
 	public:
-	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
+	void setup() { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);
 };
 
@@ -467,7 +467,7 @@ static int test_zcp_13036_lh(const struct ictx &ctx)
 
 class test_zcp_13175 final : public t_base {
 	public:
-	void setup(void) { m_dopt.charset_strict_rfc = false; }
+	void setup() { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &);
 };
 
@@ -502,7 +502,7 @@ static int test_zcp_13439_nl(const struct ictx &ctx)
 
 class test_zcp_13449_meca final : public t_base {
 	public:
-	void setup(void) { m_dopt.charset_strict_rfc = false; }
+	void setup() { m_dopt.charset_strict_rfc = false; }
 	int verify(const struct ictx &ctx);
 };
 
@@ -540,7 +540,7 @@ int test_zcp_13449_meca::verify(const struct ictx &ctx)
 
 class test_zcp_13449_na final : public t_base {
 	public:
-	void setup(void) { m_dopt.ascii_upgrade = nullptr; }
+	void setup() { m_dopt.ascii_upgrade = nullptr; }
 	int verify(const struct ictx &ctx);
 };
 

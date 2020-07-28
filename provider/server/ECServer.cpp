@@ -382,7 +382,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	return erSuccess;
 }
 
-static ECRESULT check_attachment_storage_permissions(void)
+static ECRESULT check_attachment_storage_permissions()
 {
 	auto backend = g_lpConfig->GetSetting("attachment_storage");
 
@@ -488,7 +488,7 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
  * empty, gets the current FQDN through DNS lookups, and updates the
  * server_hostname value in the config object.
  */
-static ECRESULT check_server_fqdn(void)
+static ECRESULT check_server_fqdn()
 {
 	ECRESULT er = erSuccess;
 	char hostname[256]{};
@@ -528,7 +528,7 @@ exit:
  *
  * @return always returns erSuccess
  */
-static ECRESULT check_server_configuration(void)
+static ECRESULT check_server_configuration()
 {
 	bool bHaveErrors = false;
 	ECSession		*lpecSession = NULL;
@@ -768,7 +768,7 @@ int main(int argc, char* argv[])
 #define KOPANO_SERVER_PIPE "/var/run/kopano/server.sock"
 #define KOPANO_SERVER_PRIO "/var/run/kopano/prio.sock"
 
-static void InitBindTextDomain(void)
+static void InitBindTextDomain()
 {
 	// Set gettext codeset, used for generated folder name translations
 	bind_textdomain_codeset("kopano", "UTF-8");

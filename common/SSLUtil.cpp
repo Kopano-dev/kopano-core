@@ -30,7 +30,7 @@ static void ssl_lock(int mode, int n, const char *file, int line)
 		ssl_locks[n].unlock();
 }
 
-static unsigned long ssl_id_function(void)
+static unsigned long ssl_id_function()
 {
     return ((unsigned long) pthread_self());
 }

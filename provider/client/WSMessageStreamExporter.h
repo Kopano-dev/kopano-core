@@ -27,7 +27,7 @@ public:
 	~WSMessageStreamExporter();
 
 private:
-	WSMessageStreamExporter(void) = default;
+	WSMessageStreamExporter() = default;
 	// Inhibit copying
 	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;

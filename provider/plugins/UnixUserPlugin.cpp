@@ -76,7 +76,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
 	DBPlugin(pluginlock, shareddata)
 {
-	static constexpr const configsetting_t lpDefaults[] = {
+	static constexpr configsetting_t lpDefaults[] = {
 		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters
 		{ "default_domain", "localhost" },			// no sane default
 		{"non_login_shell", "/sbin/nologin /bin/false", CONFIGSETTING_RELOADABLE}, // create a non-login box when a user has this shell
@@ -773,7 +773,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	// See if we get matches based on database details as well
 	try {
 		char buffer[PWBUFSIZE];
-		static constexpr const char *const search_props[] = {OP_EMAILADDRESS, nullptr};
+		static constexpr const char *search_props[] = {OP_EMAILADDRESS, nullptr};
 		for (const auto &sig : DBPlugin::searchObjects(match, search_props, nullptr, ulFlags)) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
 			int ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);

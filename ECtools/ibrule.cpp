@@ -31,7 +31,7 @@ enum { IBR_NONE = 0, IBR_SHOW, IBR_ADD };
 static unsigned int ibr_action, ibr_passpr;
 static int ibr_delete_pos = -1;
 static char *ibr_user, *ibr_pass, *ibr_host;
-static constexpr const struct HXoption ibr_options[] = {
+static constexpr struct HXoption ibr_options[] = {
 	{nullptr, 'A', HXTYPE_VAL, &ibr_action, nullptr, nullptr, IBR_ADD, "Add new rule to the table"},
 	{nullptr, 'D', HXTYPE_INT, &ibr_delete_pos, nullptr, nullptr, 0, "Delete rule by position", "POS"},
 	{nullptr, 'P', HXTYPE_NONE, &ibr_passpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},

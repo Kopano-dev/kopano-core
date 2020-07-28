@@ -211,7 +211,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 HRESULT ArchiveStateCollector::PopulateFromContainer(IABContainer *lpContainer)
 {
 	SPropValue sPropObjType, sPropDispType;
-	static constexpr const SizedSPropTagArray(4, sptaUserProps) =
+	static constexpr SizedSPropTagArray(4, sptaUserProps) =
 		{4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS,
 		PR_EC_ARCHIVE_COUPLINGS}};
 	enum {IDX_ENTRYID, IDX_ACCOUNT, IDX_EC_ARCHIVE_SERVERS, IDX_EC_ARCHIVE_COUPLINGS};

@@ -45,12 +45,12 @@ public:
 	void DecLeaf() { --m_ulLeafs; }
 	void IncUnread() { ++m_ulUnread; }
 	void DecUnread() { --m_ulUnread; }
-	unsigned int GetCount(void) const { return m_ulLeafs; }
+	unsigned int GetCount() const { return m_ulLeafs; }
     ECRESULT GetProp(struct soap* soap, unsigned int ulPropTag, struct propVal *lpPropVal);
     ECRESULT SetProp(unsigned int i, struct propVal *lpPropVal);
     ECRESULT UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, struct propVal *lpPropVal, bool fMax, bool *lpfModified);
     ECRESULT UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned int i, bool fMax, bool *lpfModified);
-	size_t GetObjectSize(void) const;
+	size_t GetObjectSize() const;
 
     struct propVal *m_lpProps;
     ECCategory *m_lpParent;
@@ -145,7 +145,7 @@ public:
 	void SetTableId(unsigned int ulTableId);
 	virtual	ECRESULT	GetPropCategory(struct soap *soap, unsigned int ulPropTag, sObjectTableKey sKey, struct propVal *lpPropVal);
 	virtual unsigned int GetCategories() { return m_ulCategories; }
-	virtual size_t GetObjectSize(void);
+	virtual size_t GetObjectSize();
 
 protected:
 	// Add an actual row to the table, and send a notification if required. If you add an existing row, the row is modified and the notification is sent as a modification.

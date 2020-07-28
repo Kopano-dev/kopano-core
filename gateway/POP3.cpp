@@ -721,9 +721,9 @@ exit:
 HRESULT POP3::HrMakeMailList() {
 	object_ptr<IMAPITable> lpTable;
 	enum { EID, SIZE, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
+	static constexpr SizedSPropTagArray(NUM_COLS, spt) =
 		{NUM_COLS, {PR_ENTRYID, PR_MESSAGE_SIZE}};
-	static constexpr const SizedSSortOrderSet(1, tableSort) =
+	static constexpr SizedSSortOrderSet(1, tableSort) =
 		{1, 0, 0, {{PR_CREATION_TIME, TABLE_SORT_ASCEND}}};
 
 	auto hr = lpInbox->GetContentsTable(0, &~lpTable);

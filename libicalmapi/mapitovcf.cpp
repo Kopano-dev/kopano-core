@@ -117,7 +117,7 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 HRESULT mapitovcf_impl::add_photo(IMessage *lpMessage, VObject *root)
 {
 	object_ptr<IMAPITable> table;
-	static constexpr const SizedSPropTagArray(2, columns) =
+	static constexpr SizedSPropTagArray(2, columns) =
 		{2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W }};
 
 	auto hr = lpMessage->GetAttachmentTable(0, &~table);

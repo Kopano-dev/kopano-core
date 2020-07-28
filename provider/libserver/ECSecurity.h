@@ -47,7 +47,7 @@ public:
 	virtual unsigned int GetUserId(unsigned int ulObjId = 0);
 	virtual ECRESULT IsOwner(unsigned int objid) const;
 	virtual ECRESULT IsStoreOwner(unsigned int store_id) const;
-	virtual int GetAdminLevel(void) const;
+	virtual int GetAdminLevel() const;
 
 	// Functions to determine if the user is the Administrator
 	// over the company to which the user/object/store belongs.
@@ -64,7 +64,7 @@ public:
 	// information for ECSessionStatsTable
 	virtual ECRESULT GetUsername(std::string *) const;
 	virtual ECRESULT GetImpersonator(std::string *) const;
-	virtual size_t GetObjectSize(void) const;
+	virtual size_t GetObjectSize() const;
 
 private:
 	ECRESULT GetGroupsForUser(unsigned int user_id, std::unique_ptr<std::list<localobjectdetails_t>> &groups);

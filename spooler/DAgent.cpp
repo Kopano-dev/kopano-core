@@ -140,7 +140,7 @@ enum {
 
 class DeliveryArgs final {
 public:
-	DeliveryArgs(void)
+	DeliveryArgs()
 	{
 		imopt_default_delivery_options(&sDeliveryOpts);
 	}
@@ -304,7 +304,7 @@ static void da_sigchld_async(int)
  */
 static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 {
-	static constexpr const SizedSPropTagArray(2, sptaProps) =
+	static constexpr SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_RESPONSE_REQUESTED, PR_MESSAGE_CLASS}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
@@ -336,7 +336,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
  */
 static bool FNeedsAutoProcessing(IMsgStore *lpStore, IMessage *lpMessage)
 {
-	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_CLASS}};
+	static constexpr SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_CLASS}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 
@@ -379,7 +379,6 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	const char *autoresponder = g_lpConfig->GetSetting("mr_autoaccepter");
 	std::string strEntryID;
 	memory_ptr<SPropValue> lpEntryID;
-	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 	auto dblStart = std::chrono::steady_clock::now();
 
@@ -388,7 +387,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 	// saved so that it can find the message to open. Since we can't save the passed lpMessage (it
 	// must be processed by the rules engine first), we make a copy, and let the autoaccept script
 	// work on the copy.
-	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
+	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, nullptr, &~lpRootFolder);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
@@ -447,13 +446,12 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 	object_ptr<IMessage> lpMessageCopy;
 	const char *autoprocessor = g_lpConfig->GetSetting("mr_autoprocessor");
 	memory_ptr<SPropValue> lpEntryID;
-	ULONG ulType = 0;
 	ENTRYLIST sEntryList;
 	auto dblStart = std::chrono::steady_clock::now();
 
 	sc->inc(SCN_DAGENT_AUTOPROCESS);
 	// Pass a copy to the external script
-	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulType, &~lpRootFolder);
+	auto hr = lpStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, nullptr, &~lpRootFolder);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
@@ -601,7 +599,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 {
 	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> lpFlagList;
-	static constexpr const SizedSPropTagArray(13, sptaAddress) = {13,
+	static constexpr SizedSPropTagArray(13, sptaAddress) = {13,
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
 	  PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_W, PR_DISPLAY_TYPE, PR_SEARCH_KEY,
 	  PR_EC_COMPANY_NAME_W,	PR_EC_HOMESERVER_NAME_W, PR_EC_ADMINISTRATOR,
@@ -1129,12 +1127,12 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
     IMsgStore *lpMDB, IMessage *lpMessage, ECRecipient *lpRecip,
     const std::string &strBaseCommand)
 {
-	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {5, {
+	static constexpr SizedSPropTagArray(5, sptaStoreProps) = {5, {
 		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_MSG_W,
 		PR_EC_OUTOFOFFICE_SUBJECT_W,
 		PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 	}};
-	static constexpr const SizedSPropTagArray(5, sptaMessageProps) = {5, {
+	static constexpr SizedSPropTagArray(5, sptaMessageProps) = {5, {
 		PR_TRANSPORT_MESSAGE_HEADERS_A, PR_MESSAGE_TO_ME,
 		PR_MESSAGE_CC_ME, PR_SUBJECT_W, PR_EC_MESSAGE_BCC_ME,
 	}};
@@ -1486,7 +1484,7 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
     ECRecipient *rcpt, bool &pres)
 {
-	static constexpr const SizedSPropTagArray(2, cols) = {2, {PR_OBJECT_TYPE, PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(2, cols) = {2, {PR_OBJECT_TYPE, PR_ENTRYID}};
 	object_ptr<IDistList> dl;
 	auto ret = ab->OpenEntry(eid.cb, reinterpret_cast<ENTRYID *>(eid.lpb), &iid_of(dl), 0, nullptr, &~dl);
 	if (ret != hrSuccess)
@@ -1538,7 +1536,7 @@ static HRESULT recip_in_distlist(IAddrBook *ab, const SBinary &eid,
 static HRESULT recip_me_check(IAddrBook *ab, IMAPITable *tbl,
     ECRecipient *rcpt, bool &xto, bool &xcc, bool &xdl)
 {
-	static constexpr const SizedSPropTagArray(3, cols) =
+	static constexpr SizedSPropTagArray(3, cols) =
 		// MAPI_TO, MAPI_MAILUSER, ...
 		// MAPI_CC, MAPI_DISTLIST, ...
 		{3, {PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_ENTRYID}};
@@ -1737,7 +1735,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 {
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMAPIFolder> lpFolder;
-	static constexpr const SizedSPropTagArray(13, sptaReceivedBy) = {
+	static constexpr SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
 			/* Overridden by HrOverrideRecipProps() */
 			PR_MESSAGE_RECIP_ME,
@@ -1755,7 +1753,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 			PR_ICON_INDEX,
 		}
 	};
-	static constexpr const SizedSPropTagArray(12, sptaFallback) = {
+	static constexpr SizedSPropTagArray(12, sptaFallback) = {
 		12, {
 			/* Overridden by HrOverrideFallbackProps() */
 			PR_SENDER_ADDRTYPE,

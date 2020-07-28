@@ -53,7 +53,7 @@ static constexpr std::pair<unsigned int, unsigned int> dist[] = {
 };
 static constexpr size_t alloc_size = 32;
 
-int main(void)
+int main()
 {
 	struct timespec gstart, gstop, start, stop;
 	size_t cnt_alloc = 0, cnt_more = 0;

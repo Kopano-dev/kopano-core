@@ -57,15 +57,8 @@ static HRESULT HrOpenECPublicStore(IMAPISession *, ULONG flags, IMsgStore **out)
 static HRESULT HrOpenUserMsgStore(IMAPISession *, IMsgStore *, const wchar_t *user, IMsgStore **out);
 
 /* Newmail Notify columns */
-static constexpr const SizedSPropTagArray(4, sPropNewMailColumns) = {
-	4,
-	{
-		PR_ENTRYID,
-		PR_PARENT_ENTRYID,
-		PR_MESSAGE_CLASS_A,
-		PR_MESSAGE_FLAGS,
-	}
-};
+static constexpr SizedSPropTagArray(4, sPropNewMailColumns) =
+	{4, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_MESSAGE_CLASS_A, PR_MESSAGE_FLAGS}};
 
 } /* namespace */
 
@@ -656,7 +649,9 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
 					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
 {
-	SizedSPropTagArray(4, sptaProps) = { 4, { ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress } };
+	const SizedSPropTagArray(4, sptaProps) =
+		{4, {ulPropTagEntryID, ulPropTagName, ulPropTagType,
+		ulPropTagEmailAddress}};
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
@@ -845,15 +840,15 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
     std::wstring &strEmailAddress)
 {
 	object_ptr<IMailUser> lpMailUser;
-	unsigned int ulType = 0, cMailUserValues = 0;
+	unsigned int cMailUserValues = 0;
 	memory_ptr<SPropValue> lpMailUserProps;
-	static constexpr const SizedSPropTagArray(4, sptaAddressProps) =
+	static constexpr SizedSPropTagArray(4, sptaAddressProps) =
 		{4, {PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
 		PR_SMTP_ADDRESS_W}};
 
 	if (lpAdrBook == nullptr || lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	auto hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, &~lpMailUser);
+	auto hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, nullptr, &~lpMailUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMailUser->GetProps(sptaAddressProps, MAPI_UNICODE, &cMailUserValues, &~lpMailUserProps);
@@ -881,9 +876,9 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	ENTRYLIST		sMsgList;
 	SBinary			sEntryID;
 	memory_ptr<SPropValue> lpPropValue;
-	unsigned int cValues = 0, ulType = 0;
+	unsigned int cValues = 0;
 	enum esPropDoSentMail{ DSM_ENTRYID, DSM_PARENT_ENTRYID, DSM_SENTMAIL_ENTRYID, DSM_DELETE_AFTER_SUBMIT, DSM_STORE_ENTRYID};
-	static constexpr const SizedSPropTagArray(5, sPropDoSentMail) =
+	static constexpr SizedSPropTagArray(5, sPropDoSentMail) =
 		{5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID,
 		PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID}};
 
@@ -925,7 +920,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	{
 		//Open Sentmail Folder
 		hr = lpMDB->OpenEntry(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.lpb),
-		     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
+		     &iid_of(lpFolder), MAPI_MODIFY, nullptr, &~lpFolder);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -943,7 +938,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 		// Open parent folder of the sent message
 		hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb),
-		     &iid_of(lpFolder), MAPI_MODIFY, &ulType, &~lpFolder);
+		     &iid_of(lpFolder), MAPI_MODIFY, nullptr, &~lpFolder);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -1306,7 +1301,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 		hr = TestRelop(lpCondition->res.resSize.relop, result, &fMatch);
 		break;
 	case RES_EXIST: {
-		SizedSPropTagArray(1, spta) = {1, {lpCondition->res.resExist.ulPropTag}};
+		const SizedSPropTagArray(1, spta) = {1, {lpCondition->res.resExist.ulPropTag}};
 		unsigned int nvals = 0;
 		hr = lpMessage->GetProps(spta, 0, &nvals, &~lpProp);
 		if (HR_FAILED(hr)) {
@@ -1403,7 +1398,7 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
     SPropValue **lppFolderProp)
 {
 	ULONG nValues;
-	static constexpr const SizedSPropTagArray(2, sptaName) =
+	static constexpr SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	auto hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
@@ -1753,7 +1748,7 @@ HRESULT spv_postload_large_props(IMAPIProp *lpProp,
  */
 HRESULT HrGetFullProp(IMAPIProp *prop, unsigned int tag, SPropValue **pvout)
 {
-	SizedSPropTagArray(1, taglist) = {1, {tag}};
+	const SizedSPropTagArray(1, taglist) = {1, {tag}};
 	unsigned int nvals = 0;
 	memory_ptr<SPropValue> pv;
 	auto ret = prop->GetProps(taglist, 0, &nvals, &~pv);
@@ -1946,11 +1941,11 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	IMessage *lpMessage = NULL;
 	memory_ptr<SPropValue> lpPropFB, lpPropFBNew, lpEntryID, lpAppEntryID;
 	SPropValue *lpPVFBFolder = nullptr, *lpPropFBRef = nullptr;
-	ULONG ulType = 0, cbEntryIDInbox = 0;
+	unsigned int cbEntryIDInbox = 0;
 	memory_ptr<ENTRYID> lpEntryIDInbox;
 	memory_ptr<TCHAR> lpszExplicitClass;
 
-	auto hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpRoot);
+	auto hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~lpRoot);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1958,13 +1953,14 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	if((HrGetOneProp(lpRoot, PR_FREEBUSY_ENTRYIDS, &~lpPropFB) != hrSuccess ||
 		lpPropFB->Value.MVbin.cValues < 2 ||
 		lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb == NULL ||
-		lpMsgStore->OpenEntry(lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb, (LPENTRYID)lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb, &IID_IMessage, MAPI_MODIFY, &ulType, (IUnknown **) &lpMessage) != hrSuccess)
+		lpMsgStore->OpenEntry(lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb, reinterpret_cast<ENTRYID *>(lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb),
+		&IID_IMessage, MAPI_MODIFY, nullptr, reinterpret_cast<IUnknown **>(&lpMessage)) != hrSuccess)
 	   && bCreateIfMissing) {
 		// Open the inbox
 		hr = lpMsgStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>(""), 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
 			return hr;
-		hr = lpMsgStore->OpenEntry(cbEntryIDInbox, lpEntryIDInbox, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpInbox);
+		hr = lpMsgStore->OpenEntry(cbEntryIDInbox, lpEntryIDInbox, &IID_IMAPIFolder, MAPI_MODIFY, nullptr, &~lpInbox);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1983,7 +1979,8 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 			hr = HrGetOneProp(lpInbox, PR_IPM_APPOINTMENT_ENTRYID, &~lpAppEntryID);
 			if(hr != hrSuccess)
 				return hr;
-			hr = lpMsgStore->OpenEntry(lpAppEntryID->Value.bin.cb, (LPENTRYID)lpAppEntryID->Value.bin.lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, (IUnknown **) &lpFolder);
+			hr = lpMsgStore->OpenEntry(lpAppEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpAppEntryID->Value.bin.lpb),
+			     &IID_IMAPIFolder, MAPI_MODIFY, nullptr, reinterpret_cast<IUnknown **>(&lpFolder));
 			if(hr != hrSuccess)
 				return hr;
 		}

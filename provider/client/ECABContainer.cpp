@@ -240,7 +240,7 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
-	static constexpr const SizedSSortOrderSet(1, sSortByDisplayName) =
+	static constexpr SizedSSortOrderSet(1, sSortByDisplayName) =
 		{1, 0, 0, {{PR_DISPLAY_NAME, TABLE_SORT_ASCEND}}};
 
 	auto hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
@@ -293,12 +293,12 @@ HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 HRESULT ECABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
-	static constexpr const SizedSPropTagArray(11, sptaDefault) =
+	static constexpr SizedSPropTagArray(11, sptaDefault) =
 		{11, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE,
 		PR_EMAIL_ADDRESS_A, PR_SMTP_ADDRESS_A, PR_ENTRYID,
 		PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY,
 		PR_EC_SENDAS_USER_ENTRYIDS}};
-	static constexpr const SizedSPropTagArray(11, sptaDefaultUnicode) =
+	static constexpr SizedSPropTagArray(11, sptaDefaultUnicode) =
 		{11, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE,
 		PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_ENTRYID,
 		PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY,

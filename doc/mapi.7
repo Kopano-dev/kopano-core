@@ -35,3 +35,6 @@ Some member functions of some M4L MAPI interface classes have default
 implementations that return an error code. For example, IMAPIProp::GetLastError
 is provided so that subclasses need not provide the boilerplate themselves
 repeatedly.
+.IP \(bu 4
+M4L's OpenEntry functions accept nullptr for ulType (5th argument); MSMAPI does
+not specify whether that is permissible or not.

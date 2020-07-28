@@ -157,14 +157,12 @@ HRESULT ECAttach::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 {
 	HRESULT hr = hrSuccess;
 	auto lpAttach = static_cast<ECAttach *>(lpParam);
-	SizedSPropTagArray(1, sPropArray);
+	static constexpr SizedSPropTagArray(1, sPropArray) = {1, {PR_ATTACH_METHOD}};
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
 	switch(ulPropTag) {
 	case PR_ATTACH_DATA_OBJ:
-		sPropArray.cValues = 1;
-		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
 		hr = lpAttach->GetProps(sPropArray, 0, &cValues, &~lpProps);
 		if(hr == hrSuccess && cValues == 1 && lpProps[0].ulPropTag == PR_ATTACH_METHOD && (lpProps[0].Value.ul == ATTACH_EMBEDDED_MSG || lpProps[0].Value.ul == ATTACH_OLE) )
 		{
@@ -174,8 +172,6 @@ HRESULT ECAttach::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 			hr = MAPI_E_NOT_FOUND;
 		break;
 	case PR_ATTACH_DATA_BIN:
-		sPropArray.cValues = 1;
-		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
 		hr = lpAttach->GetProps(sPropArray, 0, &cValues, &~lpProps);
 		if (hr == hrSuccess && lpProps[0].Value.ul == ATTACH_OLE)
 			hr = MAPI_E_NOT_FOUND;

@@ -13,7 +13,7 @@ namespace KC {
 
 class KC_EXPORT CHtmlToTextParser KC_FINAL {
 public:
-	CHtmlToTextParser(void);
+	CHtmlToTextParser();
 	bool Parse(const wchar_t *lpwHTML);
 	std::wstring& GetText();
 
@@ -70,7 +70,7 @@ protected:
 	typedef void ( CHtmlToTextParser::*ParseMethodType )( void );
 
 	struct KC_HIDDEN tagParser {
-		tagParser(void) = default;
+		tagParser() = default;
 		tagParser(bool pa, ParseMethodType mt) :
 			bParseAttrs(pa), parserMethod(mt)
 		{}

@@ -132,7 +132,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	object_ptr<IProfSect> lpProfileSection;
 	memory_ptr<SPropValue> lpFolderProps;
 	ULONG cValues = 0;
-	static constexpr const SizedSPropTagArray(3, sptaFolderProps) =
+	static constexpr SizedSPropTagArray(3, sptaFolderProps) =
 		{3, {PR_ZC_CONTACT_STORE_ENTRYIDS,
 		PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	

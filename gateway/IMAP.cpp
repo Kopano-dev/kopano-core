@@ -228,7 +228,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	std::string strTag;
 	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
 
-	static constexpr const struct {
+	static constexpr struct {
 		const char *command;
 		int params;
 		bool uid;
@@ -258,7 +258,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		{"EXPUNGE", 1, true, &IMAP::HrCmdExpunge},
 		{"XAOL-MOVE", 2, true, &IMAP::HrCmdUidXaolMove}
 	};
-	static constexpr const struct {
+	static constexpr struct {
 		const char *command;
 		HRESULT (IMAP::*func)(const std::string &);
 	} cmds_zero_args[] = {
@@ -1278,9 +1278,9 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 
 HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages)
 {
-	static constexpr const SizedSSortOrderSet(1, sortuid) =
+	static constexpr SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
-	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
+	static constexpr SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
 	memory_ptr<SPropValue> max_id;
 	auto ret = HrGetOneProp(folder, PR_EC_IMAP_MAX_ID, &~max_id);
 	auto laters = make_scope_success([&]() {
@@ -1355,7 +1355,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	char szBuffer[11];
 	unsigned int ulMessages = 0, ulUnseen = 0, ulUIDValidity = 0;
 	unsigned int ulUIDNext = 0, ulRecent = 0, cValues;
-	static constexpr const SizedSPropTagArray(3, sPropsFolderCounters) =
+	static constexpr SizedSPropTagArray(3, sPropsFolderCounters) =
 		{3, {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	std::wstring strIMAPFolder;
@@ -1477,7 +1477,7 @@ HRESULT IMAP::HrCmdAppend(const std::string &strTag,
 	std::wstring strFolder;
 	std::string strAppendUid;
 	unsigned int ulFolderUid = 0, ulMsgUid = 0;
-	static constexpr const SizedSPropTagArray(10, delFrom) = {10, {
+	static constexpr SizedSPropTagArray(10, delFrom) = {10, {
 			PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W,
 			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY,
 			PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W,
@@ -2184,7 +2184,7 @@ HRESULT IMAP::HrCmdIdle(const std::string &strTag)
 {
 	object_ptr<IMAPIFolder> lpFolder;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
+	static constexpr SizedSPropTagArray(NUM_COLS, spt) =
 		{NUM_COLS, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
 		PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
 		PR_LAST_VERB_EXECUTED}};
@@ -2300,7 +2300,7 @@ HRESULT IMAP::HrCmdNamespace(const std::string &strTag)
  */
 HRESULT IMAP::HrPrintQuotaRoot(const std::string &strTag)
 {
-	static constexpr const SizedSPropTagArray(2, sStoreProps) =
+	static constexpr SizedSPropTagArray(2, sStoreProps) =
 		{2, {PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_RECEIVE_THRESHOLD}};
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
@@ -2451,7 +2451,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	enum { EID, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_ENTRYID}};
 	ECAndRestriction rst;
 
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~entry_list);
@@ -2670,10 +2670,10 @@ HRESULT IMAP::HrMakeSpecialsList() {
 	object_ptr<IMAPIFolder>	lpInbox;
 	unsigned int cbEntryID = 0, ulObjType = 0, cValues = 0;
 	memory_ptr<SPropValue> lpPropArrayStore, lpPropArrayInbox, lpPropVal;
-	static constexpr const SizedSPropTagArray(3, sPropsStore) =
+	static constexpr SizedSPropTagArray(3, sPropsStore) =
 		{3, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID,
 		PR_IPM_WASTEBASKET_ENTRYID}};
-	static constexpr const SizedSPropTagArray(6, sPropsInbox) =
+	static constexpr SizedSPropTagArray(6, sPropsInbox) =
 		{6, {PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID,
 		PR_IPM_DRAFTS_ENTRYID, PR_IPM_JOURNAL_ENTRYID,
 		PR_IPM_NOTE_ENTRYID, PR_IPM_TASK_ENTRYID}};
@@ -2749,7 +2749,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	std::map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
 	SPropValue sPropMax;
 	unsigned int ulMailnr = 0, ulRecent = 0, ulUnseen = 0;
-	static constexpr const SizedSPropTagArray(2, sPropsFolderIDs) =
+	static constexpr SizedSPropTagArray(2, sPropsFolderIDs) =
 		{2, {PR_EC_IMAP_MAX_ID, PR_EC_HIERARCHYID}};
 	memory_ptr<SPropValue> lpFolderIDs;
 	ULONG cValues;
@@ -2766,11 +2766,11 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	if (lpulUIDValidity && lpFolderIDs[1].ulPropTag == PR_EC_HIERARCHYID)
 		*lpulUIDValidity = lpFolderIDs[1].Value.ul;
 
-	static constexpr const SizedSPropTagArray(7, cols) =
+	static constexpr SizedSPropTagArray(7, cols) =
 		{7, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID,
 		PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
 		PR_LAST_VERB_EXECUTED}};
-	static constexpr const SizedSSortOrderSet(1, sortuid) =
+	static constexpr SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	object_ptr<IMAPITable> table;
 	hr = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
@@ -2970,10 +2970,10 @@ HRESULT IMAP::HrGetSubTree(std::list<SFolder> &folders, bool public_folders,
 	parent_folder = folders.cbegin();
 
 	enum { EID, PEID, NAME, IMAPID, SUBFOLDERS, CONTAINERCLASS, NUM_COLS };
-	static constexpr const SizedSPropTagArray(6, cols) =
+	static constexpr SizedSPropTagArray(6, cols) =
 		{6, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W,
 		PR_EC_IMAP_ID, PR_SUBFOLDERS, PR_CONTAINER_CLASS_A}};
-	static constexpr const SizedSSortOrderSet(1, mapi_sort_criteria) =
+	static constexpr SizedSSortOrderSet(1, mapi_sort_criteria) =
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 
 	object_ptr<IMAPITable> table;
@@ -3090,7 +3090,7 @@ HRESULT IMAP::HrPropertyFetch(std::list<ULONG> &lstMails, std::vector<std::strin
 	std::set<ULONG> setProps;
     LPSPropValue lpProps;
     ULONG cValues;
-	static constexpr const SizedSSortOrderSet(1, sSortUID) =
+	static constexpr SizedSSortOrderSet(1, sSortUID) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	bool bMarkAsRead = false;
 	memory_ptr<ENTRYLIST> lpEntryList;
@@ -3667,7 +3667,7 @@ HRESULT IMAP::HrGetMessageFlags(std::string &strResponse, IMessage *lpMessage, b
 {
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues;
-	static constexpr const SizedSPropTagArray(4, sptaFlagProps) =
+	static constexpr SizedSPropTagArray(4, sptaFlagProps) =
 		{4, {PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
 		PR_LAST_VERB_EXECUTED}};
 
@@ -4061,7 +4061,7 @@ HRESULT IMAP::HrParseSeqSet(const std::string &strSeqSet, std::list<ULONG> &lstM
 HRESULT IMAP::HrStore_flags(const std::string &strMsgDataItemValue,
     IMessage *lpMessage, bool &bDelete)
 {
-	static constexpr const SizedSPropTagArray(6, proptags6) =
+	static constexpr SizedSPropTagArray(6, proptags6) =
 		{6, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
 			 PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME, PR_FOLLOWUP_ICON}};
 	unsigned int cValues;
@@ -4142,7 +4142,7 @@ HRESULT IMAP::HrStore_flags(const std::string &strMsgDataItemValue,
 HRESULT IMAP::HrStore_pflags(IMessage *lpMessage, bool &bDelete,
     const std::vector<std::string> &lstFlags)
 {
-	static constexpr const SizedSPropTagArray(4, proptags4) =
+	static constexpr SizedSPropTagArray(4, proptags4) =
 		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
 	unsigned int ulCurrent, cValues;
 	memory_ptr<SPropValue> lpPropVal;
@@ -4210,7 +4210,7 @@ HRESULT IMAP::HrStore_pflags(IMessage *lpMessage, bool &bDelete,
 HRESULT IMAP::HrStore_mflags(IMessage *lpMessage,
     const std::vector<std::string> &lstFlags)
 {
-	static constexpr const SizedSPropTagArray(4, proptags4) =
+	static constexpr SizedSPropTagArray(4, proptags4) =
 		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
 	unsigned int ulCurrent, cValues;
 	memory_ptr<SPropValue> lpPropVal;
@@ -4403,7 +4403,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
 	enum { EID, NUM_COLS };
-	static constexpr const SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_EC_IMAP_ID}};
+	static constexpr SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_EC_IMAP_ID}};
 	std::map<unsigned int, unsigned int> mapUIDs;
 	int n = 0;
 
@@ -5221,7 +5221,7 @@ HRESULT IMAP::HrFindFolder(const std::wstring &strFolder, bool bReadOnly,
 HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, std::wstring strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	object_ptr<IMAPITable> lpTable;
-	static constexpr const SizedSPropTagArray(2, sptaCols) =
+	static constexpr SizedSPropTagArray(2, sptaCols) =
 		{2, {PR_ENTRYID, PR_DISPLAY_NAME_W}};
     LPENTRYID lpEntryID = NULL;
 	memory_ptr<SPropValue> lpProp;

@@ -74,7 +74,7 @@ void ECNotification::GetCopy(struct soap *soap, notification &notification) cons
  *
  * @return Object size in bytes
  */
-size_t ECNotification::GetObjectSize(void) const
+size_t ECNotification::GetObjectSize() const
 {
 	return NotificationStructSize(m_lpsNotification);
 }
@@ -110,7 +110,7 @@ static int soapresponse(struct notifyResponse notifications, struct soap *soap)
 
 void (*kopano_notify_done)(struct soap *);
 
-ECNotificationManager::ECNotificationManager(void)
+ECNotificationManager::ECNotificationManager()
 {
 	auto ret = pthread_create(&m_thread, nullptr, Thread, this);
 	if (ret != 0) {

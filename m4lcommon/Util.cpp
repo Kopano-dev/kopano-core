@@ -46,7 +46,7 @@ public:
 	iconv_HACK(const char** ptr) : m_ptr(ptr) { }
 
 	// the compiler will choose the right operator
-	operator const char **(void) const { return m_ptr; }
+	operator const char **() const { return m_ptr; }
 	operator char**() { return const_cast <char**>(m_ptr); }
 
 private:
@@ -2246,12 +2246,8 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
 	memory_ptr<SPropValue> ptrBodies;
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
-	SizedSPropTagArray (4, sBodyTags) = { 4, {
-			ulBodyTag,
-			PR_HTML,
-			PR_RTF_COMPRESSED,
-			PR_RTF_IN_SYNC
-		} };
+	const SizedSPropTagArray(4, sBodyTags) =
+		{4, {ulBodyTag, PR_HTML, PR_RTF_COMPRESSED, PR_RTF_IN_SYNC}};
 	ULONG cValues = 0;
 	auto hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
@@ -2554,7 +2550,7 @@ static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
 {
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	static constexpr const SizedSPropTagArray(2, sptaName) =
+	static constexpr SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
 	object_ptr<IMAPIFolder> lpSrcParam, lpDestParam;
 	ULONG ulObj;
@@ -2632,7 +2628,7 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
 {
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
-	static constexpr const SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
+	static constexpr SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
 	ULONG ulObj;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
@@ -3332,7 +3328,7 @@ exit:
 HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 {
 	object_ptr<IStream> lpSrcStream, lpDestStream;
-	static constexpr const SizedSPropTagArray(3, sptaIMAP) =
+	static constexpr SizedSPropTagArray(3, sptaIMAP) =
 		{3, {PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODY,
 		PR_EC_IMAP_BODYSTRUCTURE}};
 	ULONG cValues = 0;
@@ -3362,7 +3358,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 
 HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
 {
-	static constexpr const SizedSPropTagArray(4, sptaIMAP) =
+	static constexpr SizedSPropTagArray(4, sptaIMAP) =
 		{4, { PR_EC_IMAP_EMAIL_SIZE,  PR_EC_IMAP_EMAIL,
 		 PR_EC_IMAP_BODY, PR_EC_IMAP_BODYSTRUCTURE}};
 	return lpMsg->DeleteProps(sptaIMAP, NULL);
@@ -3382,7 +3378,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 {
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
 	memory_ptr<SPropValue> lpProps;
-	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
+	static constexpr SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
     ULONG 			cValues = 0;
 	
 	if (lpMsgStore == nullptr || lppsQuotaStatus == nullptr)
@@ -3413,7 +3409,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 
 HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 {
-	static constexpr const SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
+	static constexpr SizedSPropTagArray(1, sptaAttachNum) = {1, {PR_ATTACH_NUM}};
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3438,9 +3434,8 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 {
 	ULONG cMsgProps;
 	memory_ptr<SPropValue> ptrMsgProps;
-	ULONG ulType;
 	ENTRYLIST entryList = {1, NULL};
-	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
+	static constexpr SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
@@ -3456,7 +3451,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	object_ptr<IMAPIFolder> ptrFolder;
 	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
-	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
+	     &iid_of(ptrFolder), MAPI_MODIFY, nullptr, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
 

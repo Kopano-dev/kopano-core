@@ -669,7 +669,7 @@ HRESULT CalDAV::HrHandleDelete()
 	object_ptr<IMAPIFolder> lpWastBoxFld;
 	memory_ptr<SPropValue> lpProps, lpPropWstBxEID;
 	memory_ptr<ENTRYLIST> lpEntryList;
-	static constexpr const SizedSPropTagArray(3, lpPropTagArr) =
+	static constexpr SizedSPropTagArray(3, lpPropTagArr) =
 		{3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
 
 	m_lpRequest.HrGetUrl(&strUrl);
@@ -1441,7 +1441,7 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	time_t tModTime = 0;
 	SBinary sbEid{};
 	eIcalType etype = VEVENT;
-	static constexpr const SizedSPropTagArray(2, sPropTagArr) =
+	static constexpr SizedSPropTagArray(2, sPropTagArr) =
 		{2, {PR_IPM_OUTBOX_ENTRYID, PR_IPM_SENTMAIL_ENTRYID}};
 
 	auto hr = lpIcalToMapi->GetItemInfo(0, &etype, &tModTime, &sbEid);

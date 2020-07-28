@@ -170,7 +170,7 @@ class KC_EXPORT ECLogger {
  */
 class KC_EXPORT ECLogger_Null KC_FINAL : public ECLogger {
 	public:
-	ECLogger_Null(void);
+	ECLogger_Null();
 	KC_HIDDEN virtual void Reset() KC_OVERRIDE;
 	KC_HIDDEN virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
 	KC_HIDDEN virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);
@@ -207,7 +207,7 @@ class KC_EXPORT_DYCAST ECLogger_File KC_FINAL : public ECLogger {
 
 	public:
 	ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress);
-	~ECLogger_File(void);
+	~ECLogger_File();
 	KC_HIDDEN void reinit_buffer(size_t size);
 	KC_HIDDEN virtual void Reset() KC_OVERRIDE;
 	KC_HIDDEN virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
@@ -235,7 +235,7 @@ class KC_EXPORT_DYCAST ECLogger_Pipe KC_FINAL : public ECLogger {
 
 	public:
 	ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
-	~ECLogger_Pipe(void);
+	~ECLogger_Pipe();
 	KC_HIDDEN virtual void Reset() KC_OVERRIDE;
 	KC_HIDDEN virtual void log(unsigned int level, const char *msg) KC_OVERRIDE;
 	KC_HIDDEN virtual void logf(unsigned int level, const char *fmt, ...) KC_OVERRIDE KC_LIKE_PRINTF(3, 4);

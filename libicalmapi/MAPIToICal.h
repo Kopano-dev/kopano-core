@@ -18,7 +18,7 @@ public:
 	/*
 	    - Addressbook (Global AddressBook for looking up users)
 	 */
-	virtual ~MapiToICal(void) = default;
+	virtual ~MapiToICal() = default;
 	virtual HRESULT AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags) = 0;
 	virtual HRESULT AddBlocks(FBBlock_1 *lpsFBblk, LONG ulBlocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID) = 0;
 	virtual HRESULT Finalize(ULONG ulFlags, std::string *strMethod, std::string *strIcal) = 0;

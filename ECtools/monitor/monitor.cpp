@@ -45,7 +45,7 @@ static bool g_dump_config;
 
 static void mo_sighup_deferred();
 
-static HRESULT running_service(void)
+static HRESULT running_service()
 {
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize(nullptr);

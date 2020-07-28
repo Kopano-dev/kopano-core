@@ -423,7 +423,7 @@ ECRESULT ECSessionGroup::releaseListeners()
  *
  * @return Object size in bytes
  */
-size_t ECSessionGroup::GetObjectSize(void)
+size_t ECSessionGroup::GetObjectSize()
 {
 	size_t ulSize = 0;
 	ulock_normal l_note(m_hNotificationLock);

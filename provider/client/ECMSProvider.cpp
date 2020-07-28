@@ -83,7 +83,7 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 
-	static constexpr const SizedSPropTagArray(2, proptags) =
+	static constexpr SizedSPropTagArray(2, proptags) =
 		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
 	hr = lpProfSect->GetProps(proptags, 0, &cValues, &~lpsPropArray);
 	if (FAILED(hr))
@@ -279,7 +279,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		cbEntryID = cbStoreID;
 	}
 
-	static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MDB_PROVIDER}};
+	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_MDB_PROVIDER}};
 	hr = lpProfSect->GetProps(proptag, 0, &cValues, &~lpsPropArray);
 	if (hr == hrSuccess && lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER &&
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||

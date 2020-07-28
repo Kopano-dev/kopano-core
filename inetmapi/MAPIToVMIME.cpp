@@ -101,7 +101,7 @@ class mapiAttachment final : public vmime::defaultAttachment {
  */
 
 // Since UNICODE is defined, the strings will be PT_UNICODE, as required by ECTNEF::AddProps()
-static constexpr const SizedSPropTagArray(54, sptaExclude) = {
+static constexpr SizedSPropTagArray(54, sptaExclude) = {
     54, 	{
         PR_BODY,
         PR_HTML,
@@ -210,7 +210,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	object_ptr<IMAPITable> lpRecipientTable;
 	rowset_ptr pRows;
 	bool fToFound = false, hasRecips = false;
-	static constexpr const SizedSPropTagArray(7, sPropRecipColumns) =
+	static constexpr SizedSPropTagArray(7, sPropRecipColumns) =
 		{7, {PR_ENTRYID, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W,
 		PR_RECIPIENT_TYPE, PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W,
 		PR_OBJECT_TYPE}};
@@ -512,7 +512,7 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder) {
 	rowset_ptr pRows;
 	object_ptr<IMAPITable> lpAttachmentTable;
-	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
+	static constexpr SizedSSortOrderSet(1, sosRTFSeq) =
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	// get attachment table
@@ -837,7 +837,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
  *
  * @return Description of the error if convertMAPIToVMIME returned an error.
  */
-std::wstring MAPIToVMIME::getConversionError(void) const
+std::wstring MAPIToVMIME::getConversionError() const
 {
 	return m_strError;
 }
@@ -861,7 +861,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	object_ptr<IAttach> lpAttach;
 	object_ptr<IStream> lpStream;
 	STATSTG					sStreamStat;
-	static constexpr const SizedSPropTagArray(2, sPropAttachColumns) =
+	static constexpr SizedSPropTagArray(2, sPropAttachColumns) =
 		{2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG}};
 
 	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess) {
@@ -1559,7 +1559,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	// sender information
 	std::wstring strEmail, strName, strType;
 	std::wstring strResEmail, strResName, strResType;
-	static constexpr const SizedSPropTagArray(4, sender_proptags) =
+	static constexpr SizedSPropTagArray(4, sender_proptags) =
 		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
 	auto hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
@@ -1575,7 +1575,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 	// -- sender
-	static constexpr const SizedSPropTagArray(4, repr_proptags) =
+	static constexpr SizedSPropTagArray(4, repr_proptags) =
 		{4, {PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_ADDRTYPE_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
@@ -1793,12 +1793,12 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 
 	std::list<ULONG> lstOLEAttach; // list of OLE attachments that must be sent via TNEF
 	object_ptr<IMAPITable> lpAttachTable;
-	static constexpr const SizedSPropTagArray(2, sptaAttachProps) =
+	static constexpr SizedSPropTagArray(2, sptaAttachProps) =
 		{2, {PR_ATTACH_METHOD, PR_ATTACH_NUM}};
-	static constexpr const SizedSPropTagArray(5, sptaOLEAttachProps) =
+	static constexpr SizedSPropTagArray(5, sptaOLEAttachProps) =
 		{5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME,
 		PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
-	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
+	static constexpr SizedSSortOrderSet(1, sosRTFSeq) =
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	try {

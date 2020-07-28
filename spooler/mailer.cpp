@@ -69,7 +69,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 {
 	ULONG			ulObj = 0;
 	bool			bExpandSub = recurrence;
-	static constexpr const SizedSPropTagArray(7, sptaColumns) =
+	static constexpr SizedSPropTagArray(7, sptaColumns) =
 		{7, {PR_ROWID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W,
 		PR_RECIPIENT_TYPE, PR_OBJECT_TYPE, PR_DISPLAY_TYPE, PR_ENTRYID}};
 
@@ -302,7 +302,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	std::string strFaxMail;
 	unsigned int ulObjType, cValues;
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
-	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
+	static constexpr SizedSPropTagArray(3, sptaFaxNumbers) =
 		{ 3, {PR_BUSINESS_FAX_NUMBER_A, PR_HOME_FAX_NUMBER_A,
 		PR_PRIMARY_FAX_NUMBER_A}};
 
@@ -423,9 +423,9 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	object_ptr<IMAPITable> lpTable;
 	std::string strEmail;
 	ULONG			ulRecipType = 0;
-	static constexpr const SizedSPropTagArray(3, sptaColumns) =
+	static constexpr SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_SMTP_ADDRESS_A, PR_RECIPIENT_TYPE}};
-	static constexpr const SizedSSortOrderSet(2, sosOrder) = {
+	static constexpr SizedSSortOrderSet(2, sosOrder) = {
 		2, 0, 0, {
 			{ PR_SMTP_ADDRESS_A, TABLE_SORT_ASCEND },
 			{ PR_RECIPIENT_TYPE, TABLE_SORT_ASCEND },
@@ -471,7 +471,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 {
 	object_ptr<IMAPITable> lpTable;
-	static constexpr const SizedSPropTagArray(3, sptaColumns) =
+	static constexpr SizedSPropTagArray(3, sptaColumns) =
 		{3, {PR_ROWID, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE}};
 
 	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
@@ -740,7 +740,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	const std::vector<sFailedRecip> &permanentFailedRecipients = lpMailer->getPermanentFailedRecipients();
 
 	/* These props are on purpose without KC_A and KC_W */
-	static constexpr const SizedSPropTagArray(16, sPropsOriginal) = {
+	static constexpr SizedSPropTagArray(16, sPropsOriginal) = {
 		16,
 		{ PR_DISPLAY_TO, PR_DISPLAY_CC,
 		  PR_DISPLAY_BCC, PR_SEARCH_KEY,
@@ -751,7 +751,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		  PR_SENT_REPRESENTING_NAME, PR_SENT_REPRESENTING_SEARCH_KEY,
 		  PR_SUBJECT_W, PR_CLIENT_SUBMIT_TIME }
 	};
-	static constexpr const SizedSPropTagArray(7, sPropTagRecipient) = {
+	static constexpr SizedSPropTagArray(7, sPropTagRecipient) = {
 		7,
 		{ PR_RECIPIENT_TYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE,
 		  PR_ADDRTYPE, PR_EMAIL_ADDRESS,
@@ -1050,7 +1050,7 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 	unsigned int ulCmp = 0, ulObjType = 0;
 	object_ptr<IDistList> lpDistList;
 	object_ptr<IMAPITable> lpMembersTable;
-	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
+	static constexpr SizedSPropTagArray(2, sptaIDProps) =
 		{2, {PR_ENTRYID, PR_OBJECT_TYPE}};
 
 	if (lpulCmp == nullptr)
@@ -1221,7 +1221,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
 	SPropValue sSpoofEID{};
 	unsigned int ulCmpRes = 0, cValues = 0;
-	static constexpr const SizedSPropTagArray(3, sptaIDProps) =
+	static constexpr SizedSPropTagArray(3, sptaIDProps) =
 		{3, {PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS,
 		PR_DISPLAY_TYPE}};
 
@@ -1520,7 +1520,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<ENTRYID> lpOwner;
 	memory_ptr<ECUSER> lpUser;
 	SPropValue		sPropSender[4];
-	static constexpr const SizedSPropTagArray(5, sptaMoveReprProps) =
+	static constexpr SizedSPropTagArray(5, sptaMoveReprProps) =
 		{5, {PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_ADDRTYPE_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
@@ -1758,7 +1758,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &~lpRepMessage);
 		// possible error is logged in function.
 	if (lpRepStore != nullptr && strcmp(cts, "move-to-rep") == 0) {
-		SizedSPropTagArray(1, dp) = {1, {PR_SENTMAIL_ENTRYID}};
+		static constexpr SizedSPropTagArray(1, dp) = {1, {PR_SENTMAIL_ENTRYID}};
 		/* don't move to SentItems of delegate (leave in Outbox) */
 		lpMessage->DeleteProps(dp, nullptr);
 		/* Trigger deletion from Outbox */

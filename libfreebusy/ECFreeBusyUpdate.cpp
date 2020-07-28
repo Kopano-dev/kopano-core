@@ -52,7 +52,7 @@ HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
 	memory_ptr<SPropValue> lpPropArray, lpPropFBDataArray;
 	FILETIME		ft;	
 	struct tm tmStart, tmEnd;
-	static constexpr const SizedSPropTagArray(8, sPropsFBDelete) = {
+	static constexpr SizedSPropTagArray(8, sPropsFBDelete) = {
 		8,
 		{
 			PR_FREEBUSY_ALL_EVENTS,

@@ -34,7 +34,7 @@ class KC_EXPORT ECChannel KC_FINAL {
 public:
 	KC_HIDDEN ECChannel(int sockfd);
 	~ECChannel();
-	HRESULT HrEnableTLS(void);
+	HRESULT HrEnableTLS();
 	KC_HIDDEN HRESULT HrGets(char *buf, size_t bufsize, size_t *have_read);
 	HRESULT HrReadLine(std::string &buf, size_t maxbuf = 65536);
 	HRESULT HrWriteString(const string_view &);
@@ -46,7 +46,7 @@ public:
 	HRESULT HrSelect(int seconds);
 	KC_HIDDEN void SetIPAddress(const struct sockaddr *, size_t);
 	KC_HIDDEN const char *peer_addr() const { return peer_atxt; }
-	int peer_is_local(void) const;
+	int peer_is_local() const;
 	KC_HIDDEN bool UsingSsl() const { return lpSSL != nullptr; }
 	KC_HIDDEN bool sslctx() const { return lpCTX != nullptr; }
 	static HRESULT HrSetCtx(ECConfig *);

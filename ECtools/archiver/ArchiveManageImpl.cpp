@@ -315,7 +315,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 {
 	entryid_t sUserEntryId;
 	std::unique_ptr<StoreHelper> ptrStoreHelper;
-	ULONG ulType = 0;
 	std::shared_ptr<ArchiverSession> ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
@@ -376,7 +375,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	if (lpszFolder) {
 		while (iArchive != lstArchives.end()) {
 			object_ptr<IMAPIFolder> ptrArchiveFolder;
-			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
+			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, nullptr, &~ptrArchiveFolder);
 			if (hr != hrSuccess) {
 				m_lpLogger->perr("Failed to open archive folder", hr);
 				return MAPIErrorToArchiveError(hr);
@@ -502,7 +501,6 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 {
 	std::unique_ptr<StoreHelper> ptrStoreHelper;
 	bool bAclCapable = true;
-	ULONG ulType = 0;
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
@@ -519,7 +517,9 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 	for (const auto &arc : lstArchives) {
 		unsigned int cStoreProps = 0, ulCompareResult = false;
 		ArchiveEntry entry;
-		static constexpr const SizedSPropTagArray(4, sptaStoreProps) = {4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID, PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
+		static constexpr SizedSPropTagArray(4, sptaStoreProps) =
+			{4, {PR_DISPLAY_NAME_A, PR_MAILBOX_OWNER_ENTRYID,
+			PR_IPM_SUBTREE_ENTRYID, PR_STORE_RECORD_KEY}};
 		enum {IDX_DISPLAY_NAME, IDX_MAILBOX_OWNER_ENTRYID, IDX_IPM_SUBTREE_ENTRYID, IDX_STORE_RECORD_KEY};
 
 		entry.Rights = ARCHIVE_RIGHTS_UNKNOWN;
@@ -576,7 +576,7 @@ eResult ArchiveManageImpl::ListArchives(std::list<ArchiveEntry> *lplstArchives,
 		}
 
 		object_ptr<IMAPIFolder> ptrArchiveFolder;
-		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
+		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, nullptr, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open folder", hrTmp);
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hr) + " (" + stringify_hex(hrTmp) + ")";
@@ -710,7 +710,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	SPropValue sPropUser;
 	rowset_ptr ptrRows;
-	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
+	static constexpr SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
 
 	// In an ideal world we would use the user entryid for the restriction.
 	// However, the ACL table is a client side table, which doesn't implement

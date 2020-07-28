@@ -243,7 +243,7 @@ public:
 	/**
 	 * Constructs an empty entryid.
 	 */
-	abentryid_t(void) = default;
+	abentryid_t() = default;
 
 	/**
 	 * Construct an entryid based on a length and pointer argument.
@@ -311,7 +311,7 @@ public:
 	 * Return a pointer to the data as a BYTE pointer.
 	 * @return The entryid data.
 	 */
-	operator LPBYTE(void) const
+	operator BYTE *() const
 	{
 		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
@@ -320,7 +320,7 @@ public:
 	 * Return a pointer to the data as an ENTRYID pointer.
 	 * @return The entryid data.
 	 */
-	operator LPENTRYID(void) const
+	operator ENTRYID *() const
 	{
 		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
@@ -329,7 +329,7 @@ public:
 	 * Return a pointer to the data as a VOID pointer.
 	 * @return The entryid data.
 	 */
-	operator LPVOID(void) const
+	operator void *() const
 	{
 		return const_cast<char *>(m_eid.data());
 	}

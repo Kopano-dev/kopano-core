@@ -184,7 +184,7 @@ static HRESULT DetectFolderDetails(IMAPIFolder *lpFolder, std::string *lpName,
 {
 	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount = 0;
-	static constexpr const SizedSPropTagArray(3, PropertyTagArray) =
+	static constexpr SizedSPropTagArray(3, PropertyTagArray) =
 		{3, {PR_DISPLAY_NAME_A, PR_CONTAINER_CLASS_A, PR_FOLDER_TYPE}};
 
 	auto hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,

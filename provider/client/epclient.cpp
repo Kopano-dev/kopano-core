@@ -578,7 +578,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 
 		hr = UpdateProviders(lpAdminProviders, sProfileProps);
  exit2:
-		static constexpr const SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
+		static constexpr SizedSPropTagArray(1, tags) = {1, {PR_EC_TRANSPORTOBJECT}};
 		ptrGlobalProfSect->DeleteProps(tags, nullptr);
 		lpTransport.get()->Release();
 		break;

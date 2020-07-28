@@ -895,7 +895,7 @@ bool ECProperty::operator==(const ECProperty &property) const {
 	return false;
 }
 
-SPropValue ECProperty::GetMAPIPropValRef(void) const
+SPropValue ECProperty::GetMAPIPropValRef() const
 {
 	DEBUG_GUARD;
 

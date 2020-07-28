@@ -12,7 +12,7 @@ namespace KC {
 
 class ECSerializer {
 public:
-	virtual ~ECSerializer(void) = default;
+	virtual ~ECSerializer() = default;
 	virtual ECRESULT SetBuffer(void *lpBuffer) = 0;
 	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) = 0;
 	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) = 0;

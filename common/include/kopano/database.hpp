@@ -41,25 +41,25 @@ class KDatabase;
 
 class KC_EXPORT DB_RESULT KC_FINAL {
 	public:
-	DB_RESULT(void) = default;
+	DB_RESULT() = default;
 	DB_RESULT(KDatabase *d, void *r) : m_res(r), m_db(d) {}
 	DB_RESULT(DB_RESULT &&o) = default;
-	~DB_RESULT(void);
+	~DB_RESULT();
 	DB_RESULT &operator=(DB_RESULT &&o) noexcept;
-	operator bool(void) const { return m_res != nullptr; }
+	operator bool() const { return m_res != nullptr; }
 	bool operator==(std::nullptr_t) const noexcept { return m_res == nullptr; }
 	bool operator!=(std::nullptr_t) const noexcept { return m_res != nullptr; }
-	void *get(void) const noexcept { return m_res; }
-	void *release(void) noexcept
+	void *get() const noexcept { return m_res; }
+	void *release() noexcept
 	{
 		void *p = m_res;
 		m_res = nullptr;
 		return p;
 	}
 
-	size_t get_num_rows(void) const;
-	DB_ROW fetch_row(void);
-	DB_LENGTHS fetch_row_lengths(void);
+	size_t get_num_rows() const;
+	DB_ROW fetch_row();
+	DB_LENGTHS fetch_row_lengths();
 
 	private:
 	void *m_res = nullptr;
@@ -96,9 +96,9 @@ class KC_EXPORT kd_trans final {
 
 class KC_EXPORT KDatabase : public kt_completion {
 	public:
-	KDatabase(void);
+	KDatabase();
 	virtual ~KDatabase() { Close(); }
-	ECRESULT Close(void);
+	ECRESULT Close();
 	ECRESULT Connect(ECConfig *, bool reconn, unsigned int mysql_flags, unsigned int gcm);
 	ECRESULT CreateDatabase(ECConfig *, bool);
 	virtual ECRESULT CreateTables(ECConfig *, const char **charsetp = nullptr);
@@ -112,9 +112,9 @@ class KC_EXPORT KDatabase : public kt_completion {
 	std::string EscapeBinary(const void *, size_t);
 	std::string EscapeBinary(const std::string &s) { return EscapeBinary(s.c_str(), s.size()); }
 	std::string EscapeBinary(const SBinary &s) { return EscapeBinary(s.lpb, s.cb); }
-	const char *GetError(void);
-	DB_ERROR GetLastError(void);
-	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
+	const char *GetError();
+	DB_ERROR GetLastError();
+	unsigned int GetMaxAllowedPacket() const { return m_ulMaxAllowedPacket; }
 	/*
 	 * Transactions.
 	 * These functions should be used to wrap blocks of queries into
@@ -140,11 +140,11 @@ class KC_EXPORT KDatabase : public kt_completion {
 		}
 	};
 
-	unsigned int GetAffectedRows(void);
+	unsigned int GetAffectedRows();
 	virtual const struct sSQLDatabase_t *GetDatabaseDefs() { return nullptr; }
-	unsigned int GetInsertId(void);
+	unsigned int GetInsertId();
 	ECRESULT InitEngine(bool reconnect);
-	bool isConnected(void) const { return m_bConnected; }
+	bool isConnected() const { return m_bConnected; }
 	ECRESULT IsEngineSupported(const char *);
 	virtual ECRESULT Query(const std::string &q);
 	ECRESULT I_Update(const std::string &q, unsigned int *affected);

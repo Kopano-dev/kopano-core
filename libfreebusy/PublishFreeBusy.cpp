@@ -228,7 +228,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	memory_ptr<OccrInfo> lpOccrInfo;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
-	SizedSPropTagArray(7, proptags) =
+	const SizedSPropTagArray(7, proptags) =
 		{7, {PROP_APPT_STARTWHOLE, PROP_APPT_ENDWHOLE,
 		PROP_APPT_FBSTATUS, PROP_APPT_ISRECURRING,
 		PROP_APPT_RECURRINGSTATE, PROP_APPT_CLIPEND,

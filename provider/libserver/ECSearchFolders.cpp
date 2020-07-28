@@ -274,7 +274,7 @@ void ECSearchFolders::DestroySearchFolder(std::shared_ptr<SEARCHFOLDER> &&lpFold
 	 * been fired for a different thread. This is efficient enough.
 	 */
 	ulock_normal lk(lpFolder->mMutexThreadFree);
-	m_condThreadExited.wait(lk, [=](void) { return lpFolder->bThreadFree; });
+	m_condThreadExited.wait(lk, [=]() { return lpFolder->bThreadFree; });
 	lk.unlock();
 	lpFolder.reset();
     // Set the search as stopped in the database

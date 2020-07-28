@@ -82,7 +82,7 @@ public:
         return reallen == len ? reallen : -1;
     };
     
-	int GetCursorPos(void) const { return m_ulCursor; }
+	int GetCursorPos() const { return m_ulCursor; }
     
 private:
 	const char *m_lpData;

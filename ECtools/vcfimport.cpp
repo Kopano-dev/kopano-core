@@ -32,7 +32,7 @@ enum {
 static char *vtm_host, *vtm_user, *vtm_pass, *vtm_sslkey, *vtm_sslpass;
 static int vtm_passpr, vtm_sslpr;
 static unsigned int vtm_mode;
-static constexpr const struct HXoption vtm_options[] = {
+static constexpr struct HXoption vtm_options[] = {
 	{"calendar", 0, HXTYPE_VAL, &vtm_mode, nullptr, nullptr, VTM_CALENDAR, "Import calendar object (.ics file)"},
 	{"contact", 0, HXTYPE_VAL, &vtm_mode, nullptr, nullptr, VTM_CONTACT, "Import contact object (.vcf file)"},
 	{"user", 'u', HXTYPE_STRING, &vtm_user, nullptr, nullptr, 0, "User to set out of office message for", "NAME"},

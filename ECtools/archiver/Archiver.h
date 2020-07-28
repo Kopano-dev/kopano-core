@@ -36,7 +36,7 @@ public:
 		LogOnly			= 1
 	};
 
-	static const char *GetConfigPath(void);
+	static const char *GetConfigPath();
 	KC_HIDDEN static const configsetting_t *GetConfigDefaults();
 	static eResult Create(std::unique_ptr<Archiver> *);
 	KC_HIDDEN virtual ~Archiver() = default;
@@ -48,7 +48,7 @@ public:
 	KC_HIDDEN virtual ECLogger *GetLogger(eLogType which = DefaultLog) const = 0;
 
 protected:
-	KC_HIDDEN Archiver() {}
+	KC_HIDDEN Archiver() = default;
 };
 
 } /* namespace */

@@ -80,9 +80,9 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	BOOL fModifyCopy = fModify;
 	auto lpMsgStore = GetMsgStore();
 	// @todo: Put in MergePropsFromStub
-	static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
+	static constexpr SizedSPropTagArray(4, sptaDeleteProps) =
 		{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
-	static constexpr const SizedSPropTagArray(6, sptaRestoreProps) =
+	static constexpr SizedSPropTagArray(6, sptaRestoreProps) =
 		{6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX,
 		PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
 
@@ -269,7 +269,7 @@ HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
 
 HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 {
-	SizedSPropTagArray(1, sptaStubbedProp) = {1, {PROP_STUBBED}};
+	const SizedSPropTagArray(1, sptaStubbedProp) = {1, {PROP_STUBBED}};
 
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
@@ -499,14 +499,14 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	auto iterIterEID = lstItemEIDs.begin();
 	for (; iterStoreEID != lstStoreEIDs.end(); ++iterStoreEID, ++iterIterEID) {
 		object_ptr<ECMsgStore> ptrArchiveStore;
-		ULONG			ulType = 0;
 
 		hr = GetArchiveStore(*iterStoreEID, &~ptrArchiveStore);
 		if (hr == MAPI_E_NO_SUPPORT)
 			return hr;	// No need to try any other archives.
 		if (hr != hrSuccess)
 			continue;
-		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, reinterpret_cast<ENTRYID *>((*iterIterEID)->lpb), &IID_ECMessage, 0, &ulType, &~ptrArchiveMessage);
+		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, reinterpret_cast<ENTRYID *>((*iterIterEID)->lpb),
+		     &IID_ECMessage, 0, nullptr, &~ptrArchiveMessage);
 		if (hr != hrSuccess)
 			continue;
 		break;

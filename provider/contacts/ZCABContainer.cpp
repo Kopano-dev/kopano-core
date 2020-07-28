@@ -867,11 +867,11 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	// only columns we can set from our contents table
-	static constexpr const SizedSPropTagArray(7, sptaDefault) =
+	static constexpr SizedSPropTagArray(7, sptaDefault) =
 		{7, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE,
 		PR_EMAIL_ADDRESS_A, PR_ENTRYID, PR_INSTANCE_KEY,
 		PR_OBJECT_TYPE}};
-	static constexpr const SizedSPropTagArray(7, sptaUnicode) =
+	static constexpr SizedSPropTagArray(7, sptaUnicode) =
 		{7, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE,
 		PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_INSTANCE_KEY,
 		PR_OBJECT_TYPE}};
