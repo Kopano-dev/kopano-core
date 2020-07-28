@@ -321,8 +321,9 @@ public:
 protected:
 	/**
 	 * Pointer to the LDAP state struct.
+	 * One for general searches, one for authentication.
 	 */
-	LDAP *m_ldap;
+	LDAP *m_ldap = nullptr, *m_ldap2 = nullptr;
 
 	/**
 	 * converter FROM ldap TO kopano-server and vice-versa
@@ -384,7 +385,8 @@ private:
 	 * @return LDAP pointer
 	 * @throw ldap_error When no connection could be established
 	 */
-	LDAP *ConnectLDAP(const char *bind_dn, const char *bind_pw, bool starttls);
+	int setup_ldap(const char *server, bool tls, LDAP **);
+	LDAP *ConnectLDAP(const char *bind_dn, const char *bind_pw);
 
 	/**
 	 * Authenticate by user bind
