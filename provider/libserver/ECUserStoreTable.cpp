@@ -63,7 +63,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	for (const auto &row : *lpRowList) {
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
-			m.ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
+			m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			m.__union = SOAP_UNION_propValData_ul;
 			m.Value.ul = KCERR_NOT_FOUND;
 
@@ -153,7 +153,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				m.Value.li  = pThis->m_mapUserStoreData[row.ulObjId].sExternId.objclass;
 				break;
 			default:
-				m.ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
+				m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 				m.__union = SOAP_UNION_propValData_ul;
 				m.Value.ul = KCERR_NOT_FOUND;
 				break;

@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
 #include <mapidefs.h>
@@ -16,16 +17,20 @@
 #include <kopano/ECLogger.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 
 using namespace KC;
-static int opt_purge_deferred, opt_purge_softdelete = -1;
-static unsigned int opt_cache_bits;
+static int opt_purge_deferred, opt_purge_softdelete = -1, opt_ct_size = 1024;
+static unsigned int opt_cache_bits, opt_ct_create, opt_ct_read;
 static const char *opt_config_file, *opt_host, *opt_clear_cache;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr struct HXoption adm_options[] = {
 	{"clear-cache", 0, HXTYPE_STRING, &opt_clear_cache, nullptr, nullptr, 0, "Clear one or more caches"},
+	{"ct-create", 0, HXTYPE_UINT, &opt_ct_create, nullptr, nullptr, 0, "Cache testing: generate dummy messages", "AMOUNT"},
+	{"ct-read", 0, HXTYPE_NONE, &opt_ct_read, nullptr, nullptr, 0, "Cache testing: readback dummy messages"},
+	{"ct-size", 0, HXTYPE_UINT, &opt_ct_size, nullptr, nullptr, 0, "Cache testing: mail size", "BYTES"},
 	{"purge-deferred", 0, HXTYPE_NONE, &opt_purge_deferred, nullptr, nullptr, 0, "Purge all items in the deferred update table"},
 	{"purge-softdelete", 0, HXTYPE_INT, &opt_purge_softdelete, nullptr, nullptr, 0, "Purge softdeleted items older than N days"},
 	{nullptr, 'c', HXTYPE_STRING, &opt_config_file, nullptr, nullptr, 0, "Specify alternate config file"},
@@ -91,6 +96,79 @@ static HRESULT adm_purge_softdelete(IECServiceAdmin *svcadm)
 	return hrSuccess;
 }
 
+static HRESULT adm_ct_create(IMsgStore *store, unsigned int amt)
+{
+	object_ptr<IMAPIFolder> root;
+	auto ret = store->OpenEntry(0, nullptr, &iid_of(root), MAPI_DEFERRED_ERRORS | MAPI_MODIFY, nullptr, &~root);
+	if (ret != hrSuccess)
+		return hr_lerrf(ret, "OpenEntry");
+	std::unique_ptr<char[]> mdat(new char[opt_ct_size]);
+	SPropValue pv[2];
+	memset(mdat.get(), '!', opt_ct_size);
+	mdat[opt_ct_size-1] = '\0';
+	pv[0].ulPropTag   = PR_SUBJECT_A;
+	pv[0].Value.lpszA = const_cast<char *>("DUMMY");
+	pv[1].ulPropTag   = PR_BODY_A;
+	pv[1].Value.lpszA = const_cast<char *>(mdat.get());
+	auto cl = make_scope_success([]() { printf("\n"); });
+
+	while (amt-- > 0) {
+		object_ptr<IMessage> msg;
+		ret = root->CreateMessage(&iid_of(msg), MAPI_DEFERRED_ERRORS, &~msg);
+		if (ret != hrSuccess)
+			return hr_lerrf(ret, "CreateMessage");
+		ret = msg->SetProps(ARRAY_SIZE(pv), pv, nullptr);
+		if (ret != hrSuccess)
+			return hr_lerrf(ret, "SetProps");
+		msg->SaveChanges(0);
+		if (amt % 32 == 0) {
+			printf("\r\e[2K" "%u left...", amt);
+			fflush(stdout);
+		}
+	}
+	return hrSuccess;
+}
+
+static HRESULT adm_ct_read(IMsgStore *store)
+{
+	object_ptr<IMAPIFolder> root;
+	auto ret = store->OpenEntry(0, nullptr, &iid_of(root), MAPI_DEFERRED_ERRORS | MAPI_MODIFY, nullptr, &~root);
+	if (ret != hrSuccess)
+		return hr_lerrf(ret, "OpenEntry");
+	object_ptr<IMAPITable> tbl;
+	ret = root->GetContentsTable(MAPI_DEFERRED_ERRORS, &~tbl);
+	if (ret != hrSuccess)
+		return hr_lerrf(ret, "GetContentsTable");
+	static constexpr SizedSPropTagArray(1, cols) = {1, {PR_ENTRYID}};
+	ret = tbl->SetColumns(cols, TBL_ASYNC | TBL_BATCH);
+	size_t total = 0;
+	auto cl = make_scope_success([]() { printf("\n"); });
+
+	do {
+		rowset_ptr rset;
+		ret = tbl->QueryRows(1024, 0, &~rset);
+		if (ret != hrSuccess)
+			return hr_lerrf(ret, "QueryRows");
+		if (rset.size() == 0)
+			break;
+		for (unsigned int i = 0; i < rset.size(); ++i) {
+			object_ptr<IMessage> msg;
+			ret = store->OpenEntry(rset[i].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(rset[i].lpProps[0].Value.bin.lpb),
+			      &iid_of(msg), MAPI_DEFERRED_ERRORS, nullptr, &~msg);
+			if (ret != hrSuccess)
+				return hr_lerrf(ret, "OpenEntry");
+			memory_ptr<SPropValue> pv;
+			unsigned int pnum = 0;
+			ret = HrGetAllProps(msg, 0, &pnum, &~pv);
+			if (FAILED(ret))
+				return hr_lerrf(ret, "GetAllProps");
+		}
+		printf("\r\e[2K%zu items...", total += rset.size());
+		fflush(stdout);
+	} while (true);
+	return hrSuccess;
+}
+
 static HRESULT adm_perform()
 {
 	KServerContext srvctx;
@@ -98,6 +176,8 @@ static HRESULT adm_perform()
 	if (opt_host == nullptr)
 		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
 	srvctx.m_host = opt_host;
+	srvctx.m_ssl_keyfile = adm_config->GetSetting("sslkey_file", "", nullptr);
+	srvctx.m_ssl_keypass = adm_config->GetSetting("sslkey_pass", "", nullptr);
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
@@ -107,6 +187,10 @@ static HRESULT adm_perform()
 		return adm_purge_deferred(srvctx.m_svcadm);
 	if (opt_purge_softdelete >= 0)
 		return adm_purge_softdelete(srvctx.m_svcadm);
+	if (opt_ct_read)
+		return adm_ct_read(srvctx.m_admstore);
+	if (opt_ct_create > 0)
+		return adm_ct_create(srvctx.m_admstore, opt_ct_create);
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -147,12 +231,14 @@ static unsigned int adm_parse_cache(const char *arglist)
 static bool adm_parse_options(int &argc, const char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
-	opt_config_file = ECConfig::GetDefaultPath("admin.cfg");
+	adm_config->LoadSettings(ECConfig::GetDefaultPath("admin.cfg"));
+
 	if (HX_getopt(adm_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return false;
 	if (opt_config_file != nullptr) {
 		adm_config->LoadSettings(opt_config_file);
 		if (adm_config->HasErrors()) {
+			/* Only complain when -c was used */
 			fprintf(stderr, "Error reading config file %s\n", opt_config_file);
 			LogConfigErrors(adm_config.get());
 			return false;

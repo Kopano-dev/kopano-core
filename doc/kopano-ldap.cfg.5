@@ -56,7 +56,8 @@ Example: !propmap ldap.propmap.cfg
 .PP
 Specifies the URIs of one or more LDAP server(s) to use, without any DN portion,
 such as "\fBldap://server:389/\fP", "\fBldaps://server:636/\fP" or
-"\fBldapi:///\fP".
+"\fBldapi:///\fP". The first available server will be used; there is no
+round-robin.
 .PP
 Default: \fIldap://localhost:389/\fP
 .SS ldap_starttls

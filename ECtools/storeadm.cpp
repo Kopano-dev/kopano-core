@@ -227,14 +227,15 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 	ret = ms->GetMailboxTable(nullptr, &~table, MAPI_DEFERRED_ERRORS);
 	if (ret != hrSuccess)
 		return ret;
-	static constexpr SizedSPropTagArray(6, sp) =
-		{6, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
+	static constexpr SizedSPropTagArray(7, sp) =
+		{7, {PR_MAILBOX_OWNER_ENTRYID, PR_EC_STORETYPE,
 		PR_STORE_RECORD_KEY, PR_DISPLAY_NAME_W, PR_LAST_MODIFICATION_TIME,
-		PR_MESSAGE_SIZE_EXTENDED}};
+		PR_MESSAGE_SIZE_EXTENDED, PR_MAILBOX_OWNER_NAME_W}};
 	ret = table->SetColumns(sp, TBL_BATCH);
 	if (ret != hrSuccess)
 		return ret;
 
+	Json::Value root;
 	while (true) {
 		rowset_ptr rowset;
 		ret = table->QueryRows(INT_MAX, 0, &~rowset);
@@ -248,6 +249,8 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 			auto &p = rowset[i].lpProps;
 			if (p[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID)
 				outrow["owner"] = bin2hex(p[0].Value.bin);
+			if (p[6].ulPropTag == PR_MAILBOX_OWNER_NAME_W)
+				outrow["owner_name"] = convert_to<std::string>("UTF-8", p[6].Value.lpszW, rawsize(p[6].Value.lpszW), CHARSET_WCHAR);
 			if (p[1].ulPropTag == PR_EC_STORETYPE)
 				outrow["type"] = store_type_string(p[1].Value.ul);
 			if (p[2].ulPropTag == PR_STORE_RECORD_KEY)
@@ -258,9 +261,10 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p[4].Value.ft));
 			if (p[5].ulPropTag == PR_MESSAGE_SIZE_EXTENDED)
 				outrow["size"] = static_cast<Json::Value::Int64>(p[5].Value.li.QuadPart);
-			puts(Json::writeString(Json::StreamWriterBuilder(), outrow).c_str());
+			root.append(std::move(outrow));
 		}
 	}
+	puts(Json::writeString(Json::StreamWriterBuilder(), std::move(root)).c_str());
 	return hrSuccess;
 }
 

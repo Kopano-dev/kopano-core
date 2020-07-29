@@ -292,7 +292,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 {
 	ECsObjects		sObjects;
 
-	if(ulParent == 0 || ulObjId == 0 || ulOwner == 0)
+	if (ulParent == 0 || ulObjId == 0)
 		return 1;
 	assert(ulType == MAPI_FOLDER || (ulFlags & ~(MSGFLAG_ASSOCIATED | MSGFLAG_DELETED)) == 0);
 	sObjects.ulParent	= ulParent;
@@ -306,10 +306,10 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	return er;
 }
 
-ECRESULT ECCacheManager::I_DelObject(unsigned int ulObjId)
+void ECCacheManager::I_DelObject(unsigned int ulObjId)
 {
 	scoped_rlock lock(m_hCacheObjectMutex);
-	return m_ObjectsCache.RemoveCacheItem(ulObjId);
+	m_ObjectsCache.RemoveCacheItem(ulObjId);
 }
 
 ECRESULT ECCacheManager::I_GetStore(unsigned int ulObjId, unsigned int *ulStore,
@@ -344,10 +344,10 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 	return er;
 }
 
-ECRESULT ECCacheManager::I_DelStore(unsigned int ulObjId)
+void ECCacheManager::I_DelStore(unsigned int ulObjId)
 {
 	scoped_rlock lock(m_hCacheStoreMutex);
-	return m_StoresCache.RemoveCacheItem(ulObjId);
+	m_StoresCache.RemoveCacheItem(ulObjId);
 }
 
 ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
@@ -959,12 +959,10 @@ ECRESULT ECCacheManager::I_GetUserObject(unsigned int ulUserId,
 	return erSuccess;
 }
 
-ECRESULT ECCacheManager::I_DelUserObject(unsigned int ulUserId)
+void ECCacheManager::I_DelUserObject(unsigned int ulUserId)
 {
 	scoped_rlock lock(m_hCacheMutex);
-
-	// Remove the user
-	return m_UserObjectCache.RemoveCacheItem(ulUserId);
+	m_UserObjectCache.RemoveCacheItem(ulUserId);
 }
 
 ECRESULT ECCacheManager::I_AddUserObjectDetails(unsigned int ulUserId,
@@ -993,12 +991,10 @@ ECRESULT ECCacheManager::I_GetUserObjectDetails(unsigned int ulUserId, objectdet
 	return erSuccess;
 }
 
-ECRESULT ECCacheManager::I_DelUserObjectDetails(unsigned int ulUserId)
+void ECCacheManager::I_DelUserObjectDetails(unsigned int ulUserId)
 {
 	scoped_rlock lock(m_hCacheMutex);
-
-	// Remove the user details
-	return m_UserObjectDetailsCache.RemoveCacheItem(ulUserId);
+	m_UserObjectDetailsCache.RemoveCacheItem(ulUserId);
 }
 
 ECRESULT ECCacheManager::I_AddUEIdObject(const std::string &strExternId,
@@ -1048,7 +1044,7 @@ ECRESULT ECCacheManager::I_GetUEIdObject(const std::string &strExternId,
 	return erSuccess;
 }
 
-ECRESULT ECCacheManager::I_DelUEIdObject(const std::string &strExternId,
+void ECCacheManager::I_DelUEIdObject(const std::string &strExternId,
     objectclass_t ulClass)
 {
 	ECsUEIdKey	sKey;
@@ -1059,7 +1055,6 @@ ECRESULT ECCacheManager::I_DelUEIdObject(const std::string &strExternId,
 
 	scoped_rlock lock(m_hCacheMutex);
 	m_UEIdObjectCache.RemoveCacheItem(sKey);
-	return erSuccess;
 }
 
 ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
@@ -1158,11 +1153,11 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
 	return m_AclCache.AddCacheItem(ulObjId, std::move(sACLs));
 }
 
-ECRESULT ECCacheManager::I_DelACLs(unsigned int ulObjId)
+void ECCacheManager::I_DelACLs(unsigned int ulObjId)
 {
 	scoped_rlock lock(m_hCacheMutex);
 	LOG_USERCACHE_DEBUG("Remove ACLs for objectid %d", ulObjId);
-	return m_AclCache.RemoveCacheItem(ulObjId);
+	m_AclCache.RemoveCacheItem(ulObjId);
 }
 
 ECRESULT ECCacheManager::GetQuota(unsigned int ulUserId, bool bIsDefaultQuota, quotadetails_t *quota)
@@ -1201,12 +1196,13 @@ ECRESULT ECCacheManager::I_GetQuota(unsigned int ulUserId, bool bIsDefaultQuota,
 	return erSuccess;
 }
 
-ECRESULT ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
+void ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 {
 	scoped_rlock lock(m_hCacheMutex);
 	if (bIsDefaultQuota)
-		return m_QuotaUserDefaultCache.RemoveCacheItem(ulUserId);
-	return m_QuotaCache.RemoveCacheItem(ulUserId);
+		m_QuotaUserDefaultCache.RemoveCacheItem(ulUserId);
+	else
+		m_QuotaCache.RemoveCacheItem(ulUserId);
 }
 
 void ECCacheManager::update_extra_stats(ECStatsCollector &sc)
@@ -1406,10 +1402,10 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
 	return er;
 }
 
-ECRESULT ECCacheManager::I_DelCell(unsigned int ulObjId)
+void ECCacheManager::I_DelCell(unsigned int ulObjId)
 {
 	scoped_rlock lock(m_hCacheCellsMutex);
-	return m_CellCache.RemoveCacheItem(ulObjId);
+	m_CellCache.RemoveCacheItem(ulObjId);
 }
 
 ECRESULT ECCacheManager::GetServerDetails(const std::string &strServerId, serverdetails_t *lpsDetails)

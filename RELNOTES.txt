@@ -55,6 +55,18 @@ Enhancements:
   "cache_cell_size=0.5G"
 
 
+9.0.11 (2020-07-29)
+===================
+Changes from the 8.7.x branch up to 8.7.16 are included.
+Fixes:
+* storeadm: have -M emit a single JSON object [KC-1820]
+Changes:
+* server: use a lot less LDAP connections [KS-45830]
+* server: synchronize SQL column stores.user_id with hierarchy.owner so that
+  storeadm -M and -O output are consistent with one another [KC-1819]
+* server: cure a case where caches can exceed their desired size [KC-1764]
+
+
 9.0.10 (2020-07-09)
 ===================
 Changes from the 8.7.x branch up to 8.7.15 are included.
@@ -226,6 +238,14 @@ Changes:
 * kopano-rest has been moved to a separate git repository
 Packaging changes:
 * gsoap 2.8.73 or higher is now required
+
+
+8.7.16 (2020-07-27)
+===================
+Fixes:
+* srvadm: read admin.cfg by default [KC-1815]
+* srvadm: do pass TLS certificates to server [KC-1815]
+* libserver: resolve crash in notify_mgr thread on shutdown [KS-45804]
 
 
 8.7.15 (2020-07-09)
