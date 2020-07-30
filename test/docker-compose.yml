@@ -10,6 +10,7 @@ services:
       - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
       - LDAP_READONLY_USER=true
       - LDAP_READONLY_USER_PASSWORD=${LDAP_READONLY_USER_PASSWORD}
+      - LDAP_LOG_LEVEL=0
     command: "--loglevel info --copy-service"
     volumes:
       - ldap:/var/lib/ldap
