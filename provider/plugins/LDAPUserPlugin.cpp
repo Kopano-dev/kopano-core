@@ -549,7 +549,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 	int rc = -1;
 	LDAP *ld = NULL;
 	auto tstart = std::chrono::steady_clock::now();
-	auto starttls = m_config->GetSetting("ldap_starttls");
+	auto starttls = parseBool(m_config->GetSetting("ldap_starttls"));
 
 	if (bind_dn == nullptr && bind_pw == nullptr) {
 		bind_dn = m_config->GetSetting("ldap_bind_user");
