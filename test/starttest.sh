@@ -49,7 +49,7 @@ kopano-admin -s || true
 
 kopano-admin -l
 
-exec make test \
+exec make test-ci \
 	PYTHON=$PYTHON \
 	PYTEST=$PYTEST \
 	KOPANO_SOCKET=$KOPANO_SOCKET

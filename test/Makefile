@@ -7,10 +7,14 @@ EXTRA_LOCAL_ADMIN_USER ?= $(shell id -u)
 
 BUILD_TAG ?= $(shell whoami || date +%s)
 
+TAP2JUNIT ?= tap2junit
+BATS ?= bats
+
 export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 
-test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins
+test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin
+test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin-junit
 test-short: test-short-python-mapi test-short-python-kopano test-short-php
 
 
@@ -40,6 +44,13 @@ test-libicalmapi:
 
 test-spooler-plugins:
 	make -C ../spooler/python test
+
+test-admin:
+	$(BATS) ../ECtools/admin/tests
+
+test-admin-junit:
+	$(BATS) ../ECtools/admin/tests > test-admin.log || true
+	$(TAP2JUNIT) test-admin.log
 
 # CI
 

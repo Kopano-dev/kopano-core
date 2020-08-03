@@ -9,6 +9,7 @@ WORKDIR ${WORKSPACE}
 RUN apt-get update && apt-get install --no-install-recommends -y \
 	autoconf \
 	automake \
+	bats \
 	build-essential \
 	flake8 \
 	pkg-config \
@@ -19,7 +20,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	python3-setuptools \
 	python3-tz \
 	python3-tzlocal \
-	php
+	php \
+	libtap-formatter-junit-perl
 
 RUN rm -f /etc/apt/sources.list.d/kopano.list \
 	&& dpkg -r --force-depends \
