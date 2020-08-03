@@ -854,6 +854,56 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	bool kustomer_initialized = false;
 #endif
 
+static bool setup_kustomer()
+{
+#ifdef HAVE_KUSTOMER
+	int kustomerDebug = -1;
+	if (*g_lpConfig->GetSetting("kustomer_debug") != '\0')
+		kustomerDebug = parseBool(g_lpConfig->GetSetting("kustomer_debug"));
+	ec_log_info("KUSTOMER initializing");
+	auto res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_set_productuseragent(const_cast<char *>(kustomerProductUserAgent));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to set product user agent: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_set_autorefresh(1);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_initialize(const_cast<char *>(kustomerProductName));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
+	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
+	if (kustomer_initialize_timeout > 0) {
+		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
+		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+			return false;
+		}
+		ec_log_info("KUSTOMER initialized");
+	}
+	kustomer_initialized = true;
+	res = kustomer_log_ensured_claims();
+	if (res != KUSTOMER_ERRSTATUSSUCCESS)
+		return false;
+	res = kustomer_set_notify_when_updated(kustomer_notify_update_cb, kustomer_notify_exit_cb);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to watch for updates: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+#endif
+	return true;
+}
+
 static void cleanup(ECRESULT er)
 {
 	if (er != erSuccess) {
@@ -1194,53 +1244,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
     soap_ssl_init(); // Always call this in the main thread once!
     ssl_threading_setup();
-#ifdef HAVE_KUSTOMER
-	int kustomerDebug = -1;
-	if (*g_lpConfig->GetSetting("kustomer_debug") != '\0')
-		kustomerDebug = parseBool(g_lpConfig->GetSetting("kustomer_debug"));
-	ec_log_info("KUSTOMER initializing");
-	auto res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+	if (!setup_kustomer())
 		return retval;
-	}
-	res = kustomer_set_productuseragent(const_cast<char *>(kustomerProductUserAgent));
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to set product user agent: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-	res = kustomer_set_autorefresh(1);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-	res = kustomer_initialize(kustomerProductName);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
-	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
-	if (kustomer_initialize_timeout > 0) {
-		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
-		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-			return retval;
-		}
-		ec_log_info("KUSTOMER initialized");
-	}
-	kustomer_initialized = true;
-	res = kustomer_log_ensured_claims();
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		return retval;
-	}
-	res = kustomer_set_notify_when_updated(kustomer_notify_update_cb, kustomer_notify_exit_cb);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to watch for updates: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-
-#endif
 #ifdef HAVE_KCOIDC_H
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
 		auto res = kcoidc_insecure_skip_verify(1);
