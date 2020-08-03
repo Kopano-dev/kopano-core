@@ -1196,16 +1196,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
     ssl_threading_setup();
 #ifdef HAVE_KUSTOMER
 	int kustomerDebug = -1;
-	long long unsigned int res;
-	std::string strKustomerDebug = g_lpConfig->GetSetting("kustomer_debug");
-	if (!strKustomerDebug.empty()) {
-		if (parseBool(g_lpConfig->GetSetting("kustomer_debug")))
-			kustomerDebug = 1;
-		else
-			kustomerDebug = 0;
-	}
+	if (*g_lpConfig->GetSetting("kustomer_debug") != '\0')
+		kustomerDebug = parseBool(g_lpConfig->GetSetting("kustomer_debug"));
 	ec_log_info("KUSTOMER initializing");
-	res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
+	auto res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
 	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
 		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
 		return retval;
@@ -1220,7 +1214,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
 		return retval;
 	}
-	res = kustomer_initialize(const_cast<char *>(kustomerProductName));
+	res = kustomer_initialize(kustomerProductName);
 	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
 		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
 		return retval;
