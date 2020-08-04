@@ -78,6 +78,8 @@ ECRESULT kopano_exit()
 		return KCERR_NOT_INITIALIZED;
 	// delete our plugin of the mainthread: requires ECPluginFactory to be alive, because that holds the dlopen() result
 	plugin_destroy(pthread_getspecific(plugin_key));
+	if (g_lpSessionManager == nullptr)
+		return erSuccess;
 	g_lpSessionManager->shutdown();
 	g_lpSessionManager.reset();
 	return erSuccess;
