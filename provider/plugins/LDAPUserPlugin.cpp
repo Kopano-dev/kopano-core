@@ -493,7 +493,7 @@ int LDAPUserPlugin::setup_ldap(const char *server, bool tls, LDAP **ldp)
 {
 	static const int limit = 0, version = LDAP_VERSION3;
 	LDAP *ld = nullptr;
-	auto xxld = make_scope_success([&]() { if (ld != nullptr) ldap_unbind_s(ld); });
+	auto xxld = make_scope_success([&]() { if (ld != nullptr) ldap_unbind_ext(ld, nullptr, nullptr); });
 
 	auto rc = ldap_initialize(&ld, server);
 	if (rc != LDAP_SUCCESS) {
@@ -577,8 +577,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 			if (rc == LDAP_SUCCESS)
 				break;
 			ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
-			if (ldap_unbind_s(ld) == -1)
-				ec_log_err("LDAP unbind failed");
+			ldap_unbind_ext(ld, nullptr, nullptr);
 		}
 		// see if another (if any) server does work
 		++ldapServerIndex;
@@ -604,8 +603,7 @@ LDAPUserPlugin::~LDAPUserPlugin() {
 	if (m_ldap == nullptr)
 		return;
 	LOG_PLUGIN_DEBUG("%s", "Disconnecting from LDAP since unloading plugin instance");
-	if (ldap_unbind_s(m_ldap) == -1)
-		ec_log_err("LDAP unbind failed");
+	ldap_unbind_ext(m_ldap, nullptr, nullptr);
 }
 
 void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char *attrs[], int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls)
@@ -639,8 +637,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
 		if (m_ldap != NULL) {
 			ec_log_err("LDAP search error: %s. Will unbind, reconnect and retry.", ldap_err2string(result));
-			if (ldap_unbind_s(m_ldap) == -1)
-				ec_log_err("LDAP unbind failed");
+			ldap_unbind_ext(m_ldap, nullptr, nullptr);
 			m_ldap = NULL;
 		}
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
@@ -658,8 +655,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		    // which will possibly connect to a different (failed over) server.
 			if (m_ldap != NULL) {
 				ec_log_err("Unbinding from LDAP because of continued error (%s)", ldap_err2string(result));
-				if (ldap_unbind_s(m_ldap) == -1)
-					ec_log_err("LDAP unbind failed");
+				ldap_unbind_ext(m_ldap, nullptr, nullptr);
 				m_ldap = NULL;
 			}
 		}
