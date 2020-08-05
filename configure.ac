@@ -539,12 +539,6 @@ AC_CHECK_HEADERS([libs3.h])
 AC_SEARCH_LIBS([S3_initialize], [s3], [s3_LIBS="-ls3"; LIBS="$LIBS_system"])
 AC_SUBST([s3_LIBS])
 
-# Check for kcoidc
-LIBS_system="$LIBS"
-AC_CHECK_HEADERS([kcoidc.h])
-AC_SEARCH_LIBS([kcoidc_initialize], [kcoidc], [kcoidc_LIBS="-lkcoidc"; LIBS="$LIBS_system"])
-AC_SUBST([kcoidc_LIBS])
-
 AC_CHECK_FUNCS([uuid_create], UUID_LIBS="",	dnl uuid_create is in libc on FreeBSD
   AC_CHECK_LIB([uuid], [uuid_create],
     UUID_LIBS="-luuid"
@@ -628,6 +622,16 @@ AS_IF([test "$have_icu" = 0], [
 	AC_MSG_ERROR([ICU is required but not found])
 ])
 ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
+
+# check for libkcoidc support
+PKG_CHECK_EXISTS([libkcoidc], [have_kcoidc=1], [have_kcoidc=0])
+AC_ARG_ENABLE([kcoidc], AS_HELP_STRING([--enable-kcoidc], [require libkcoidc]), [want_kcoidc=yes], [want_kcoidc=no])
+AS_IF([test "$want_kcoidc" = "yes" -o "$have_kcoidc" = "1"], [
+	PKG_CHECK_MODULES([kcoidc], [libkcoidc >= 0.9.0])
+	AC_SUBST([kcoidc_LIBS])
+	AC_DEFINE(HAVE_KCOIDC_H, [1], [libkcoidc available])
+	ZCPPFLAGS="$ZCPPFLAGS $kcoidc_CFLAGS"
+])
 
 # check libkustomer support
 PKG_CHECK_EXISTS([libkustomer], [have_kustomer=1], [have_kustomer=0])
