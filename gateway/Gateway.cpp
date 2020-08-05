@@ -405,12 +405,6 @@ int main(int argc, char *argv[]) {
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false)); // create logger without a timestamp to stderr
-		if (g_lpLogger == nullptr) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig.get());
 		hr = E_FAIL;
 		goto exit;

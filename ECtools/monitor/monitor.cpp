@@ -37,7 +37,6 @@ using namespace KC;
 using std::cout;
 using std::endl;
 
-static std::shared_ptr<ECLogger> g_lpLogger;
 static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
 static std::atomic<bool> mo_sighup_flag{false};
 static std::condition_variable mo_wakeup_cond;
@@ -204,9 +203,6 @@ static ECRESULT main2(int argc, char **argv)
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
-		/* Create fatal logger without a timestamp to stderr. */
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 		return E_FAIL;
 	}
@@ -214,8 +210,7 @@ static ECRESULT main2(int argc, char **argv)
 		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? hrSuccess : E_FAIL;
 
 	// setup logging
-	g_lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0]);
-	ec_log_set(g_lpLogger);
+	ec_log_set(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0]));
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 

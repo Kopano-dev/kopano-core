@@ -283,12 +283,6 @@ int main(int argc, char **argv) {
 	if (!g_lpConfig->LoadSettings(lpszCfg, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		g_lpLogger.reset(new(std::nothrow) ECLogger_File(1, 0, "-", false));
-		if (g_lpLogger == nullptr) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig.get());
 		goto exit;
 	}
