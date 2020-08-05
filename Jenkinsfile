@@ -74,6 +74,7 @@ pipeline {
             }
             post {
                 always {
+                    sh 'make -C test test-backend-kopano-ci-logs DOCKERCOMPOSE_LOGS_ARGS="--timestamps --no-color"'
                     sh 'make -C test test-backend-kopano-ci-clean'
                 }
             }
