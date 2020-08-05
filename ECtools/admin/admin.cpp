@@ -1032,7 +1032,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpStore);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to open user store", hr);
-			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
 			/* Ignore return value */
 		}
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
