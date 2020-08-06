@@ -215,6 +215,7 @@ public:
 
 	/* Message locking */
 	HRESULT HrSetLockState(unsigned int eid_size, const ENTRYID *, bool locked);
+	HRESULT license_auth(const std::string &in, std::string &out);
 
 	/* expose capabilities */
 	HRESULT HrCheckCapabilityFlags(unsigned int flags, BOOL *result);

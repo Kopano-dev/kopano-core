@@ -3778,6 +3778,28 @@ HRESULT WSTransport::HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult)
 	return hrSuccess;
 }
 
+HRESULT WSTransport::license_auth(const std::string &in, std::string &out)
+{
+	struct xsd__base64Binary bin;
+	bin.__size = in.size();
+	bin.__ptr  = reinterpret_cast<unsigned char *>(const_cast<char *>(in.data()));
+
+	struct getLicenseAuthResponse rsp;
+	soap_lock_guard spg(*this);
+	ECRESULT er = erSuccess;
+	HRESULT hr  = hrSuccess;
+
+	START_SOAP_CALL
+	{
+		er = m_lpCmd->getLicenseAuth(m_ecSessionId, bin, &rsp) != SOAP_OK ?
+		     KCERR_NETWORK_ERROR : rsp.er;
+	}
+	END_SOAP_CALL
+	out.assign(reinterpret_cast<char *>(rsp.sAuthResponse.__ptr), rsp.sAuthResponse.__size);
+ exitm:
+	return hr;
+}
+
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
