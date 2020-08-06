@@ -156,6 +156,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IECSecurity, this);
 	// is admin store?
 	REGISTER_INTERFACE2(IECTestProtocol, this);
+	REGISTER_INTERFACE2(IECLicense, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -2517,6 +2518,11 @@ HRESULT ECMsgStore::enable_transaction(bool x)
 	}
 	m_transact = x;
 	return ret;
+}
+
+HRESULT ECMsgStore::license_auth(const std::string &in, std::string &out)
+{
+	return lpTransport->license_auth(in, out);
 }
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
