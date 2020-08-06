@@ -85,6 +85,7 @@ services:
       - KCCONF_SERVER_SYNC_GAB_REALTIME=no
       - KCCONF_SERVER_LOCAL_ADMIN_USERS=root kopano testrunner
       - KCCONF_SERVER_PID_FILE=/run/kopano/server.pid
+      - KCCONF_SERVER_KUSTOMER_INITIALIZE_TIMEOUT=0 # allow startup without kustomerd for now
       - KCCONF_LDAP_LDAP_URI=${LDAP_SERVER}
       - KCCONF_LDAP_LDAP_BIND_USER=${LDAP_BIND_DN}
       - KCCONF_LDAP_LDAP_BIND_PASSWD=${LDAP_BIND_PW}
