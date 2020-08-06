@@ -772,6 +772,8 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 			strFormat = KC_A("Inbox") + " - "s + strFormat;
 		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
 			strFormat = KC_A("Archive") + " - "s + strFormat;
+		else if (ulStoreType == ECSTORE_TYPE_PUBLIC)
+			strFormat = KC_A("Public Store") + " - "s + strFormat;
 		else
 			assert(false);
 

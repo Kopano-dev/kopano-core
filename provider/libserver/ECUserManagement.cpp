@@ -3082,13 +3082,20 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 	case PR_EC_COMPANY_NAME: {
 		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
 			lpPropVal->Value.lpszA = soap_strdup(soap, "");
-		} else {
-			objectdetails_t sCompanyDetails;
-			er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
-			if (er != erSuccess)
-				return er;
-			lpPropVal->Value.lpszA = soap_strdup(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
 		}
+		objectdetails_t sCompanyDetails;
+		auto cid = lpDetails->GetPropInt(OB_PROP_I_COMPANYID);
+		if (cid == 0) {
+			lpPropVal->Value.lpszA = soap_strdup(soap, "");
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
+		if (er != erSuccess)
+			return er;
+		lpPropVal->Value.lpszA = soap_strdup(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	}
