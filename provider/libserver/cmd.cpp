@@ -8569,12 +8569,17 @@ SOAP_ENTRY_START(getSyncStates, lpsResponse->er,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getLicenseAuth, r->er, const struct xsd__base64Binary &,
+SOAP_ENTRY_START(getLicenseAuth, r->er, const struct xsd__base64Binary &req,
     struct getLicenseAuthResponse *r)
 {
-	/* Called by ZCP 7.2.6 */
-	r->sAuthResponse.__ptr = nullptr;
-	r->sAuthResponse.__size = 0;
+	std::string out;
+	er = ECLicense_Auth(req.__ptr, req.__size, out);
+	if (out.size() > 0) {
+		r->sAuthResponse.__size = out.size();
+		r->sAuthResponse.__ptr = soap_new_unsignedByte(soap, out.size());
+		memcpy(r->sAuthResponse.__ptr, out.data(), out.size());
+	}
+	return er;
 }
 SOAP_ENTRY_END()
 
