@@ -46,19 +46,18 @@ class PyMapiPlugin final : public pym_plugin_intf {
 	public:
 	PyMapiPlugin() = default;
 	~PyMapiPlugin();
-	HRESULT Init(pyobj_ptr &&, const char *, const char *);
+	HRESULT Init(ECConfig *, const char *);
 	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
 	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result);
 	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result);
 
+	private:
+	pyobj_ptr m_module{nullptr}, m_ptrMapiPluginManager{nullptr};
 	swig_type_info *type_p_ECLogger = nullptr, *type_p_IAddrBook = nullptr;
 	swig_type_info *type_p_IMAPIFolder = nullptr;
 	swig_type_info *type_p_IMAPISession = nullptr;
 	swig_type_info *type_p_IMsgStore = nullptr, *type_p_IMessage = nullptr;
 	swig_type_info *type_p_IExchangeModifyTable = nullptr;
-
-	private:
-	pyobj_ptr m_module{nullptr}, m_ptrMapiPluginManager{nullptr};
 
 	/* Inhibit (accidental) copying */
 	PyMapiPlugin(const PyMapiPlugin &) = delete;
@@ -145,11 +144,22 @@ static HRESULT PyHandleError(PyObject *pyobj)
  *
  * @return Standard mapi errorcodes
  */
-HRESULT PyMapiPlugin::Init(pyobj_ptr &&lpModMapiPlugin,
-    const char *lpPluginManagerClassName, const char *lpPluginPath)
+HRESULT PyMapiPlugin::Init(ECConfig *cfg, const char *lpPluginManagerClassName)
 {
 	HRESULT			hr = S_OK;
 	pyobj_ptr ptrClass, ptrArgs;
+
+	auto lpPluginPath = cfg->GetSetting("plugin_path");
+	auto lpEnvPython = getenv("PYTHONPATH");
+	ec_log_debug("PYTHONPATH = %s", lpEnvPython != nullptr ? lpEnvPython : "");
+	Py_Initialize();
+	pyobj_ptr ptrModule(PyImport_ImportModule("MAPI"));
+	PY_HANDLE_ERROR(ptrModule);
+	// Import python plugin framework
+	// @todo error unable to find file xxx
+	pyobj_ptr ptrName(PyUnicode_FromString("mapiplugin"));
+	pyobj_ptr lpModMapiPlugin(PyImport_Import(ptrName));
+	PY_HANDLE_ERROR(lpModMapiPlugin);
 
 	if (!lpModMapiPlugin)
 		return S_OK;
@@ -271,34 +281,18 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 
 PyMapiPlugin::~PyMapiPlugin()
 {
+	m_ptrMapiPluginManager.reset();
 	m_module.reset();
-}
-
-void plugin_manager_exit()
-{
 	Py_Finalize();
 }
 
-HRESULT plugin_manager_init(ECConfig *lpConfig,
-    const char *lpPluginManagerClassName, pym_plugin_intf **lppPlugin)
+HRESULT plugin_manager_init(ECConfig *lpConfig, const char *cls,
+    pym_plugin_intf **lppPlugin)
 {
-	HRESULT			hr = S_OK;
-	std::string strPluginPath = lpConfig->GetSetting("plugin_path");
-	auto lpEnvPython = getenv("PYTHONPATH");
-	ec_log_debug("PYTHONPATH = %s", lpEnvPython);
-	Py_Initialize();
-	PyObjectAPtr ptrModule(PyImport_ImportModule("MAPI"));
-	PY_HANDLE_ERROR(ptrModule);
-	// Import python plugin framework
-	// @todo error unable to find file xxx
-	pyobj_ptr ptrName(PyUnicode_FromString("mapiplugin"));
-	pyobj_ptr mmp(PyImport_Import(ptrName));
-	PY_HANDLE_ERROR(mmp);
-
 	auto lpPlugin = make_unique_nt<PyMapiPlugin>();
 	if (lpPlugin == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpPlugin->Init(std::move(mmp), lpPluginManagerClassName, strPluginPath.c_str());
+	auto hr = lpPlugin->Init(lpConfig, cls);
 	if (hr != S_OK)
 		return hr;
 	*lppPlugin = lpPlugin.release();
