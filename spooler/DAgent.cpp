@@ -2912,6 +2912,13 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::unique_ptr<pym_plugin_intf> tmp;
+		hr = create_pym_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(tmp));
+		if (hr != hrSuccess)
+			return hr_lcrit(hr, "K-1730: plugin_enabled=yes requested but plugin system is not runnable");
+	}
+
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
 		nMaxThreads = 20;
