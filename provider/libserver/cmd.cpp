@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 #include <cstdint>
+#include <json/writer.h>
 #include <libHX/misc.h>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
@@ -557,9 +558,12 @@ static void set_agent(struct soap *soap, const char *misc, const char *ver)
 	agent += ver;
 }
 
-static bool decider(const LICENSEREQUEST &)
+static Json::Value decider(const LICENSEREQUEST &)
 {
-	return true;
+	Json::Value out;
+	out["err"] = 0;
+	out["ers"] = "Success";
+	return out;
 }
 
 static ECRESULT ECLicense_Auth(const void *data, size_t dsize, std::string &rsp_enc)
@@ -584,10 +588,14 @@ static ECRESULT ECLicense_Auth(const void *data, size_t dsize, std::string &rsp_
 	req.service_id   = be32_to_cpu(req.service_id);
 	req.service_type = be32_to_cpu(req.service_type);
 
-	rsp.status       = decider(req) ? cpu_to_be32(hrSuccess) : cpu_to_be32(MAPI_E_NO_ACCESS);
+	auto js_rsp      = decider(req);
+	rsp.version      = cpu_to_be32(req.version);
+	rsp.status       = cpu_to_be32(js_rsp["err"].asUInt64() == 0 ? hrSuccess : MAPI_E_NO_ACCESS);
 	rsp.tracking_id  = req.tracking_id;
 	rsp.flags        = cpu_to_be64(~0ULL);
-	return licstream_enc(&rsp, sizeof(rsp), rsp_enc);
+	auto d = std::string(reinterpret_cast<const char *>(&rsp), sizeof(rsp)) +
+	         Json::writeString(Json::StreamWriterBuilder(), std::move(js_rsp));
+	return licstream_enc(d.data(), d.size(), rsp_enc);
 }
 
 /**
