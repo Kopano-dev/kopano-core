@@ -36,7 +36,9 @@
 #include <deque>
 #include <algorithm>
 #include <cstdio>
+#include <sstream>
 #include <kopano/ECTags.h>
+#include <kopano/license.hpp>
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"
 #include <kopano/kcodes.h>
@@ -555,6 +557,39 @@ static void set_agent(struct soap *soap, const char *misc, const char *ver)
 	agent += ver;
 }
 
+static bool decider(const LICENSEREQUEST &)
+{
+	return true;
+}
+
+static ECRESULT ECLicense_Auth(const void *data, size_t dsize, std::string &rsp_enc)
+{
+	LICENSERESPONSE rsp;
+	rsp.version     = cpu_to_be32(0);
+	rsp.status      = cpu_to_be32(MAPI_E_NO_ACCESS);
+	rsp.flags       = cpu_to_be64(0);
+
+	std::string req_str;
+	auto ret = licstream_dec(data, dsize, req_str);
+	if (ret == MAPI_E_INVALID_PARAMETER || req_str.size() < sizeof(LICENSEREQUEST)) {
+		rsp.status = MAPI_E_INVALID_PARAMETER;
+		return licstream_enc(&rsp, sizeof(rsp), rsp_enc);
+	} else if (ret != hrSuccess) {
+		return licstream_enc(&rsp, sizeof(rsp), rsp_enc);
+	}
+
+	LICENSEREQUEST req;
+	memcpy(&req, req_str.data(), sizeof(req));
+	req.version      = be32_to_cpu(req.version);
+	req.service_id   = be32_to_cpu(req.service_id);
+	req.service_type = be32_to_cpu(req.service_type);
+
+	rsp.status       = decider(req) ? cpu_to_be32(hrSuccess) : cpu_to_be32(MAPI_E_NO_ACCESS);
+	rsp.tracking_id  = req.tracking_id;
+	rsp.flags        = cpu_to_be64(~0ULL);
+	return licstream_enc(&rsp, sizeof(rsp), rsp_enc);
+}
+
 /**
  * logon: log on and create a session with provided credentials
  */
@@ -634,6 +669,15 @@ int KCmdService::logon(const char *user, const char *pass,
 		lpsResponse->ulCapabilities |= KOPANO_CAP_UNICODE;
 	if (clientCaps & KOPANO_CAP_MSGLOCK)
 		lpsResponse->ulCapabilities |= KOPANO_CAP_MSGLOCK;
+	if (sLicenseRequest.__size > 0) {
+		std::string out;
+		er = ECLicense_Auth(sLicenseRequest.__ptr, sLicenseRequest.__size, out);
+		if (out.size() > 0) {
+			lpsResponse->sLicenseResponse.__size = out.size();
+			lpsResponse->sLicenseResponse.__ptr = soap_new_unsignedByte(soap, out.size());
+			memcpy(lpsResponse->sLicenseResponse.__ptr, out.data(), out.size());
+		}
+	}
 	er = g_lpSessionManager->GetServerGUID(&sServerGuid);
 	if (er != erSuccess)
 		goto exit;
@@ -723,6 +767,15 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	} else if (er == erSuccess) {
 		// done and logged in
 		// create ecsession from ecauthsession, and place in session map
+		if (sLicenseRequest.__size > 0) {
+			std::string out;
+			er = ECLicense_Auth(sLicenseRequest.__ptr, sLicenseRequest.__size, out);
+			if (out.size() > 0) {
+				lpsResponse->sLicenseResponse.__size = out.size();
+				lpsResponse->sLicenseResponse.__ptr = soap_new_unsignedByte(soap, out.size());
+				memcpy(lpsResponse->sLicenseResponse.__ptr, out.data(), out.size());
+			}
+		}
 		er = g_lpSessionManager->RegisterSession(lpecAuthSession,
 		     ullSessionGroup, cl_ver, cl_app, cl_app_ver, cl_app_misc,
 		     &newSessionID, &lpecSession, true);
