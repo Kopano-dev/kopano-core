@@ -239,6 +239,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	}
 	// is admin store?
 	REGISTER_INTERFACE2(IECTestProtocol, &m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IECLicense, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -2685,6 +2686,11 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cN
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestSet, (const char *, name), (const char *, value))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestGet, (const char *, name), (char **, value))
+
+HRESULT ECMsgStore::license_auth(const std::string &in, std::string &out)
+{
+	return lpTransport->license_auth(in, out);
+}
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
 	m_lpStore(lpStore)
