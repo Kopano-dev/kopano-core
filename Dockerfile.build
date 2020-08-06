@@ -14,7 +14,7 @@ FROM debian:buster
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Build args
-ARG DEPENDENCY_HASH=f979f04
+ARG DEPENDENCY_HASH=51c3a68
 ARG CA_CERTIFICATES_VERSION=20190110
 
 # Noninteractive for package manager
