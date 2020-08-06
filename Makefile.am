@@ -695,7 +695,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
-	m4lcommon/mapicontact.h
+	m4lcommon/mapicontact.h m4lcommon/mapilicense.cpp
 libmapi_la_LIBADD = \
 	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${INTL_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym

@@ -19,6 +19,7 @@
 #include <sstream>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
+#include <kopano/license.hpp>
 
 #define dispidStoreEntryIds			"store-entryids"
 #define dispidItemEntryIds			"item-entryids"
@@ -562,6 +563,20 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(SBinary *lpStoreEID, ECMsgStore 
 	auto hr = QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);
 	if (hr != hrSuccess)
 		return hr;
+
+	/*
+	 * This is the place where the client eventually gets the first time an
+	 * archive store is openend in order to retrieve an archived message
+	 * that will be used to destub a message. This seems like an
+	 * appropriate place to check if we are actually allowed to perform
+	 * destubbing. If allowed, we get here only once per archive store. If
+	 * destubbing is not allowed, we will get here more often, but one
+	 * should not have any stubs to begin with if destubbing is not
+	 * allowed.
+	 */
+	if (lic_validate(ptrOnlineStore, SERVICE_TYPE_ARCHIVER, 0) != hrSuccess)
+		return MAPI_E_NO_SUPPORT;
+
 	hr = UnWrapStoreEntryID(lpStoreEID->cb, reinterpret_cast<ENTRYID *>(lpStoreEID->lpb), &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
