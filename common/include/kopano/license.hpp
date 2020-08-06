@@ -40,5 +40,6 @@ struct LICENSERESPONSE {
 
 extern KC_EXPORT HRESULT licstream_enc(const void *src, size_t src_size, std::string &dst);
 extern KC_EXPORT HRESULT licstream_dec(const void *src, size_t src_size, std::string &dst);
+extern KC_EXPORT HRESULT lic_validate(IMsgStore *, enum eServiceType, unsigned int svc_id);
 
 }
