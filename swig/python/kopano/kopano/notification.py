@@ -24,7 +24,7 @@ from .errors import NotSupportedError
 from . import folder as _folder
 from . import item as _item
 
-fnevObjTypeMessage = 0x00010000 # TODO to defs?
+fnevObjTypeMessage = 0x00010000  # TODO to defs?
 fnevObjTypeFolder = 0x00020000
 fnevIgnoreCounters = 0x00040000
 
@@ -40,6 +40,7 @@ class Notification(object):
     A notification instance indicates a change to :class:`items <Item>`
     or :class:`folders <Folder>`.
     """
+
     def __init__(self, mapiobj):
         #: The underlying MAPI notification object
         self.mapiobj = mapiobj
@@ -49,6 +50,7 @@ class Notification(object):
         self.object_type = None
         #: The type of change (*created*, *updated*, *deleted*)
         self.event_type = None
+
 
 def _split(mapiobj, store):
     notif = Notification(mapiobj)
@@ -65,7 +67,7 @@ def _split(mapiobj, store):
 
     elif mapiobj.ulObjType == MAPI_FOLDER:
         folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID),
-            _check_mapiobj=False)
+                                _check_mapiobj=False)
 
         notif.object = folder
         notif.object_type = 'folder'
@@ -105,13 +107,14 @@ def _split(mapiobj, store):
             notif.object = item
             item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
 
-        elif mapiobj.ulObjType == MAPI_FOLDER: # TODO mapiobj.lpOldID not set?
+        elif mapiobj.ulObjType == MAPI_FOLDER:  # TODO mapiobj.lpOldID not set?
             folder = _folder.Folder(store=store,
-                entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+                                    entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
             notif.object = folder
 
         notif.event_type = 'deleted'
         yield notif
+
 
 # TODO can't server filter all this?
 def _filter(notifs, folder, event_types, folder_types):
@@ -119,17 +122,13 @@ def _filter(notifs, folder, event_types, folder_types):
         if notif.event_type not in event_types:
             continue
 
-        if (folder and \
-            notif.object_type == 'item' and \
-            notif.object.folder != folder):
+        if folder and notif.object_type == 'item' and notif.object.folder != folder:
             continue
 
-        if (notif.object_type == 'item' and \
-            notif.object.folder.type_ not in folder_types):
+        if notif.object_type == 'item' and notif.object.folder and notif.object.folder.type_ not in folder_types:
             continue
 
-        if (notif.object_type == 'folder' and \
-            notif.object.type_ not in folder_types):
+        if notif.object_type == 'folder' and notif.object and notif.object.type_ not in folder_types:
             continue
 
         yield notif
@@ -144,7 +143,7 @@ class AdviseSink(MAPIAdviseSink):
         self.event_types = event_types
         self.folder_types = folder_types
 
-    def OnNotify(self, notifications): # pragma: no cover
+    def OnNotify(self, notifications):  # pragma: no cover
         # called from a thread created from C, and as tracing is set for each
         # thread separately from Python, tracing doesn't work here (so coverage
         # also doesn't work).
@@ -153,26 +152,22 @@ class AdviseSink(MAPIAdviseSink):
         # so we just 'inherit' any used tracer from the 'global' python thread.
         if TRACER:
             sys.settrace(TRACER)
-        return self._on_notify(notifications) # method call to start tracing
+        return self._on_notify(notifications)  # method call to start tracing
 
     def _on_notify(self, notifications):
         if not hasattr(self.delegate, 'update'):
             return 0
-        store  = self.store() if self.store else None
+        store = self.store() if self.store else None
         folder = self.folder() if self.folder else None
         for n in notifications:
             for m in _filter(_split(n, store), folder,
-                    self.event_types, self.folder_types):
+                             self.event_types, self.folder_types):
                 self.delegate.update(m)
         return 0
 
+
 def _flags(object_types, event_types):
-    flags = fnevObjectModified | \
-            fnevObjectCreated | \
-            fnevObjectMoved | \
-            fnevObjectCopied | \
-            fnevObjectDeleted | \
-            fnevIgnoreCounters
+    flags = fnevObjectModified | fnevObjectCreated | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted | fnevIgnoreCounters
 
     if 'folder' in object_types:
         flags |= fnevObjTypeFolder
@@ -182,7 +177,7 @@ def _flags(object_types, event_types):
     return flags
 
 def subscribe(store, folder, delegate, object_types=None, folder_types=None,
-        event_types=None):
+              event_types=None):
 
     if not store.server.notifications:
         raise NotSupportedError('server connection does not support \
