@@ -960,3 +960,7 @@ test:
 .PHONY: test-short
 test-short:
 	$(MAKE) -C test test-short
+
+.PHONY: test-ci
+test-ci:
+	$(MAKE) -C test test-ci

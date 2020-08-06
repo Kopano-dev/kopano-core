@@ -185,3 +185,6 @@ stamp-h2
 /php-ext/tests/*.sh
 /php-ext/test.log
 /php-ext/test-short.log
+
+/test/test-admin.log
+/test/test-admin.log.xml
