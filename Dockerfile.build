@@ -16,6 +16,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Build args
 ARG DEPENDENCY_HASH=51c3a68
 ARG CA_CERTIFICATES_VERSION=20190110
+ARG CONFIGURE_ARGS=--enable-kcoidc
 
 # Noninteractive for package manager
 ENV DEBIAN_FRONTEND noninteractive
@@ -108,4 +109,4 @@ USER builder
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Default command (requires mounting kopanocore directory to /build/)
-CMD ./bootstrap.sh && PYTHON=/usr/bin/python3 ./configure && make -j $(nproc)
+CMD ./bootstrap.sh && PYTHON=/usr/bin/python3 ./configure $CONFIGURE_ARGS && make -j $(nproc)
