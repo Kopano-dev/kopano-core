@@ -1221,7 +1221,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
 	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
-	if (kustomer_initialize_timeout > KUSTOMER_ERRSTATUSSUCCESS) {
+	if (kustomer_initialize_timeout > 0) {
 		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
 		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
 			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
