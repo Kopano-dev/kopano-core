@@ -69,7 +69,8 @@ pipeline {
                 stage('Run Test Suite') {
                     steps {
                         echo 'Testing..'
-                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) DOCKERCOMPOSE_UP_ARGS=--build DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
+                        sh 'make -C test test-backend-kopano-ci-build DOCKERCOMPOSE_BUILD_ARGS="--build-arg EXTRA_PACKAGES=libkustomer0 kopano_server"'
+                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) DOCKERCOMPOSE_UP_ARGS="" DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
 			junit testResults: 'php-ext/test.log'
 			junit testResults: 'libicalmapi/test.xml'
 			junit testResults: 'gateway/test.xml'
