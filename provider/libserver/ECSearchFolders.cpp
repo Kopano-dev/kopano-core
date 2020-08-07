@@ -471,13 +471,13 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				}
 				er = dtx.rollback();
 				if (er != erSuccess) {
-					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed %d", er);
+					er_lerrf(er, "database rollback failed");
 					goto exit;
 				}
 				g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
 				continue;
 			} else if (er != erSuccess) {
-				ec_log_crit("ECSearchFolders::ProcessMessageChange(): unexpected error %d", er);
+				er_lerrf(er, "unexpected error");
 				goto exit;
 			}
 
@@ -487,7 +487,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				if(lpSession == NULL) {
 					er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulOwner);
 					if(er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): CreateSessionInternal failed %d", er);
+						er_lerrf(er, "CreateSessionInternal failed");
 						goto exit;
 					}
 					lpSession->lock();
@@ -503,19 +503,19 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					// Get the restriction ready for this search folder
 					er = ECGenericObjectTable::GetRestrictPropTags(scrit.lpRestrict, &lstPrefix, &lpPropTags);
 					if(er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): ECGenericObjectTable::GetRestrictPropTags failed %d", er);
+						er_lerrf(er, "ECGenericObjectTable::GetRestrictPropTags failed");
 						goto exit;
 					}
 					// Get necessary row data for the object
 					er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, lstObjectIDs, lpPropTags, &ecOBStore, &lpRowSet, false, false);
 					if(er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): ECStoreObjectTable::QueryRowData failed %d", er);
+						er_lerrf(er, "ECStoreObjectTable::QueryRowData failed");
 						goto exit;
 					}
 					SUBRESTRICTIONRESULTS sub_results;
 					er = RunSubRestrictions(lpSession, &ecOBStore, scrit.lpRestrict, lstObjectIDs, locale, sub_results);
 					if(er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): RunSubRestrictions failed %d", er);
+						er_lerrf(er, "RunSubRestrictions failed");
 						goto exit;
 					}
 
@@ -610,7 +610,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database error(1) %d", dberr);
 						er = dtx.rollback();
 						if (er != erSuccess) {
-							ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(1) %d", er);
+							er_lerrf(er, "database rollback failed(1)");
 							goto exit;
 						}
 						g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
@@ -618,7 +618,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					} else
 						goto exit;
 				} else if (er != erSuccess) {
-					ec_log_crit("ECSearchFolders::ProcessMessageChange(): unexpected error(1) %d", er);
+					er_lerrf(er, "unexpected error(1)");
 					goto exit;
 				}
 
@@ -635,7 +635,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database error(2) %d", dberr);
 					er = dtx.rollback();
 					if (er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(2) %d", er);
+						er_lerrf(er, "database rollback failed(2)");
 						goto exit;
 					}
 					g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
@@ -643,7 +643,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				} else
 					goto exit;
 			} else if (er != erSuccess) {
-				ec_log_crit("ECSearchFolders::ProcessMessageChange(): unexpected error(2) %d", er);
+				er_lerrf(er, "unexpected error(2)");
 				goto exit;
 			}
 
@@ -677,25 +677,19 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 	auto cache = m_lpSessionManager->GetCacheManager();
 	ECRESULT er = erSuccess;
 	auto dtx = lpDatabase->Begin(er);
-	if (er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() BEGIN failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "BEGIN failed");
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
-	if (er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() SELECT failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "SELECT failed");
 
 	std::list<unsigned int> lst;
 	er = ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
 	if (er != erSuccess)
 		return er;
 	er = dtx.commit();
-	if (er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() DB commit failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "DB commit failed");
 
 	// Add matched row and send a notification to update views of this search (if any are open)
 	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, lst, MAPI_MESSAGE);
@@ -756,16 +750,12 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	auto cleanup = make_scope_success([&]() { soap_del_PointerTorowSet(&lpRowSet); });
 	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession,
 	          &ecRows, lpPropTags, &lpODStore, &lpRowSet, false, false);
-	if(er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "ECStoreObjectTable::QueryRowData failed");
     // Get the subrestriction results for the search
 	er = RunSubRestrictions(lpSession, &lpODStore, lpRestrict, &ecRows, locale, sub_results);
-	if(er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() RunSubRestrictions failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "RunSubRestrictions failed");
 
     // Loop through the results data
 	int lCount = 0, lUnreadCount = 0;
@@ -783,21 +773,17 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 
     // Add matched row to database
     er = AddResults(ulFolderId, lstMatches, lstFlags, &lCount, &lUnreadCount);
-	if (er != erSuccess) {
-		ec_log_err("ECSearchFolders::ProcessCandidateRows() AddResults failed %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "AddResults failed");
 	if (lCount == 0 && lUnreadCount == 0)
 		return erSuccess;
 	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
-	if (er != erSuccess) {
-		ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(1) %d", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return er_lerrf(er, "UpdateFolderCount failed(1)");
 	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
 	if (er != erSuccess)
-		ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
-    return er;
+		return er_lerrf(er, "UpdateFolderCount failed(2)");
+	return erSuccess;
 }
 
 // Does an actual search of a specific search Criteria in store ulStoreId, search folder ulFolderId. Will cancel if *lpbCancel
@@ -832,17 +818,17 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     auto cache = m_lpSessionManager->GetCacheManager();
 	auto er = cache->GetStore(ulStoreId, nullptr, &guidStore);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() GetStore failed", er);
+		return er_lerrf(er, "GetStore failed");
 	ecODStore.lpGuid = &guidStore;
 
     // Get the owner of the store
     er = cache->GetObject(ulStoreId, NULL, &ulUserId, NULL, NULL);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() GetObject failed", er);
+		return er_lerrf(er, "GetObject failed");
     // Create a session with the security credentials of the owner of the store
     er = m_lpSessionManager->CreateSessionInternal(&lpSession, ulUserId);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() CreateSessionInternal failed", er);
+		return er_lerrf(er, "CreateSessionInternal failed");
 	lpSession->lock();
 	auto cleanup = make_scope_success([&]() {
 		lpSession->unlock();
@@ -851,15 +837,15 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	});
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() GetDatabase failed", er);
+		return er_lerrf(er, "GetDatabase failed");
     // Get target folders
 	er = cache->GetEntryListToObjectList(lpSearchCrit->lpFolders, &lstFolders);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() GetEntryListToObjectList failed", er);
+		return er_lerrf(er, "GetEntryListToObjectList failed");
     // Reset search results in database
     er = ResetResults(ulFolderId);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() ResetResults failed", er);
+		return er_lerrf(er, "ResetResults failed");
 
 	// Expand target folders if recursive
     if(lpSearchCrit->ulFlags & RECURSIVE_SEARCH) {
@@ -868,7 +854,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			std::string strQuery = "SELECT hierarchy.id from hierarchy WHERE hierarchy.parent = " + stringify(*iterFolders) + " AND hierarchy.type=3 AND hierarchy.flags & " + stringify(MSGFLAG_DELETED|MSGFLAG_ASSOCIATED) + " = 0 ORDER by hierarchy.id DESC";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if (er != erSuccess) {
-				ec_perror("ECSearchFolders::Search() could not expand target folders", er);
+				er_lerrf(er, "could not expand target folders");
 				continue;
 			}
 			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
@@ -919,11 +905,11 @@ ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession
 	auto cleantags = make_scope_success([&]() { soap_del_PointerTopropTagArray(&lpPropTags); });
 	er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
+		return er_lerrf(er, "ECGenericObjectTable::GetRestrictPropTags failed");
 	// Since an indexed search should be fast, do the entire query as a single transaction, and notify after Commit()
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() database begin failed", er);
+		return er_lerrf(er, "database begin failed");
 
 	auto iterResults = lstIndexerResults.cbegin();
 	while (1) {
@@ -944,12 +930,12 @@ ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession
 		     lpbCancel, ulStoreId, ulFolderId, ecODStore, ecRows, lpPropTags,
 		     m_lpSessionManager->GetSortLocale(ulStoreId));
 		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
+			return er_lerrf(er, "ProcessCandidateRows failed");
 	}
 
 	er = dtx.commit();
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() database commit failed", er);
+		return er_lerrf(er, "database commit failed");
 
 	if (!bNotify)
 		return erSuccess;
@@ -976,7 +962,7 @@ ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession
 	auto cleantags = make_scope_success([&]() { soap_del_PointerTopropTagArray(&lpPropTags); });
 	auto er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
+		return er_lerrf(er, "ECGenericObjectTable::GetRestrictPropTags failed");
 	// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
 	kd_trans dtx;
 	if (!bNotify)
@@ -994,7 +980,7 @@ ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession
 		DB_RESULT lpDBResult;
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess) {
-			ec_perror("ECSearchFolders::Search() SELECT failed", er);
+			er_lerrf(er, "SELECT failed");
 			continue;
 		}
 
@@ -1029,7 +1015,7 @@ ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession
 				     ulFolderId, ecODStore, ecRows, lpPropTags,
 				     m_lpSessionManager->GetSortLocale(ulStoreId));
 			if (er != erSuccess)
-				return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
+				return er_lerrf(er, "ProcessCandidateRows failed");
 		}
 	}
 
@@ -1098,33 +1084,33 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
     unsigned int ulParentId = 0;
 	auto er = m_lpSessionManager->GetCacheManager()->GetParent(ulFolderId, &ulParentId);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): GetParent failed", er);
+		return er_lerrf(er, "GetParent failed");
 	er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): BEGIN failed", er);
+		return er_lerrf(er, "BEGIN failed");
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): SELECT failed", er);
+		return er_lerrf(er, "SELECT failed");
 	auto strQuery = "DELETE FROM searchresults WHERE folderid = " + stringify(ulFolderId);
     er = lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): DELETE failed", er);
+		return er_lerrf(er, "DELETE failed");
 	strQuery = "UPDATE properties SET val_ulong = 0 WHERE hierarchyid = " + stringify(ulFolderId) + " AND tag IN(" + stringify(PROP_ID(PR_CONTENT_COUNT)) + "," + stringify(PROP_ID(PR_CONTENT_UNREAD)) + ") AND type = " + stringify(PROP_TYPE(PR_CONTENT_COUNT));
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): DoUpdate failed", er);
+		return er_lerrf(er, "DoUpdate failed");
 	er = UpdateTProp(lpDatabase, PR_CONTENT_COUNT, ulParentId, ulFolderId);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): UpdateTProp failed(1)", er);
+		return er_lerrf(er, "UpdateTProp failed(1)");
 	er = UpdateTProp(lpDatabase, PR_CONTENT_UNREAD, ulParentId, ulFolderId);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::ResetResults(): UpdateTProp failed(2)", er);
+		return er_lerrf(er, "UpdateTProp failed(2)");
 	er = dtx.commit();
 	if (er != erSuccess)
-		ec_perror("ECSearchFolders::ResetResults(): database commit failed", er);
+		er_lerrf(er, "database commit failed");
 	return erSuccess;
 }
 
@@ -1137,11 +1123,11 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
     assert((ulFlags &~ MSGFLAG_READ) == 0);
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	std::string strQuery = "SELECT flags FROM searchresults WHERE folderid = " + stringify(ulFolderId) + " AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): select searchresults failed", er);
+		return er_lerrf(er, "select searchresults failed");
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow != nullptr && lpDBRow[0] != nullptr && atoui(lpDBRow[0]) == ulFlags)
 		// The record in the database is the same as what we're trying to insert; this is an error because we can't update or insert the record
@@ -1151,7 +1137,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
     strQuery = "INSERT INTO searchresults (folderid, hierarchyid, flags) VALUES(" + stringify(ulFolderId) + "," + stringify(ulObjId) + "," + stringify(ulFlags) + ") ON DUPLICATE KEY UPDATE flags=" + stringify(ulFlags);
     er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): INSERT failed", er);
+		return er_lerrf(er, "INSERT failed");
 	// We have inserted if the previous SELECT returned no row
 	if (lpfInserted)
 		*lpfInserted = (lpDBRow == NULL);
@@ -1168,20 +1154,20 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 		return erSuccess;
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	auto strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +
 		stringify(ulFolderId) + " AND hierarchyid IN (" +
 		kc_join(lstObjId, ",", stringify) + ") FOR UPDATE";
 	er = lpDatabase->DoSelect(strQuery, NULL);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): DoSelect failed", er);
+		return er_lerrf(er, "DoSelect failed");
 	strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
 	for (const auto n : lstObjId)
 		strQuery += "(" + stringify(ulFolderId) + "," + stringify(n) + ",1),";
 	strQuery.pop_back();
     er = lpDatabase->DoInsert(strQuery, NULL, &ulInserted);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::AddResults(): DoInsert failed", er);
+		return er_lerrf(er, "DoInsert failed");
 
 	unsigned int n = 0;
 	strQuery = "UPDATE searchresults SET flags = 0 WHERE hierarchyid IN (";
@@ -1198,7 +1184,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 		strQuery += ") AND folderid = " + stringify(ulFolderId);
 		er = lpDatabase->DoUpdate(strQuery, &ulModified);
 		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::AddResults(): UPDATE failed", er);
+			return er_lerrf(er, "UPDATE failed");
 	}
 
 	if (lpulCount != NULL)
@@ -1223,7 +1209,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulFolderId, unsigned int ul
 		std::string strQuery = "SELECT flags FROM searchresults WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid=" + stringify(ulObjId) + " LIMIT 1";
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::DeleteResults(): SELECT failed", er);
+			return er_lerrf(er, "SELECT failed");
 		auto lpRow = lpResult.fetch_row();
 		if (lpRow == nullptr || lpRow[0] == nullptr)
 			return KCERR_NOT_FOUND;
@@ -1233,7 +1219,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulFolderId, unsigned int ul
 	std::string strQuery = "DELETE FROM searchresults WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid=" + stringify(ulObjId);
     er = lpDatabase->DoDelete(strQuery, &ulAffected);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::DeleteResults(): DELETE failed", er);
+		return er_lerrf(er, "DELETE failed");
 	return ulAffected != 0 ? erSuccess : KCERR_NOT_FOUND;
 }
 
@@ -1245,7 +1231,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 	// Do not use transactions because this function is called inside a transaction.
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::SetStatus(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 
     // No record == running
     if(ulStatus != EC_SEARCHFOLDER_STATUS_RUNNING) {
@@ -1256,7 +1242,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
                                stringify(ulStatus) + ")";
         er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::SetStatus(): DoInsert failed", er);
+			return er_lerrf(er, "DoInsert failed");
 		return erSuccess;
 	}
 	std::string strQuery = "DELETE FROM properties "
@@ -1265,7 +1251,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 					" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHFOLDER_STATUS));
 	er = lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::SetStatus(): DELETE failed", er);
+		return er_lerrf(er, "DELETE failed");
 	return erSuccess;
 }
 
@@ -1276,11 +1262,11 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 	DB_RESULT lpResult;
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::GetSearchResults(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	std::string strQuery = "SELECT hierarchyid FROM searchresults WHERE folderid=" + stringify(ulFolderId);
     er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::GetSearchResults(): SELECT failed", er);
+		return er_lerrf(er, "SELECT failed");
     lstObjIds->clear();
 
     while(1) {
@@ -1301,13 +1287,13 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulFolderId, struct sea
     // Get database
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::LoadSearchCriteria(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	// Find out what kind of table this is
 	std::string strQuery = "SELECT hierarchy.flags, properties.val_string FROM hierarchy JOIN properties on hierarchy.id=properties.hierarchyid AND properties.tag =" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND properties.type =" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE hierarchy.id =" + stringify(ulFolderId) + " LIMIT 1";
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::LoadSearchCriteria(): SELECT failed", er);
+		return er_lerrf(er, "SELECT failed");
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr || atoi(lpDBRow[0]) != 2 || lpDBRow[1] == nullptr)
 		return KCERR_NOT_FOUND;
@@ -1354,16 +1340,16 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId,
     // Get database
 	auto er = m_lpDatabaseFactory->get_tls_db(&lpDatabase);
 	if (er != erSuccess)
-		return ec_perror("ECSearchFolders::SaveSearchCriteria(): GetThreadLocalDatabase failed", er);
+		return er_lerrf(er, "GetThreadLocalDatabase failed");
 	auto dtx = lpDatabase->Begin(er);
 	if (er != hrSuccess)
-		return ec_perror("ECSearchFolders::SaveSearchCriteria(): BEGIN failed", er);
+		return er_lerrf(er, "BEGIN failed");
 	er = SaveSearchCriteriaRow(lpDatabase, ulFolderId, lpSearchCriteria);
 	if (er != hrSuccess)
-		return ec_perror("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteriaRow failed", er);
+		return er_lerrf(er, "SaveSearchCriteriaRow failed");
 	er = dtx.commit();
 	if (er != hrSuccess)
-		ec_perror("ECSearchFolders::SaveSearchCriteria(): commit failed", er);
+		er_lerrf(er, "commit failed");
 	return erSuccess;
 }
 
