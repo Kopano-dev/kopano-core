@@ -900,7 +900,13 @@ void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 	if (e == 0)
 		return;
 	char buffer[256];
+#if defined(__GLIBC__) && (!defined(_POSIX_C_SOURCE) || \
+    _POSIX_C_SOURCE < 200112L || defined(_GNU_SOURCE))
 	auto retbuf = strerror_r(e, buffer, sizeof(buffer));
+#else
+	strerror_r(e, buffer, sizeof(buffer));
+	const char *retbuf = buffer;
+#endif
 
 	// from the getpwnam() man page: (notice the last or...)
 	//  ERRORS
