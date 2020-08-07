@@ -213,7 +213,7 @@ kopano_dagent_SOURCES = \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la -lpthread \
-	${DL_LIBS} ${INTL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+	${DL_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
@@ -669,7 +669,8 @@ libkcutil_la_SOURCES = \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
-	${idn_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${jsoncpp_LIBS} ${libHX_LIBS} \
+	${idn_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${INTL_LIBS} \
+	${jsoncpp_LIBS} ${libHX_LIBS} \
 	${SSL_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
