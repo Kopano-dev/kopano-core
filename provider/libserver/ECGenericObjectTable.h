@@ -134,8 +134,8 @@ public:
 	virtual ECRESULT	Clear();
 	virtual ECRESULT	Populate();
 	virtual ECRESULT	UpdateRow(unsigned int ulType, unsigned int ulObjId, unsigned int ulFlags);
-	virtual ECRESULT UpdateRows(unsigned int type, const std::list<unsigned int> *objids, unsigned int flags, bool initial_load);
-	virtual ECRESULT LoadRows(const std::list<unsigned int> *objids, unsigned int flags);
+	virtual ECRESULT UpdateRows(unsigned int type, const std::list<unsigned int> &objids, unsigned int flags, bool initial_load);
+	virtual ECRESULT LoadRows(const std::list<unsigned int> &objids, unsigned int flags);
 	static ECRESULT	GetRestrictPropTagsRecursive(const struct restrictTable *, std::list<ULONG> *tags, ULONG level);
 	static ECRESULT	GetRestrictPropTags(const struct restrictTable *, std::list<ULONG> *tags, struct propTagArray **);
 	static ECRESULT	MatchRowRestrict(ECCacheManager *, struct propValArray *, const struct restrictTable *, const SUBRESTRICTIONRESULTS *, const ECLocale &, bool *match, unsigned int *nsubr = nullptr);

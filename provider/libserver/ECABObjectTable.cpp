@@ -414,7 +414,7 @@ ECRESULT ECABObjectTable::Load()
 			continue;
 		lstObjects.emplace_back(obj.ulId);
 	}
-	return LoadRows(&lstObjects, 0);
+	return LoadRows(lstObjects, 0);
 }
 
 } /* namespace */
