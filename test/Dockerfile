@@ -44,5 +44,6 @@ ENV MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
 # lof of extra tools required to be in /usr/sbin.
 RUN ln -svnf $WORKSPACE/.libs/kopano-admin /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-storeadm /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-ibrule /usr/sbin/
 
 CMD [ "/bin/true" ]
