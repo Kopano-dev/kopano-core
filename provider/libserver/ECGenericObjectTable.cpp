@@ -1246,7 +1246,7 @@ ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObj
  * @param lstObjId List of hierarchy IDs for the objects to load
  * @param ulFlags 0, MSGFLAG_DELETED, MAPI_ASSOCIATED or combination
  */
-ECRESULT ECGenericObjectTable::LoadRows(std::list<unsigned int> *lstObjId, unsigned int ulFlags)
+ECRESULT ECGenericObjectTable::LoadRows(const std::list<unsigned int> *lstObjId, unsigned int ulFlags)
 {
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, lstObjId, ulFlags, true);
 }
@@ -1271,7 +1271,8 @@ ECRESULT ECGenericObjectTable::LoadRows(std::list<unsigned int> *lstObjId, unsig
  * @param ulFlags Flags for the objects in lstObjId (0, MSGFLAG_DELETED, MAPI_ASSOCIATED)
  * @param bLoad Indicates that this is the initial load or reload of the table, and not an update
  */
-ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bLoad)
+ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType,
+    const std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bLoad)
 {
 	ECRESULT				er = erSuccess;
 	unsigned int ulRead = 0;

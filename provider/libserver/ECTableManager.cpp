@@ -568,7 +568,9 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	return er;
 }
 
-ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulStoreId, const std::list<unsigned int> &lstObjId,
+    unsigned int ulFlags, unsigned int ulObjType)
 {
 	scoped_rlock lock(hListMutex);
 
@@ -585,7 +587,9 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 	return erSuccess;
 }
 
-ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulFlags, unsigned int ulObjId,
+    const std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	scoped_rlock lock(hListMutex);
 	bool filter_private = false;

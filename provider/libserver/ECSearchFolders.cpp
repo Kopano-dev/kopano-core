@@ -1144,7 +1144,9 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
 	return erSuccess;
 }
 
-ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread)
+ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId,
+    const std::list<unsigned int> &lstObjId, const std::list<unsigned int> &lstFlags,
+    int *lpulCount, int *lpulUnread)
 {
     ECDatabase *lpDatabase = NULL;
 	unsigned int ulInserted = 0, ulModified = 0;

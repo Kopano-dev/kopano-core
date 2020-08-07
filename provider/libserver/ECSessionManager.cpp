@@ -711,7 +711,9 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 	return UpdateTables(ulType, ulFlags, ulObjId, lstChildId, ulObjType);
 }
 
-ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, std::list<unsigned int>& lstChildId, unsigned int ulObjType)
+ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulFlags, unsigned int ulObjId,
+    const std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	TABLESUBSCRIPTION sSubscription;
 
@@ -725,7 +727,7 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 }
 
 ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
-    const TABLESUBSCRIPTION &sSubscription, std::list<unsigned int> &lstChildId)
+    const TABLESUBSCRIPTION &sSubscription, const std::list<unsigned int> &lstChildId)
 {
 	std::set<ECSESSIONID> setSessions;
 

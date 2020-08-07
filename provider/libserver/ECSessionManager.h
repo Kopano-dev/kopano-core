@@ -146,7 +146,7 @@ public:
 	KC_HIDDEN ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
 	KC_HIDDEN ECRESULT LoadSettings();
 	KC_HIDDEN ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
-	KC_HIDDEN ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
+	KC_HIDDEN ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, const std::list<unsigned int> &objects, unsigned int obj_type);
 	KC_HIDDEN ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);
 	KC_HIDDEN ECRESULT NotificationModified(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id = 0, bool isCounter=false);
 	KC_HIDDEN ECRESULT NotificationCreated(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id);
@@ -205,7 +205,7 @@ protected:
 	KC_HIDDEN BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
 	KC_HIDDEN ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
 	KC_HIDDEN BOOL IsSessionPersistent(ECSESSIONID);
-	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, const TABLESUBSCRIPTION &, std::list<unsigned int> &child_id);
+	KC_HIDDEN ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, const TABLESUBSCRIPTION &, const std::list<unsigned int> &child_id);
 	KC_HIDDEN ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);
 
 	std::unordered_map<ECSESSIONGROUPID, ECSessionGroup *> m_mapSessionGroups; ///< map of all the session groups

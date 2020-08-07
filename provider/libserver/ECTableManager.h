@@ -64,8 +64,8 @@ public:
 	ECRESULT	OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId);
 	ECRESULT	GetTable(unsigned int lpulTableId, ECGenericObjectTable **lppTable);
 	ECRESULT	CloseTable(unsigned int lpulTableId);
-	ECRESULT	UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType);
-	ECRESULT	UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType);
+	ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, const std::list<unsigned int> &objids, unsigned int flags, unsigned int objtype);
+	ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int objid, const std::list<unsigned int> &children, unsigned int objtype);
 	ECRESULT	GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize);
 
 private:
