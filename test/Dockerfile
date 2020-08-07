@@ -47,5 +47,7 @@ RUN ln -svnf $WORKSPACE/.libs/kopano-admin /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-storeadm /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-ibrule /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-oof /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-fsck /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-stats /usr/sbin/
 
 CMD [ "/bin/true" ]
