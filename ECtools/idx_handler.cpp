@@ -4,6 +4,7 @@
  */
 #include <algorithm>
 #include <atomic>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <new>

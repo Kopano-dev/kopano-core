@@ -3,6 +3,7 @@
  * Copyright 2017 - Kopano and its licensors
  */
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <new>
 #include <string>
