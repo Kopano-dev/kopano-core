@@ -98,7 +98,8 @@ static bool g_dump_config;
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
 #ifdef HAVE_KUSTOMER
-static const char *kustomerProductName = "groupware";
+static constexpr char kustomerProductName[] = "groupware";
+static constexpr char kustomerProductUserAgent[] = "Kopano Storage Server/" PROJECT_VERSION;
 
 static void kustomer_log_info_cb(char *s)
 {
@@ -1207,6 +1208,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
 	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
 		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return retval;
+	}
+	res = kustomer_set_productuseragent(const_cast<char *>(kustomerProductUserAgent));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to set product user agent: 0x%llx, %s", res, kustomer_err_numeric_text(res));
 		return retval;
 	}
 	res = kustomer_set_autorefresh(1);
