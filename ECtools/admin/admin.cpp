@@ -169,7 +169,7 @@ static const struct option long_options[] = {
 	{ "mr-accept", 1, NULL, OPT_MR_ACCEPT },
 	{ "mr-decline-conflict", 1, NULL, OPT_MR_DECLINE_CONFLICT },
 	{ "mr-decline-recurring", 1, NULL, OPT_MR_DECLINE_RECURRING },
-	{"mr-process", 1, nullptr, OPT_MR_PROCESS},
+	{ "mr-process", 1, nullptr, OPT_MR_PROCESS},
 	{ "add-sendas", 1, NULL, OPT_ADD_SENDAS },
 	{ "del-sendas", 1, NULL, OPT_DEL_SENDAS },
 	{ "list-sendas", 1, NULL, OPT_LIST_SENDAS },
@@ -306,6 +306,7 @@ static void print_help(const char *name)
 	ct.AddColumn(0, "--mr-accept"); ct.AddColumn(1, "(resource) auto-accept meeting requests. yes/no");
 	ct.AddColumn(0, "--mr-decline-conflict"); ct.AddColumn(1, "(resource) decline meeting requests for conflicting times. yes/no");
 	ct.AddColumn(0, "--mr-decline-recurring"); ct.AddColumn(1, "(resource) decline meeting requests for all recurring items. yes/no");
+	ct.AddColumn(0, "--mr-process"); ct.AddColumn(1, "Set auto-process meeting requests for user specified by -u. yes/no");
 	ct.AddColumn(0, "--add-sendas name"); ct.AddColumn(1, "Add user 'name' to send-as list of user specified by -u or --update-group");
 	ct.AddColumn(0, "--del-sendas name"); ct.AddColumn(1, "Delete user 'name' from send-as list of user specified by -u or --update-group");
 	ct.PrintTable();
@@ -1039,7 +1040,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpStore);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to open user store", hr);
-			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring, &auto_proc);
 			/* Ignore return value */
 		}
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
