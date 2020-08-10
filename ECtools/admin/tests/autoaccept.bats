@@ -41,6 +41,5 @@ teardown() {
   [ "$status" -eq 0 ]
 
   # Setting mr-process is currently broken
-  skip
   [[ "$output" =~ "Auto-process meeting req:yes" ]]
 }
