@@ -11,6 +11,7 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile.build'
+                    args '-e PYTHONDONTWRITEBYTECODE=1' 
                 }
             }
             stages {
