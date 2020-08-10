@@ -21,7 +21,7 @@ pipeline {
                     steps {
                         echo 'Building..'
                         sh './bootstrap.sh'
-                        sh 'PYTHON=/usr/bin/python3 ./configure'
+                        sh 'PYTHON=/usr/bin/python3 ./configure --enable-kcoidc'
                         sh 'make -j $(nproc)'
 			recordIssues(tools: [gcc()])
                     }
