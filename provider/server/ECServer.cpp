@@ -904,6 +904,40 @@ static bool setup_kustomer()
 	return true;
 }
 
+static bool setup_kcoidc()
+{
+#ifdef HAVE_KCOIDC_H
+	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
+		auto res = kcoidc_insecure_skip_verify(1);
+		if (res != 0) {
+			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx", res);
+			return false;
+		}
+	}
+	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
+	if (issuer && strlen(issuer) > 0) {
+		ec_log_info("KCOIDC: initializing provider (%s)", issuer);
+		auto res = kcoidc_initialize(const_cast<char *>(issuer));
+		if (res != 0) {
+			ec_log_err("KCOIDC: provider (%s) initialization failed: 0x%llx", issuer, res);
+			return false;
+		}
+		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
+		ec_log_debug("KCOIDC: provider (%s) waiting on initialization for %d seconds", issuer, kcoidc_initialize_timeout);
+		if (kcoidc_initialize_timeout > 0) {
+			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
+			if (res != 0) {
+				ec_log_err("KCOIDC: provider (%s) failed to initialize: 0x%llx", issuer, res);
+				return false;
+			}
+			ec_log_info("KCOIDC: initialized oidc provider (%s)", issuer);
+		}
+		kcoidc_initialized = true;
+	}
+#endif
+	return true;
+}
+
 static void cleanup(ECRESULT er)
 {
 	if (er != erSuccess) {
@@ -1246,35 +1280,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
     ssl_threading_setup();
 	if (!setup_kustomer())
 		return retval;
-#ifdef HAVE_KCOIDC_H
-	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
-		auto res = kcoidc_insecure_skip_verify(1);
-		if (res != 0) {
-			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx", res);
-			return retval;
-		}
-	}
-	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
-	if (issuer && strlen(issuer) > 0) {
-		ec_log_info("KCOIDC: initializing provider (%s)", issuer);
-		auto res = kcoidc_initialize(const_cast<char *>(issuer));
-		if (res != 0) {
-			ec_log_err("KCOIDC: provider (%s) initialization failed: 0x%llx", issuer, res);
-			return retval;
-		}
-		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
-		ec_log_debug("KCOIDC: provider (%s) waiting on initialization for %d seconds", issuer, kcoidc_initialize_timeout);
-		if (kcoidc_initialize_timeout > 0) {
-			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
-			if (res != 0) {
-				ec_log_err("KCOIDC: provider (%s) failed to initialize: 0x%llx", issuer, res);
-				return retval;
-			}
-			ec_log_info("KCOIDC: initialized oidc provider (%s)", issuer);
-		}
-		kcoidc_initialized = true;
-	}
-#endif
+	if (!setup_kcoidc())
+		return retval;
 
 	// Test database settings
 	auto stats = std::make_shared<server_stats>(g_lpConfig);
