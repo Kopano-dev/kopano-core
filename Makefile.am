@@ -51,6 +51,7 @@ EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
 
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${prefix}/lib/mapi.d:${sysconfdir}/mapi.d\" -DPKGLIBDIR='"${pkglibdir}"' \
+	-DUSCRIPTDIR='"${uscriptlibdir}"' -DUSCRIPTLDIR='"${uscriptconfdir}"' \
 	-DSOAP_CMAC='__attribute__((visibility("default")))' \
 	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
@@ -761,6 +762,7 @@ EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 eidprint_SOURCES = ECtools/eidprint.cpp
 eidprint_LDADD = libkcutil.la libmapi.la
 kscriptrun_SOURCES = ECtools/scriptrun.cpp
+kscriptrun_LDADD = libkcutil.la
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}

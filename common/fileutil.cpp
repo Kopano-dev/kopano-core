@@ -19,10 +19,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <kopano/ECConfig.h>
+#include <kopano/UnixUtil.h>
 #include <kopano/fileutil.hpp>
 #define BLOCKSIZE	65536
+
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -259,6 +263,56 @@ ssize_t write_retry(int fd, const void *data, size_t len)
 bool force_buffers_to_disk(const int fd)
 {
 	return fsync(fd) != -1;
+}
+
+static bool dexec_ignore_name(const char *n)
+{
+	size_t len = strlen(n);
+	if (len >= 1 && n[0] == '#')
+		return true;
+	if (len >= 1 && n[len-1] == '~')
+		return true;
+	if (len >= 4 && strcmp(&n[len-4], ".bak") == 0)
+		return true;
+	if (len >= 4 && strcmp(&n[len-4], ".old") == 0)
+		return true;
+	if (len >= 7 && strcmp(&n[len-7], ".rpmnew") == 0)
+		return true;
+	if (len >= 8 && strcmp(&n[len-8], ".rpmorig") == 0)
+		return true;
+	return false;
+}
+
+/**
+ * Evaluates programs from a set of directories using the ".d"-style mechanism for
+ * overrides and masking.
+ */
+dexec_state dexec_scan(const std::vector<std::string> &dirlist)
+{
+	dexec_state st;
+	for (const auto &dir : dirlist) {
+		std::unique_ptr<DIR, KC::fs_deleter> dh(opendir(dir.c_str()));
+		if (dh == nullptr) {
+			st.warnings.push_back(format("Could not read %s: %s", dir.c_str(), strerror(errno)));
+			continue;
+		}
+		struct dirent *de;
+		while ((de = readdir(dh.get())) != nullptr) {
+			if (dexec_ignore_name(de->d_name)) {
+				st.warnings.push_back(format("Ignoring \"%s/%s\"", dir.c_str(), de->d_name));
+				continue;
+			}
+			struct stat sb;
+			auto ret = fstatat(dirfd(dh.get()), de->d_name, &sb, 0);
+			if (ret < 0)
+				continue;
+			if (S_ISREG(sb.st_mode))
+				st.prog[de->d_name] = dir + "/"s + de->d_name;
+			else
+				st.prog.erase(de->d_name);
+		}
+	}
+	return st;
 }
 
 } /* namespace */

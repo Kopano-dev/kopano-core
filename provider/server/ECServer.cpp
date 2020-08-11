@@ -980,12 +980,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		// user plugin
 		{ "user_plugin",				"db" },
 		{ "user_plugin_config",			"/etc/kopano/ldap.cfg" },
-		{"createuser_script", "/usr/lib/kopano/userscripts/createuser", CONFIGSETTING_RELOADABLE},
-		{"deleteuser_script", "/usr/lib/kopano/userscripts/deleteuser", CONFIGSETTING_RELOADABLE},
-		{"creategroup_script", "/usr/lib/kopano/userscripts/creategroup", CONFIGSETTING_RELOADABLE},
-		{"deletegroup_script", "/usr/lib/kopano/userscripts/deletegroup", CONFIGSETTING_RELOADABLE},
-		{"createcompany_script", "/usr/lib/kopano/userscripts/createcompany", CONFIGSETTING_RELOADABLE},
-		{"deletecompany_script", "/usr/lib/kopano/userscripts/deletecompany", CONFIGSETTING_RELOADABLE},
+		{"createuser_script", "internal", CONFIGSETTING_RELOADABLE},
+		{"deleteuser_script", "internal", CONFIGSETTING_RELOADABLE},
+		{"creategroup_script", "internal", CONFIGSETTING_RELOADABLE},
+		{"deletegroup_script", "internal", CONFIGSETTING_RELOADABLE},
+		{"createcompany_script", "internal", CONFIGSETTING_RELOADABLE},
+		{"deletecompany_script", "internal", CONFIGSETTING_RELOADABLE},
 		{ "user_safe_mode",				"no", CONFIGSETTING_RELOADABLE },
 
 		// Storename format
