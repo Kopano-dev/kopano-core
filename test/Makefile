@@ -14,7 +14,7 @@ export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 
 test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin
-test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin-junit
+test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin-junit test-ectools-junit
 test-short: test-short-python-mapi test-short-python-kopano test-short-php
 
 
@@ -51,6 +51,13 @@ test-admin:
 test-admin-junit:
 	$(BATS) ../ECtools/admin/tests > test-admin.log || true
 	$(TAP2JUNIT) test-admin.log
+
+test-ectools:
+	$(BATS) ../ECtools/tests
+
+test-ectools-junit:
+	$(BATS) ../ECtools/tests > test-ectools.log || true
+	$(TAP2JUNIT) test-ectools.log
 
 # CI
 

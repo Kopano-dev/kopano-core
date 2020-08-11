@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	bats \
 	build-essential \
 	flake8 \
+	jq \
 	pkg-config \
 	python3-dateutil \
 	python3-dev \
@@ -44,5 +45,9 @@ ENV MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
 # lof of extra tools required to be in /usr/sbin.
 RUN ln -svnf $WORKSPACE/.libs/kopano-admin /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-storeadm /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-ibrule /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-oof /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-fsck /usr/sbin/
+RUN ln -svnf $WORKSPACE/.libs/kopano-stats /usr/sbin/
 
 CMD [ "/bin/true" ]

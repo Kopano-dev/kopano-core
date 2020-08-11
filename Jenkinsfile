@@ -70,6 +70,7 @@ pipeline {
                         junit testResults: 'swig/python/test.xml'
                         junit testResults: 'swig/python/kopano/test.xml'
                         junit testResults: 'test/test-admin.log.xml'
+                        junit testResults: 'test/test-ectools.log.xml'
                     }
                 }
             }
