@@ -29,9 +29,6 @@ ln -svnf $WORKSPACE/installer/linux/ldap.openldap.cfg /usr/share/kopano/
 ln -svnf $WORKSPACE/installer/linux/ldap.propmap.cfg /usr/share/kopano/
 
 ln -svnf $WORKSPACE/installer/userscripts/ /usr/lib/kopano/
-for script in createcompany creategroup createuser deletecompany deletegroup deleteuser; do
-	chmod +x /usr/lib/kopano/userscripts/$script
-done
 mkdir -p /etc/kopano/userscripts/createuser.d
 ln -svnf $WORKSPACE/installer/userscripts/00createstore /etc/kopano/userscripts/createuser.d/
 
