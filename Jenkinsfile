@@ -1,5 +1,9 @@
 #!/usr/bin/env groovy
 
+def buildNumber = env.BUILD_NUMBER as int
+if (buildNumber > 1) milestone(buildNumber - 1)
+milestone(buildNumber)
+
 pipeline {
     agent none
     stages {
@@ -7,6 +11,8 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile.build'
+                    args '-e PYTHONDONTWRITEBYTECODE=1'
+                    label 'docker'
                 }
             }
             stages {
@@ -50,7 +56,7 @@ pipeline {
         }
         stage('Test Suite') {
             agent {
-                label 'master'
+                label 'docker'
             }
             stages {
                 stage('Verify') {
