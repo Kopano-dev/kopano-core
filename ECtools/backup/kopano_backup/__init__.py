@@ -682,8 +682,11 @@ class Service(kopano.Service):
         # specified stores
         if self.options.stores:
             for store in self.server.stores():
-                if store.public:
-                    target = 'public' + ('@'+store.company.name if store.company.name != 'Default' else '')
+                if store.public and store.company:
+                    if store.company.name != 'Default':
+                        target = 'public@' + store.company.name
+                    else:
+                        target = 'public'
                 else:
                     target = store.guid
                 jobs.append((store, None, os.path.join(output_dir, target)))
