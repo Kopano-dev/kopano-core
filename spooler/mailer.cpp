@@ -1582,7 +1582,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
 	memory_ptr<SPropValue> trash_eid, parent_entryid;
-	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	const char *cts = nullptr;
 	ArchiveResult	archiveResult;
@@ -1605,7 +1604,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
+	auto hr = create_pym_plugin(g_lpConfig.get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);

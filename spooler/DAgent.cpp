@@ -2569,7 +2569,6 @@ static void *HandlerLMTP(void *lpArg)
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
-	PyMapiPluginFactory pyMapiPluginFactory;
 	convert_context converter;
 	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig.get());
 
@@ -2744,7 +2743,7 @@ static void *HandlerLMTP(void *lpArg)
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-				hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+				hr = create_pym_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
@@ -2912,6 +2911,13 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	if (g_process_model == GP_FORK)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
+
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::unique_ptr<pym_plugin_intf> tmp;
+		hr = create_pym_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(tmp));
+		if (hr != hrSuccess)
+			return hr_lcrit(hr, "K-1730: plugin_enabled=yes requested but plugin system is not runnable");
+	}
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
@@ -3127,7 +3133,6 @@ static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
 static HRESULT direct_delivery(int argc, char **argv,
     DeliveryArgs &&sDeliveryArgs, FILE *fp, bool strip_email)
 {
-	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize();
@@ -3138,7 +3143,7 @@ static HRESULT direct_delivery(int argc, char **argv,
 	}
 	auto sc = std::make_shared<dagent_stats>(g_lpConfig);
 	sDeliveryArgs.sc = std::move(sc);
-	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+	hr = create_pym_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
