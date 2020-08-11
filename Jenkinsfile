@@ -11,7 +11,8 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile.build'
-                    args '-e PYTHONDONTWRITEBYTECODE=1' 
+                    args '-e PYTHONDONTWRITEBYTECODE=1'
+                    label 'docker'
                 }
             }
             stages {
@@ -55,7 +56,7 @@ pipeline {
         }
         stage('Test Suite') {
             agent {
-                label 'master'
+                label 'docker'
             }
             stages {
                 stage('Verify') {
