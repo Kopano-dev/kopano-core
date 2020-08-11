@@ -369,19 +369,6 @@ static char *get_password(void)
 }
 
 /**
- * Parse given string to return 1 for true (yes) or 0 for false (no).
- *
- * @note Does not accept uppercase 'yes'
- *
- * @param[in]	char*	String containing a boolean
- * @return	int	1 for true (yes) or 0 for false (no).
- */
-static int parse_yesno(const char *opt)
-{
-	return opt[0] == 'y' || opt[0] == '1';
-}
-
-/**
  * Print quota levels and/or store size.
  *
  * @param[in]	lpQuota			Optional ECQuota object with a users quota settings

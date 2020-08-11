@@ -35,7 +35,7 @@ static bool ReadYesNoMessage(const std::string &strMessage,
 		cout << strAuto << endl;
 		strReply = strAuto;
 	}
-	return (strReply[0] == 'y' || strReply[0] == 'Y');
+	return parse_yesno(strReply.c_str());
 }
 
 static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
