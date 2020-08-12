@@ -97,6 +97,14 @@ static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
+#ifdef HAVE_KCOIDC_H
+static void kcoidc_log_debug_cb(char *s)
+{
+	ec_log_debug("%s", s);
+	free(s); // Release memory allocated in the C heap by cgo with malloc.
+}
+#endif
+
 #ifdef HAVE_KUSTOMER
 static constexpr char kustomerProductName[] = "groupware";
 static constexpr char kustomerProductUserAgent[] = "Kopano Storage Server/" PROJECT_VERSION;
@@ -907,8 +915,16 @@ static bool setup_kustomer()
 static bool setup_kcoidc()
 {
 #ifdef HAVE_KCOIDC_H
+	int kcoidcDebug = -1;
+	if (*g_lpConfig->GetSetting("kcoidc_debug") != '\0')
+		kcoidcDebug = parseBool(g_lpConfig->GetSetting("kcoidc_debug"));
+	auto res = kcoidc_set_logger(kcoidc_log_debug_cb, kcoidcDebug);
+	if (res != 0) {
+		ec_log_err("KCOIDC failed set logger: 0x%llx", res);
+		return false;
+	}
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
-		auto res = kcoidc_insecure_skip_verify(1);
+		res = kcoidc_insecure_skip_verify(1);
 		if (res != 0) {
 			ec_log_err("KCOIDC insecure_skip_verify failed: 0x%llx", res);
 			return false;
@@ -917,7 +933,7 @@ static bool setup_kcoidc()
 	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
 	if (issuer && strlen(issuer) > 0) {
 		ec_log_info("KCOIDC initializing provider (%s)", issuer);
-		auto res = kcoidc_initialize(const_cast<char *>(issuer));
+		res = kcoidc_initialize(const_cast<char *>(issuer));
 		if (res != 0) {
 			ec_log_err("KCOIDC provider (%s) initialization failed: 0x%llx", issuer, res);
 			return false;
@@ -1143,6 +1159,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "kcoidc_issuer_identifier", "", 0},
 		{ "kcoidc_insecure_skip_verify", "no", 0},
 		{ "kcoidc_initialize_timeout", "60", 0 },
+		{ "kcoidc_debug", "", 0 },
 #endif
 #ifdef HAVE_KUSTOMER
 		{ "kustomer_initialize_timeout", "60", 0 },
