@@ -293,7 +293,8 @@ dexec_state dexec_scan(const std::vector<std::string> &dirlist)
 	for (const auto &dir : dirlist) {
 		std::unique_ptr<DIR, KC::fs_deleter> dh(opendir(dir.c_str()));
 		if (dh == nullptr) {
-			st.warnings.push_back(format("Could not read %s: %s", dir.c_str(), strerror(errno)));
+			if (errno != ENOENT)
+				st.warnings.push_back(format("Could not read %s: %s", dir.c_str(), strerror(errno)));
 			continue;
 		}
 		struct dirent *de;
