@@ -927,9 +927,7 @@ void ec_reexec_prepare_sockets()
 		int set = 0;
 		socklen_t setlen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &setlen);
-		if (ret < 0 && errno == EBADF)
-			break;
-		else if (ret < 0 || set == 0)
+		if (ret < 0 || set == 0)
 			continue;
 		/*
 		 * Linux kernel oddity: F_GETFD can fail if the socket owner is
@@ -960,9 +958,7 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 		int set = 0;
 		socklen_t arglen = sizeof(set);
 		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &arglen);
-		if (ret < 0 && errno == EBADF)
-			break;
-		else if (ret < 0 || set == 0)
+		if (ret < 0 || set == 0)
 			continue;
 		/*
 		 * The sockname is specific to the particular (domain, type,
