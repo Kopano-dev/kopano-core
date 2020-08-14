@@ -657,7 +657,6 @@ PKG_CHECK_EXISTS([libkustomer], [have_kustomer=1], [have_kustomer=0])
 AC_ARG_ENABLE([kustomer], AS_HELP_STRING([--enable-kustomer], [require libkustomer]), [want_kustomer=yes], [want_kustomer=no])
 AS_IF([test "$want_kustomer" = "yes"], [
 	PKG_CHECK_MODULES([kustomer], [libkustomer >= 0.5.0])
-	AC_SUBST([kustomer_LIBS])
 	AC_DEFINE(HAVE_KUSTOMER, [1], [libkustomer available])
 	ZCPPFLAGS="$ZCPPFLAGS $kustomer_CFLAGS"
 ])
