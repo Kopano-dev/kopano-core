@@ -628,7 +628,6 @@ PKG_CHECK_EXISTS([libkcoidc], [have_kcoidc=1], [have_kcoidc=0])
 AC_ARG_ENABLE([kcoidc], AS_HELP_STRING([--enable-kcoidc], [require libkcoidc]), [want_kcoidc=yes], [want_kcoidc=no])
 AS_IF([test "$want_kcoidc" = "yes" -o "$have_kcoidc" = "1"], [
 	PKG_CHECK_MODULES([kcoidc], [libkcoidc >= 0.9.0])
-	AC_SUBST([kcoidc_LIBS])
 	AC_DEFINE(HAVE_KCOIDC_H, [1], [libkcoidc available])
 	ZCPPFLAGS="$ZCPPFLAGS $kcoidc_CFLAGS"
 ])
