@@ -170,7 +170,7 @@ static void *Handler(void *lpArg)
 	if (bUseSSL) {
 		auto ret = lpChannel->HrEnableTLS();
 		if (ret != hrSuccess) {
-			ec_log_err("Unable to negotiate SSL connection");
+			ec_log_err("Unable to negotiate SSL connection with %s", lpChannel->peer_addr());
 			goto exit;
 		}
 	}
