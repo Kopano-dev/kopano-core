@@ -490,7 +490,7 @@ int LDAPUserPlugin::setup_ldap(const char *server, bool tls, LDAP **ldp)
 {
 	static const int limit = 0, version = LDAP_VERSION3;
 	LDAP *ld = nullptr;
-	auto xxld = make_scope_success([&]() { if (ld != nullptr) ldap_unbind_s(ld); });
+	auto xxld = make_scope_success([&]() { if (ld != nullptr) ldap_unbind_ext(ld, nullptr, nullptr); });
 
 	auto rc = ldap_initialize(&ld, server);
 	if (rc != LDAP_SUCCESS) {
@@ -574,8 +574,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw)
 			if (rc == LDAP_SUCCESS)
 				break;
 			ec_log_warn("LDAP (simple) bind on %s failed: %s", bind_dn, ldap_err2string(rc));
-			if (ldap_unbind_s(ld) == -1)
-				ec_log_err("LDAP unbind failed");
+			ldap_unbind_ext(ld, nullptr, nullptr);
 		}
 		// see if another (if any) server does work
 		++ldapServerIndex;
@@ -601,8 +600,7 @@ LDAPUserPlugin::~LDAPUserPlugin() {
 	if (m_ldap == nullptr)
 		return;
 	LOG_PLUGIN_DEBUG("%s", "Disconnecting from LDAP since unloading plugin instance");
-	if (ldap_unbind_s(m_ldap) == -1)
-		ec_log_err("LDAP unbind failed");
+	ldap_unbind_ext(m_ldap, nullptr, nullptr);
 }
 
 void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
@@ -637,9 +635,8 @@ void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
 		if (m_ldap != NULL) {
-			ec_log_err("LDAP search error: %s. Will unbind, reconnect and retry.", ldap_err2string(result));
-			if (ldap_unbind_s(m_ldap) == -1)
-				ec_log_err("LDAP unbind failed");
+			ec_log_err("K-1582: LDAP search error: %s. Will reconnect and retry.", ldap_err2string(result));
+			ldap_unbind_ext(m_ldap, nullptr, nullptr);
 			m_ldap = NULL;
 		}
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
@@ -657,8 +654,7 @@ void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
 		    // which will possibly connect to a different (failed over) server.
 			if (m_ldap != NULL) {
 				ec_log_err("Unbinding from LDAP because of continued error (%s)", ldap_err2string(result));
-				if (ldap_unbind_s(m_ldap) == -1)
-					ec_log_err("LDAP unbind failed");
+				ldap_unbind_ext(m_ldap, nullptr, nullptr);
 				m_ldap = NULL;
 			}
 		}
@@ -1454,6 +1450,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const std::string &userna
     const std::string &password, const objectid_t &company)
 {
 	objectsignature_t	signature;
+	std::string dn;
 	int rc;
 
 	try {
@@ -1462,22 +1459,29 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const std::string &userna
 		 * ZCP-11720: When looking for users, explicitly request
 		 * skipping the cache.
 		 */
-		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
+		dn = objectUniqueIDtoObjectDN(signature.id, false);
 		if (m_ldap2 == nullptr)
 			/* pick a server */
 			m_ldap2 = ConnectLDAP(nullptr, nullptr);
-		rc = ldap_simple_bind_s(m_ldap2, dn.c_str(), m_iconvrev->convert(password).c_str());
 	} catch (const std::exception &e) {
-		throw login_error("ldap2 auth channel: "s + e.what());
+		throw login_error("K-1583: LDAP auth channel: "s + e.what());
 	}
-	if (rc == LDAP_INVALID_CREDENTIALS) {
-		throw login_error(format("LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
-	} else if (rc != LDAP_SUCCESS) {
-		ldap_unbind_ext_s(m_ldap2, nullptr, nullptr);
-		m_ldap2 = nullptr; /* pick new server on next try */
-		throw login_error(format("LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
+	rc = ldap_simple_bind_s(m_ldap2, dn.c_str(), m_iconvrev->convert(password).c_str());
+	if (rc == LDAP_SUCCESS)
+		return signature;
+	if (rc == LDAP_INVALID_CREDENTIALS)
+		throw login_error(format("K-1584: LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
+	ec_log_err("K-1585: LDAP auth error: %s. Will rebind & retry.", ldap_err2string(rc));
+	ldap_unbind_ext(m_ldap2, nullptr, nullptr);
+	try {
+		m_ldap2 = ConnectLDAP(nullptr, nullptr);
+	} catch (const std::exception &e) {
+		throw login_error("K-1586: LDAP auth channel: "s + e.what());
 	}
-	return signature;
+	rc = ldap_simple_bind_s(m_ldap2, dn.c_str(), m_iconvrev->convert(password).c_str());
+	if (rc == LDAP_SUCCESS)
+		return signature;
+	throw login_error(format("K-1587: LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
 }
 
 objectsignature_t LDAPUserPlugin::authenticateUserPassword(const std::string &username,

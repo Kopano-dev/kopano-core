@@ -999,7 +999,11 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 		    ai->ai_protocol != proto || strcmp(sk.m_intf.c_str(), ifnam) != 0)
 			continue;
 		if (arglen == ai->ai_addrlen && memcmp(&addr, ai->ai_addr, arglen) == 0) {
-			fcntl(fd, F_SETFD, FD_CLOEXEC);
+			unsigned int flags = 0;
+			if (fcntl(fd, F_GETFD, &flags) != 0)
+				/* ignore */;
+			flags |= FD_CLOEXEC;
+			fcntl(fd, F_SETFD, flags);
 			return fd;
 		}
 	}

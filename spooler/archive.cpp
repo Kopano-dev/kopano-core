@@ -297,13 +297,7 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	m_strErrorMessage = oss.str();
 }
 
-PyMapiPluginFactory::~PyMapiPluginFactory()
-{
-	if (m_exit != nullptr)
-		m_exit();
-}
-
-HRESULT PyMapiPluginFactory::create_plugin(ECConfig *cfg, const char *ctxname, pym_plugin_intf **ret)
+HRESULT create_pym_plugin(ECConfig *cfg, const char *ctxname, pym_plugin_intf **ret)
 {
 	auto lib = cfg->GetSetting("plugin_enabled", nullptr, "no");
 	if (!parseBool(lib)) {
@@ -327,6 +321,5 @@ HRESULT PyMapiPluginFactory::create_plugin(ECConfig *cfg, const char *ctxname, p
 		ec_log_err("Plugin library is missing the \"plugin_manager_init\" function.");
 		return MAPI_E_CALL_FAILED;
 	}
-	m_exit = reinterpret_cast<void (*)()>(dlsym(pym_handle, "plugin_manager_exit"));
 	return init(cfg, ctxname, ret);
 }

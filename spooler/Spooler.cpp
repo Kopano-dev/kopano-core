@@ -78,6 +78,7 @@
 #include "StatsClient.h"
 #include <kopano/fileutil.hpp>
 #include <map>
+#include "PyMapiPlugin.h"
 
 using namespace KC;
 using namespace std::chrono_literals;
@@ -1140,6 +1141,13 @@ static int main2(int argc, char **argv)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
+
+	if (parseBool(g_lpConfig->GetSetting("plugin_enabled"))) {
+		std::unique_ptr<pym_plugin_intf> tmp;
+		auto hr = create_pym_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(tmp));
+		if (hr != hrSuccess)
+			return hr_lcrit(hr, "K-1729: plugin_enabled=yes requested but plugin system is not runnable");
+	}
 
 	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess)
