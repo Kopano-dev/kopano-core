@@ -68,9 +68,6 @@ AS_IF([test -n "$PYTHON"], [
 	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
     PYTHON_MINOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[1]])" 2>/dev/null)
 ])
-AS_IF([test "$PYTHON_MAJOR_VERSION" = "3"],
-	[AS_IF([test "$PYTHON_MINOR_VERSION" -ge 8], [PYTHON_PC="python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION-embed"], [PYTHON_PC="python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION"])],
-[PYTHON_PC="python"])
 AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
 
 dnl Top-level component selection
@@ -675,7 +672,9 @@ AC_ARG_ENABLE([pybind], [AS_HELP_STRING([--disable-pybind],
 	[Enables/disables building of C++↔Python bindings (default: auto-enable)])],
 	[want_pybind="$enableval"], [want_pybind=auto])
 AS_IF([test "$want_pybind" != no], [
-	PKG_CHECK_MODULES([PYTHON], [$PYTHON_PC], [], [:])
+	PKG_CHECK_MODULES([PYTHON], [python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION-embed], [], [
+		PKG_CHECK_MODULES([PYTHON], [python-$PYTHON_MAJOR_VERSION.$PYTHON_MINOR_VERSION], [], [:])
+	])
 	AS_IF([test -n "$PYTHON_LIBS"], [
 		AS_IF([test -z "$SWIG_EXEC"], [AC_MSG_ERROR([swig is required for Python])])
 	], [test "$want_python" = yes], [
