@@ -27,7 +27,7 @@ pipeline {
                     steps {
                         echo 'Building..'
                         sh './bootstrap.sh'
-                        sh 'PYTHON=/usr/bin/python3 ./configure --enable-kcoidc'
+                        sh './configure --enable-release --enable-pybind --enable-kcoidc TCMALLOC_CFLAGS=" " TCMALLOC_LIBS="-ltcmalloc_minimal" PYTHON="$(which python3)" PYTHON_CFLAGS="$(pkg-config python3 --cflags)" PYTHON_LIBS="$(pkg-config python3 --libs)"'
                         sh 'make -j $(nproc)'
 			recordIssues(tools: [gcc()])
                     }
@@ -82,7 +82,7 @@ pipeline {
             }
             post {
                 always {
-                    sh 'make -C test test-backend-kopano-ci-logs DOCKERCOMPOSE_LOGS_ARGS="--timestamps --no-color"'
+                    sh 'make -C test test-backend-kopano-ci-logs DOCKERCOMPOSE_LOGS_ARGS="--timestamps --no-color" || true'
                     sh 'make -C test test-backend-kopano-ci-clean'
                 }
             }
