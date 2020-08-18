@@ -12,6 +12,8 @@ from MAPI.Tags import (IID_IECTestProtocol, PR_SUBJECT, PR_ENTRYID, PR_IPM_PUBLI
                        OPEN_IF_EXISTS, IID_IECServiceAdmin, IID_IExchangeManageStore, PR_EMS_AB_CONTAINERID,
                        PR_IPM_SUBTREE_ENTRYID)
 
+import libfreebusy
+
 
 @pytest.fixture
 def adminprof():
@@ -232,3 +234,11 @@ def serviceadmin(adminstore):
 @pytest.fixture
 def ema(adminstore):
     return adminstore.QueryInterface(IID_IExchangeManageStore)
+
+
+@pytest.fixture
+def freebusy_user(session, store):
+    fb = libfreebusy.IFreeBusySupport()
+    fb.Open(session, store, False)
+    yield fb
+    fb.Close()
