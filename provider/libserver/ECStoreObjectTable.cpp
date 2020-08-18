@@ -1028,7 +1028,7 @@ ECRESULT ECStoreObjectTable::Load()
 			++i;
         }
 
-        LoadRows(&lstObjIds, 0);
+        LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
 	return erSuccess;
 }
 

@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <memory>
 #include <string>
+#include <vector>
 #include <mutex>
 #include <pthread.h>
 #include "ECDatabaseFactory.h"
@@ -283,7 +284,7 @@ private:
      * @param[out] lpulCount Int to be modified with inserted count
      * @param[out] lpulUnread Int to be modified with inserted unread count
      */
-	KC_HIDDEN virtual ECRESULT AddResults(unsigned int folder_id, std::list<unsigned int> &obj_id, std::list<unsigned int> &flags, int *count, int *unread);
+	KC_HIDDEN virtual ECRESULT AddResults(unsigned int folder_id, const std::vector<unsigned int> &obj_id, const std::vector<unsigned int> &flags, int *count, int *unread);
 
     /**
      * Delete matching results from a search folder

@@ -568,7 +568,9 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	return er;
 }
 
-ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulStoreId, const std::vector<unsigned int> &lstObjId,
+    unsigned int ulFlags, unsigned int ulObjType)
 {
 	scoped_rlock lock(hListMutex);
 
@@ -580,12 +582,14 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 		if (!k)
 			continue;
 		// ignore errors from the update
-		t.second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
+		t.second->lpTable->UpdateRows(ulType, lstObjId, OBJECTTABLE_NOTIFY, false);
 	}
 	return erSuccess;
 }
 
-ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
+ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulFlags, unsigned int ulObjId,
+    const std::vector<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	scoped_rlock lock(hListMutex);
 	bool filter_private = false;
@@ -632,9 +636,9 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 			continue;
 		// ignore errors from the update
 		if(filter_private)
-			t.second->lpTable->UpdateRows(ulType, &lstChildId2, OBJECTTABLE_NOTIFY, false);
+			t.second->lpTable->UpdateRows(ulType, {lstChildId2.cbegin(), lstChildId2.cend()}, OBJECTTABLE_NOTIFY, false);
 		else
-			t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
+			t.second->lpTable->UpdateRows(ulType, {lstChildId.cbegin(), lstChildId.cend()}, OBJECTTABLE_NOTIFY, false);
 	}
 	return erSuccess;
 }
@@ -682,7 +686,7 @@ ECRESULT ECMailBoxTable::Load()
 			continue; /* Broken store table? */
 		lstObjIds.emplace_back(atoui(lpDBRow[0]));
 	}
-	LoadRows(&lstObjIds, 0);
+	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
 	return erSuccess;
 }
 
@@ -715,7 +719,7 @@ ECRESULT ECSearchObjectTable::Load()
 	if (lpSession->GetSecurity()->IsStoreOwner(m_ulFolderId) != KCERR_NO_ACCESS ||
 	    lpSession->GetSecurity()->GetAdminLevel() > 0 ||
 	    objlist.size() == 0)
-		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist, 0, true);
+		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, {objlist.cbegin(), objlist.cend()}, 0, true);
 	/*
 	 * Outlook may show the subject of sensitive messages (e.g. in reminder
 	 * popup), so filter these from shared store searches.
@@ -741,7 +745,7 @@ ECRESULT ECSearchObjectTable::Load()
 	for (auto i = objlist.begin(); i != objlist.end(); ++i)
 		if (priv.find(*i) == priv.end())
 			objlist2.emplace_back(*i);
-	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist2, 0, true);
+	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, {objlist2.cbegin(), objlist2.cend()}, 0, true);
 }
 
 } /* namespace */

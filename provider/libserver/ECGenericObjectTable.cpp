@@ -1232,9 +1232,7 @@ exit:
 
 ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObjId, unsigned int ulFlags)
 {
-    std::list<unsigned int> lstObjId;
-	lstObjId.emplace_back(ulObjId);
-	return UpdateRows(ulType, &lstObjId, ulFlags, false);
+	return UpdateRows(ulType, {ulObjId}, ulFlags, false);
 }
 
 /**
@@ -1246,7 +1244,7 @@ ECRESULT ECGenericObjectTable::UpdateRow(unsigned int ulType, unsigned int ulObj
  * @param lstObjId List of hierarchy IDs for the objects to load
  * @param ulFlags 0, MSGFLAG_DELETED, MAPI_ASSOCIATED or combination
  */
-ECRESULT ECGenericObjectTable::LoadRows(std::list<unsigned int> *lstObjId, unsigned int ulFlags)
+ECRESULT ECGenericObjectTable::LoadRows(const std::vector<unsigned int> &lstObjId, unsigned int ulFlags)
 {
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, lstObjId, ulFlags, true);
 }
@@ -1271,14 +1269,16 @@ ECRESULT ECGenericObjectTable::LoadRows(std::list<unsigned int> *lstObjId, unsig
  * @param ulFlags Flags for the objects in lstObjId (0, MSGFLAG_DELETED, MAPI_ASSOCIATED)
  * @param bLoad Indicates that this is the initial load or reload of the table, and not an update
  */
-ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bLoad)
+ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType,
+    const std::vector<unsigned int> &lstObjId_in, unsigned int ulFlags, bool bLoad)
 {
 	ECRESULT				er = erSuccess;
 	unsigned int ulRead = 0;
-	std::list<unsigned int> lstFilteredIds;
+	std::vector<unsigned int> lstFilteredIds;
 	ECObjectTableList ecRowsItem, ecRowsDeleted;
 	sObjectTableKey		sRow;
 	scoped_rlock biglock(m_hLock);
+	const std::vector<unsigned int> *lstObjId = &lstObjId_in;
 
 	// Perform security checks for this object
 	switch(ulType) {
@@ -1288,11 +1288,11 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
     case ECKeyTable::TABLE_ROW_MODIFY:
     case ECKeyTable::TABLE_ROW_ADD:
         // Filter out any item we cannot access (for example, in search-results tables)
-		for (const auto &obj_id : *lstObjId)
+		for (const auto &obj_id : lstObjId_in)
 			if (CheckPermissions(obj_id) == erSuccess)
 				lstFilteredIds.emplace_back(obj_id);
         // Use our filtered list now
-        lstObjId = &lstFilteredIds;
+		lstObjId = &lstFilteredIds;
     	break;
     case ECKeyTable::TABLE_ROW_DELETE:
 	    // You may always delete a row

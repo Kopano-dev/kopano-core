@@ -13,6 +13,7 @@
 #include <shared_mutex>
 #include <string>
 #include <utility>
+#include <vector>
 #include <pthread.h>
 #include <libHX/string.h>
 #include <mapidefs.h>
@@ -695,23 +696,26 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 ECRESULT ECSessionManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, unsigned int ulObjId, unsigned int ulFlags, unsigned int ulObjType)
 {
 	TABLESUBSCRIPTION sSubscription;
-	std::list<unsigned int> lstObjId;
-
-	lstObjId.emplace_back(ulObjId);
 	sSubscription.ulType = TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE;
 	sSubscription.ulRootObjectId = ulFlags & EC_SUBMIT_MASTER ? 0 : ulStoreId; // in the master queue, use 0 as root object id
 	sSubscription.ulObjectType = ulObjType;
 	sSubscription.ulObjectFlags = ulFlags & EC_SUBMIT_MASTER; // Only use MASTER flag as differentiator
-	return UpdateSubscribedTables(ulType, sSubscription, lstObjId);
+	return UpdateSubscribedTables(ulType, sSubscription, {ulObjId});
 }
 
 ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, unsigned ulChildId, unsigned int ulObjType)
 {
-	std::list<unsigned int> lstChildId = {ulChildId};
-	return UpdateTables(ulType, ulFlags, ulObjId, lstChildId, ulObjType);
+	/*
+	 * Due to the UpdateTables overload, vector{} needs to be
+	 * explicitly specified for UpdateTables.
+	 */
+	return UpdateTables(ulType, ulFlags, ulObjId,
+	       std::vector<unsigned int>{ulChildId}, ulObjType);
 }
 
-ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned ulObjId, std::list<unsigned int>& lstChildId, unsigned int ulObjType)
+ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType,
+    unsigned int ulFlags, unsigned int ulObjId,
+    const std::vector<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	TABLESUBSCRIPTION sSubscription;
 
@@ -725,7 +729,7 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 }
 
 ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
-    const TABLESUBSCRIPTION &sSubscription, std::list<unsigned int> &lstChildId)
+    const TABLESUBSCRIPTION &sSubscription, const std::vector<unsigned int> &lstChildId)
 {
 	std::set<ECSESSIONID> setSessions;
 
