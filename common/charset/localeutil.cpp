@@ -53,12 +53,13 @@ exit:
 bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 {
 	std::string new_locale;
-	char *old_locale = setlocale(LC_CTYPE, "");
-	if (!old_locale) {
+	char *orig_locale = setlocale(LC_CTYPE, ""), old_locale[512];
+	if (!orig_locale) {
 		if (bOutput)
 			std::cerr << "Unable to initialize locale" << std::endl;
 		return false;
 	}
+	strncpy(old_locale, orig_locale, sizeof(old_locale));
 	char *dot = strchr(old_locale, '.');
 	if (dot) {
 		*dot = '\0';
