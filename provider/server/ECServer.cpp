@@ -97,6 +97,14 @@ static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
+#ifdef HAVE_KCOIDC_H
+static void kcoidc_log_debug_cb(char *s)
+{
+	ec_log_debug("%s", s);
+	free(s); // Release memory allocated in the C heap by cgo with malloc.
+}
+#endif
+
 #ifdef HAVE_KUSTOMER
 static constexpr char kustomerProductName[] = "groupware";
 static constexpr char kustomerProductUserAgent[] = "Kopano Storage Server/" PROJECT_VERSION;
@@ -854,6 +862,98 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	bool kustomer_initialized = false;
 #endif
 
+static bool setup_kustomer()
+{
+#ifdef HAVE_KUSTOMER
+	int kustomerDebug = -1;
+	if (*g_lpConfig->GetSetting("kustomer_debug") != '\0')
+		kustomerDebug = parseBool(g_lpConfig->GetSetting("kustomer_debug"));
+	ec_log_info("KUSTOMER initializing");
+	auto res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_set_productuseragent(const_cast<char *>(kustomerProductUserAgent));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to set product user agent: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_set_autorefresh(1);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	res = kustomer_initialize(const_cast<char *>(kustomerProductName));
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
+	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
+	if (kustomer_initialize_timeout > 0) {
+		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
+		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+			return false;
+		}
+		ec_log_info("KUSTOMER initialized");
+	}
+	kustomer_initialized = true;
+	res = kustomer_log_ensured_claims();
+	if (res != KUSTOMER_ERRSTATUSSUCCESS)
+		return false;
+	res = kustomer_set_notify_when_updated(kustomer_notify_update_cb, kustomer_notify_exit_cb);
+	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
+		ec_log_err("KUSTOMER failed to watch for updates: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+		return false;
+	}
+#endif
+	return true;
+}
+
+static bool setup_kcoidc()
+{
+#ifdef HAVE_KCOIDC_H
+	int kcoidcDebug = -1;
+	if (*g_lpConfig->GetSetting("kcoidc_debug") != '\0')
+		kcoidcDebug = parseBool(g_lpConfig->GetSetting("kcoidc_debug"));
+	auto res = kcoidc_set_logger(kcoidc_log_debug_cb, kcoidcDebug);
+	if (res != 0) {
+		ec_log_err("KCOIDC failed set logger: 0x%llx", res);
+		return false;
+	}
+	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
+		res = kcoidc_insecure_skip_verify(1);
+		if (res != 0) {
+			ec_log_err("KCOIDC insecure_skip_verify failed: 0x%llx", res);
+			return false;
+		}
+	}
+	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
+	if (issuer && strlen(issuer) > 0) {
+		ec_log_info("KCOIDC initializing provider (%s)", issuer);
+		res = kcoidc_initialize(const_cast<char *>(issuer));
+		if (res != 0) {
+			ec_log_err("KCOIDC provider (%s) initialization failed: 0x%llx", issuer, res);
+			return false;
+		}
+		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
+		ec_log_debug("KCOIDC provider (%s) waiting on initialization for %d seconds", issuer, kcoidc_initialize_timeout);
+		if (kcoidc_initialize_timeout > 0) {
+			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
+			if (res != 0) {
+				ec_log_err("KCOIDC provider (%s) failed to initialize: 0x%llx", issuer, res);
+				return false;
+			}
+			ec_log_info("KCOIDC initialized oidc provider (%s)", issuer);
+		}
+		kcoidc_initialized = true;
+	}
+#endif
+	return true;
+}
+
 static void cleanup(ECRESULT er)
 {
 	if (er != erSuccess) {
@@ -880,7 +980,7 @@ static void cleanup(ECRESULT er)
 	if (kcoidc_initialized) {
 		auto res = kcoidc_uninitialize();
 		if (res != 0)
-			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx", res);
+			ec_log_always("KCOIDC failed to uninitialize: 0x%llx", res);
 	}
 #endif
 #ifdef HAVE_KUSTOMER
@@ -1059,6 +1159,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "kcoidc_issuer_identifier", "", 0},
 		{ "kcoidc_insecure_skip_verify", "no", 0},
 		{ "kcoidc_initialize_timeout", "60", 0 },
+		{ "kcoidc_debug", "", 0 },
 #endif
 #ifdef HAVE_KUSTOMER
 		{ "kustomer_initialize_timeout", "60", 0 },
@@ -1194,88 +1295,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
     soap_ssl_init(); // Always call this in the main thread once!
     ssl_threading_setup();
-#ifdef HAVE_KUSTOMER
-	int kustomerDebug = -1;
-	long long unsigned int res;
-	std::string strKustomerDebug = g_lpConfig->GetSetting("kustomer_debug");
-	if (!strKustomerDebug.empty()) {
-		if (parseBool(g_lpConfig->GetSetting("kustomer_debug")))
-			kustomerDebug = 1;
-		else
-			kustomerDebug = 0;
-	}
-	ec_log_info("KUSTOMER initializing");
-	res = kustomer_set_logger(kustomer_log_info_cb, kustomerDebug);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed set logger: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+	if (!setup_kustomer())
 		return retval;
-	}
-	res = kustomer_set_productuseragent(const_cast<char *>(kustomerProductUserAgent));
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to set product user agent: 0x%llx, %s", res, kustomer_err_numeric_text(res));
+	if (!setup_kcoidc())
 		return retval;
-	}
-	res = kustomer_set_autorefresh(1);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to enable auto refresh: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-	res = kustomer_initialize(const_cast<char *>(kustomerProductName));
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER initialization failed: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-	auto kustomer_initialize_timeout = atoi(g_lpConfig->GetSetting("kustomer_initialize_timeout"));
-	ec_log_debug("KUSTOMER waiting on initialization for %d seconds", kustomer_initialize_timeout);
-	if (kustomer_initialize_timeout > 0) {
-		res = kustomer_wait_until_ready(kustomer_initialize_timeout);
-		if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-			ec_log_err("KUSTOMER failed to initialize: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-			return retval;
-		}
-		ec_log_info("KUSTOMER initialized");
-	}
-	kustomer_initialized = true;
-	res = kustomer_log_ensured_claims();
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		return retval;
-	}
-	res = kustomer_set_notify_when_updated(kustomer_notify_update_cb, kustomer_notify_exit_cb);
-	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_err("KUSTOMER failed to watch for updates: 0x%llx, %s", res, kustomer_err_numeric_text(res));
-		return retval;
-	}
-
-#endif
-#ifdef HAVE_KCOIDC_H
-	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
-		auto res = kcoidc_insecure_skip_verify(1);
-		if (res != 0) {
-			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx", res);
-			return retval;
-		}
-	}
-	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
-	if (issuer && strlen(issuer) > 0) {
-		ec_log_info("KCOIDC: initializing provider (%s)", issuer);
-		auto res = kcoidc_initialize(const_cast<char *>(issuer));
-		if (res != 0) {
-			ec_log_err("KCOIDC: provider (%s) initialization failed: 0x%llx", issuer, res);
-			return retval;
-		}
-		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
-		ec_log_debug("KCOIDC: provider (%s) waiting on initialization for %d seconds", issuer, kcoidc_initialize_timeout);
-		if (kcoidc_initialize_timeout > 0) {
-			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
-			if (res != 0) {
-				ec_log_err("KCOIDC: provider (%s) failed to initialize: 0x%llx", issuer, res);
-				return retval;
-			}
-			ec_log_info("KCOIDC: initialized oidc provider (%s)", issuer);
-		}
-		kcoidc_initialized = true;
-	}
-#endif
 
 	// Test database settings
 	auto stats = std::make_shared<server_stats>(g_lpConfig);
