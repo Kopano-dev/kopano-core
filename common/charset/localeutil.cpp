@@ -53,12 +53,13 @@ exit:
 bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 {
 	std::string new_locale;
-	char *old_locale = setlocale(LC_CTYPE, "");
-	if (!old_locale) {
+	char *orig_locale = setlocale(LC_CTYPE, ""), old_locale[512];
+	if (orig_locale == nullptr) {
 		if (bOutput)
 			std::cerr << "Unable to initialize locale" << std::endl;
 		return false;
 	}
+	strncpy(old_locale, orig_locale, sizeof(old_locale));
 	char *dot = strchr(old_locale, '.');
 	if (dot) {
 		*dot = '\0';
@@ -75,14 +76,14 @@ bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 	new_locale = std::string(old_locale) + ".UTF-8";
 	if (lpstrLastSetLocale)
 		*lpstrLastSetLocale = new_locale;
-	old_locale = setlocale(LC_CTYPE, new_locale.c_str());
-	if (!old_locale) {
+	orig_locale = setlocale(LC_CTYPE, new_locale.c_str());
+	if (orig_locale == nullptr) {
 		new_locale = "en_US.UTF-8";
 		if (lpstrLastSetLocale)
 			*lpstrLastSetLocale = new_locale;
-		old_locale = setlocale(LC_CTYPE, new_locale.c_str());
+		orig_locale = setlocale(LC_CTYPE, new_locale.c_str());
 	}
-	if (!old_locale) {
+	if (orig_locale == nullptr) {
 		if (bOutput)
 			std::cerr << "Unable to set locale '" << new_locale << "'" << std::endl;
 		return false;
