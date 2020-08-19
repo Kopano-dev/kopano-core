@@ -6,6 +6,9 @@ milestone(buildNumber)
 
 pipeline {
     agent none
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+    }
     stages {
         stage('Build and check') {
             agent {
