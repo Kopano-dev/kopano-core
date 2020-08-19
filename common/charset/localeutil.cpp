@@ -5,10 +5,10 @@
 #include <kopano/platform.h>
 #include <string>
 #include <iostream>
+#include <utility>
 #include <clocale>
 #include <cstring>
 #include <unistd.h>
-#include <libHX/string.h>
 #include "localeutil.h"
 
 namespace KC {
@@ -53,40 +53,39 @@ exit:
  */
 bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 {
-	std::string new_locale;
-	char *orig_locale = setlocale(LC_CTYPE, ""), old_locale[512];
+	const char *orig_locale = setlocale(LC_CTYPE, "");
 	if (orig_locale == nullptr) {
 		if (bOutput)
 			std::cerr << "Unable to initialize locale" << std::endl;
 		return false;
 	}
-	HX_strlcpy(old_locale, orig_locale, sizeof(old_locale));
-	char *dot = strchr(old_locale, '.');
-	if (dot) {
-		*dot = '\0';
-		if (strcmp(dot+1, "UTF-8") == 0 || strcmp(dot+1, "utf8") == 0) {
+	std::string lo = orig_locale;
+	auto dot = lo.find_first_of('.');
+	if (dot != lo.npos) {
+		if (strcmp(&lo[dot+1], "UTF-8") == 0 || strcmp(&lo[dot+1], "utf8") == 0) {
 			if (lpstrLastSetLocale)
-				*lpstrLastSetLocale = old_locale;
+				*lpstrLastSetLocale = std::move(lo);
 			return true; // no need to force anything
 		}
+		lo.erase(dot);
 	}
 	if (bOutput && (isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))) {
 		std::cerr << "Warning: Terminal locale not UTF-8, but UTF-8 locale is being forced." << std::endl;
 		std::cerr << "         Screen output may not be correctly printed." << std::endl;
 	}
-	new_locale = std::string(old_locale) + ".UTF-8";
+	lo += ".UTF-8";
 	if (lpstrLastSetLocale)
-		*lpstrLastSetLocale = new_locale;
-	orig_locale = setlocale(LC_CTYPE, new_locale.c_str());
+		*lpstrLastSetLocale = lo;
+	orig_locale = setlocale(LC_CTYPE, lo.c_str());
 	if (orig_locale == nullptr) {
-		new_locale = "en_US.UTF-8";
+		lo = "en_US.UTF-8";
 		if (lpstrLastSetLocale)
-			*lpstrLastSetLocale = new_locale;
-		orig_locale = setlocale(LC_CTYPE, new_locale.c_str());
+			*lpstrLastSetLocale = lo;
+		orig_locale = setlocale(LC_CTYPE, lo.c_str());
 	}
 	if (orig_locale == nullptr) {
 		if (bOutput)
-			std::cerr << "Unable to set locale '" << new_locale << "'" << std::endl;
+			std::cerr << "Unable to set locale '" << lo << "'" << std::endl;
 		return false;
 	}
 	return true;
