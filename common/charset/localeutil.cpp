@@ -8,6 +8,7 @@
 #include <clocale>
 #include <cstring>
 #include <unistd.h>
+#include <libHX/string.h>
 #include "localeutil.h"
 
 namespace KC {
@@ -59,7 +60,7 @@ bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 			std::cerr << "Unable to initialize locale" << std::endl;
 		return false;
 	}
-	strncpy(old_locale, orig_locale, sizeof(old_locale));
+	HX_strlcpy(old_locale, orig_locale, sizeof(old_locale));
 	char *dot = strchr(old_locale, '.');
 	if (dot) {
 		*dot = '\0';
