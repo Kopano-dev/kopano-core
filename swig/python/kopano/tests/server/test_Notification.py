@@ -27,7 +27,7 @@ def test_folderitems(notificationuser, create_item):
 
     # create item
     item = create_item(inbox, '')
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'created'
 
@@ -36,7 +36,7 @@ def test_folderitems(notificationuser, create_item):
 
     # update item
     item.subject = 'subject'
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
 
     assert notif.object_type == 'item'
     assert notif.event_type == 'updated'
@@ -46,14 +46,14 @@ def test_folderitems(notificationuser, create_item):
 
     # delete item
     inbox.delete(item)
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'deleted'
 
     # move item in (==create)
     item2 = create_item(notificationuser.sentmail, 'new')
     item3 = item2.move(inbox)
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
 
     assert notif.object_type == 'item'
     assert notif.event_type == 'created'
@@ -61,7 +61,7 @@ def test_folderitems(notificationuser, create_item):
 
     # move item out (==delete)
     item3.move(notificationuser.sentmail)
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'deleted'
 
@@ -78,7 +78,7 @@ def test_storeitems(notificationuser, create_item):
 
     # create item
     item = create_item(inbox, '')
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
 
     assert notif.object_type == 'item'
     assert notif.event_type == 'created'
@@ -91,15 +91,15 @@ def test_storeitems(notificationuser, create_item):
 
     # move item
     store.inbox.move(item, store.sentmail)  # TODO item.move does copy/delete?
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'updated'
 
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'created'
 
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'item'
     assert notif.event_type == 'deleted'
 
@@ -114,7 +114,7 @@ def test_storefolders(notificationuser, create_folder):
 
     # create folder
     folder = create_folder(inbox, 'subfolder')
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'folder'
     assert notif.event_type == 'created'
 
@@ -123,7 +123,7 @@ def test_storefolders(notificationuser, create_folder):
 
     # update folder
     folder.name = 'dinges'
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'folder'
     assert notif.event_type == 'updated'
 
@@ -132,11 +132,11 @@ def test_storefolders(notificationuser, create_folder):
 
     # delete folder
     store.delete(folder)
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'folder'
     assert notif.event_type == 'updated'
 
-    notif = sink.queue.get(timeout=10)
+    notif = sink.queue.get(timeout=60)
     assert notif.object_type == 'folder'
     assert notif.event_type == 'deleted'
 
