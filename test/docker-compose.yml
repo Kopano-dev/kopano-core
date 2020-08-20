@@ -167,6 +167,43 @@ services:
     tmpfs:
       - /tmp
 
+  kopano_dagent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - docker_repo=${docker_repo:-kopano}
+        - kopano_core_version=${CORE_VERSION:-latest}
+    read_only: false
+    hostname: kopano_dagent
+    depends_on:
+      - kopano_server
+    environment:
+      - SERVICE_TO_START=dagent
+      - TZ=${TZ}
+      - KCCONF_DAGENT_COREDUMP_ENABLED=no
+      - KCCONF_DAGENT_LOG_LEVEL=6
+      - KCCONF_DAGENT_SERVER_SOCKET=file:///run/kopano/server.sock
+      - KCCONF_DAGENT_PID_FILE=/run/kopano/dagent.pid
+      - KCCONF_DAGENT_LMTP_LISTEN=0.0.0.0:2003
+      - KCCONF_DAGENT_FORWARD_WHITELIST_DOMAINS=kopano.demo # Used for the dagent tests, to test forward rules
+      - EXTRA_LOCAL_ADMIN_USER=${EXTRA_LOCAL_ADMIN_USER}
+      - CI=1
+    networks:
+      - kopano-net
+      - ldap-net
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - kopanodata:/kopano/data
+      - kopanossl:/kopano/ssl:ro
+      - kopanosocket:/run/kopano
+      - ../:/workspace/
+      - ./prepare-and-start-service.sh:/prepare-and-start-service.sh:ro
+    entrypoint: /prepare-and-start-service.sh
+    tmpfs:
+      - /tmp
+
   kopano_server_test:
     build:
       context: .

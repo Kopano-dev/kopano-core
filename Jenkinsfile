@@ -79,6 +79,7 @@ pipeline {
 			junit testResults: 'php-ext/test.log'
 			junit testResults: 'libicalmapi/test.xml'
 			junit testResults: 'gateway/test.xml'
+			junit testResults: 'spooler/test.xml'
 			junit testResults: 'spooler/python/test.xml'
                         junit testResults: 'swig/python/test.xml'
                         junit testResults: 'swig/python/kopano/test.xml'
