@@ -92,6 +92,6 @@ def test_emptyidle(imap, login):
     assert result == b"+ Can't open selected folder to idle in"
 
 
-def test_readonly(imap, login):
+def test_readonly(imap, login, imapinbox):
     assert imap.select('inbox', True)[0] == 'OK'
     assert imap.store('1', '+FLAGS', '(\\Seen)')[0] == 'NO'
