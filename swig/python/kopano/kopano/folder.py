@@ -944,8 +944,8 @@ class Folder(Properties):
             else:
                 try:
                     etxml = ElementTree.fromstring(ruledata)
-                except ElementTree.ParseError as e:
-                    log.warning("ElementTree.fromstring(ruledata): folder %s: %s", self.name, str(e))
+                except ElementTree.ParseError:
+                    log.warning("ElementTree.fromstring(ruledata): folder %s", self.name, exc_info=True)
                     return None
                 for actions in etxml.findall('./item/item/actions'):
                     for movecopy in actions.findall('.//moveCopy'):
@@ -962,8 +962,8 @@ class Folder(Properties):
                             path = store.folder(
                                 entryid=_benc(_unbase64(f.text))).path
                             f.text = path
-                        except Exception as e:
-                            log.warning("could not resolve rule target: %s", str(e))
+                        except Exception:
+                            log.warning("rules_dumps: could not resolve rule target", exc_info=True)
                 try:
                     ruledata = ElementTree.tostring(etxml)
                 except ElementTree.ParseError as e:
@@ -1002,8 +1002,7 @@ class Folder(Properties):
                             f.text = \
                                 _base64(_bdec(store.folder(f.text).entryid))
                         except Exception as e:
-                            log.warning(
-                                "could not resolve rule target: %s", str(e))
+                            log.warning("rules_loads: could not resolve rule target: %s", str(e), exc_info=True)
                 etxml = ElementTree.tostring(etxml)
                 self[PR_RULES_DATA] = etxml
 
