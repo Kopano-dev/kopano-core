@@ -13,6 +13,7 @@ pipeline {
                     filename 'Dockerfile.build'
                     args '-e PYTHONDONTWRITEBYTECODE=1'
                     label 'docker'
+                    additionalBuildArgs '--build-arg=EXTRA_PACKAGES="libkustomer-dev"'
                 }
             }
             stages {
@@ -27,7 +28,7 @@ pipeline {
                     steps {
                         echo 'Building..'
                         sh './bootstrap.sh'
-                        sh './configure --enable-release --enable-pybind --enable-kcoidc TCMALLOC_CFLAGS=" " TCMALLOC_LIBS="-ltcmalloc_minimal" PYTHON="$(which python3)" PYTHON_CFLAGS="$(pkg-config python3 --cflags)" PYTHON_LIBS="$(pkg-config python3 --libs)"'
+                        sh './configure --enable-release --enable-pybind --enable-kcoidc --enable-kustomer TCMALLOC_CFLAGS=" " TCMALLOC_LIBS="-ltcmalloc_minimal" PYTHON="$(which python3)" PYTHON_CFLAGS="$(pkg-config python3 --cflags)" PYTHON_LIBS="$(pkg-config python3 --libs)"'
                         sh 'make -j $(nproc)'
 			recordIssues(tools: [gcc()])
                     }
@@ -68,7 +69,8 @@ pipeline {
                 stage('Run Test Suite') {
                     steps {
                         echo 'Testing..'
-                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) DOCKERCOMPOSE_UP_ARGS=--build DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
+                        sh 'make -C test test-backend-kopano-ci-build DOCKERCOMPOSE_BUILD_ARGS="--build-arg EXTRA_PACKAGES=libkustomer0 kopano_server"'
+                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) DOCKERCOMPOSE_UP_ARGS="" DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
 			junit testResults: 'php-ext/test.log'
 			junit testResults: 'libicalmapi/test.xml'
 			junit testResults: 'gateway/test.xml'

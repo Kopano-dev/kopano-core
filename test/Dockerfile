@@ -6,6 +6,9 @@ ARG WORKSPACE=/workspace
 ENV WORKSPACE=${WORKSPACE}
 WORKDIR ${WORKSPACE}
 
+ARG EXTRA_PACKAGES=""
+RUN echo "Extra packages: $EXTRA_PACKAGES"
+
 RUN apt-get update && apt-get install --no-install-recommends -y \
 	autoconf \
 	automake \
@@ -22,7 +25,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	python3-tz \
 	python3-tzlocal \
 	php \
-	libtap-formatter-junit-perl
+	libtap-formatter-junit-perl \
+	$EXTRA_PACKAGES
 
 RUN rm -f /etc/apt/sources.list.d/kopano.list \
 	&& dpkg -r --force-depends \

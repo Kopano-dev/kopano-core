@@ -17,6 +17,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG DEPENDENCY_HASH=51c3a68
 ARG CA_CERTIFICATES_VERSION=20190110
 ARG CONFIGURE_ARGS=--enable-kcoidc
+ARG EXTRA_PACKAGES=
 
 # Noninteractive for package manager
 ENV DEBIAN_FRONTEND noninteractive
@@ -91,6 +92,7 @@ RUN apt-get update -y \
         tidy-html5-dev \
         uuid-dev \
         zlib1g-dev \
+        $EXTRA_PACKAGES \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

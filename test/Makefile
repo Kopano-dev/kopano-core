@@ -1,5 +1,6 @@
 WORKSPACE ?= /workspace
 DOCKERCOMPOSE ?= docker-compose
+DOCKERCOMPOSE_BUILD_ARGS ?= --parallel
 DOCKERCOMPOSE_UP_ARGS ?= --build
 DOCKERCOMPOSE_EXEC_ARGS ?= -T -u $(shell id -u) -e HOME=$(WORKSPACE) -e WORKSPACE=$(WORKSPACE)
 DOCKERCOMPOSE_LOGS_ARGS ?=
@@ -71,6 +72,10 @@ test-backend-kopano-ci-run-start-logger: .test-backend-kopano-ci-run-logger.pid
 test-backend-kopano-ci-run-stop-logger: .test-backend-kopano-ci-run-logger.pid
 	@kill `cat $<` 2>/dev/null || true
 	@rm $< || true
+
+.PHONY: test-backend-kopano-ci-build
+test-backend-kopano-ci-build:
+	$(DOCKERCOMPOSE) build $(DOCKERCOMPOSE_BUILD_ARGS)
 
 .PHONY: test-backend-kopano-ci-up
 test-backend-kopano-ci-up:
