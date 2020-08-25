@@ -90,11 +90,16 @@ sbin_PROGRAMS = \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
 noinst_PROGRAMS = kopano-cfgchecker
-pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime
+pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime setupenv
+setupenv_SOURCES = tests/setupenv.cpp
+setupenv_LDADD = libkcutil.la
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
 	tests/kc-335 tests/kc-1759 tests/mapialloctime \
 	tests/readflag tests/ustring tests/zcpmd5 tests/chtmltotextparsertest \
 	tests/rtfhtmltest
+if HAVE_CPPUNIT
+check_PROGRAMS += tests/mapisuite
+endif
 noinst_PROGRAMS += ${check_PROGRAMS}
 endif # ENABLE_BASE
 
@@ -782,6 +787,8 @@ tests_kc_1759_SOURCES = tests/kc-1759.cpp
 tests_kc_1759_LDADD = libmapi.la libkcutil.la
 tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
 tests_mapialloctime_LDADD = libmapi.la ${clock_LIBS}
+tests_mapisuite_SOURCES = tests/mapisuite.cpp
+tests_mapisuite_LDADD = libmapi.la ${cppunit_LIBS}
 tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
 tests_readflag_LDADD = libmapi.la libkcutil.la
 tests_ustring_SOURCES = tests/ustring.cpp
@@ -931,7 +938,6 @@ default.sym provider/plugin.sym provider/provider.sym spooler/libkcpyplug.sym: $
 include global.am
 
 
-#OLD TOPLEVEL FM
 EXTRA_DIST += versionheader.sh \
 	AGPL-3 LICENSE.txt RELNOTES.txt \
 	bootstrap.sh lddcheck global.am pwdcheck.sh

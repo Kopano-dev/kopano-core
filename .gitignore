@@ -56,6 +56,7 @@ stamp-h2
 /kscriptrun
 /mapitime
 /rtfcomp
+/setupenv
 /gateway/doveauth.sym
 /gateway/dovestore.sym
 /mapi4linux/src/libmapi.sym
@@ -82,6 +83,8 @@ stamp-h2
 /ECtools/utils/kopano_utils/version.py
 /swig/python/kopano/kopano/version.py
 /swig/python/MAPI/version.py
+/tests/*.log
+/tests/*.trs
 /tests/ablookup
 /tests/htmltext
 /tests/imtomapi
@@ -89,27 +92,15 @@ stamp-h2
 /tests/kc-1748
 /tests/kc-1759
 /tests/mapialloctime
+/tests/mapisuite
 /tests/readflag
 /tests/ustring
 /tests/zcpmd5
 /tests/chtmltotextparsertest
 /tests/rtfhtmltest
 
-# /autoconf/
-/autoconf/ltsugar.m4
-/autoconf/libtool.m4
-/autoconf/ltversion.m4
-/autoconf/depcomp
-/autoconf/missing
-/autoconf/lt~obsolete.m4
-/autoconf/config.guess
-/autoconf/ltoptions.m4
-/autoconf/ltmain.sh
-/autoconf/config.sub
-/autoconf/install-sh
-/autoconf/ylwrap
-/autoconf/compile
-/autoconf/test-driver
+/autoconf/
+/test-suite.log
 
 # /common/
 /common/config.h*

@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+kopano-admin -l >/dev/null
+kopano-admin -L >/dev/null

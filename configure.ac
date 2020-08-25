@@ -424,6 +424,8 @@ PKG_CHECK_MODULES([VMIME], [vmime >= 0.9.2k1])
 PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0], [], [
 	PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 0.8 jsoncpp < 1])
 ])
+PKG_CHECK_MODULES([cppunit], [cppunit], [have_cppunit=1], [have_cppunit=0])
+AM_CONDITIONAL([HAVE_CPPUNIT], [test "$have_cppunit" = 1])
 
 
 #
@@ -720,6 +722,7 @@ AC_CONFIG_FILES([Makefile
 		installer/searchscripts/Makefile
 		po/Makefile
 		swig/Makefile
+		tests/Makefile
 		swig/python/Makefile swig/python/python.sym
 		swig/python/kopano/Makefile
 		common/kopano.pc common/libkcutil.sym
