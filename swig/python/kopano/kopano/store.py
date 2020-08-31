@@ -1056,7 +1056,7 @@ class Store(Properties):
 
     def searches(self):
         """Return all permanent search folders."""
-        findroot = self.root.folder('FINDER_ROOT') # TODO
+        findroot = self.root.folder('FINDER_ROOT')
 
         # extract special type of guid from search folder
         # PR_EXTENDED_FOLDER_FLAGS to match against

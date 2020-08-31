@@ -10,8 +10,8 @@ for u in kopano.users():
     findroot = u.findroot
     if not findroot:
         print('No findroot for user "%s"' % u.name)
-        continue  
-  
+        continue
+
     # Saved searchfolder list
     saved_sf = list(u.store.searches())
 
