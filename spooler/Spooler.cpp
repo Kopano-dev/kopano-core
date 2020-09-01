@@ -921,7 +921,7 @@ static int main2(int argc, char **argv)
 		{ "server_socket", "default:" },
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
-		{ "pid_file", "/var/run/kopano/spooler.pid" },
+		{"pid_file", "", CONFIGSETTING_OBSOLETE},
 		{"coredump_enabled", "systemdefault"},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
@@ -1132,10 +1132,6 @@ static int main2(int argc, char **argv)
 		if (ret < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "
 				"Continuing with restricted coredumps.", strerror(-ret));
-	}
-	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig.get(), false) < 0) {
-		ec_log_crit("main(): Failed creating PID file");
-		return MAPI_E_CALL_FAILED;
 	}
 	if (g_process_model == GP_FORK)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));

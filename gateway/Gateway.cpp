@@ -309,7 +309,7 @@ int main(int argc, char *argv[]) {
 	static const configsetting_t lpDefaults[] = {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
-		{ "pid_file", "/var/run/kopano/gateway.pid" },
+		{"pid_file", "", CONFIGSETTING_OBSOLETE},
 		{ "process_model", "thread" },
 		{"coredump_enabled", "systemdefault"},
 		{"pop3_listen", "*%lo:110"},
@@ -623,7 +623,6 @@ static HRESULT running_service(char **argv)
 	act.sa_handler = gw_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-dagent", PROJECT_VERSION);
-	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);

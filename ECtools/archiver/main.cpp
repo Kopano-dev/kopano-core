@@ -195,7 +195,7 @@ int main(int argc, char **argv)
     const char *lpszConfig = Archiver::GetConfigPath();
 
     static const configsetting_t lpDefaults[] = {
-        { "pid_file", "/var/run/kopano/archiver.pid" },
+		{"pid_file", "", CONFIGSETTING_OBSOLETE},
         { NULL, NULL }
     };
 
@@ -427,10 +427,6 @@ int main(int argc, char **argv)
 			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '********'", s.szName);
 		else
 			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '%s'", s.szName, s.szValue);
-
-    if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
-        if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), false) != 0)
-            return 1;
 
     ec_log_debug("Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {

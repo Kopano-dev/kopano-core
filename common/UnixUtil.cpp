@@ -178,62 +178,6 @@ void unix_coredump_enable(const char *mode)
 	}
 }
 
-int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
-{
-	const char *progname = strrchr(argv0, '/');
-	if (progname == nullptr)
-		progname = argv0;
-	auto pidfilename = "/var/run/kopano/"s + progname + ".pid";
-	int oldpid;
-	char tmp[256];
-	bool running = false;
-
-	if (strcmp(lpConfig->GetSetting("pid_file"), ""))
-		pidfilename = lpConfig->GetSetting("pid_file");
-
-	// test for existing and running process
-	auto pidfile = fopen(pidfilename.c_str(), "r");
-	if (pidfile) {
-		if (fscanf(pidfile, "%d", &oldpid) < 1)
-			oldpid = -1;
-		fclose(pidfile);
-
-		snprintf(tmp, 255, "/proc/%d/cmdline", oldpid);
-		pidfile = fopen(tmp, "r");
-		if (pidfile) {
-			memset(tmp, '\0', sizeof(tmp));
-			if (fscanf(pidfile, "%255s", tmp) < 1)
-				/* nothing */;
-			fclose(pidfile);
-
-			if (strlen(tmp) < strlen(argv0)) {
-				if (strstr(argv0, tmp))
-					running = true;
-			} else if (strstr(tmp, argv0)) {
-				running = true;
-			}
-
-			if (running) {
-				ec_log_crit("Warning: Process %s is probably already running.", argv0);
-				if (!bForce) {
-					ec_log_crit("If you are sure the process is stopped, please remove pidfile %s", pidfilename.c_str());
-					return -1;
-				}
-			}
-		}
-	}
-
-	pidfile = fopen(pidfilename.c_str(), "w");
-	if (!pidfile) {
-		ec_log_err("Unable to open pidfile \"%s\": %s", pidfilename.c_str(), strerror(errno));
-		return 1;
-	}
-
-	fprintf(pidfile, "%d\n", getpid());
-	fclose(pidfile);
-	return 0;
-}
-
 /**
  * Starts a new Unix process and calls the given function. Optionally
  * closes some given file descriptors. The child process does not

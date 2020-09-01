@@ -143,7 +143,6 @@ static HRESULT running_service(char **argv)
 	act.sa_handler = cd_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 	ec_setup_segv_handler("kopano-ical", PROJECT_VERSION);
-	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	else
