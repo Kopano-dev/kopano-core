@@ -164,6 +164,8 @@ services:
     environment:
       - ${KOPANOPORT:-236}:236
       - ${KOPANOSPORT:-237}:237
+      - CI=1
+      - FQDN=${FQDN}
     networks:
       - kopano-net
     volumes:
@@ -174,9 +176,6 @@ services:
       - ../:${WORKSPACE}
       - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
     entrypoint: /docker-entrypoint.sh
-    environment:
-      - CI=1
-      - FQDN=${FQDN}
     command: /kopano/start-service.sh tail -f /dev/null
     tmpfs:
       - /tmp
