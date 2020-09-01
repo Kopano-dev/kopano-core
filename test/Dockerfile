@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	python3-tz \
 	python3-tzlocal \
 	php \
+	libkustomer0 \
 	libtap-formatter-junit-perl \
 	$EXTRA_PACKAGES
 
