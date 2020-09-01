@@ -5,6 +5,16 @@
 
 set -eu
 
+if [ "$SERVICE_TO_START" = "server" ]; then
+	if grep -q "#define HAVE_KUSTOMER 1" "./common/config.h" ; then
+		echo "Supported build detected."
+		# This section contains extra environment variables which are set based
+		# on if this is testing a supported build or not.
+
+		export KCCONF_SERVER_KUSTOMER_INITIALIZE_TIMEOUT=0 # allow startup without kustomerd for now
+	fi
+fi
+
 WORKSPACE=${WORKSPACE:-$(pwd)}
 
 export LD_LIBRARY_PATH=${WORKSPACE}/.libs:${WORKSPACE}/swig/python/.libs
