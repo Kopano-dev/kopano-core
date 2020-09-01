@@ -110,5 +110,7 @@ USER builder
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+ENV CONFIGURE_ARGS $CONFIGURE_ARGS
+
 # Default command (requires mounting kopanocore directory to /build/)
 CMD ./bootstrap.sh && PYTHON=/usr/bin/python3 ./configure $CONFIGURE_ARGS && make -j $(nproc)
