@@ -122,7 +122,6 @@ int main(int argc, char **argv)
 	fprintf(fp, "run_as_user=\n");
 	fprintf(fp, "run_as_group=\n");
 	fprintf(fp, "local_admin_users=root %u\n", getuid());
-	fprintf(fp, "pid_file=%s/ts-server.pid\n", cwd);
 	fprintf(fp, "server_listen=[::1]:%u\n", next_free_port());
 	fprintf(fp, "server_pipe_name=%s/ts-server.sock\n", cwd);
 	fprintf(fp, "server_pipe_priority=%s/ts-prio.sock\n", cwd);
@@ -131,14 +130,12 @@ int main(int argc, char **argv)
 	fp = fopen("ts-dagent.cfg", "w");
 	fprintf(fp, "run_as_user=\n");
 	fprintf(fp, "run_as_group=\n");
-	fprintf(fp, "pid_file=%s/ts-dagent.pid\n", cwd);
 	fprintf(fp, "lmtp_listen=[::1]:%u unix:%s/ts-dagent.sock\n", next_free_port(), cwd);
 	fprintf(fp, "server_socket=file://%s/ts-server.sock\n", cwd);
 	fclose(fp);
 	fp = fopen("ts-spooler.cfg", "w");
 	fprintf(fp, "run_as_user=\n");
 	fprintf(fp, "run_as_group=\n");
-	fprintf(fp, "pid_file=%s/ts-spooler.pid\n", cwd);
 	fprintf(fp, "server_socket=file://%s/ts-server.sock\n", cwd);
 	fclose(fp);
 
