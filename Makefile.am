@@ -14,7 +14,7 @@ endif
 endif # ENABLE_BASE
 SUBDIRS += installer/linux
 if ENABLE_PYTHON
-SUBDIRS += ECtools/backup ECtools/migration-pst \
+SUBDIRS += ECtools/backup \
 	ECtools/search ECtools/spamd \
 	ECtools/utils installer/searchscripts spooler/python \
 	spooler/python/plugins swig/python/kopano

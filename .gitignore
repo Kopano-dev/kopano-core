@@ -45,7 +45,6 @@ stamp-h2
 /kopano-monitor
 /kopano-oof
 /kopano-passwd
-/kopano-pst-import
 /kopano-server
 /kopano-spooler
 /kopano-srvadm
@@ -67,9 +66,6 @@ stamp-h2
 /ECtools/backup/kopano-backup
 /ECtools/backup/kopano_backup/version.py
 /ECtools/backup/staging/
-/ECtools/migration-pst/kopano-migration-pst
-/ECtools/migration-pst/kopano_migration_pst/version.py
-/ECtools/migration-pst/staging/
 /ECtools/rest/kopano_rest/version.py
 /ECtools/search/build/
 /ECtools/search/kopano-search
