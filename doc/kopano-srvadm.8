@@ -43,11 +43,9 @@ For cache testing, read all messages in the admin store's root (as created by
 For \-\-ct\-create, specifies the size of the bodytext.
 .TP
 \fB\-\-purge\-deferred\fP
-The server has an optimization in which changes to the "tproperties" table are
-not writted directly, but delayed for a more efficient write at a later time.
-The server auto-purges these regularly. This command allows you to manually
-start a purge of all pending changes. It may be useful to run this during low
-I/O load of your server, e.g. at night.
+This srvadm command can be used to purge the "deferredupdate" SQL table (see
+kopano-server.cfg(5):max_deferred_records for details) and trigger the
+writeback from the "properties" to the "tproperties" table.
 .TP
 \fB\-\-purge\-softdelete\fP \fIdays\fP
 Starts a softdelete purge on the server, removing all soft-deleted items which
