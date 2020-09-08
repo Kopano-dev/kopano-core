@@ -2895,7 +2895,6 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	act.sa_handler = da_sigchld_async;
 	sigaction(SIGCHLD, &act, nullptr);
 
-	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (g_process_model == GP_FORK)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
@@ -3240,7 +3239,7 @@ int main(int argc, char **argv)
 		{"server_bind_intf", "", CONFIGSETTING_OBSOLETE},
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
-		{ "pid_file", "/var/run/kopano/dagent.pid" },
+		{"pid_file", "", CONFIGSETTING_OBSOLETE},
 		{"coredump_enabled", "systemdefault"},
 		{"lmtp_listen", "*%lo:2003"},
 		{ "lmtp_max_threads", "20" },

@@ -1022,7 +1022,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
 		{ "run_as_group",			"kopano" },
-		{ "pid_file",					"/var/run/kopano/server.pid" },
+		{"pid_file", "", CONFIGSETTING_OBSOLETE},
 		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 
@@ -1330,8 +1330,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 	auto hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	auto distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-	unix_create_pidfile(szName, g_lpConfig.get());
-
 	struct sigaction act{};
 	sigemptyset(&act.sa_mask);
 	// normally ignore these signals
