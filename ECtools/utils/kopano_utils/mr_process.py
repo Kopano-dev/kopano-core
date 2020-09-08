@@ -48,10 +48,14 @@ def process(username, server, entryid):
         server.log.error("Unable to publish freebusy information: %s", str(e))
 
 
-if __name__ == '__main__':  # pragma: no cover
+def main():
     username, config_file, entryid = sys.argv[1:]
 
     config = kopano.Config(filename=config_file)
     server = kopano.server(config=config)
 
     process(username, server, entryid)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()

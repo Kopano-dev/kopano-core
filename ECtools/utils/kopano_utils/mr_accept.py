@@ -125,7 +125,7 @@ def accept(username, server, entryid=None):
         print("Unable to publish freebusy information: " + str(e), file=sys.stderr)
 
 
-if __name__ == '__main__':
+def main():
     args = sys.argv[1:]
     username, config_file = args[:2]
 
@@ -133,4 +133,8 @@ if __name__ == '__main__':
     config = kopano.Config(filename=config_file)
     server = kopano.server(config=config)
 
-    accept(username, server, entryid)  # pragma: no cover
+    accept(username, server, entryid)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()
