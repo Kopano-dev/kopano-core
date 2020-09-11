@@ -25,7 +25,6 @@ import traceback
 
 try:
     import daemon
-    import daemon.pidfile as pidlockfile
 except ImportError: # pragma: no cover
     pass
 
@@ -57,36 +56,16 @@ def _daemon_helper(func, service, log):
 def _daemonize(func, options=None, log=None, config=None,
         service=None):
     uid = gid = None
-    pidfile = None
     if config:
-        pidfile = config.get('pid_file')
         if config.get('run_as_user'):
             uid = pwd.getpwnam(config.get('run_as_user')).pw_uid
         if config.get('run_as_group'):
             gid = grp.getgrnam(config.get('run_as_group')).gr_gid
-    if not pidfile and service:
-        pidfile = "/var/run/kopano/%s.pid" % service.name
-    if pidfile:
-        pidfile = pidlockfile.TimeoutPIDLockFile(pidfile, 10)
-        oldpid = pidfile.read_pid()
-        if oldpid is None:
-            # there was no pidfile, remove the lock if it's there
-            pidfile.break_lock()
-        elif oldpid:
-            try:
-                open('/proc/%u/cmdline' % oldpid).read().split('\0')
-            except IOError as error:
-                if error.errno != errno.ENOENT:
-                    raise
-                # errno.ENOENT indicates that no process with pid=oldpid
-                # exists, which is ok
-                pidfile.break_lock()
     if uid is not None and gid is not None:
         for h in log.handlers:
             if isinstance(h, logging.handlers.WatchedFileHandler):
                 os.chown(h.baseFilename, uid, gid)
     with daemon.DaemonContext(
-            pidfile=pidfile,
             uid=uid,
             gid=gid,
             working_directory='/',
