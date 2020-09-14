@@ -1401,7 +1401,7 @@ ECRESULT ECSessionManager::get_user_count(usercount_t *uc)
 ECRESULT ECSessionManager::get_user_count_cached(usercount_t *uc)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_usercount_mtx);
-	if (!m_usercount.is_valid() || m_usercount_ts - decltype(m_usercount_ts)::clock::now() > std::chrono::seconds(5))
+	if (!m_usercount.is_valid() || decltype(m_usercount_ts)::clock::now() - m_usercount_ts > std::chrono::seconds(5))
 		return get_user_count(uc);
 	if (uc != nullptr)
 		*uc = m_usercount;
