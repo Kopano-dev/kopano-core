@@ -924,7 +924,6 @@ dist_man_MANS += \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-cachestat.8 \
 	doc/kopano-mailbox-permissions.8 \
-	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
 	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5

@@ -43,7 +43,7 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 endif # ENABLE_BASE
 
 if ENABLE_PYTHON
-config_files += autorespond.cfg backup.cfg migration-pst.cfg search.cfg spamd.cfg
+config_files += autorespond.cfg backup.cfg search.cfg spamd.cfg
 dist_sysconf_apparmor_DATA += usr.sbin.kopano-search
 dist_doc_DATA += ${top_srcdir}/tools/python-scripts/update-resource-recipients
 kgwdocdir = ${docdir}/../kopano-gateway
