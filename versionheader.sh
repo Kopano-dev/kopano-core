@@ -12,7 +12,11 @@ fi
 version=$(cat version 2>/dev/null || :)
 if test -z "$version"; then version="$acver"; fi
 if perl -e 'exit!($ARGV[1]!~/^\Q$ARGV[0]\E\b/)' "$acver" "$version"; then
-	>&2 echo "You can only append, not override, the version specified in AC_INIT."
+	echo "The source code version is \"$acver\" (as defined by configure.ac)." >&2
+	echo "The \"version\" file can be used to override this, HOWEVER, it is only meant" >&2
+	echo "for _appending_ suffixes, not change it to something entirely different." >&2
+	echo "Current contents of \"version\": \"$version\"" >&2
+	echo "If in doubt, remove the \"version\" file before retrying." >&2
 	exit 1
 fi
 set -- $(echo "$version" | sed -e 's/ .*//g;s/[^0-9a-z][^0-9a-z]*/ /g' 2>/dev/null)

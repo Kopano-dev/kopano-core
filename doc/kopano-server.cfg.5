@@ -636,13 +636,28 @@ Default:
 \fIpasswd\fR
 .SS max_deferred_records
 .PP
-The server has a list of deferred writes to the tproperties table, to improve overall I/O performance. The number of deferred writes is kept below this value; setting it high will allow writes to be more efficient by grouping more writes together, but may slow down reading, and setting it low will force writes to complete directly, but speed up reading of tables.
+When a folder/message/etc. object receives property updates and the
+"properties" SQL table is updated, the "tproperties" SQL table would need an
+update as well. In an effort to improve I/O performance, instead of updating
+tproperties right away, a record is added to the "deferredupdate" table which
+marks a section of tproperties as dirty; subsequent tabulated property reads
+(i.e. via IMAPITable) are then served from "properties" rather than
+"tproperties".
+.PP
+The server runs a background thread monitoring the total deferred record count.
+The max_deferred_records directive specifies the maximum number of deferred
+records allowed to exist before this thread starts a purge of deferredupdates
+and hence an update of tproperties. The special value 0 indicates an infinite
+number of deferred records.
 .PP
 Default:
-\fI0 (off)\fR
+\fI0\fP (not monitoring)
 .SS max_deferred_records_folder
 .PP
-Same as the max_deferred_records variable, but per folder instead of total.
+Aside from the above-mentioned background thread, the server also checks the
+deferred record count when a folder is updated. The max_deferred_records
+directive specifies the maximum number of deferred records allowed to exist for
+any given folder before a purge is issued for the folder.
 .PP
 Default:
 \fI20\fR
