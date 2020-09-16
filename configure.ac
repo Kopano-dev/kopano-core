@@ -644,20 +644,18 @@ ZCPPFLAGS="$ZCPPFLAGS $icu_uc_CFLAGS $icu_i18n_CFLAGS"
 
 # check for libkcoidc support
 PKG_CHECK_EXISTS([libkcoidc], [have_kcoidc=1], [have_kcoidc=0])
-AC_ARG_ENABLE([kcoidc], AS_HELP_STRING([--enable-kcoidc], [require libkcoidc]), [want_kcoidc=yes], [want_kcoidc=no])
+AC_ARG_ENABLE([kcoidc], AS_HELP_STRING([--enable-kcoidc], [require libkcoidc]), [want_kcoidc="$enableval"], [want_kcoidc=no])
 AS_IF([test "$want_kcoidc" = "yes" -o "$have_kcoidc" = "1"], [
 	PKG_CHECK_MODULES([kcoidc], [libkcoidc >= 0.9.0])
-	AC_DEFINE(HAVE_KCOIDC_H, [1], [libkcoidc available])
-	ZCPPFLAGS="$ZCPPFLAGS $kcoidc_CFLAGS"
+	AC_DEFINE([HAVE_KCOIDC_H], [1], [libkcoidc available])
 ])
 
 # check libkustomer support
 PKG_CHECK_EXISTS([libkustomer], [have_kustomer=1], [have_kustomer=0])
-AC_ARG_ENABLE([kustomer], AS_HELP_STRING([--enable-kustomer], [require libkustomer]), [want_kustomer=yes], [want_kustomer=no])
+AC_ARG_ENABLE([kustomer], AS_HELP_STRING([--enable-kustomer], [require libkustomer]), [want_kustomer="$enableval"], [want_kustomer=no])
 AS_IF([test "$want_kustomer" = "yes"], [
 	PKG_CHECK_MODULES([kustomer], [libkustomer >= 0.5.0])
-	AC_DEFINE(HAVE_KUSTOMER, [1], [libkustomer available])
-	ZCPPFLAGS="$ZCPPFLAGS $kustomer_CFLAGS"
+	AC_DEFINE([HAVE_KUSTOMER], [1], [libkustomer available])
 ])
 
 # done testing C++ requirements
