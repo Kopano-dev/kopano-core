@@ -144,8 +144,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	if (m_lpCmd != nullptr) {
 		lpCmd = m_lpCmd.get();
 	} else if (CreateSoapTransport(sProfileProps, &unique_tie(new_cmd)) != hrSuccess) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	} else {
 		lpCmd = new_cmd.get();
 	}
@@ -179,8 +178,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		     sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
-		hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
-		goto exit;
+		return kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	}
 
 	// try single signon logon
@@ -214,22 +212,17 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	/*
 	 * Version is retrieved but not analyzed because we want to be able to
 	 * connect to old servers for development.
 	 */
-	if (sResponse.lpszVersion == nullptr) {
+	if (sResponse.lpszVersion == nullptr)
 		/* turn ParseKopanoVersion to take const char * in next ABI */
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, &ulServerVersion);
-	if (er != erSuccess) {
-		hr = MAPI_E_VERSION;
-		goto exit;
-	}
+	if (er != erSuccess)
+		return MAPI_E_VERSION;
 
 	ecSessionId = sResponse.ulSessionId;
 	ulServerCapabilities = sResponse.ulCapabilities;
@@ -242,10 +235,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 auth: // User have a logon
 	// See if the server supports impersonation. If it doesn't but imporsonation was attempted,
 	// we should fail now because the client won't expect his own store to be returned.
-	if (!strImpersonateUser.empty() && !(ulServerCapabilities & KOPANO_CAP_IMPERSONATION)) {
-		hr = MAPI_E_NO_SUPPORT;	// or just MAPI_E_LOGON_FAILED?
-		goto exit;
-	}
+	if (!strImpersonateUser.empty() && !(ulServerCapabilities & KOPANO_CAP_IMPERSONATION))
+		return MAPI_E_NO_SUPPORT; // or just MAPI_E_LOGON_FAILED?
 
 #ifdef WITH_ZLIB
 	if (ulServerCapabilities & KOPANO_CAP_COMPRESSION) {
@@ -264,9 +255,7 @@ auth: // User have a logon
 	m_has_session = true;
 	if (new_cmd != nullptr)
 		m_lpCmd = std::move(new_cmd);
-exit:
-	spg.unlock();
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props) try
