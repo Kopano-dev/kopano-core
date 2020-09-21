@@ -15,7 +15,9 @@
 #include <mapiutil.h>
 #include <fstream>
 #include <new>
+#include <sstream>
 #include <string>
+#include <json/reader.h>
 #include <kopano/ECLogger.h>
 #include <kopano/scope.hpp>
 #include "WSTransport.h"
@@ -259,9 +261,16 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		rsp_bin.tracking_id = be32_to_cpu(rsp_bin.tracking_id);
 		if (rsp_bin.tracking_id != tracking_id)
 			return MAPI_E_NO_ACCESS;
+
 		hr = rsp_bin.status = be32_to_cpu(rsp_bin.status);
-		if (hr != hrSuccess)
+		Json::Value root;
+		std::istringstream sin(rsp_str.substr(sizeof(rsp_bin)));
+		auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
+		if (hr != hrSuccess) {
+			if (valid_json && root.isMember("ers"))
+				return hr_lerrf(hr, "%s", root["ers"].asCString());
 			return hr;
+		}
 	}
 
 	ecSessionId = sResponse.ulSessionId;
