@@ -176,9 +176,10 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		     GetAppName().c_str(), &ecSessionId, &ulServerCapabilities,
 		     &m_sServerGuid, sProfileProps.strClientAppVersion,
 		     sProfileProps.strClientAppMisc);
-		if (er == erSuccess)
-			goto auth;
-		return kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
+		if (er != erSuccess)
+			return kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
+		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
+		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 	}
 
 	// try single signon logon
@@ -187,7 +188,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	     &ulServerCapabilities, &m_sServerGuid,
 	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 	if (er == erSuccess)
-		goto auth;
+		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
+		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 
 	// Login with username and password
 	er = lpCmd->logon(strUserName.c_str(), strPassword.c_str(),
@@ -231,8 +233,14 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		memcpy(&m_sServerGuid, sResponse.sServerGuid.__ptr, sizeof(m_sServerGuid));
 
 	// From here the login is ok
+	return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
+	       strImpersonateUser, ulServerCapabilities, ecSessionId);
+}
 
-auth: // User have a logon
+HRESULT WSTransport::PostAuth(KCmdProxy *lpCmd, std::unique_ptr<KCmdProxy2> &&new_cmd,
+    const sGlobalProfileProps &sProfileProps, const KC::utf8string &strImpersonateUser,
+    unsigned int ulServerCapabilities, ECSESSIONID ecSessionId)
+{
 	// See if the server supports impersonation. If it doesn't but imporsonation was attempted,
 	// we should fail now because the client won't expect his own store to be returned.
 	if (!strImpersonateUser.empty() && !(ulServerCapabilities & KOPANO_CAP_IMPERSONATION))
