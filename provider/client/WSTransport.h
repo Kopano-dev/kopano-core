@@ -247,6 +247,7 @@ public:
 
 private:
 	HRESULT HrLogon2(const struct sGlobalProfileProps &);
+	HRESULT PostAuth(KCmdProxy *, std::unique_ptr<KCmdProxy2> &&, const sGlobalProfileProps &, const KC::utf8string &imp_user, unsigned int server_caps, KC::ECSESSIONID);
 	// Returns name of calling application (e.g. 'program.exe' or 'httpd')
 	std::string GetAppName();
 
