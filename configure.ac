@@ -120,6 +120,7 @@ AS_CASE([$host_os],
 AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
 AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
 
+have_cppunit=0
 AS_IF([test "$want_base" != no], [
 
 #
@@ -425,7 +426,6 @@ PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 1.4.0], [], [
 	PKG_CHECK_MODULES([jsoncpp], [jsoncpp >= 0.8 jsoncpp < 1])
 ])
 PKG_CHECK_MODULES([cppunit], [cppunit], [have_cppunit=1], [have_cppunit=0])
-AM_CONDITIONAL([HAVE_CPPUNIT], [test "$have_cppunit" = 1])
 
 
 #
@@ -688,6 +688,7 @@ AS_IF([test "$want_pybind" != no], [
 
 AM_CONDITIONAL([ENABLE_BASE], [test "$enable_base" != no])
 AM_CONDITIONAL([ENABLE_PYBIND], [test "$want_pybind" != no -a -n "$PYTHON_LIBS"])
+AM_CONDITIONAL([HAVE_CPPUNIT], [test "$have_cppunit" = 1])
 AM_CONDITIONAL([HAVE_MHTTPD], [test -n "$mhttpd_CFLAGS" -o -n "$mhttpd_LIBS"])
 AM_CONDITIONAL([HAVE_RRD], [test -n "$rrd_CFLAGS" -o -n "$rrd_LIBS"])
 AM_CONDITIONAL([WITH_EPOLL], [test "$want_epoll" = "yes"])
