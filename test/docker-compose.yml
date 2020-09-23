@@ -85,7 +85,6 @@ services:
       - KCCONF_SERVER_SYNC_GAB_REALTIME=no
       - KCCONF_SERVER_LOCAL_ADMIN_USERS=root kopano testrunner
       - KCCONF_SERVER_PID_FILE=/run/kopano/server.pid
-      - KCCONF_SERVER_KUSTOMER_INITIALIZE_TIMEOUT=0 # allow startup without kustomerd for now
       - KCCONF_LDAP_LDAP_URI=${LDAP_SERVER}
       - KCCONF_LDAP_LDAP_BIND_USER=${LDAP_BIND_DN}
       - KCCONF_LDAP_LDAP_BIND_PASSWD=${LDAP_BIND_PW}
@@ -164,6 +163,8 @@ services:
     environment:
       - ${KOPANOPORT:-236}:236
       - ${KOPANOSPORT:-237}:237
+      - CI=1
+      - FQDN=${FQDN}
     networks:
       - kopano-net
     volumes:
@@ -174,9 +175,6 @@ services:
       - ../:${WORKSPACE}
       - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
     entrypoint: /docker-entrypoint.sh
-    environment:
-      - CI=1
-      - FQDN=${FQDN}
     command: /kopano/start-service.sh tail -f /dev/null
     tmpfs:
       - /tmp
