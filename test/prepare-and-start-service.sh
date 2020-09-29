@@ -11,7 +11,7 @@ if [ "$SERVICE_TO_START" = "server" ]; then
 		# This section contains extra environment variables which are set based
 		# on if this is testing a supported build or not.
 
-		export KCCONF_SERVER_KUSTOMER_INITIALIZE_TIMEOUT=0 # allow startup without kustomerd for now
+		#export KCCONF_SERVER_KUSTOMER_INITIALIZE_TIMEOUT=0 # allow startup without kustomerd for now
 	fi
 fi
 
