@@ -1050,7 +1050,6 @@ static void ec_segv_handler(int signr, siginfo_t *si, void *uctx)
 #ifdef HAVE_SIGINFO_T_SI_FD
 	ec_log_crit("Affected fd: %d", si->si_fd);
 #endif
-	ec_log_crit("When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
 	/* Reset to DFL to avoid recursion */
 	if (signal(signr, SIG_DFL) == SIG_ERR)
 		ec_log_warn("signal(%d, SIG_DFL): %s", signr, strerror(errno));
