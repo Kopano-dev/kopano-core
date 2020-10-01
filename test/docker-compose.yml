@@ -40,6 +40,23 @@ services:
     tmpfs:
       - /tmp
 
+  kopano_kustomerd:
+    build:
+      context: .
+      dockerfile: Dockerfile.kustomerd
+      args:
+        - kopano_kustomerd_version=${KUSTOMERD_VERSION:-latest}
+    environment:
+      - KUSTOMERD_PRESEED_LICENSE=${KUSTOMERD_PRESEED_LICENSE}
+    restart: always
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - kustomerdsocket:/run/kopano-kustomerd
+      - ./preseed-license.sh:/preseed-license.sh:ro
+    entrypoint: /preseed-license.sh
+    command: kustomerd serve
+
   kopano_ssl:
     image: ${docker_repo:-zokradonh}/kopano_ssl:${SSL_VERSION:-latest}
     read_only: true
@@ -64,6 +81,7 @@ services:
     depends_on:
       - db
       - ldap
+      - kopano_kustomerd
       - kopano_ssl
     environment:
       - SERVICE_TO_START=server
@@ -104,6 +122,7 @@ services:
       - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
       - kopanodata:/kopano/data
       - kopanossl:/kopano/ssl:ro
+      - kustomerdsocket:/run/kopano-kustomerd
       - kopanosocket:/run/kopano
       - ../:/workspace/
       - ./prepare-and-start-service.sh:/prepare-and-start-service.sh:ro
@@ -183,6 +202,7 @@ volumes:
   ldap:
   slapd:
   mysql:
+  kustomerdsocket:
   kopanosocket:
   kopanodata:
   kopanossl:
