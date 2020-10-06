@@ -240,7 +240,7 @@ kc_join(const C &v, const char *sep, F &&func)
 }
 
 extern KC_EXPORT std::string base64_encode(const void *, unsigned int);
-extern KC_EXPORT std::string base64_decode(const std::string &);
+extern KC_EXPORT std::string base64_decode(const string_view &);
 extern KC_EXPORT std::string zcp_md5_final_hex(MD5_CTX *);
 extern KC_EXPORT std::string string_strip_crlf(const char *);
 extern KC_EXPORT bool SymmetricIsCrypted(const char *);

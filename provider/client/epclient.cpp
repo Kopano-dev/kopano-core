@@ -569,7 +569,9 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		//
 		// Although this error is not in the online spec from MS, it should not really matter .... right?
 		// hr = MAPI_E_UNCONFIGURED;
-		if (hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR || hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER) {
+		if (hr == MAPI_E_LOGON_FAILED || hr == MAPI_E_NETWORK_ERROR ||
+		    hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER ||
+		    hr == MAPI_E_NO_ACCESS) {
 			goto exit2;
 		} else if (hr != erSuccess) { // Big error?
 			assert(false);
