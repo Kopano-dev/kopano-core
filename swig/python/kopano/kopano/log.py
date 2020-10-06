@@ -8,6 +8,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 
 import contextlib
 import logging.handlers
+import os
 from queue import Empty
 import sys
 import threading
@@ -65,6 +66,14 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     if name:
         log_file = log_file.replace(service, name) # TODO
     fh = None
+    if log_method == 'syslog' and not os.getenv("PYKO_ALLOW_SYSLOG_LOGGING", None):
+        # NOTE(longsleep): Syslog logging does not work in its current
+        # implementation. Disable it for now until it can be brought back in
+        # way which works with multi-threading and multi-processing.
+        import warnings
+        warnings.warn('syslog support has been removed, falling back to stderr')
+        log_method = 'file'
+        log_file = '-'
     if log_method == 'file':
         if log_file == '-':
             fh = logging.StreamHandler(sys.stderr)
