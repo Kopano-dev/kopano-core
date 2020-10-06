@@ -13,14 +13,15 @@ import sys
 import threading
 import traceback
 
-FMT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+FMT_BASE = '[%(levelname)-8s] %(name)s - %(message)s'
+FMT = '%(asctime)s.%(msecs)03d: ' + FMT_BASE
 
 def _kopano_logger():
     log = logging.getLogger('kopano')
     log.setLevel(logging.WARNING)
     fh = logging.StreamHandler(sys.stderr)
     log.addHandler(fh)
-    formatter = logging.Formatter(FMT)
+    formatter = logging.Formatter(FMT, datefmt='%Y-%m-%dT%H:%M:%S')
     fh.setFormatter(formatter)
     return log
 
@@ -51,11 +52,18 @@ def _loglevel(options, config):
         'CRITICAL': logging.CRITICAL,
     }[log_level.upper()]
 
+def _logfmt(config):
+    log_fmt = FMT
+    if config:
+        if not config.get('log_timestamp', True):
+            log_fmt = FMT_BASE
+    return log_fmt
+
 def logger(service, options=None, stdout=False, config=None, name=''):
     logger = logging.getLogger(name or service)
     if logger.handlers:
         return logger
-    formatter = logging.Formatter(FMT)
+    formatter = logging.Formatter(_logfmt(config), datefmt='%Y-%m-%dT%H:%M:%S')
     log_method = 'file'
     log_file = '/var/log/kopano/%s.log' % service
     if config:
