@@ -116,7 +116,7 @@ class QueueHandler(logging.Handler): # pragma: no cover
         self.queue = queue
 
     def enqueue(self, record):
-        self.queue.put_nowait(record)
+        self.queue.put(record, True, 0.5)
 
     def prepare(self, record):
         self.format(record)
@@ -158,10 +158,15 @@ class QueueListener(object): # pragma: no cover
                 self.handle(record)
                 if has_task_done:
                     q.task_done()
-
-            except (Empty, EOFError):
                 if self._stop.isSet():
                     break
+            except Empty:
+                if self._stop.isSet():
+                    break
+            except (EOFError, ValueError):
+                if self._stop.isSet():
+                    break
+                raise
 
     def stop(self):
         self._stop.set()
