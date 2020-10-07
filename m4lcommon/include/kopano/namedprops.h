@@ -169,6 +169,7 @@
 
 //In PSETID_KC (general KC properties)
 #define dispidAutoProcess                   0x0001  //PT_LONG
+#define dispidLicenseJSON 0x0002 /* PT_STRING8 */
 
 // In PSETID_Common
 #define dispidReminderMinutesBeforeStart	0x8501	//PT_LONG

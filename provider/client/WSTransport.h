@@ -244,7 +244,7 @@ public:
 
 	HRESULT HrResetFolderCount(unsigned int eid_size, const ENTRYID *eid, unsigned int *nupdates);
 
-	std::string m_server_version;
+	std::string m_server_version, m_licjson;
 
 private:
 	HRESULT HrLogon2(const struct sGlobalProfileProps &);
