@@ -25,9 +25,13 @@ public:
 
 	void increment();
 
-	KC_HIDDEN bool equal(const ECHierarchyIteratorBase &rhs) const
+	bool operator==(const ECHierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent;
+	}
+	bool operator!=(const ECHierarchyIteratorBase &rhs) const
+	{
+		return !operator==(rhs);
 	}
 
 private:
@@ -47,14 +51,6 @@ public:
 		ECHierarchyIteratorBase(c, flags, depth)
 	{}
 
-	bool operator==(const ECHierarchyIterator<ContainerPtrType> &r) const
-	{
-		return ECHierarchyIteratorBase::equal(r);
-	}
-	bool operator!=(const ECHierarchyIterator<ContainerPtrType> &r) const
-	{
-		return !operator==(r);
-	}
 	ECHierarchyIterator<ContainerPtrType> &operator++()
 	{
 		ECHierarchyIteratorBase::increment();
