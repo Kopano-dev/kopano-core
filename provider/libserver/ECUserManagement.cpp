@@ -35,6 +35,10 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
 #include <kopano/fileutil.hpp>
+#ifdef HAVE_KUSTOMER
+#	include <kustomer.h>
+#	include <kustomer_errors.h>
+#endif
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
@@ -1192,6 +1196,41 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSig
 	return erSuccess;
 }
 
+#ifdef HAVE_KUSTOMER
+static bool decider3()
+{
+	usercount_t uc{};
+	g_lpSessionManager->get_user_count(&uc);
+
+	auto ta = kustomer_begin_ensure();
+	if (ta.r0 != 0)
+		return ta.r0;
+	unsigned long long err = 0;
+	auto cleanup_ta = make_scope_exit([&]() {
+		auto ret = kustomer_end_ensure(ta.r1);
+		if (ret != KUSTOMER_ERRSTATUSSUCCESS && err == 0)
+			err = ret;
+	});
+
+	err = kustomer_ensure_set_allow_untrusted(ta.r1, true);
+	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		return false;
+	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
+	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		return false;
+	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
+	      uc[usercount_t::ucIndex::ucActiveUser], KUSTOMER_OPERATOR_GE);
+	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		return false;
+	return true;
+}
+#else
+static bool decider3()
+{
+	return true;
+}
+#endif
+
 ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, unsigned int *lpulId)
 {
 	objectsignature_t objectsignature;
@@ -2090,6 +2129,9 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
+	if (!decider3())
+		return hr_lerrf(MAPI_E_NO_ACCESS, "License daemon rejected the request");
+
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
 	unsigned int ulId;

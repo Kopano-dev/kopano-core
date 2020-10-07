@@ -567,9 +567,11 @@ static void set_agent(struct soap *soap, const char *misc, const char *ver)
 }
 
 #ifdef HAVE_KUSTOMER
-static unsigned long long decider2(const LICENSEREQUEST &lreq,
-    ECConfig *cfg, const usercount_t &uc)
+static unsigned long long decider2(const LICENSEREQUEST &lreq, ECConfig *cfg)
 {
+	usercount_t uc{};
+	g_lpSessionManager->get_user_count(&uc);
+
 	auto ta = kustomer_begin_ensure();
 	if (ta.r0 != 0)
 		return ta.r0;
@@ -608,11 +610,10 @@ static unsigned long long decider2(const LICENSEREQUEST &lreq,
 	return 0;
 }
 
-static Json::Value decider(const LICENSEREQUEST &lreq, ECConfig *cfg,
-    const usercount_t &uc)
+static Json::Value decider(const LICENSEREQUEST &lreq, ECConfig *cfg)
 {
 	Json::Value out;
-	auto err = decider2(lreq, cfg, uc);
+	auto err = decider2(lreq, cfg);
 	out["err"] = Json::Value::UInt64(err);
 	if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 		char *ers = kustomer_err_numeric_text(err);
@@ -622,7 +623,7 @@ static Json::Value decider(const LICENSEREQUEST &lreq, ECConfig *cfg,
 	return out;
 }
 #else
-static Json::Value decider(const LICENSEREQUEST &, ECConfig *, const usercount_t &)
+static Json::Value decider(const LICENSEREQUEST &, ECConfig *)
 {
 	Json::Value out;
 	out["err"] = 0;
@@ -653,11 +654,9 @@ static ECRESULT ECLicense_Auth(const void *data, size_t dsize, std::string &rsp_
 	req.service_id   = be32_to_cpu(req.service_id);
 	req.service_type = be32_to_cpu(req.service_type);
 
-	usercount_t uc{};
-	g_lpSessionManager->get_user_count(&uc);
-	auto js_rsp      = decider(req, g_lpSessionManager->GetConfig().get(), uc);
+	auto js_rsp      = decider(req, g_lpSessionManager->GetConfig().get());
 	rsp.version      = cpu_to_be32(req.version);
-	rsp.status       = cpu_to_be32(js_rsp["err"].asUInt64() == 0 ? hrSuccess : MAPI_E_NO_ACCESS);
+	rsp.status       = cpu_to_be32(hrSuccess);
 	rsp.tracking_id  = req.tracking_id;
 	rsp.flags        = cpu_to_be64(~0ULL);
 	auto d = std::string(reinterpret_cast<const char *>(&rsp), sizeof(rsp)) +
