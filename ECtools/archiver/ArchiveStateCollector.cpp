@@ -187,6 +187,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 		return hr;
 
 	try {
+		using ECABContainerIterator = ECHierarchyIterator<object_ptr<IABContainer>>;
 		for (ECABContainerIterator iter(ptrABContainer, 0); iter != ECABContainerIterator(); ++iter) {
 			hr = PopulateFromContainer(*iter);
 			if (hr != hrSuccess)
