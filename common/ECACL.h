@@ -8,6 +8,17 @@
 
 namespace KC {
 
+/* The Archiver API can return either a MAPI RIGHTS code (below) or the following special magic values. */
+/* Error during retrieval */
+#define ARCHIVE_RIGHTS_ERROR	static_cast<unsigned int>(-1)
+/* Used for entities that are not security objects */
+#define ARCHIVE_RIGHTS_ABSENT	static_cast<unsigned int>(-2)
+/* ...did not even make it to read the "acl" table */
+#define ARCHIVE_RIGHTS_UNKNOWN	static_cast<unsigned int>(-3)
+/* "acl" SQL table has no row */
+#define ARCHIVE_RIGHTS_MISSING	static_cast<unsigned int>(-4)
+
+/* These are the values used by and for the IExchangeModifyTable API. */
 enum ACLRIGHTS {
 	RIGHTS_NONE              =     0,
 	RIGHTS_READ_ITEMS        =   0x1,
