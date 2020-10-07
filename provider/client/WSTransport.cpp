@@ -262,8 +262,9 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 			return MAPI_E_NO_ACCESS;
 
 		hr = rsp_bin.status = be32_to_cpu(rsp_bin.status);
+		m_licjson = rsp_str.substr(sizeof(rsp_bin));
 		Json::Value root;
-		std::istringstream sin(rsp_str.substr(sizeof(rsp_bin)));
+		std::istringstream sin(m_licjson);
 		auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
 		if (hr != hrSuccess) {
 			if (valid_json && root.isMember("ers"))
