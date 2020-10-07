@@ -12,13 +12,13 @@
 namespace KC {
 
 class ECDatabase;
-class ECConfig;
+class Config;
 class ECDatabaseFactory;
 class ECSession;
 
 class ECTPropsPurge final {
 public:
-	ECTPropsPurge(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabaseFactory);
+	ECTPropsPurge(std::shared_ptr<Config>, ECDatabaseFactory *lpDatabaseFactory);
     ~ECTPropsPurge();
 
     static ECRESULT PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId);
@@ -38,7 +38,7 @@ private:
 	std::condition_variable m_hCondExit;
     pthread_t			m_hThread;
 	bool m_thread_active = false, m_bExit = false;
-	std::shared_ptr<ECConfig> m_lpConfig;
+	std::shared_ptr<Config> m_lpConfig;
     ECDatabaseFactory *m_lpDatabaseFactory;
 };
 

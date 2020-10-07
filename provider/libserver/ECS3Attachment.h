@@ -21,12 +21,13 @@ struct s3_cache_entry {
 	size_t size;
 };
 
+class Config;
 class ECS3Attachment;
 
 class ECS3Config final : public ECAttachmentConfig {
 	public:
 	virtual ~ECS3Config();
-	virtual ECRESULT init(std::shared_ptr<ECConfig>) override;
+	virtual ECRESULT init(std::shared_ptr<Config>) override;
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
 	private:

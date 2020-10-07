@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 #include <kopano/ECConfig.h>
+#include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>

@@ -31,8 +31,8 @@ struct soap;
 
 namespace KC {
 
-class ECConfig;
-class ECLogger;
+class Config;
+class Logger;
 class ECTPropsPurge;
 
 struct TABLESUBSCRIPTION {
@@ -115,7 +115,7 @@ class usercount_t final {
 
 class KC_EXPORT server_stats final : public ECStatsCollector {
 	public:
-	KC_HIDDEN server_stats(std::shared_ptr<ECConfig>);
+	KC_HIDDEN server_stats(std::shared_ptr<Config>);
 	virtual void stop() override;
 	virtual void fill_odm() override;
 
@@ -127,7 +127,7 @@ class SOURCEKEY;
 
 class KC_EXPORT ECSessionManager final {
 public:
-	KC_HIDDEN ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
+	KC_HIDDEN ECSessionManager(std::shared_ptr<Config>, std::shared_ptr<Logger> audit, std::shared_ptr<server_stats>, bool hosted, bool distributed);
 	KC_HIDDEN virtual ~ECSessionManager();
 	KC_HIDDEN virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
@@ -190,8 +190,8 @@ public:
 	KC_HIDDEN ECLocale GetSortLocale(unsigned int store_id);
 	KC_HIDDEN ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
 	KC_HIDDEN ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
-	KC_HIDDEN std::shared_ptr<ECConfig> GetConfig() const { return m_lpConfig; }
-	KC_HIDDEN std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
+	KC_HIDDEN std::shared_ptr<Config> GetConfig() const { return m_lpConfig; }
+	KC_HIDDEN std::shared_ptr<Logger> GetAudit() const { return m_lpAudit; }
 	KC_HIDDEN ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	KC_HIDDEN ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	KC_HIDDEN ECDatabaseFactory *get_db_factory() const { return m_lpDatabaseFactory.get(); }
@@ -215,7 +215,7 @@ protected:
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
-	std::shared_ptr<ECConfig> m_lpConfig;
+	std::shared_ptr<Config> m_lpConfig;
 	bool bExit = false, m_bTerminateThread, m_thread_active = false;
 	bool m_bHostedKopano, m_bDistributedKopano;
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
@@ -237,7 +237,7 @@ protected:
 
 	bool m_sguid_set = false;
 	GUID m_server_guid{};
-	std::shared_ptr<ECLogger> m_lpAudit;
+	std::shared_ptr<Logger> m_lpAudit;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
 	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;
 	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;

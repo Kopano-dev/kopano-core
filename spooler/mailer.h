@@ -8,6 +8,6 @@
 #include <inetmapi/inetmapi.h>
 #include <kopano/ECDefs.h>
 
-namespace KC { class ECLogger; }
+namespace KC { class Logger; }
 extern HRESULT SendUndeliverable(KC::ECSender *, IMsgStore *, IMessage *);
-extern HRESULT ProcessMessageForked(const wchar_t *user, const char *smtp_host, int smtp_port, const char *path, unsigned int eid_size, const ENTRYID *msg_eid, std::shared_ptr<KC::ECLogger>, bool do_sentmail);
+extern HRESULT ProcessMessageForked(const wchar_t *user, const char *smtp_host, int smtp_port, const char *path, unsigned int eid_size, const ENTRYID *msg_eid, std::shared_ptr<KC::Logger>, bool do_sentmail);

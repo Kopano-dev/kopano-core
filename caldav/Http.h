@@ -30,9 +30,11 @@
 
 HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstrUrlUser = NULL, std::string *lpstrFolder = NULL);
 
+namespace KC { class Config; };
+
 class Http final {
 public:
-	Http(KC::ECChannel *, std::shared_ptr<KC::ECConfig>);
+	Http(KC::ECChannel *, std::shared_ptr<KC::Config>);
 	HRESULT HrReadHeaders();
 	HRESULT HrValidateReq();
 	HRESULT HrReadBody();
@@ -61,7 +63,7 @@ public:
 
 private:
 	KC::ECChannel *m_lpChannel;
-	std::shared_ptr<KC::ECConfig> m_lpConfig;
+	std::shared_ptr<KC::Config> m_lpConfig;
 
 	/* request */
 	std::string m_strAction;	//!< full 1st-line

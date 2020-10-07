@@ -18,10 +18,7 @@
 #include "soapH.h"
 #include "cmd.hpp"
 
-namespace KC {
-class ECLogger;
-}
-
+namespace KC { class Logger; }
 using KC::ECRESULT;
 
 struct ACTIVESOCKET final {
@@ -117,6 +114,6 @@ public:
 #endif
 
 extern std::atomic<bool> sv_sighup_flag;
-extern std::shared_ptr<KC::ECLogger> g_request_logger;
+extern std::shared_ptr<KC::Logger> g_request_logger;
 
 extern void sv_sighup_sync();

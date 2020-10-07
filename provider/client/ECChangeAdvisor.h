@@ -16,10 +16,7 @@
 #include <map>
 #include "ECMsgStore.h"
 
-namespace KC {
-class ECLogger;
-}
-
+namespace KC { class Logger; }
 class ECMsgStore;
 
 /**
@@ -112,6 +109,6 @@ private:
 	ConnectionMap			m_mapConnections;
 	SyncStateMap			m_mapSyncStates;
 	KC::object_ptr<ECMsgStore> m_lpMsgStore;
-	std::shared_ptr<KC::ECLogger> m_lpLogger;
+	std::shared_ptr<KC::Logger> m_lpLogger;
 	KC::object_ptr<KC::IECChangeAdviseSink> m_lpChangeAdviseSink;
 };

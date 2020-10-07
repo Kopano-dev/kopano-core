@@ -13,7 +13,7 @@
 namespace KC {
 
 class ArchiverSession;
-class ECLogger;
+class Logger;
 
 namespace helpers {
 
@@ -39,7 +39,7 @@ class KC_EXPORT ArchiveHelper final {
 public:
 	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, const tstring &folder, const char *server_path, std::shared_ptr<ArchiveHelper> *);
 	KC_HIDDEN static HRESULT Create(IMsgStore *arc_store, IMAPIFolder *arc_folder, const char *server_path, std::shared_ptr<ArchiveHelper> *);
-	static HRESULT Create(std::shared_ptr<ArchiverSession>, const SObjectEntry &arc_entry, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiveHelper> *);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, const SObjectEntry &arc_entry, std::shared_ptr<Logger>, std::shared_ptr<ArchiveHelper> *);
 	KC_HIDDEN HRESULT GetAttachedUser(abentryid_t *user_eid);
 	KC_HIDDEN HRESULT SetAttachedUser(const abentryid_t &user_eid);
 	KC_HIDDEN HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);
@@ -55,7 +55,7 @@ public:
 	HRESULT GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder);
 	KC_HIDDEN HRESULT IsArchiveFolder(IMAPIFolder *, bool *res);
 	KC_HIDDEN IMsgStore *GetMsgStore() const noexcept { return m_ptrArchiveStore; }
-	KC_HIDDEN HRESULT PrepareForFirstUse(ECLogger * = nullptr);
+	KC_HIDDEN HRESULT PrepareForFirstUse(Logger * = nullptr);
 
 private:
 	KC_HIDDEN ArchiveHelper(IMsgStore *arc_store, const tstring &folder, const std::string &server_path);

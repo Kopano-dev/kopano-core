@@ -14,9 +14,8 @@ struct soap;
 namespace KC {
 
 class ECAttachmentStorage;
-class ECConfig;
+class Config;
 class ECSerializer;
-class ECLogger;
 
 class ext_siid {
 	public:
@@ -31,11 +30,11 @@ class ext_siid {
 class ECAttachmentConfig {
 	public:
 	virtual ~ECAttachmentConfig() = default;
-	static ECRESULT create(const GUID &sguid, std::shared_ptr<ECConfig>, ECAttachmentConfig **);
+	static ECRESULT create(const GUID &sguid, std::shared_ptr<Config>, ECAttachmentConfig **);
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) = 0;
 
 	private:
-	virtual ECRESULT init(std::shared_ptr<ECConfig>) { return hrSuccess; }
+	virtual ECRESULT init(std::shared_ptr<Config>) { return hrSuccess; }
 };
 
 class ECAttachmentStorage : public kt_completion {

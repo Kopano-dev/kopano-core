@@ -87,8 +87,6 @@ class IECExportAddressbookChanges : public virtual IUnknown {
 	virtual HRESULT UpdateState(IStream *) = 0;
 };
 
-class ECLogger;
-
 class IECExportChanges : public IExchangeExportChanges {
 	public:
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges) = 0;

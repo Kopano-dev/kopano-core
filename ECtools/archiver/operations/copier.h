@@ -15,8 +15,8 @@
 namespace KC {
 
 class ArchiverSession;
-class ECConfig;
-class ECLogger;
+class Config;
+class Logger;
 
 namespace operations {
 
@@ -30,7 +30,7 @@ class Transaction;
  */
 class KC_EXPORT Copier final : public ArchiveOperationBaseEx {
 public:
-	KC_HIDDEN Copier(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
+	KC_HIDDEN Copier(std::shared_ptr<ArchiverSession>, Config *, std::shared_ptr<ArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	KC_HIDDEN ~Copier();
 
 	/**
@@ -53,7 +53,7 @@ public:
 
 	class KC_EXPORT Helper { // For lack of a better name
 	public:
-		Helper(std::shared_ptr<ArchiverSession>, std::shared_ptr<ECLogger>, const std::shared_ptr<InstanceIdMapper> &, const SPropTagArray *exclprop, IMAPIFolder *);
+		Helper(std::shared_ptr<ArchiverSession>, std::shared_ptr<KC::Logger>, const std::shared_ptr<InstanceIdMapper> &, const SPropTagArray *exclprop, IMAPIFolder *);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -97,7 +97,7 @@ public:
 		ArchiveFolderMap m_mapArchiveFolders;
 
 		std::shared_ptr<ArchiverSession> m_ptrSession;
-		std::shared_ptr<ECLogger> m_lpLogger;
+		std::shared_ptr<KC::Logger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		object_ptr<IMAPIFolder> m_ptrFolder;
 		std::shared_ptr<InstanceIdMapper> m_ptrMapper;
@@ -192,7 +192,7 @@ private:
 	KC_HIDDEN HRESULT UpdateHistoryRefs(IMessage *arc_msg, const SObjectEntry &ref_msg_entry, std::shared_ptr<Transaction>);
 
 	std::shared_ptr<ArchiverSession> m_ptrSession;
-	ECConfig *m_lpConfig;
+	Config *m_lpConfig;
 	std::list<SObjectEntry> m_lstArchives;
 	memory_ptr<SPropTagArray> m_ptrExcludeProps;
 

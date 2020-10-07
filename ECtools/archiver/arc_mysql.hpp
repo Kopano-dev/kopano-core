@@ -7,11 +7,11 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 class KCMDatabaseMySQL final : public KDatabase {
 public:
-	ECRESULT		Connect(ECConfig *lpConfig);
+	ECRESULT Connect(Config *);
 	virtual const struct sSQLDatabase_t *GetDatabaseDefs() override;
 };
 

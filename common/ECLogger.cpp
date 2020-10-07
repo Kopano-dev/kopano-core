@@ -107,7 +107,7 @@ static ECLogger *ec_log_target = &ec_log_fallback_target;
 static std::string ec_sysinfo = "(indet-OS)", ec_program_name = "(noname-program)", ec_program_ver;
 static std::atomic<bool> ec_sysinfo_checked{false};
 
-ECLogger::ECLogger(int max_ll) :
+Logger::Logger(int max_ll) :
 	max_loglevel(max_ll), prefix(LP_NONE)
 {
 	if (max_loglevel == EC_LOGLEVEL_ENV) {
@@ -119,7 +119,7 @@ ECLogger::ECLogger(int max_ll) :
 	datalocale = createUTF8Locale();
 }
 
-ECLogger::~ECLogger() {
+Logger::~Logger() {
 	if (ec_log_target == this)
 		ec_log_set(NULL);
 	if (timelocale)

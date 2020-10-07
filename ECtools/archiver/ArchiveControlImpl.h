@@ -14,8 +14,8 @@ namespace KC {
 
 class ArchiverLogger;
 class ArchiverSession;
-class ECConfig;
-class ECLogger;
+class Config;
+class Logger;
 
 namespace operations {
 
@@ -103,7 +103,7 @@ class IArchiveOperation;
  */
 class ArchiveControlImpl final : public ArchiveControl {
 public:
-	static HRESULT Create(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup, std::unique_ptr<ArchiveControl> *);
+	static HRESULT Create(std::shared_ptr<ArchiverSession>, Config *, std::shared_ptr<Logger>, bool force_cleanup, std::unique_ptr<ArchiveControl> *);
 	eResult ArchiveAll(bool local_only, bool auto_attach, unsigned int flags) override;
 	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
 	eResult Archive(const tstring &user, bool auto_attach, unsigned int flags) override;
@@ -124,7 +124,7 @@ private:
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
 
-	ArchiveControlImpl(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECLogger>, bool force_cleanup);
+	ArchiveControlImpl(std::shared_ptr<ArchiverSession>, Config *, std::shared_ptr<Logger>, bool force_cleanup);
 	HRESULT Init();
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
@@ -149,7 +149,7 @@ private:
 	enum eCleanupAction { caDelete, caStore, caNone };
 
 	std::shared_ptr<ArchiverSession> m_ptrSession;
-	ECConfig *m_lpConfig = nullptr;
+	Config *m_lpConfig = nullptr;
 	std::shared_ptr<ArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent{};
 	bool m_bArchiveEnable = true;

@@ -16,7 +16,7 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 class ECTask;
 class ECThreadPool;
 class ECWatchdog;
@@ -50,7 +50,7 @@ class KC_EXPORT ECThreadPool {
 public:
 	ECThreadPool(const std::string &name, unsigned int spares);
 	virtual ~ECThreadPool();
-	void enable_watchdog(bool, std::shared_ptr<ECConfig> = {});
+	void enable_watchdog(bool, std::shared_ptr<Config> = {});
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false, time_point *enq_time = nullptr);
 	void set_thread_count(unsigned int spares, unsigned int tmax = 0, bool wait = false);
 	void add_extra_thread();

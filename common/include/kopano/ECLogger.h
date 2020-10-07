@@ -21,7 +21,7 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 static const unsigned int EC_LOGLEVEL_NONE       = 0;
 static const unsigned int EC_LOGLEVEL_CRIT	 = 1;
@@ -72,7 +72,7 @@ enum logprefix { LP_NONE, LP_TID, LP_PID };
  * ECLogger object logs messages to a specific
  * destination. Destinations are created in derived classes.
  */
-class KC_EXPORT ECLogger {
+class KC_EXPORT Logger {
 	private:
 	std::atomic<unsigned> m_ulRef{1};
 
@@ -90,13 +90,13 @@ class KC_EXPORT ECLogger {
 	 *
 	 * @param[in]	max_ll	Max loglevel allowed to enter in the log. Messages with higher loglevel will be skipped.
 	 */
-	ECLogger(int max_ll);
+	Logger(int max_ll);
 
 	public:
 	/**
 	 * Implementations should close the log they're writing to.
 	 */
-	virtual ~ECLogger();
+	virtual ~Logger();
 	/**
 	 * Query if a message would be logged under this loglevel
 	 *
@@ -164,6 +164,8 @@ class KC_EXPORT ECLogger {
 
 	logprefix prefix;
 };
+
+using ECLogger = Logger;
 
 /**
  * Dummy null logger, drops every log message.
@@ -244,7 +246,7 @@ class KC_EXPORT_DYCAST ECLogger_Pipe KC_FINAL : public ECLogger {
 	void Disown();
 };
 
-extern KC_EXPORT std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::shared_ptr<ECLogger> &&file_logger);
+extern KC_EXPORT std::shared_ptr<ECLogger> StartLoggerProcess(Config *, std::shared_ptr<ECLogger> &&file_logger);
 
 /**
  * This class can be used if log messages need to go to
@@ -312,8 +314,8 @@ enum loggertype {
 	LOGTYPE_REQUEST,
 };
 
-extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(ECConfig *, const char *argv0, enum loggertype = LOGTYPE_NORMAL);
-extern KC_EXPORT void LogConfigErrors(ECConfig *);
+extern KC_EXPORT std::shared_ptr<ECLogger> CreateLogger(Config *, const char *argv0, enum loggertype = LOGTYPE_NORMAL);
+extern KC_EXPORT void LogConfigErrors(Config *);
 extern KC_EXPORT void ec_setup_segv_handler(const char *app, const char *vers);
 extern KC_EXPORT const std::string &ec_os_pretty_name();
 
