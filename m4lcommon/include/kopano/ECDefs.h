@@ -37,11 +37,7 @@ namespace KC {
 /* #define ecRightsTemplateEditor ROLE_EDITOR */
 
 #define ecRightsAll				0x000005FBL
-#define ecRightsFullControl		0x000004FBL
-#define ecRightsDefault			ecRightsNone | ecRightsFolderVisible
 #define ecRightsDefaultPublic	ecRightsReadAny | ecRightsFolderVisible
-#define	ecRightsAdmin			0x00001000L
-
 #define	ecRightsAllMask			0x000015FBL
 
 // Right change indication (state field in struct)
