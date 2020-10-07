@@ -937,7 +937,8 @@ std::string AclRightsToString(unsigned int ror)
 	case ARCHIVE_RIGHTS_UNKNOWN:
 		return "ACL not yet read";
 	case ARCHIVE_RIGHTS_MISSING:
-		return "ACL Entry is missing";
+		/* default mechanism: owning entity has implied rw access */
+		return "No extended ACL";
 	}
 	if (is_right(ror)) {
 		auto r = find_acl_right(ror);
