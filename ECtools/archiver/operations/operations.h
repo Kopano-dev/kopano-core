@@ -9,7 +9,7 @@
 
 namespace KC {
 
-class ECArchiverLogger;
+class ArchiverLogger;
 
 namespace operations {
 
@@ -65,15 +65,15 @@ public:
  */
 class ArchiveOperationBase : public IArchiveOperation {
 public:
-	ArchiveOperationBase(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
+	ArchiveOperationBase(std::shared_ptr<ArchiverLogger>, int age, bool proc_unread, unsigned int inhibit_mask);
 	HRESULT GetRestriction(IMAPIProp *, SRestriction **) override;
 	HRESULT VerifyRestriction(IMessage *) override;
 
 protected:
-	std::shared_ptr<ECArchiverLogger> Logger() const { return m_lpLogger; }
+	std::shared_ptr<ArchiverLogger> Logger() const { return m_lpLogger; }
 
 private:
-	std::shared_ptr<ECArchiverLogger> m_lpLogger;
+	std::shared_ptr<ArchiverLogger> m_lpLogger;
 	const int m_ulAge;
 	const bool m_bProcessUnread;
 	const ULONG m_ulInhibitMask;
@@ -87,7 +87,7 @@ private:
  */
 class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
-	ArchiveOperationBaseEx(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
+	ArchiveOperationBaseEx(std::shared_ptr<ArchiverLogger>, int age, bool proc_unread, unsigned int inhibit_mask);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 
 protected:

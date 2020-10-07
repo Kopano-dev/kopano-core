@@ -8,14 +8,14 @@
 
 namespace KC {
 
-class KC_EXPORT ECHierarchyIteratorBase {
+class KC_EXPORT HierarchyIteratorBase {
 public:
-	KC_HIDDEN ECHierarchyIteratorBase() :
+	KC_HIDDEN HierarchyIteratorBase() :
 	    m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0)
 	{
 		// creates the "end" iterator
 	}
-	ECHierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
+	HierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
 
 	KC_HIDDEN object_ptr<IMAPIContainer> dereference() const
 	{
@@ -25,11 +25,11 @@ public:
 
 	void increment();
 
-	bool operator==(const ECHierarchyIteratorBase &rhs) const
+	bool operator==(const HierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent;
 	}
-	bool operator!=(const ECHierarchyIteratorBase &rhs) const
+	bool operator!=(const HierarchyIteratorBase &rhs) const
 	{
 		return !operator==(rhs);
 	}
@@ -42,16 +42,18 @@ private:
 	object_ptr<IMAPIContainer> m_ptrCurrent;
 };
 
-template<typename ContainerPtrType> class ECHierarchyIterator final :
+using ECHierarchyIteratorBase = HierarchyIteratorBase;
+
+template<typename ContainerPtrType> class HierarchyIterator final :
     public ECHierarchyIteratorBase
 {
 public:
-	ECHierarchyIterator() = default;
-	ECHierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
+	HierarchyIterator() = default;
+	HierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
 		ECHierarchyIteratorBase(c, flags, depth)
 	{}
 
-	ECHierarchyIterator<ContainerPtrType> &operator++()
+	HierarchyIterator<ContainerPtrType> &operator++()
 	{
 		ECHierarchyIteratorBase::increment();
 		return *this;
@@ -65,5 +67,7 @@ public:
 private:
 	mutable ContainerPtrType	m_ptr;
 };
+
+template<typename T> using ECHierarchyIterator = HierarchyIterator<T>;
 
 } /* namespace */

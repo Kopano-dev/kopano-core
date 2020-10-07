@@ -30,7 +30,7 @@ class Transaction;
  */
 class KC_EXPORT Copier final : public ArchiveOperationBaseEx {
 public:
-	KC_HIDDEN Copier(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ECArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
+	KC_HIDDEN Copier(std::shared_ptr<ArchiverSession>, ECConfig *, std::shared_ptr<ArchiverLogger>, const std::list<SObjectEntry> &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	KC_HIDDEN ~Copier();
 
 	/**

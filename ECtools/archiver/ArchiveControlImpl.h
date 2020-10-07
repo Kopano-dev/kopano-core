@@ -12,10 +12,10 @@
 
 namespace KC {
 
+class ArchiverLogger;
 class ArchiverSession;
 class ECConfig;
 class ECLogger;
-class ECArchiverLogger;
 
 namespace operations {
 
@@ -150,7 +150,7 @@ private:
 
 	std::shared_ptr<ArchiverSession> m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
-	std::shared_ptr<ECArchiverLogger> m_lpLogger;
+	std::shared_ptr<ArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent{};
 	bool m_bArchiveEnable = true;
 	int m_ulArchiveAfter = 30;
