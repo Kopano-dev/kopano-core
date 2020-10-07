@@ -6,6 +6,7 @@
 #include <string>
 #include <kopano/platform.h>
 #include <mapidefs.h>
+#include "../../../common/ECACL.h"
 
 namespace KC {
 
@@ -14,26 +15,26 @@ namespace KC {
 #define ACCESS_TYPE_GRANT		2
 #define ACCESS_TYPE_BOTH		3
 
-#define	ecRightsNone			0x00000000L
-#define ecRightsReadAny			0x00000001L
-#define	ecRightsCreate			0x00000002L
-#define	ecRightsEditOwned		0x00000008L
-#define	ecRightsDeleteOwned		0x00000010L
-#define	ecRightsEditAny			0x00000020L
-#define	ecRightsDeleteAny		0x00000040L
-#define	ecRightsCreateSubfolder	0x00000080L
-#define	ecRightsFolderAccess	0x00000100L
-//#define	ecrightsContact			0x00000200L
-#define	ecRightsFolderVisible	0x00000400L
+#define ecRightsNone RIGHTS_NONE
+#define ecRightsReadAny RIGHTS_READ_ITEMS
+#define ecRightsCreate RIGHTS_CREATE_ITEMS
+#define ecRightsEditOwned RIGHTS_EDIT_OWN
+#define ecRightsDeleteOwned RIGHTS_DELETE_OWN
+#define ecRightsEditAny RIGHTS_EDIT_ALL
+#define ecRightsDeleteAny RIGHTS_DELETE_ALL
+#define ecRightsCreateSubfolder RIGHTS_CREATE_SUBFOLDERS
+#define ecRightsFolderAccess RIGHTS_FOLDER_OWNER
+//#define ecrightsContact RIGHTS_FOLDER_CONTACT
+#define ecRightsFolderVisible RIGHTS_FOLDER_VISIBLE
 
-#define ecRightsTemplateNoRights	ecRightsFolderVisible
-#define ecRightsTemplateReadOnly	ecRightsTemplateNoRights | ecRightsReadAny
-#define ecRightsTemplateSecretary	ecRightsTemplateReadOnly | ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned | ecRightsEditAny | ecRightsDeleteAny
-#define ecRightsTemplateOwner		ecRightsTemplateSecretary | ecRightsCreateSubfolder | ecRightsFolderAccess
+#define ecRightsTemplateNoRights ROLE_NONE
+#define ecRightsTemplateReadOnly ROLE_REVIEWER
+#define ecRightsTemplateSecretary ROLE_SECRETARY
+#define ecRightsTemplateOwner ROLE_OWNER
 
-/* #define ecRightsTemplateReviewer	ecRightsTemplateReadOnly */
-/* #define ecRightsTemplateAuthor		ecRightsTemplateReadOnly | ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned */
-/* #define ecRightsTemplateEditor		ecRightsTemplateReadOnly | ecRightsCreate | ecRightsEditAny | ecRightsDeleteAny */
+/* #define ecRightsTemplateReviewer ROLE_REVIEWER */
+/* #define ecRightsTemplateAuthor ROLE_AUTHOR */
+/* #define ecRightsTemplateEditor ROLE_EDITOR */
 
 #define ecRightsAll				0x000005FBL
 #define ecRightsFullControl		0x000004FBL
