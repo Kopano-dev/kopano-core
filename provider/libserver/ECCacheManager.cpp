@@ -26,6 +26,19 @@
 
 namespace KC {
 
+using ECsACLs = ACLs;
+using ECsCells = Cells;
+using ECsIndexObject = IndexObject;
+using ECsIndexProp = IndexProp;
+using ECsObjects = Objects;
+using ECsQuota = Quota;
+using ECsServerDetails = ServerDetails;
+using ECsStores = Stores;
+using ECsUEIdKey = UEIdKey;
+using ECsUEIdObject = UEIdObject;
+using ECsUserObject = UserObject;
+using ECsUserObjectDetails = UserObjectDetails;
+
 #define LOG_CACHE_DEBUG(msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_CACHE, "cache: " msg, ##__VA_ARGS__)
 #define LOG_USERCACHE_DEBUG(msg, ...) \
@@ -1793,7 +1806,7 @@ void ECCacheManager::EnableCellCache()
 	m_bCellCacheDisabled = false;
 }
 
-ECsCells::ECsCells(const ECsCells &src)
+Cells::Cells(const ECsCells &src)
 {
 	struct propVal val;
 	for (const auto &p : src.mapPropVals) {
@@ -1803,7 +1816,8 @@ ECsCells::ECsCells(const ECsCells &src)
 	m_bComplete = src.m_bComplete;
 }
 
-ECsCells::~ECsCells() {
+Cells::~Cells()
+{
 	for (auto &p : mapPropVals)
 		soap_del_propVal(&p.second);
 }

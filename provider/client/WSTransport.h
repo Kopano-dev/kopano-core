@@ -32,7 +32,7 @@ class WSMessageStreamImporter;
 
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *parm, KC::ECSESSIONID new_id);
 
-class ECsResolveResult final : public KC::ECsCacheEntry {
+class ResolveResult final : public KC::CacheEntry {
 public:
 	HRESULT	hr;
 	std::string serverPath;
@@ -265,7 +265,7 @@ protected:
 
 private:
 	std::recursive_mutex m_ResolveResultCacheMutex;
-	KC::ECCache<std::map<std::string, ECsResolveResult>> m_ResolveResultCache;
+	KC::ECCache<std::map<std::string, ResolveResult>> m_ResolveResultCache;
 	bool m_has_session;
 
 friend class WSMessageStreamExporter;

@@ -31,13 +31,13 @@ namespace KC {
 
 class ECSessionManager;
 
-class ECsStores final : public ECsCacheEntry {
+class Stores final : public CacheEntry {
 public:
 	unsigned int	ulStore, ulType;
 	GUID			guidStore;
 };
 
-class ECsUserObject final : public ECsCacheEntry {
+class UserObject final : public CacheEntry {
 public:
 	objectclass_t		ulClass;
 	std::string strExternId, strSignature;
@@ -45,52 +45,52 @@ public:
 };
 
 /* same as objectid_t, join? */
-struct ECsUEIdKey {
+struct UEIdKey {
 	objectclass_t		ulClass;
 	std::string			strExternId;
 };
 
-inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
+inline bool operator <(const UEIdKey &a, const UEIdKey &b)
 {
 	return std::tie(a.ulClass, a.strExternId) <
 	       std::tie(b.ulClass, b.strExternId);
 }
 
 /* Intern Id cache */
-class ECsUEIdObject final : public ECsCacheEntry {
+class UEIdObject final : public CacheEntry {
 public:
 	unsigned int ulCompanyId, ulUserId;
 	std::string			strSignature;
 };
 
-class ECsUserObjectDetails final : public ECsCacheEntry {
+class UserObjectDetails final : public CacheEntry {
 public:
 	objectdetails_t			sDetails;
 };
 
-class ECsServerDetails final : public ECsCacheEntry {
+class ServerDetails final : public CacheEntry {
 public:
 	serverdetails_t			sDetails;
 };
 
-class ECsObjects final : public ECsCacheEntry {
+class Objects final : public CacheEntry {
 public:
 	unsigned int ulParent, ulOwner, ulFlags, ulType;
 };
 
-class ECsQuota final : public ECsCacheEntry {
+class Quota final : public CacheEntry {
 public:
 	quotadetails_t	quota;
 };
 
-class ECsIndexObject final : public ECsCacheEntry {
+class IndexObject final : public CacheEntry {
 public:
-	inline bool operator==(const ECsIndexObject &other) const noexcept
+	inline bool operator==(const IndexObject &other) const noexcept
 	{
 		return ulObjId == other.ulObjId && ulTag == other.ulTag;
 	}
 
-	inline bool operator<(const ECsIndexObject &other) const noexcept
+	inline bool operator<(const IndexObject &other) const noexcept
 	{
 		return std::tie(ulObjId, ulTag) < std::tie(other.ulObjId, other.ulTag);
 	}
@@ -98,31 +98,31 @@ public:
 	unsigned int ulObjId, ulTag;
 };
 
-class ECsIndexProp final : public ECsCacheEntry {
+class IndexProp final : public CacheEntry {
 public:
-	ECsIndexProp() = default;
-	~ECsIndexProp() {
+	IndexProp() = default;
+	~IndexProp() {
 		delete[] lpData;
 	}
 
-    ECsIndexProp(const ECsIndexProp &src) {
+	IndexProp(const IndexProp &src) {
 		if (this != &src)
 			Copy(src, *this);
     }
 
-	ECsIndexProp(ECsIndexProp &&o) :
+	IndexProp(IndexProp &&o) :
 		ulTag(o.ulTag), cbData(o.cbData), lpData(o.lpData)
 	{
 		o.lpData = nullptr;
 		o.cbData = 0;
 	}
 
-	ECsIndexProp(unsigned int tag, const unsigned char *d, unsigned int z)
+	IndexProp(unsigned int tag, const unsigned char *d, unsigned int z)
 	{
 		SetValue(tag, d, z);
 	}
 
-    ECsIndexProp& operator=(const ECsIndexProp &src) {
+	IndexProp &operator=(const IndexProp &src) {
 		if (this == &src)
 			return *this;
 		Free();
@@ -130,8 +130,8 @@ public:
 		return *this;
     }
 
-	bool operator<(const ECsIndexProp &) const noexcept;
-	bool operator==(const ECsIndexProp &) const noexcept;
+	bool operator<(const IndexProp &) const noexcept;
+	bool operator==(const IndexProp &) const noexcept;
 	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z);
 
 protected:
@@ -142,19 +142,19 @@ protected:
 		lpData = NULL;
 	}
 
-	void Copy(const ECsIndexProp &src, ECsIndexProp &dst);
+	void Copy(const IndexProp &src, IndexProp &dst);
 
 public:
 	unsigned int ulTag = 0, cbData = 0;
 	unsigned char *lpData = nullptr;
 };
 
-class ECsCells final : public ECsCacheEntry {
+class Cells final : public CacheEntry {
 public:
-	ECsCells() = default;
-	~ECsCells();
-	ECsCells(const ECsCells &);
-	ECsCells &operator=(const ECsCells &);
+	Cells() = default;
+	~Cells();
+	Cells(const Cells &);
+	Cells &operator=(const Cells &);
 	void AddPropVal(unsigned int tag, const struct propVal *);
 	bool GetPropVal(unsigned int tag, struct propVal *, struct soap *, bool trunc) const;
 	std::vector<unsigned int> GetPropTags() const;
@@ -170,15 +170,15 @@ public:
 	bool m_bComplete = false;
 };
 
-class ECsACLs final : public ECsCacheEntry {
+class ACLs final : public CacheEntry {
 public:
-	ECsACLs() = default;
-	ECsACLs(const ECsACLs &src) : ulACLs(src.ulACLs)
+	ACLs() = default;
+	ACLs(const ACLs &src) : ulACLs(src.ulACLs)
 	{
 		aACL.reset(new ACL[ulACLs]);
 		memcpy(aACL.get(), src.aACL.get(), sizeof(ACL) * ulACLs);
 	}
-    ECsACLs& operator=(const ECsACLs &src) {
+	ACLs &operator=(const ACLs &src) {
 		if (this != &src) {
 			ulACLs = src.ulACLs;
 			aACL.reset(new ACL[ulACLs]);
@@ -193,7 +193,7 @@ public:
 	std::unique_ptr<ACL[]> aACL;
 };
 
-struct ECsSortKeyKey {
+struct SortKeyKey {
 	sObjectTableKey	sKey;
 	unsigned int	ulPropTag;
 };
@@ -202,9 +202,9 @@ struct ECsSortKeyKey {
 
 namespace std {
 	// hash function for type ECsIndexProp
-	template<> struct hash<KC::ECsIndexProp> {
+	template<> struct hash<KC::IndexProp> {
 		public:
-		size_t operator()(const KC::ECsIndexProp &value) const noexcept
+		size_t operator()(const KC::IndexProp &value) const noexcept
 		{
 			/* Robert Sedgewick string hash function */
 			unsigned int a = 63689, b = 378551, hash = 0;
@@ -217,9 +217,9 @@ namespace std {
 	};
 
 	// hash function for type ECsIndexObject
-	template<> struct hash<KC::ECsIndexObject> {
+	template<> struct hash<KC::IndexObject> {
 		public:
-		size_t operator()(const KC::ECsIndexObject &value) const noexcept
+		size_t operator()(const KC::IndexObject &value) const noexcept
 		{
 					hash<unsigned int> hasher;
 					// @TODO check the hash function!
@@ -252,8 +252,8 @@ public:
 	// Query cache only
 	ECRESULT QueryParent(unsigned int ulObjId, unsigned int *ulParent);
 
-	ECRESULT GetObjects(const std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey, ECsObjects> &mapObjects);
-	ECRESULT GetObjectsFromProp(unsigned int ulTag, const std::vector<unsigned int> &cbdata, const std::vector<unsigned char *> &lpdata, std::map<ECsIndexProp, unsigned int> &mapObjects);
+	ECRESULT GetObjects(const std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey, Objects> &mapObjects);
+	ECRESULT GetObjectsFromProp(unsigned int ulTag, const std::vector<unsigned int> &cbdata, const std::vector<unsigned char *> &lpdata, std::map<IndexProp, unsigned int> &mapObjects);
 	ECRESULT GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int maxdepth = 100);
 	ECRESULT GetStoreAndType(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int *ulType, unsigned int maxdepth = 100);
 	ECRESULT GetObjectFlags(unsigned int ulObjId, unsigned int *ulFlags);
@@ -266,7 +266,7 @@ public:
 	ECRESULT GetUserObject(unsigned int ulUserId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObject(const objectid_t &sExternId, unsigned int *lpulUserId, unsigned int *lpulCompanyId, std::string *lpstrSignature);
 	ECRESULT GetUserObjects(const std::list<objectid_t> &lstExternObjIds, std::map<objectid_t, unsigned int> *lpmapLocalObjIds);
-	ECRESULT get_all_user_objects(objectclass_t, bool hosted, unsigned int company, std::map<unsigned int, ECsUserObject> &out);
+	ECRESULT get_all_user_objects(objectclass_t, bool hosted, unsigned int company, std::map<unsigned int, UserObject> &out);
 
 	// Cache user information
 	ECRESULT GetUserDetails(unsigned int ulUserId, objectdetails_t *details);
@@ -319,8 +319,8 @@ public:
 	bool m_bCellCacheDisabled = false;
 
 private:
-	typedef std::unordered_map<unsigned int, ECsQuota> ECMapQuota;
-	typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
+	typedef std::unordered_map<unsigned int, Quota> ECMapQuota;
+	typedef std::map<IndexObject, IndexProp> ECMapObjectToProp;
 
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);
@@ -343,7 +343,7 @@ private:
 	void I_DelQuota(unsigned int user_id, bool is_dfl_quota);
 
 	// Cache Index properties
-	ECRESULT I_AddIndexData(const ECsIndexObject &, const ECsIndexProp &);
+	ECRESULT I_AddIndexData(const IndexObject &, const IndexProp &);
 
 	ECDatabaseFactory*	m_lpDatabaseFactory;
 	std::recursive_mutex m_hCacheMutex; /* User, ACL, server cache */
@@ -358,21 +358,21 @@ private:
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
 	// "hierarchy" table
-	ECCache<std::unordered_map<unsigned int, ECsObjects>> m_ObjectsCache;
+	ECCache<std::unordered_map<unsigned int, Objects>> m_ObjectsCache;
 	// Store cache (objid -> storeid/guid)
-	ECCache<std::unordered_map<unsigned int, ECsStores>> m_StoresCache;
+	ECCache<std::unordered_map<unsigned int, Stores>> m_StoresCache;
 	// User cache
-	ECCache<std::unordered_map<unsigned int, ECsUserObject>> m_UserObjectCache; /* userid to user object */
-	ECCache<std::map<ECsUEIdKey, ECsUEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
-	ECCache<std::unordered_map<unsigned int, ECsUserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user object data */
+	ECCache<std::unordered_map<unsigned int, UserObject>> m_UserObjectCache; /* userid to user object */
+	ECCache<std::map<UEIdKey, UEIdObject>> m_UEIdObjectCache; /* user type + externid to user object */
+	ECCache<std::unordered_map<unsigned int, UserObjectDetails>>	m_UserObjectDetailsCache; /* userid to user object data */
 	// ACL cache
-	ECCache<std::unordered_map<unsigned int, ECsACLs>> m_AclCache;
+	ECCache<std::unordered_map<unsigned int, ACLs>> m_AclCache;
 	// properties and tproperties
-	ECCache<std::unordered_map<unsigned int, ECsCells>> m_CellCache;
+	ECCache<std::unordered_map<unsigned int, Cells>> m_CellCache;
 	// Server cache
-	ECCache<std::map<std::string, ECsServerDetails>> m_ServerDetailsCache;
+	ECCache<std::map<std::string, ServerDetails>> m_ServerDetailsCache;
 	// "indexedproperties" index2: {tag, data(entryid or sourcekey)} -> {objid,tag}
-	ECCache<std::unordered_map<ECsIndexProp, ECsIndexObject>> m_PropToObjectCache;
+	ECCache<std::unordered_map<IndexProp, IndexObject>> m_PropToObjectCache;
 	// "indexedproperties" index1: {objid,tag} -> {tag, data}
 	ECCache<ECMapObjectToProp> m_ObjectToPropCache;
 	// Properties from kopano-search

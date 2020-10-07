@@ -58,7 +58,7 @@ private:
 
 	public:
 	/* objectid => signatures */
-	class timed_sglist_t : public signatures_t, public ECsCacheEntry {
+	class timed_sglist_t : public signatures_t, public CacheEntry {
 		public:
 		timed_sglist_t(const signatures_t &a) : signatures_t(a) {}
 		timed_sglist_t(signatures_t &&a) : signatures_t(std::move(a)) {}

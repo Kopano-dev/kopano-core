@@ -888,7 +888,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	ECODStore sODStore;
 	bool fMatch = false;
 	std::vector<SOURCEKEY> source_keys;
-	std::map<ECsIndexProp, unsigned int> index_objs;
+	std::map<IndexProp, unsigned int> index_objs;
 	struct propTagArray *lpPropTags = NULL;
 	struct rowSet *lpRowSet = NULL;
 	std::set<SOURCEKEY> matches;

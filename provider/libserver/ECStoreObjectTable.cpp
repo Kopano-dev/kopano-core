@@ -260,7 +260,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	std::list<unsigned int> lstDeferred;
 	std::set<unsigned int> setColumnIDs;
 	ECObjectTableList lstRowOrder;
-	std::map<sObjectTableKey, ECsObjects> mapObjects;
+	std::map<sObjectTableKey, Objects> mapObjects;
 
     sObjectTableKey sKey;
 
