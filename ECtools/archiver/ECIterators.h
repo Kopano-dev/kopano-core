@@ -17,10 +17,10 @@ public:
 	}
 	ECHierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
 
-	KC_HIDDEN object_ptr<IMAPIContainer> &dereference() const
+	KC_HIDDEN object_ptr<IMAPIContainer> dereference() const
 	{
 		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
-		return const_cast<object_ptr<IMAPIContainer> &>(m_ptrCurrent);
+		return m_ptrCurrent;
 	}
 
 	void increment();
