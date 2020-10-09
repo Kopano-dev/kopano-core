@@ -127,11 +127,11 @@ static int kustomer_log_ensured_claims()
 		ec_log_err("KUSTOMER failed to dump ensured claims: 0x%llx, %s", ensured.r0, kustomer_err_numeric_text(ensured.r0));
 		return ensured.r0;
 	}
-	ec_log_info("KUSTOMER ensured claims: %s", ensured.r1);
+	ec_log_always("KUSTOMER ensured claims: %s", ensured.r1);
 	free(ensured.r1); // Release memory allocated in the C heap by cgo with malloc.
 	auto res = kustomer_ensure_ok(transaction.r1, const_cast<char *>(kustomerProductName));
 	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
-		ec_log_notice("KUSTOMER was unable to find a '%s' license: 0x%llx, %s", kustomerProductName, res, kustomer_err_numeric_text(res));
+		ec_log_always("KUSTOMER was unable to find a '%s' license: 0x%llx, %s", kustomerProductName, res, kustomer_err_numeric_text(res));
 	}
 	res = kustomer_end_ensure(transaction.r1);
 	if (res != KUSTOMER_ERRSTATUSSUCCESS) {
