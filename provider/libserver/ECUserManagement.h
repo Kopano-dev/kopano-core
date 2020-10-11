@@ -21,6 +21,9 @@ struct soap;
 
 namespace KC {
 
+class ECConfig;
+struct LICENSEREQUEST;
+
 class localobjectdetails_t final : public objectdetails_t {
 public:
 	localobjectdetails_t() = default;
@@ -197,5 +200,7 @@ protected:
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_BOOK	"Global Address Book"
 #define KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS	"Global Address Lists"
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_LISTS	"All Address Lists"
+
+extern unsigned long long local_license_check(const LICENSEREQUEST * = nullptr, ECConfig * = nullptr);
 
 } /* namespace */
