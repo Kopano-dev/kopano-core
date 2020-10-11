@@ -563,53 +563,10 @@ static void set_agent(struct soap *soap, const char *misc, const char *ver)
 }
 
 #ifdef HAVE_KUSTOMER
-static unsigned long long decider2(const LICENSEREQUEST &lreq, ECConfig *cfg)
-{
-	usercount_t uc{};
-	g_lpSessionManager->get_user_count(&uc);
-
-	auto ta = kustomer_begin_ensure();
-	if (ta.r0 != 0)
-		return ta.r0;
-	unsigned long long err = 0;
-	auto cleanup_ta = make_scope_exit([&]() {
-		auto ret = kustomer_end_ensure(ta.r1);
-		if (ret != KUSTOMER_ERRSTATUSSUCCESS && err == 0)
-			err = ret;
-	});
-
-	err = kustomer_ensure_set_allow_untrusted(ta.r1, true);
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return err;
-	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return err;
-	if (parseBool(cfg->GetSetting("enable_distributed_kopano"))) {
-		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multiserver"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
-			return err;
-	}
-	if (parseBool(cfg->GetSetting("enable_hosted_kopano"))) {
-		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multitenant"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
-			return err;
-	}
-	if (lreq.service_id == SERVICE_TYPE_ARCHIVER) {
-		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("archiver"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
-			return err;
-	}
-	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
-	      uc[usercount_t::ucIndex::ucActiveUser], KUSTOMER_OPERATOR_GE);
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return err;
-	return 0;
-}
-
 static Json::Value decider(const LICENSEREQUEST &lreq, ECConfig *cfg)
 {
 	Json::Value out;
-	auto err = decider2(lreq, cfg);
+	auto err = local_license_check(&lreq, cfg);
 	out["err"] = Json::Value::UInt64(err);
 	if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 		char *ers = kustomer_err_numeric_text(err);

@@ -35,6 +35,7 @@
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
+#include <kopano/license.hpp>
 #ifdef HAVE_KUSTOMER
 #	include <kustomer.h>
 #	include <kustomer_errors.h>
@@ -1158,7 +1159,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSig
 }
 
 #ifdef HAVE_KUSTOMER
-static bool decider3()
+unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg)
 {
 	usercount_t uc{};
 	g_lpSessionManager->get_user_count(&uc);
@@ -1175,20 +1176,35 @@ static bool decider3()
 
 	err = kustomer_ensure_set_allow_untrusted(ta.r1, true);
 	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return false;
+		return err;
 	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
 	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return false;
+		return err;
+	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_distributed_kopano"))) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multiserver"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
+	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_hosted_kopano"))) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multitenant"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
+	if (lreq != nullptr && lreq->service_id == SERVICE_TYPE_ARCHIVER) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("archiver"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
 	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
 	      uc[usercount_t::ucIndex::ucActiveUser], KUSTOMER_OPERATOR_GE);
 	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return false;
-	return true;
+		return err;
+	return 0;
 }
 #else
-static bool decider3()
+unsigned long long local_license_check(const LICENSEREQUEST *, ECConfig *)
 {
-	return true;
+	return 0;
 }
 #endif
 
@@ -2074,10 +2090,9 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 // Create/Delete routines
 //
 // ******************************************************************************************************
-
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
-	if (!decider3())
+	if (local_license_check() != 0)
 		return hr_lerrf(MAPI_E_NO_ACCESS, "License daemon rejected the request");
 
 	ECDatabase *lpDatabase = NULL;
