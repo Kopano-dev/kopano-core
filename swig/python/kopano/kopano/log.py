@@ -4,23 +4,44 @@ Part of the high-level python bindings for Kopano
 
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
+
+Parts of this file are based on code from Vinay Sajip as found at
+https://gist.github.com/vsajip/820132
+
+Copyright 2011 - Vinay Sajip. All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appear in all copies and that
+both that copyright notice and this permission notice appear in
+supporting documentation, and that the name of Vinay Sajip
+not be used in advertising or publicity pertaining to distribution
+of the software without specific, written prior permission.
+VINAY SAJIP DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+VINAY SAJIP BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
 import contextlib
 import logging.handlers
+import os
 from queue import Empty
 import sys
 import threading
 import traceback
 
-FMT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+FMT_BASE = '[%(levelname)-8s] %(name)s - %(message)s'
+FMT = '%(asctime)s.%(msecs)03d: ' + FMT_BASE
 
 def _kopano_logger():
     log = logging.getLogger('kopano')
     log.setLevel(logging.WARNING)
     fh = logging.StreamHandler(sys.stderr)
     log.addHandler(fh)
-    formatter = logging.Formatter(FMT)
+    formatter = logging.Formatter(FMT, datefmt='%Y-%m-%dT%H:%M:%S')
     fh.setFormatter(formatter)
     return log
 
@@ -51,11 +72,18 @@ def _loglevel(options, config):
         'CRITICAL': logging.CRITICAL,
     }[log_level.upper()]
 
+def _logfmt(config):
+    log_fmt = FMT
+    if config:
+        if not config.get('log_timestamp', True):
+            log_fmt = FMT_BASE
+    return log_fmt
+
 def logger(service, options=None, stdout=False, config=None, name=''):
     logger = logging.getLogger(name or service)
     if logger.handlers:
         return logger
-    formatter = logging.Formatter(FMT)
+    formatter = logging.Formatter(_logfmt(config), datefmt='%Y-%m-%dT%H:%M:%S')
     log_method = 'file'
     log_file = '/var/log/kopano/%s.log' % service
     if config:
@@ -65,6 +93,14 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     if name:
         log_file = log_file.replace(service, name) # TODO
     fh = None
+    if log_method == 'syslog' and not os.getenv("PYKO_ALLOW_SYSLOG_LOGGING", None):
+        # NOTE(longsleep): Syslog logging does not work in its current
+        # implementation. Disable it for now until it can be brought back in
+        # way which works with multi-threading and multi-processing.
+        import warnings
+        warnings.warn('syslog support has been removed, falling back to stderr')
+        log_method = 'file'
+        log_file = '-'
     if log_method == 'file':
         if log_file == '-':
             fh = logging.StreamHandler(sys.stderr)
@@ -116,7 +152,7 @@ class QueueHandler(logging.Handler): # pragma: no cover
         self.queue = queue
 
     def enqueue(self, record):
-        self.queue.put_nowait(record)
+        self.queue.put(record, True, 0.5)
 
     def prepare(self, record):
         self.format(record)
@@ -158,10 +194,15 @@ class QueueListener(object): # pragma: no cover
                 self.handle(record)
                 if has_task_done:
                     q.task_done()
-
-            except (Empty, EOFError):
                 if self._stop.isSet():
                     break
+            except Empty:
+                if self._stop.isSet():
+                    break
+            except (EOFError, ValueError):
+                if self._stop.isSet():
+                    break
+                raise
 
     def stop(self):
         self._stop.set()
