@@ -1174,9 +1174,6 @@ unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg
 			err = ret;
 	});
 
-	err = kustomer_ensure_set_allow_untrusted(ta.r1, true);
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
-		return err;
 	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
 	if (err != KUSTOMER_ERRSTATUSSUCCESS)
 		return err;
