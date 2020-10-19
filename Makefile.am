@@ -616,7 +616,7 @@ libkcserver_la_SOURCES = \
 libkcserver_la_LIBADD = \
 	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
-	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} \
+	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} ${kustomer_LIBS} \
 	${KRB5_LIBS} ${libHX_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
 libkcserver_la_SYFLAGS = -Wl,--version-script=provider/libkcserver.sym
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
@@ -663,7 +663,7 @@ libkcutil_la_SOURCES = \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/TimeUtil.cpp \
-	common/UnixUtil.cpp common/fileutil.cpp \
+	common/UnixUtil.cpp common/fileutil.cpp common/license.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
@@ -695,7 +695,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
-	m4lcommon/mapicontact.h
+	m4lcommon/mapicontact.h m4lcommon/mapilicense.cpp
 libmapi_la_LIBADD = \
 	libkcutil.la -lpthread ${DL_LIBS} ${ICONV_LIBS} ${INTL_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym

@@ -87,6 +87,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 	HrAddPropHandlers(PR_QUOTA_RECEIVE_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
 	HrAddPropHandlers(PR_STORE_OFFLINE, GetPropHandler, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_EC_SERVER_VERSION, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PROP_TAG(PT_TSTRING, /*ECNamedProp.cpp:*/0x8380), GetPropHandler, DefaultSetPropComputed, this, false, true);
 
 	// only on admin store? how? .. now checked on server in ECTableManager
 	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM, GetPropHandler, DefaultSetPropComputed, this, false, true);
@@ -156,6 +157,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IECSecurity, this);
 	// is admin store?
 	REGISTER_INTERFACE2(IECTestProtocol, this);
+	REGISTER_INTERFACE2(IECLicense, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -968,6 +970,23 @@ HRESULT ECMsgStore::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	case PROP_ID(PR_EC_SERVER_VERSION): {
 		lpsPropValue->ulPropTag = ulPropTag;
 		auto &ver = lpStore->lpTransport->m_server_version;
+		if (PROP_TYPE(ulPropTag) == PT_STRING8) {
+			hr = MAPIAllocateMore(ver.size() + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
+			if (hr != hrSuccess)
+				return hr;
+			strcpy(lpsPropValue->Value.lpszA, ver.c_str());
+			break;
+		}
+		const auto tmp = convert_to<std::wstring>(ver);
+		hr = MAPIAllocateMore((tmp.size() + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszW));
+		if (hr != hrSuccess)
+			return hr;
+		wcscpy(lpsPropValue->Value.lpszW, tmp.c_str());
+		break;
+	}
+	case 0x8380: {
+		lpsPropValue->ulPropTag = ulPropTag;
+		auto &ver = lpStore->lpTransport->m_licjson;
 		if (PROP_TYPE(ulPropTag) == PT_STRING8) {
 			hr = MAPIAllocateMore(ver.size() + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
 			if (hr != hrSuccess)
@@ -2517,6 +2536,11 @@ HRESULT ECMsgStore::enable_transaction(bool x)
 	}
 	m_transact = x;
 	return ret;
+}
+
+HRESULT ECMsgStore::license_auth(const std::string &in, std::string &out)
+{
+	return lpTransport->license_auth(in, out);
 }
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :

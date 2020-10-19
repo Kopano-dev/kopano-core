@@ -213,6 +213,7 @@ public:
 
 	/* Message locking */
 	HRESULT HrSetLockState(unsigned int eid_size, const ENTRYID *, bool locked);
+	HRESULT license_auth(const std::string &in, std::string &out);
 
 	/* expose capabilities */
 	HRESULT HrCheckCapabilityFlags(unsigned int flags, bool *result);
@@ -241,10 +242,11 @@ public:
 
 	HRESULT HrResetFolderCount(unsigned int eid_size, const ENTRYID *eid, unsigned int *nupdates);
 
-	std::string m_server_version;
+	std::string m_server_version, m_licjson;
 
 private:
 	HRESULT HrLogon2(const struct sGlobalProfileProps &);
+	HRESULT PostAuth(KCmdProxy *, std::unique_ptr<KCmdProxy2> &&, const sGlobalProfileProps &, const KC::utf8string &imp_user, unsigned int server_caps, KC::ECSESSIONID);
 	// Returns name of calling application (e.g. 'program.exe' or 'httpd')
 	std::string GetAppName();
 

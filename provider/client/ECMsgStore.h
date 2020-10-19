@@ -36,7 +36,7 @@ public:
 class ECMsgStore :
     public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
     public KC::IECServiceAdmin, public KC::IECSpooler,
-    public KC::IECTestProtocol {
+    public KC::IECTestProtocol, public KC::IECLicense {
 protected:
 	ECMsgStore(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, unsigned int profile_flags, BOOL defl_store, BOOL offline_store);
 	virtual ~ECMsgStore();
@@ -130,6 +130,7 @@ public:
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv) override;
 	virtual HRESULT TestSet(const char *name, const char *value) override;
 	virtual HRESULT TestGet(const char *name, char **value) override;
+	virtual HRESULT license_auth(const std::string &in, std::string &out) override;
 
 	// Called when session is reloaded
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);

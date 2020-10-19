@@ -215,6 +215,11 @@ class IECTestProtocol : public virtual IUnknown {
 	virtual HRESULT TestGet(const char *name, char **value) = 0;
 };
 
+class IECLicense : public virtual IUnknown {
+	public:
+	virtual HRESULT license_auth(const std::string &in, std::string &out) = 0;
+};
+
 } /* namespace */
 
 IID_OF2(KC::IECChangeAdvisor, IECChangeAdvisor)
