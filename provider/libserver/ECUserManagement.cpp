@@ -35,6 +35,11 @@
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
+#include <kopano/license.hpp>
+#ifdef HAVE_KUSTOMER
+#	include <kustomer.h>
+#	include <kustomer_errors.h>
+#endif
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
@@ -1153,6 +1158,53 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSig
 	return erSuccess;
 }
 
+#ifdef HAVE_KUSTOMER
+unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg)
+{
+	usercount_t uc{};
+	g_lpSessionManager->get_user_count(&uc);
+
+	auto ta = kustomer_begin_ensure();
+	if (ta.r0 != 0)
+		return ta.r0;
+	unsigned long long err = 0;
+	auto cleanup_ta = make_scope_exit([&]() {
+		auto ret = kustomer_end_ensure(ta.r1);
+		if (ret != KUSTOMER_ERRSTATUSSUCCESS && err == 0)
+			err = ret;
+	});
+
+	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
+	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		return err;
+	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_distributed_kopano"))) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multiserver"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
+	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_hosted_kopano"))) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multitenant"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
+	if (lreq != nullptr && lreq->service_id == SERVICE_TYPE_ARCHIVER) {
+		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("archiver"), true);
+		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+			return err;
+	}
+	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
+	      uc[usercount_t::ucIndex::ucActiveUser], KUSTOMER_OPERATOR_GE);
+	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		return err;
+	return 0;
+}
+#else
+unsigned long long local_license_check(const LICENSEREQUEST *, ECConfig *)
+{
+	return 0;
+}
+#endif
+
 ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, unsigned int *lpulId)
 {
 	objectsignature_t objectsignature;
@@ -2035,9 +2087,11 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 // Create/Delete routines
 //
 // ******************************************************************************************************
-
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
+	if (local_license_check() != 0)
+		return hr_lerrf(MAPI_E_NO_ACCESS, "License daemon rejected the request");
+
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
 	unsigned int ulId;
