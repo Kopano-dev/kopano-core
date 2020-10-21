@@ -961,3 +961,18 @@ source-moved-check:
 common/include/kopano/ecversion.h: .version versionheader.sh
 	${MKDIR_P} common/include/kopano
 	sh ${top_srcdir}/versionheader.sh >$@
+
+#
+# test suite entry point
+#
+.PHONY: test
+test:
+	$(MAKE) -C test test
+
+.PHONY: test-short
+test-short:
+	$(MAKE) -C test test-short
+
+.PHONY: test-ci
+test-ci:
+	$(MAKE) -C test test-ci
