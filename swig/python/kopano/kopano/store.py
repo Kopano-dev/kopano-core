@@ -45,6 +45,7 @@ from MAPI.Tags import (
     PR_EC_RECIPIENT_HISTORY_JSON_W, PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W,
     PR_EC_OUTOFOFFICE_SUBJECT_W, PR_EC_OUTOFOFFICE_MSG_W, PR_EC_OUTOFOFFICE,
     PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
+    PT_TSTRING,
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
@@ -53,7 +54,8 @@ from MAPI.Struct import (
 
 from .defs import (
     RSF_PID_SUGGESTED_CONTACTS, RSF_PID_TODO_SEARCH,
-    RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
+    RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER,
+    NAMED_PROPS_KC,
 )
 
 from .errors import NotFoundError, ArgumentError, DuplicateError
@@ -1005,6 +1007,13 @@ class Store(Properties):
     @send_only_to_delegates.setter
     def send_only_to_delegates(self, value):
         Delegation._set_send_only_to_delegates(self, value)
+
+    @property
+    def licenseinfo(self):
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_KC, MAPI_CREATE)
+        proptype = CHANGE_PROP_TYPE(ids[1], PT_TSTRING)
+        prop = HrGetOneProp(self.mapiobj, proptype)
+        return json.loads(prop.Value)
 
     def favorites(self):
         """Returns all favorite :class:`folders <Folder>`."""
