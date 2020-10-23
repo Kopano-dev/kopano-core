@@ -512,7 +512,7 @@ class MeetingRequest(object):
                 merge = True
                 rec = cal_item.recurrence
                 for item in existing_items:
-                    if not rec._is_exception(item.meetingrequest.basedate):
+                    if item.meetingrequest.basedate and not rec._is_exception(item.meetingrequest.basedate):
                         rec._create_exception(
                             item.meetingrequest.basedate, item, merge=True)
                     # TODO else update..?
