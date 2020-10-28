@@ -22,7 +22,7 @@ from MAPI import (
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
     SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY,
-    MAPI_DEFERRED_ERRORS
+    MAPI_DEFERRED_ERRORS, FL_PREFIX
 )
 from MAPI.Tags import (
     PR_ENTRYID, IID_IMAPIFolder, SHOW_SOFT_DELETES, PR_SOURCE_KEY,
@@ -424,7 +424,7 @@ class Folder(Properties):
             yield item
 
     def occurrences(self, start=None, end=None, page_start=None,
-            page_limit=None, order=None):
+                    page_limit=None, order=None):
         """For applicable folder types (e.g., calendars), return
         all :class:`occurrences <Occurrence>`.
 
@@ -440,7 +440,7 @@ class Folder(Properties):
             # TODO use shortcuts and default type (database) to avoid
             # MAPI snake wrestling
             NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x)
-                for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334, 33331, 33302)]
+                           for x in (33285, 33293, 33294, 33315, 33301, 33333, 33334, 33331, 33302)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
             busystatus = ids[0] | PT_LONG
             startdate = ids[1] | PT_SYSTIME
@@ -455,41 +455,38 @@ class Folder(Properties):
             restriction = SOrRestriction([
                 # non-recurring: normal start/end
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_GT, enddate,
-                        SPropValue(enddate, unixtime(startstamp))),
-                    SPropertyRestriction(RELOP_LT, startdate,
-                        SPropValue(startdate, unixtime(endstamp))),
+                    SPropertyRestriction(RELOP_GT, enddate, SPropValue(enddate, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
                 ]),
                 # recurring: range start/end
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_GT, clip_end,
-                        SPropValue(clip_end, unixtime(startstamp))),
-                    SPropertyRestriction(RELOP_LT, clip_start,
-                        SPropValue(clip_start, unixtime(endstamp))),
+                    SPropertyRestriction(RELOP_GT, clip_end, SPropValue(clip_end, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, clip_start, SPropValue(clip_start, unixtime(endstamp))),
                 ]),
                 # exceptions: exception start/end in attachment
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_EQ, recurring,
-                        SPropValue(recurring, True)),
+                    SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True)),
                     SSubRestriction(
                         PR_MESSAGE_ATTACHMENTS,
                         SAndRestriction([
                             SPropertyRestriction(RELOP_LT,
                                 PR_EXCEPTION_STARTTIME,
-                                SPropValue(PR_EXCEPTION_STARTTIME,
-                                    unixtime(endstamp))),
-                            SPropertyRestriction(RELOP_GT,
-                                PR_EXCEPTION_ENDTIME,
-                                SPropValue(PR_EXCEPTION_ENDTIME,
-                                    unixtime(startstamp))),
+                                SPropValue(PR_EXCEPTION_STARTTIME, unixtime(endstamp))),
+                            SPropertyRestriction(RELOP_GT, PR_EXCEPTION_ENDTIME, SPropValue(PR_EXCEPTION_ENDTIME, unixtime(startstamp))),
                         ])
                     )
                 ])
             ])
 
+            # Restrict occurences to real calendar items.
+            restriction = SAndRestriction([
+                SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, 'IPM.Appointment')),
+                restriction,
+            ])
+
             columns = [
                 PR_ENTRYID,
-                PR_SUBJECT_W, # watch out: table unicode data is max 255 chars
+                PR_SUBJECT_W,  # watch out: table unicode data is max 255 chars
                 PR_LAST_MODIFICATION_TIME,
                 PR_CHANGE_KEY,
                 startdate,
@@ -498,7 +495,7 @@ class Folder(Properties):
                 all_day,
                 busystatus,
                 tzinfo,
-                blob, # watch out: can be larger than 255 chars.
+                blob,  # watch out: can be larger than 255 chars.
             ]
 
             table = Table(
