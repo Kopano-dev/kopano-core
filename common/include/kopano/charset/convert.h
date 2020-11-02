@@ -86,7 +86,8 @@ class KC_EXPORT iconv_context_base {
 
 	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
 	bool m_bForce = true; /* Ignore illegal sequences by default. */
-	bool m_bHTML = false;
+	bool m_bHTML = false, m_translit_run = false;
+	unsigned int m_translit_adv = 1;
 
 	iconv_context_base(const iconv_context_base &) = delete;
 	iconv_context_base &operator=(const iconv_context_base &) = delete;
