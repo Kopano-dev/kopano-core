@@ -744,7 +744,9 @@ dist_phpsysconf_DATA = php-ext/mapi.ini
 phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
 mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES} -I${srcdir}/php-ext
 mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
+if WITH_PHP7
 phplib_LTLIBRARIES = mapi.la
+endif
 mapi_la_SOURCES = \
 	php-ext/ECImportContentsChangesProxy.cpp \
 	php-ext/ECImportContentsChangesProxy.h \
