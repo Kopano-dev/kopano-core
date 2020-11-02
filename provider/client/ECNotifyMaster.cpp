@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <csignal>
 #include <cstring>
 #include <mutex>
 #include <kopano/memory.hpp>
@@ -15,7 +16,6 @@
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"
 #include "WSTransport.h"
-#include <sys/signal.h>
 #include <sys/types.h>
 
 #define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
