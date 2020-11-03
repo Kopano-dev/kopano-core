@@ -1191,7 +1191,6 @@ std::string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniq
 
 std::string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache)
 {
-	auto lpCache = m_lpCache->getObjectDNCache(this, uniqueid.objclass);
 	auto_free_ldap_message res;
 	std::string dn;
 	LDAPMessage*	entry = NULL;
@@ -1201,6 +1200,7 @@ std::string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid,
 	 * In the rare case that the cache didn't contain the entry, check LDAP.
 	 */
 	if (cache) {
+		auto lpCache = m_lpCache->getObjectDNCache(this, uniqueid.objclass);
 		dn = m_lpCache->getDNForObject(lpCache.get(), uniqueid);
 		if (!dn.empty())
 			return dn;
