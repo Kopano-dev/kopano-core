@@ -867,7 +867,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	 * and remove any returned objects which are member of these subcompanies.
 	 */
 	if (m_bHosted && !strCompanyDN.empty())
-		dnFilter = m_lpCache->getChildrenForDN(m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY), strCompanyDN);
+		dnFilter = m_lpCache->getChildrenForDN(m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY).get(), strCompanyDN);
 
 	auto request_attrs = std::make_unique<attrArray>(15);
 	/* Needed for GetObjectIdForEntry() */
@@ -940,7 +940,7 @@ string LDAPUserPlugin::getSearchBase(const objectid_t &company)
 		return lpszSearchBase;
 
 	// find company DN, and use as search_base
-	auto search_base = m_lpCache->getDNForObject(m_lpCache->getObjectDNCache(this, company.objclass), company);
+	auto search_base = m_lpCache->getDNForObject(m_lpCache->getObjectDNCache(this, company.objclass).get(), company);
 	// CHECK: should not be possible to not already know the company
 	if (!search_base.empty())
 		return search_base;
@@ -1205,7 +1205,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	 * In the rare case that the cache didn't contain the entry, check LDAP.
 	 */
 	if (cache) {
-		dn = m_lpCache->getDNForObject(lpCache, uniqueid);
+		dn = m_lpCache->getDNForObject(lpCache.get(), uniqueid);
 		if (!dn.empty())
 			return dn;
 	}
@@ -1634,10 +1634,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		return mapdetails;
 
 	bool			bCutOff = false;
-	dn_cache_t lpCompanyCache;
-	std::string ldap_filter;
-	string						strDN;
-	list<postaction> lPostActions;
+	std::string ldap_filter, strDN;
+	std::list<postaction> lPostActions;
 	std::set<objectid_t> setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
 	auto request_attrs = std::make_unique<attrArray>(33 + lExtraAttrs.size());
@@ -1683,15 +1681,6 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	for (const auto &c : lExtraAttrs)
 		request_attrs->add(c.szValue);
 	unsigned int ulCutoff = atoui(m_config->GetSetting("ldap_filter_cutoff_elements"));
-
-	/*
-	 * When working in multi-company mode we need to determine to which company
-	 * this object belongs. To do this efficiently we are using the cache for
-	 * resolving the company based on the DN.
-	 */
-	if (m_bHosted)
-		lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-
 	auto ldap_basedn = getSearchBase();
 
 	/*
@@ -2038,7 +2027,11 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		END_FOREACH_ATTR
 
 		if (m_bHosted && sObjDetails.GetClass() != CONTAINER_COMPANY)
-			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID, m_lpCache->getParentForDN(lpCompanyCache, strDN));
+			sObjDetails.SetPropObject(OB_PROP_O_COMPANYID,
+				m_lpCache->getParentForDN(m_bHosted ?
+					m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY).get() :
+					dn_cache_t{},
+				strDN));
 		if (!objectid.id.empty())
 			mapdetails[objectid] = sObjDetails;
 	}
@@ -2408,8 +2401,8 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		return members;
 	if (m_bHosted) {
 		auto lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-		companyid = m_lpCache->getParentForDN(lpCompanyCache, dn);
-		companyDN = m_lpCache->getDNForObject(lpCompanyCache, companyid);
+		companyid = m_lpCache->getParentForDN(lpCompanyCache.get(), dn);
+		companyDN = m_lpCache->getDNForObject(lpCompanyCache.get(), companyid);
 	}
 
 	// Use the filter to get all members matching the specified search filter
