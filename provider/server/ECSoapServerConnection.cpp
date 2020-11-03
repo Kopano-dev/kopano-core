@@ -205,3 +205,8 @@ void ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength,
 	*age = m_lpDispatcher->front_item_age();
 	m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
 }
+
+int ECSoapServerConnection::maxlistenfds() const
+{
+	return m_lpDispatcher->maxlistenfds();
+}

@@ -5,6 +5,7 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -132,7 +133,9 @@ static HRESULT idx_startup_net(const char **argv)
 		return MAPI_E_NETWORK_ERROR;
 	if (unix_runas(cfg.get()))
 		return MAPI_E_CALL_FAILED;
-	ec_reexec_prepare_sockets();
+	auto maxp = std::max_element(idx_poll.cbegin(), idx_poll.cend(),
+	            [](const auto &a, const auto &b) { return a.fd < b.fd; });
+	ec_reexec_prepare_sockets(maxp == idx_poll.cend() ? 0 : maxp->fd + 1);
 	//err = ec_reexec(argv);
 	if (err < 0)
 		ec_log_notice("K-1240: Failed to re-exec self: %s", strerror(-err));

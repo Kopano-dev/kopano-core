@@ -27,6 +27,7 @@ public:
 	void ShutDown();
 	ECRESULT DoHUP();
 	void GetStats(unsigned int *qlen, KC::time_duration *age, unsigned int *thrtotal, unsigned int *thridle);
+	int maxlistenfds() const;
 
 private:
     // Main thread handler

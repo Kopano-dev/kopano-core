@@ -600,7 +600,8 @@ static HRESULT running_service(char **argv)
 	} else if (err == 0) {
 		ec_reexec_finalize();
 	} else if (err > 0) {
-		ec_reexec_prepare_sockets();
+		auto maxp = std::max_element(g_socks.linfd.cbegin(), g_socks.linfd.cend());
+		ec_reexec_prepare_sockets(maxp == g_socks.linfd.cend() ? 0 : *maxp + 1);
 		err = ec_reexec(argv);
 		if (err < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "

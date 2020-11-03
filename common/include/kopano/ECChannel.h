@@ -90,7 +90,7 @@ extern KC_EXPORT HRESULT HrAccept(int fd, ECChannel **ch);
 extern KC_EXPORT int kc_peer_cred(int fd, uid_t *, pid_t *);
 extern KC_EXPORT int zcp_peerfd_is_local(int);
 extern KC_EXPORT ec_socket ec_parse_bindaddr(const char *);
-extern KC_EXPORT void ec_reexec_prepare_sockets();
+extern KC_EXPORT void ec_reexec_prepare_sockets(int maxfd = -1);
 extern KC_EXPORT std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
 
 } /* namespace KC */

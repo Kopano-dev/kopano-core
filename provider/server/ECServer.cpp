@@ -1245,7 +1245,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (did_setid == 0 && do_allocator == 0) {
 		ec_reexec_finalize();
 	} else if (did_setid > 0 || do_allocator > 0) {
-		ec_reexec_prepare_sockets();
+		ec_reexec_prepare_sockets(g_lpSoapServerConn->maxlistenfds());
 		auto ret = ec_reexec(argv);
 		if (ret < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "

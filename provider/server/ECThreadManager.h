@@ -64,6 +64,7 @@ public:
 	size_t queue_length();
 	void AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
 	void QueueItem(struct soap *, KC::time_point);
+	int maxlistenfds() const;
 
     // Reload variables from config
     ECRESULT DoHUP();

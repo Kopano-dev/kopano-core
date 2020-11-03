@@ -5,6 +5,7 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <condition_variable>
 #include <memory>
 #include <sstream>
@@ -269,7 +270,9 @@ int main(int argc, const char **argv)
 	} else if (ret == 0) {
 		ec_reexec_finalize();
 	} else {
-		ec_reexec_prepare_sockets();
+		auto maxp = std::max_element(sk.cbegin(), sk.cend(),
+		            [](const auto &a, const auto &b) { return a.fd < b.fd; });
+		ec_reexec_prepare_sockets(maxp == sk.cend() ? 0 : maxp->fd + 1);
 		ret = ec_reexec(argv);
 		if (ret < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "

@@ -5,6 +5,7 @@
 #ifdef HAVE_CONFIG_H
 #	include "config.h"
 #endif
+#include <algorithm>
 #include <atomic>
 #include <kopano/platform.h>
 #include <memory>
@@ -122,7 +123,8 @@ static HRESULT running_service(char **argv)
 	} else if (ret == 0) {
 		ec_reexec_finalize();
 	} else if (ret > 0) {
-		ec_reexec_prepare_sockets();
+		auto maxp = std::max_element(g_socks.linfd.cbegin(), g_socks.linfd.cend());
+		ec_reexec_prepare_sockets(maxp == g_socks.linfd.cend() ? 0 : *maxp + 1);
 		ret = ec_reexec(argv);
 		if (ret < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "

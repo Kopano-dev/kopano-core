@@ -324,6 +324,13 @@ void ECDispatcher::QueueItem(struct soap *soap, time_point sktime)
 		m_pool.enqueue(item, true, &soap_info(soap)->st.enq_wall_start);
 }
 
+int ECDispatcher::maxlistenfds() const
+{
+	auto maxp = std::max_element(m_setListenSockets.cbegin(), m_setListenSockets.cend(),
+	            [](const auto &a, const auto &b) { return a.first < b.first; });
+	return maxp == m_setListenSockets.cend() ? 0 : maxp->first + 1;
+}
+
 // Called by a worker thread when it's done with an item
 void ECDispatcher::NotifyDone(struct soap *soap)
 {
