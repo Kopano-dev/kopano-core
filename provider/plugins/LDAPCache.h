@@ -32,6 +32,17 @@ namespace KC { class ECConfig; }
 typedef std::map<objectid_t, std::string> dn_cache_t;
 typedef std::list<std::string> dn_list_t;
 
+struct held_dn_cache_t {
+	held_dn_cache_t() = default;
+	held_dn_cache_t(dn_cache_t &c, std::unique_lock<std::recursive_mutex> &&m) :
+		ref(c), holder(std::move(m)) {}
+	dn_cache_t &get() { return ref; }
+
+	static dn_cache_t dummy_cache;
+	dn_cache_t &ref = dummy_cache;
+	std::unique_lock<std::recursive_mutex> holder;
+};
+
 /**
  * LDAP Cache which collects DNs with the matching
  * objectid and name.
@@ -88,7 +99,7 @@ public:
 	 *						The objectclass for which the cache is requested
 	 * @return The cache data
 	 */
-	dn_cache_t getObjectDNCache(LDAPUserPlugin *, objectclass_t);
+	held_dn_cache_t getObjectDNCache(LDAPUserPlugin *, objectclass_t);
 
 	/**
 	 * Helper function: Search the cache for the direct parent for a DN.
