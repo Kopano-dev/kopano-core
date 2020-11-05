@@ -13,6 +13,8 @@
 
 using namespace KC;
 
+dn_cache_t held_dn_cache_t::dummy_cache;
+
 namespace KC {
 
 template<> inline size_t GetCacheAdditionalSize(const objectsignature_t &v)
@@ -67,39 +69,13 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, dn_cache_t &&lpCache)
 	auto lpTmp = getObjectDNCache(nullptr, objclass);
 	// cannot use insert() because it does not override existing entries
 	for (const auto &i : lpCache)
-		lpTmp[i.first] = std::move(i.second);
-
-	scoped_rlock biglock(m_hMutex);
-	switch (objclass) {
-	case OBJECTCLASS_USER:
-	case ACTIVE_USER:
-	case NONACTIVE_USER:
-	case NONACTIVE_ROOM:
-	case NONACTIVE_EQUIPMENT:
-	case NONACTIVE_CONTACT:
-		m_lpUserCache = std::move(lpTmp);
-		break;
-	case OBJECTCLASS_DISTLIST:
-	case DISTLIST_GROUP:
-	case DISTLIST_SECURITY:
-	case DISTLIST_DYNAMIC:
-		m_lpGroupCache = std::move(lpTmp);
-		break;
-	case CONTAINER_COMPANY:
-		m_lpCompanyCache = std::move(lpTmp);
-		break;
-	case CONTAINER_ADDRESSLIST:
-		m_lpAddressListCache = std::move(lpTmp);
-		break;
-	default:
-		break;
-	}
+		lpTmp.get()[i.first] = std::move(i.second);
 }
 
-dn_cache_t
+held_dn_cache_t
 LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 {
-	scoped_rlock biglock(m_hMutex);
+	std::unique_lock<std::recursive_mutex> biglock(m_hMutex);
 
 	/* If item was not yet cached, make sure it is done now. */
 	if (!isObjectTypeCached(objclass) && lpPlugin)
@@ -112,16 +88,16 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		return m_lpUserCache;
+		return {m_lpUserCache, std::move(biglock)};
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		return m_lpGroupCache;
+		return {m_lpGroupCache, std::move(biglock)};
 	case CONTAINER_COMPANY:
-		return m_lpCompanyCache;
+		return {m_lpCompanyCache, std::move(biglock)};
 	case CONTAINER_ADDRESSLIST:
-		return m_lpAddressListCache;
+		return {m_lpAddressListCache, std::move(biglock)};
 	default:
 		return {};
 	}
