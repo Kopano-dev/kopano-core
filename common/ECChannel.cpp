@@ -920,9 +920,11 @@ static int ec_fdtable_size()
 /**
  * Unset FD_CLOEXEC on listening sockets so that they survive an execve().
  */
-void ec_reexec_prepare_sockets()
+void ec_reexec_prepare_sockets(int maxfd)
 {
-	auto maxfd = ec_fdtable_size();
+	size_t fdcount = 0;
+	if (maxfd == -1)
+		maxfd = ec_fdtable_size();
 	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t setlen = sizeof(set);
@@ -939,7 +941,10 @@ void ec_reexec_prepare_sockets()
 		flags &= ~FD_CLOEXEC;
 		if (fcntl(fd, F_SETFD, flags) != 0)
 			ec_log_warn("fcntl F_SETFD %d: %s", fd, strerror(errno));
+		++fdcount;
 	}
+	setenv("LISTEN_FDS", std::to_string(fdcount).c_str(), true);
+	setenv("KC_LISTEN_FDS_END", std::to_string(maxfd).c_str(), true);
 }
 
 /**
@@ -953,7 +958,13 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 #ifdef __sunos__
 #define SO_PROTOCOL SO_PROTOTYPE
 #endif
-	auto maxfd = ec_fdtable_size();
+	auto ep = getenv("LISTEN_FDS");
+	int maxfd = ep != nullptr ? 3 + strtoul(ep, nullptr, 0) : 0;
+	ep = getenv("KC_LISTEN_FDS_END");
+	if (ep != nullptr)
+		/* SD protocol is a linear streak of fds, but ec_reexec does not bother with rearranging fds */
+		maxfd = strtoul(ep, nullptr, 0);
+
 	for (int fd = 3; fd < maxfd; ++fd) {
 		int set = 0;
 		socklen_t arglen = sizeof(set);

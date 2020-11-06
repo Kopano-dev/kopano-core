@@ -35,6 +35,7 @@
 #	include "config.h"
 #endif
 #include <kopano/platform.h>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <list>
@@ -2877,7 +2878,8 @@ static HRESULT running_service(char **argv, DeliveryArgs *lpArgs)
 	} else if (err == 0) {
 		ec_reexec_finalize();
 	} else if (err > 0) {
-		ec_reexec_prepare_sockets();
+		auto maxp = std::max_element(closefd.cbegin(), closefd.cend());
+		ec_reexec_prepare_sockets(maxp == closefd.cend() ? 0 : *maxp + 1);
 		err = ec_reexec(argv);
 		if (err < 0)
 			ec_log_notice("K-1240: Failed to re-exec self: %s. "
