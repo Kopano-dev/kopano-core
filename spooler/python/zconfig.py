@@ -29,7 +29,7 @@ class ZConfigParser:
 
         fp.close()
 
-        self.config.readfp(io.StringIO(data))
+        self.config.read_file(io.StringIO(data))
 
     def options(self):
         return self.config.defaults()

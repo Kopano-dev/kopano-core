@@ -15,10 +15,10 @@ for prop in server.admin_store.props():
     print(prop.idname if not prop.named else prop.name, hex(prop.proptag), repr(prop.value))
 
 for company in server.companies():
-	print('company:', company.name)
+    print('company:', company.name)
 
 for user in server.users():
-	print('local user:', user.name)
+    print('local user:', user.name)
 
 print(server.guid, [user.store.guid for user in server.users()])
 

@@ -7,10 +7,7 @@
 
 # XXX use python-kopano Config class
 
-try:
-    from ConfigParser import ConfigParser
-except ImportError:
-    from configparser import ConfigParser
+from configparser import ConfigParser
 import sys
 import subprocess
 import datetime
