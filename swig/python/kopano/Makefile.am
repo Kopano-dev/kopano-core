@@ -18,7 +18,7 @@ EXTRA_DIST = changelog.rst requirements.txt setup.cfg setup.py \
 
 PYTEST ?= pytest
 PYTEST_COVERAGE_OPTIONS=--cov-report=term-missing --cov-report=html:tests/coverage --cov=kopano
-MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client:${top_srcdir}/provider/contacts
 PYTHONPATH ?= ../.libs:..:.
 
 install-exec-local:

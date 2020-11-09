@@ -1,4 +1,4 @@
-MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client:${top_srcdir}/provider/contacts
 PYTHONPATH = ${top_srcdir}/swig/python/.libs:${top_srcdir}/swig/python/
 KOPANO_TEST_USER ?= user1
 KOPANO_TEST_PASSWORD ?= user1

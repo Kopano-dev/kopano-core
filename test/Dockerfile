@@ -42,7 +42,7 @@ RUN rm -f /etc/apt/sources.list.d/kopano.list \
 
 ENV LD_LIBRARY_PATH=${WORKSPACE}/.libs:${WORKSPACE}/swig/python/.libs
 ENV PYTHONPATH=${WORKSPACE}/swig/python:${WORKSPACE}/swig/python/.libs:${WORKSPACE}/swig/python/kopano/
-ENV MAPI_CONFIG_PATH=${WORKSPACE}/provider/client
+ENV MAPI_CONFIG_PATH=${WORKSPACE}/provider/client:${WORKSPACE}/provider/contacts
 
 # NOTE(longsleep): Always link kopano-admin to make it available for the test
 # container which is not run as root, and thus cannot create this itself. This

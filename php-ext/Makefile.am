@@ -1,7 +1,7 @@
 PHP = /usr/bin/php
 KOPANO_TEST_USER ?= user1
 KOPANO_TEST_PASSWORD ?= user1
-MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client:${top_srcdir}/provider/contacts
 TEST_PHP_JUNIT ?= test.log
 
 .PHONY: test

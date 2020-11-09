@@ -1,4 +1,4 @@
-MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client:${top_srcdir}/provider/contacts
 PYTHONPATH = ${top_srcdir}/swig/python/.libs:${top_srcdir}/swig/python/:.
 PLUGIN_PATH ?= ${top_srcdir}/spooler/python/plugins
 PYTEST ?= pytest

@@ -180,7 +180,7 @@ uninstall-local:
 
 PYTEST = pytest
 PYTEST_OPTIONS =
-MAPI_CONFIG_PATH = ${top_srcdir}/provider/client
+MAPI_CONFIG_PATH = ${top_srcdir}/provider/client:${top_srcdir}/provider/contacts
 PYTHONPATH ?= .libs:.
 
 .PHONY: test
