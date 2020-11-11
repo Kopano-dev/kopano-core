@@ -1079,10 +1079,10 @@ bool ec_socket::operator<(const ec_socket &other) const
 	return memcmp(m_ai->ai_addr, other.m_ai->ai_addr, m_ai->ai_addrlen) < 0;
 }
 
-static ec_socket ec_bindspec_to_unixinfo(std::string &&spec)
+static ec_socket ec_bindspec_to_unixinfo(const std::string &spec)
 {
 	ec_socket sk;
-	sk.m_spec = std::move(spec);
+	sk.m_spec = spec;
 	if (sk.m_spec.size() - 5 >= sizeof(sockaddr_un::sun_path)) {
 		sk.m_err = -ENAMETOOLONG;
 		return sk;
@@ -1161,12 +1161,12 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 	return {0, std::move(vec)};
 }
 
-static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string &&spec)
+static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(const std::string &spec)
 {
 	if (!kc_starts_with(spec, "unix:"))
 		return ec_bindspec_to_inetinfo(spec.c_str());
 	std::list<ec_socket> skl;
-	auto sk = ec_bindspec_to_unixinfo(std::move(spec));
+	auto sk = ec_bindspec_to_unixinfo(spec);
 	if (sk.m_err >= 0)
 		skl.emplace_back(std::move(sk));
 	return {sk.m_err, std::move(skl)};
@@ -1188,8 +1188,8 @@ std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::str
 	std::list<ec_socket> out;
 	int xerr = 0;
 
-	for (auto &&spec : in) {
-		auto p = ec_bindspec_to_sockinfo(std::move(spec));
+	for (const auto &spec : in) {
+		auto p = ec_bindspec_to_sockinfo(spec);
 		if (p.first != 0) {
 			ec_log_err("Unrecognized format in bindspec: \"%s\"", spec.c_str());
 			return {p.first, std::move(out)};
