@@ -1023,15 +1023,20 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 
 ec_socket::~ec_socket()
 {
-	if (m_ai != nullptr)
-		freeaddrinfo(m_ai);
+	if (m_ai != nullptr) {
+		if (m_custom_alloc)
+			free(m_ai);
+		else
+			freeaddrinfo(m_ai);
+	}
 	if (m_fd >= 0)
 		close(m_fd);
 }
 
 ec_socket::ec_socket(ec_socket &&o) :
 	m_spec(std::move(o.m_spec)), m_intf(std::move(o.m_intf)),
-	m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port)
+	m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port),
+	m_custom_alloc(o.m_custom_alloc)
 {
 	o.m_ai = nullptr;
 	o.m_fd = -1;
@@ -1088,6 +1093,7 @@ static ec_socket ec_bindspec_to_unixinfo(const std::string &spec)
 		return sk;
 	}
 
+	sk.m_custom_alloc = true;
 	auto ai = sk.m_ai = static_cast<struct addrinfo *>(calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_un)));
 	ai->ai_family   = AF_LOCAL;
 	ai->ai_socktype = SOCK_STREAM;

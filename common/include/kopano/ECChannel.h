@@ -84,6 +84,7 @@ struct KC_EXPORT ec_socket {
 	std::string m_spec, m_intf;
 	struct addrinfo *m_ai = nullptr;
 	int m_fd = -1, m_err = 0, m_port = 0;
+	bool m_custom_alloc = false;
 };
 
 /* accept data on connection */
