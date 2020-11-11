@@ -1183,7 +1183,7 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string 
  * brackets, but ec_parse_bindaddr2 supports it by chance.
  */
 std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&in,
-    unsigned int mode, const char *user, const char *group)
+    unsigned int mode, const char *user, const char *group, std::vector<int> &used_fds)
 {
 	std::list<ec_socket> out;
 	int xerr = 0;
@@ -1196,22 +1196,23 @@ std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::str
 		}
 		out.splice(out.end(), std::move(p.second));
 	}
-	out.sort();
-	/* Avoid picking up a socket from environment into two ec_socket structs. */
-	out.unique();
 
 	for (auto &sk : out) {
 		auto fd = ec_fdtable_socket_ai(sk);
-		if (fd >= 0) {
+		if (std::find(used_fds.cbegin(), used_fds.cend(), fd) == used_fds.cend() &&
+		    fd >= 0) {
 			ec_log_info("Re-using fd %d for %s", fd, sk.m_spec.c_str());
 			sk.m_fd = fd;
+			used_fds.push_back(fd);
 			continue;
 		}
 		fd = ec_listen_generic(sk, mode, user, group);
-		if (fd < 0)
+		if (fd < 0) {
 			sk.m_err = fd;
-		else
+		} else {
 			sk.m_fd = fd;
+			used_fds.push_back(fd);
+		}
 		if (xerr == 0 && sk.m_err != 0)
 			xerr = sk.m_err;
 	}

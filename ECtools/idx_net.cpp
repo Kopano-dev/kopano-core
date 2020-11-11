@@ -71,12 +71,14 @@ static void *idx_thread_start(void *arg)
 
 static int idx_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers)
 {
+	std::vector<int> used_fds;
 	auto lsock = tokenize(cfg->GetSetting("indexer_listen"), ' ', true);
 	auto old_addr = cfg->GetSetting("server_bind_name");
 	if (old_addr != nullptr && *old_addr != '\0')
 		lsock.emplace_back("unix:"s + old_addr);
 	auto rsock = ec_bindspec_to_sockets(std::move(lsock), S_IRWUG,
-	             cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	             cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"),
+	             used_fds);
 	auto &idx_sock = rsock.second;
 
 	struct pollfd x;

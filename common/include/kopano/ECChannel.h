@@ -77,6 +77,7 @@ struct KC_EXPORT ec_socket {
 	ec_socket() = default;
 	ec_socket(ec_socket &&);
 	~ec_socket();
+	void operator=(ec_socket &&) = delete;
 	bool operator==(const struct ec_socket &) const;
 	bool operator<(const struct ec_socket &) const;
 
@@ -91,6 +92,6 @@ extern KC_EXPORT int kc_peer_cred(int fd, uid_t *, pid_t *);
 extern KC_EXPORT int zcp_peerfd_is_local(int);
 extern KC_EXPORT ec_socket ec_parse_bindaddr(const char *);
 extern KC_EXPORT void ec_reexec_prepare_sockets(int maxfd = -1);
-extern KC_EXPORT std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group);
+extern KC_EXPORT std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&, unsigned int mode, const char *user, const char *group, std::vector<int> &);
 
 } /* namespace KC */

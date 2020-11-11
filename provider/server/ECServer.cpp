@@ -91,6 +91,7 @@ static bool m_bIgnoreDbThreadStackSize = false;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static std::shared_ptr<ECLogger> g_lpAudit;
+static std::vector<int> g_used_fds;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
@@ -786,12 +787,14 @@ static void InitBindTextDomain()
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
 	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen"), ' ', true),
-	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	            S_IRWUGO, cfg->GetSetting("run_as_user"),
+	            cfg->GetSetting("run_as_group"), g_used_fds);
 	if (info.first < 0)
 		return info.first;
 	auto http_sock = std::move(info.second);
 	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true),
-	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	       S_IRWUGO, cfg->GetSetting("run_as_user"),
+	       cfg->GetSetting("run_as_group"), g_used_fds);
 	if (info.first < 0)
 		return info.first;
 	auto https_sock = std::move(info.second);
@@ -823,7 +826,8 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	for (auto &e : list)
 		e.insert(0, "unix:");
 	auto prio = ec_bindspec_to_sockets(std::move(list), S_IRWUG,
-	            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	            cfg->GetSetting("run_as_user"),
+	            cfg->GetSetting("run_as_group"), g_used_fds);
 	if (prio.first < 0)
 		return prio.first;
 	/*
@@ -841,7 +845,8 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 		for (auto &e : list)
 			e.insert(0, "unix:");
 		auto info = ec_bindspec_to_sockets(std::move(list), S_IRWUGO,
-		            cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+		            cfg->GetSetting("run_as_user"),
+		            cfg->GetSetting("run_as_group"), g_used_fds);
 		if (info.first < 0)
 			return info.first;
 		auto pipe_sock = std::move(info.second);

@@ -319,13 +319,16 @@ exit:
 
 static HRESULT ical_listen(ECConfig *cfg)
 {
+	std::vector<int> g_used_fds;
 	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("ical_listen"), ' ', true),
-	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	            S_IRWUGO, cfg->GetSetting("run_as_user"),
+	            cfg->GetSetting("run_as_group"), g_used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto ical_sock = std::move(info.second);
 	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("icals_listen"), ' ', true),
-	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	       S_IRWUGO, cfg->GetSetting("run_as_user"),
+	       cfg->GetSetting("run_as_group"), g_used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto icals_sock = std::move(info.second);
