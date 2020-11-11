@@ -929,15 +929,16 @@ static const struct acl_role_name *find_acl_role(unsigned int rolenum)
 
 std::string AclRightsToString(unsigned int ror)
 {
-	switch (static_cast<int>(ror)) {
-	case -1:
+	switch (ror) {
+	case ARCHIVE_RIGHTS_ERROR:
 		return "Error reading ACL";
-	case -2:
+	case ARCHIVE_RIGHTS_ABSENT:
 		return "Access control not applicable";
-	case -3:
+	case ARCHIVE_RIGHTS_UNKNOWN:
 		return "ACL not yet read";
-	case -4:
-		return "ACL Entry is missing";
+	case ARCHIVE_RIGHTS_MISSING:
+		/* default mechanism: owning entity has implied rw access */
+		return "No extended ACL";
 	}
 	if (is_right(ror)) {
 		auto r = find_acl_right(ror);

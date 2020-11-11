@@ -702,8 +702,20 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 	auto ret = svcadm->ResolveUserName(reinterpret_cast<const TCHAR *>(opt_entity_name), 0, &user_size, &~user_eid);
 	if (ret != hrSuccess)
 		return kc_perror("Failed to resolve user", ret);
-	ret = svcadm->CreateStore(ECSTORE_TYPE_PRIVATE, user_size, user_eid,
-	      &store_size, &~store_eid, &root_size, &~root_fld);
+	unsigned int store_type;
+	if (opt_entity_type == nullptr || strcmp(opt_entity_type, "user") == 0)
+		store_type = ECSTORE_TYPE_PRIVATE;
+	else if (strcmp(opt_entity_type, "archive") == 0)
+		store_type = ECSTORE_TYPE_ARCHIVE;
+	else
+		return hr_lerr(MAPI_E_CALL_FAILED, "-C can only be used with -t user/archive");
+	if (store_type == ECSTORE_TYPE_PRIVATE)
+		ret = svcadm->CreateStore(store_type, user_size, user_eid,
+		      &store_size, &~store_eid, &root_size, &~root_fld);
+	else if (store_type == ECSTORE_TYPE_ARCHIVE)
+		ret = svcadm->CreateEmptyStore(store_type, user_size, user_eid,
+		      EC_OVERRIDE_HOMESERVER, &store_size, &~store_eid,
+		      &root_size, &~root_fld);
 	if (ret == MAPI_E_COLLISION)
 		return kc_perror("User store already exists", ret);
 	if (ret != hrSuccess)

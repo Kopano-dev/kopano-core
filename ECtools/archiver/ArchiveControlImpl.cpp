@@ -104,7 +104,7 @@ HRESULT ArchiveControlImpl::Init()
 
 	const char *lpszCleanupAction = m_lpConfig->GetSetting("cleanup_action");
 	if (lpszCleanupAction == NULL || *lpszCleanupAction == '\0') {
-		m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Empty cleanup_action specified in config.");
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Empty cleanup_action specified in config.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -115,7 +115,7 @@ HRESULT ArchiveControlImpl::Init()
 	else if (strcasecmp(lpszCleanupAction, "none") == 0)
 		m_cleanupAction = caNone;
 	else {
-		m_lpLogger->logf(EC_LOGLEVEL_CRIT, "Unknown cleanup_action specified in config: \"%s\"", lpszCleanupAction);
+		m_lpLogger->logf(EC_LOGLEVEL_INFO, "Unknown cleanup_action specified in config: \"%s\"", lpszCleanupAction);
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -547,7 +547,7 @@ HRESULT ArchiveControlImpl::ProcessFolder2(IMAPIFolder *ptrFolder,
 			bHaveErrors = true;
 			m_lpLogger->perr("Failed to process entry", hr);
 			if (hr == MAPI_E_STORE_FULL) {
-				m_lpLogger->Log(EC_LOGLEVEL_CRIT, "Disk full or over quota.");
+				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Disk full or over quota.");
 				return hr;
 			}
 		}
@@ -1331,7 +1331,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
  */
 HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 {
-	int loglevel = m_bForceCleanup ? EC_LOGLEVEL_WARNING : EC_LOGLEVEL_CRIT;
+	unsigned int loglevel = m_bForceCleanup ? EC_LOGLEVEL_WARNING : EC_LOGLEVEL_INFO;
 
 	if (m_bDeleteEnable && !m_bCleanupFollowPurgeAfter) {
 		m_lpLogger->logf(loglevel, "\"delete_enable\" is set to \"%s\" and \"cleanup_follow_purge_after\" is set to \"%s\"",

@@ -11,15 +11,6 @@ namespace KC {
 
 class ECConfig;
 
-/* Error during retrieval */
-#define ARCHIVE_RIGHTS_ERROR	static_cast<unsigned int>(-1)
-/* Used for entities that are not security objects */
-#define ARCHIVE_RIGHTS_ABSENT	static_cast<unsigned int>(-2)
-/* ...did not even make it to read the "acl" table */
-#define ARCHIVE_RIGHTS_UNKNOWN	static_cast<unsigned int>(-3)
-/* "acl" SQL table has no row */
-#define ARCHIVE_RIGHTS_MISSING	static_cast<unsigned int>(-4)
-
 struct configsetting_t;
 
 class KC_EXPORT Archiver {

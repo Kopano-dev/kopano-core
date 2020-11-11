@@ -421,12 +421,12 @@ int main(int argc, char **argv)
 	ptrArchiver->GetLogger(Archiver::LogOnly)->log(EC_LOGLEVEL_INFO, "Version " PROJECT_VERSION);
 	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
-	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_CRIT, "Config settings:");
+	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_INFO, "Config settings:");
 	for (const auto &s : lSettings)
 		if (strcmp(s.szName, "sslkey_pass") == 0 || strcmp(s.szName, "mysql_password") == 0)
-			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '********'", s.szName);
+			filelogger->logf(EC_LOGLEVEL_INFO, "*  %s = '********'", s.szName);
 		else
-			filelogger->logf(EC_LOGLEVEL_CRIT, "*  %s = '%s'", s.szName, s.szValue);
+			filelogger->logf(EC_LOGLEVEL_INFO, "*  %s = '%s'", s.szName, s.szValue);
 
     ec_log_debug("Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {
