@@ -167,9 +167,12 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			auto stype = rowset[i].cfind(PR_EC_STORETYPE);
 			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
 			if (userp == nullptr) {
+				auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
+				if (guid == nullptr)
+					/* Special case - the Everyone group has no name (and it also has no private store) */
+					continue;
 				userp = rowset[i].cfind(PR_DISPLAY_NAME_A);
 				auto user = userp != nullptr ? userp->Value.lpszA : "<unknown>";
-				auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
 				auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
 				auto ssize = rowset[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
 				orp.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
