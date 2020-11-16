@@ -31,7 +31,8 @@ class ZFilesystem(fuse.Fuse):
         self.path_object = {} # XXX caching everything, so don't use this on a large account..
 
     def getattr(self, path, fh=None):
-        print >>open(LOG, 'a'), 'getattr', path, fh
+        with open(LOG, 'a') as f:
+            print('getattr', path, fh, file=f)
         try:
             splitpath = path.split(os.sep)
             last = splitpath[-1]
@@ -49,11 +50,13 @@ class ZFilesystem(fuse.Fuse):
             return st
 
         except Exception as e:
-            print >>open(LOG, 'a'), traceback.format_exc(e)
+            with open(LOG, 'a') as f:
+                print(traceback.format_exc(e), file=f)
 
     def readdir(self, path, fh):
         try:
-            print >>open(LOG, 'a'), 'readdir', path, fh
+            with open(LOG, 'a') as f:
+                print('readdir', path, fh, file=f)
 
             yield fuse.Direntry('.')
             yield fuse.Direntry('..')
@@ -89,11 +92,13 @@ class ZFilesystem(fuse.Fuse):
             # XXX attachments!
 
         except Exception as e:
-            print >>open(LOG, 'a'), traceback.format_exc(e)
+            with open(LOG, 'a') as f:
+                print(traceback.format_exc(e), file=f)
 
     def read(self, path, size, offset):
         try:
-            print >>open(LOG, 'a'), 'read', path, size, offset
+            with open(LOG, 'a') as f:
+                print('read', path, size, offset, file=f)
             splitpath = path.split(os.sep)
             last = splitpath[-1]
             parentpath = os.sep.join(splitpath[:-1])
@@ -103,7 +108,8 @@ class ZFilesystem(fuse.Fuse):
                 eml = item.eml()
                 return eml[offset:offset+size]
         except Exception as e:
-            print >>open(LOG, 'a'), traceback.format_exc(e)
+            with open(LOG, 'a') as f:
+                print(traceback.format_exc(e), file=f)
 
 def main():
     server = ZFilesystem(dash_s_do='setsingle')

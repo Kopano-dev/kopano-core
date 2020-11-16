@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import imp
+import importlib.util
 import glob
 import os
 import sys
@@ -46,11 +46,9 @@ class PluginManager(object):
 
                 self.logger.logDebug("** Inspecting file '%s.py'" % name)
 
-                f, file, desc = imp.find_module(name, [directory])
+                spec = importlib.util.find_spec(name, directory)
 
-                plugin = __import__(name)
-
-                for k, v in inspect.getmembers(plugin):
+                for k, v in inspect.getmembers(spec.loader.load_module(name)):
                     if not inspect.isclass(v):
                         continue
                     if k.startswith('_'):

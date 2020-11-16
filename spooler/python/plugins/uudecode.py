@@ -51,7 +51,7 @@ class UUDecode(plugintemplates.IMapiDAgentPlugin):
                 attach.SetProps([SPropValue(PR_DISPLAY_NAME, fname), SPropValue(PR_ATTACH_METHOD, 1)])
                 attach.SetProps([SPropValue(PR_ATTACH_FILENAME, fname), SPropValue(PR_ATTACH_METHOD, 1)])
                 stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, 0, MAPI_MODIFY | MAPI_CREATE)
-                stream.Write(('\n'.join(uulines)+'\n').decode('uu'))
+                stream.Write('\n'.join(uulines)+'\n')
                 attach.SaveChanges(0)
             message.SetProps([SPropValue(PR_BODY, '\r\n'.join(body2))])
             message.SaveChanges(0)

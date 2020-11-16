@@ -36,7 +36,7 @@ TABLES = {
 def top(scr, server):
     def delta_dict(d1, d2):
         delta = {}
-        for key, value in d2.iteritems():
+        for key, value in d2.items():
             try:
                 delta[key] = float(value) - float(d1.get(key, 0))
             except:

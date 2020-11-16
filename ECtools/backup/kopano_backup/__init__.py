@@ -725,7 +725,7 @@ class Service(kopano.Service):
         # now dive into 'items', and restore desired items
         with closing(dbopen(data_path+'/items')) as db_items:
           with closing(dbopen(data_path+'/index')) as db_index:
-            index = dict((a, pickle_loads(b)) for (a,b) in db_index.iteritems())
+            index = dict((a, pickle_loads(b)) for (a,b) in db_index.items())
 
             # determine sourcekey(s) to restore
             sourcekeys = db_index.keys()
@@ -882,7 +882,7 @@ def show_contents(data_path, options):
         # filter items on date using 'index' database
         if os.path.exists(data_path+'/index'):
             with closing(bsddb.hashopen(data_path+'/index')) as db:
-                for key, value in db.iteritems():
+                for key, value in db.items():
                     d = pickle_loads(value)
                     if ((key == b'folder') or
                         (options.period_begin and d[b'last_modified'] < options.period_begin) or

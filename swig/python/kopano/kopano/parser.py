@@ -31,8 +31,8 @@ def parse_bool(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.lower() in ('yes', 'true'))
 
 def show_version(*args):
-    import __main__
-    print(__main__.__version__)
+    from .version import __version__
+    print(__version__)
     sys.exit()
 
 def _callback(**kwargs):

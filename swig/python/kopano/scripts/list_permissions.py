@@ -7,10 +7,10 @@ import kopano
 
 for store in kopano.stores():
     for permission in store.permissions():
-        print 'store', store, permission.member, permission.rights
+        print('store', store, permission.member, permission.rights)
     for folder in store.folders():
         for permission in folder.permissions():
-            print 'folder', store, folder, permission.member, permission.rights
+            print('folder', store, folder, permission.member, permission.rights)
 
 
 

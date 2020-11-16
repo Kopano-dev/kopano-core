@@ -30,14 +30,33 @@ class SPropValue(MAPIStruct):
     def __init__(self, ulPropTag, Value):
         self.ulPropTag = ulPropTag
         self.Value = Value
+
     def __repr__(self):
         return "SPropValue(0x%08X, %s)" % (self.ulPropTag, repr(self.Value))
-    def __cmp__(self, other):
-        if other is None:
-            return 1
+
+    def __eq__(self, other):
+        return self.ulPropTag == other.ulPropTag and self.Value == other.Value
+
+    def __lt__(self, other):
         if self.ulPropTag != other.ulPropTag:
-            return cmp(self.ulPropTag,other.ulPropTag)
-        return cmp(self.Value,other.Value)
+            return self.ulPropTag < other.ulPropTag
+        return self.Value < other.Value
+
+    def __gt__(self, other):
+        if self.ulPropTag != other.ulPropTag:
+            return self.ulPropTag > other.ulPropTag
+        return self.Value > self.Value
+
+    def __le__(self, other):
+        if self.ulPropTag != other.ulPropTag:
+            return self.ulPropTag <= other.ulPropTag
+        return self.Value <= other.Value
+
+    def __ge__(self, other):
+        if self.ulPropTag != other.ulPropTag:
+            return self.ulPropTag >= other.ulPropTag
+        return self.Value >= self.Value
+
     def __hash__(self):
         return hash(self.ulPropTag) + hash(self.Value)
 
