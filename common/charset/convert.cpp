@@ -83,14 +83,19 @@ private:
  * @param tocode Destination charset
  * @param fromcode Source charset
  */
-iconv_context_base::iconv_context_base(const char* tocode, const char* fromcode)
+iconv_context_base::iconv_context_base(const char *tocode, const char *fromorig)
 {
+	std::string strfrom = fromorig;
+	auto pos = strfrom.find("//");
+	if (pos != strfrom.npos)
+		/* // only meaningful for tocode */
+		strfrom.erase(pos);
 	std::string strto = tocode;
-	size_t pos = strto.find("//");
+	pos = strto.find("//");
 
 	if (pos != std::string::npos) {
 		std::string options = strto.substr(pos+2);
-		strto = strto.substr(0,pos);
+		strto.erase(pos);
 		std::vector<std::string> vOptions = tokenize(options, ",");
 		std::vector<std::string> vOptionsFiltered;
 		std::vector<std::string>::const_iterator i;
@@ -101,22 +106,39 @@ iconv_context_base::iconv_context_base(const char* tocode, const char* fromcode)
 				m_bForce = true;
 			else if (*i == "NOIGNORE" || *i == "NOFORCE")
 				m_bForce = false;
-			else if (*i == "HTMLENTITIES" && strcasecmp(fromcode, CHARSET_WCHAR) == 0)
+			else if (*i == "HTMLENTITIES" &&
+			    strcasecmp(strfrom.c_str(), CHARSET_WCHAR) == 0)
 				m_bHTML = true;
-			else
-				vOptionsFiltered.emplace_back(*i);
+			else if (*i == "TRANSLIT")
+				m_translit_run = true;
 			++i;
-		}
-
-		if (!vOptionsFiltered.empty()) {
-			strto += "//";
-			strto += join(vOptionsFiltered.begin(), vOptionsFiltered.end(), ","s);
 		}
 	}
 
-	m_cd = iconv_open(strto.c_str(), fromcode);
+	if (m_translit_run) {
+		m_cd = iconv_open((strto + "//TRANSLIT").c_str(), strfrom.c_str());
+		if (m_cd != (iconv_t)(-1)) {
+			/* Looks like GNU iconv */
+			m_translit_run = false;
+			return;
+		}
+		/* Skip accordingly many bytes for unconvertible characters */
+		if (strcasecmp(strfrom.c_str(), "wchar_t") == 0)
+			m_translit_adv = sizeof(wchar_t);
+		else if (strcasecmp(strfrom.c_str(), "utf-16") == 0 ||
+		    strcasecmp(strfrom.c_str(), "utf-16le") == 0 ||
+		    strcasecmp(strfrom.c_str(), "utf-16be") == 0)
+			m_translit_adv = sizeof(uint16_t);
+		else if (strcasecmp(strfrom.c_str(), "utf-32") == 0 ||
+		    strcasecmp(strfrom.c_str(), "utf-32le") == 0 ||
+		    strcasecmp(strfrom.c_str(), "utf-32be") == 0)
+			m_translit_adv = sizeof(uint32_t);
+	}
+
+	m_cd = iconv_open(strto.c_str(), strfrom.c_str());
 	if (m_cd == (iconv_t)(-1))
-		throw unknown_charset_exception(strerror(errno));
+		throw unknown_charset_exception(strfrom + " -> "s + strto +
+		      ": " + strerror(errno));
 }
 
 iconv_context_base::~iconv_context_base()
@@ -166,6 +188,13 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 				assert(false); // This will should never fail
 			lpSrc += sizeof(wchar_t);
 			cbSrc -= sizeof(wchar_t);
+		} else if (m_translit_run) {
+			if (cbSrc >= m_translit_adv) {
+				lpSrc += m_translit_adv;
+				cbSrc -= m_translit_adv;
+				buf[0] = '?';
+				--cbDst;
+			}
 		} else if (m_bForce) {
 			// Force conversion by skipping this character
 			if (cbSrc) {

@@ -2221,7 +2221,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
 			return KCERR_DATABASE_ERROR;
 		}
-		pthread_yield();
+		Sleep(1);
 		if (--retries == 0)
 			break;
 	} while (true);
@@ -2318,7 +2318,7 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
 			return KCERR_DATABASE_ERROR;
 		}
-		pthread_yield();
+		Sleep(1);
 		if (--retries == 0)
 			break;
 

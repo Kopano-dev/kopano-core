@@ -445,26 +445,31 @@ exit:
 
 static HRESULT gw_listen(ECConfig *cfg)
 {
+	std::vector<int> used_fds;
 	auto info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3_listen"), ' ', true),
-	            S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	            S_IRWUGO, cfg->GetSetting("run_as_user"),
+	            cfg->GetSetting("run_as_group"), used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto pop3_sock = std::move(info.second);
 
 	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true),
-	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	       S_IRWUGO, cfg->GetSetting("run_as_user"),
+	       cfg->GetSetting("run_as_group"), used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto pop3s_sock = std::move(info.second);
 
 	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imap_listen"), ' ', true),
-	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	       S_IRWUGO, cfg->GetSetting("run_as_user"),
+	       cfg->GetSetting("run_as_group"), used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto imap_sock = std::move(info.second);
 
 	info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("imaps_listen"), ' ', true),
-	       S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	       S_IRWUGO, cfg->GetSetting("run_as_user"),
+	       cfg->GetSetting("run_as_group"), used_fds);
 	if (info.first < 0)
 		return E_FAIL;
 	auto imaps_sock = std::move(info.second);

@@ -1023,15 +1023,20 @@ static int ec_fdtable_socket_ai(const ec_socket &sk)
 
 ec_socket::~ec_socket()
 {
-	if (m_ai != nullptr)
-		freeaddrinfo(m_ai);
+	if (m_ai != nullptr) {
+		if (m_custom_alloc)
+			free(m_ai);
+		else
+			freeaddrinfo(m_ai);
+	}
 	if (m_fd >= 0)
 		close(m_fd);
 }
 
 ec_socket::ec_socket(ec_socket &&o) :
 	m_spec(std::move(o.m_spec)), m_intf(std::move(o.m_intf)),
-	m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port)
+	m_ai(o.m_ai), m_fd(o.m_fd), m_port(o.m_port),
+	m_custom_alloc(o.m_custom_alloc)
 {
 	o.m_ai = nullptr;
 	o.m_fd = -1;
@@ -1079,15 +1084,16 @@ bool ec_socket::operator<(const ec_socket &other) const
 	return memcmp(m_ai->ai_addr, other.m_ai->ai_addr, m_ai->ai_addrlen) < 0;
 }
 
-static ec_socket ec_bindspec_to_unixinfo(std::string &&spec)
+static ec_socket ec_bindspec_to_unixinfo(const std::string &spec)
 {
 	ec_socket sk;
-	sk.m_spec = std::move(spec);
+	sk.m_spec = spec;
 	if (sk.m_spec.size() - 5 >= sizeof(sockaddr_un::sun_path)) {
 		sk.m_err = -ENAMETOOLONG;
 		return sk;
 	}
 
+	sk.m_custom_alloc = true;
 	auto ai = sk.m_ai = static_cast<struct addrinfo *>(calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_un)));
 	ai->ai_family   = AF_LOCAL;
 	ai->ai_socktype = SOCK_STREAM;
@@ -1161,12 +1167,12 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_inetinfo(const char *
 	return {0, std::move(vec)};
 }
 
-static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string &&spec)
+static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(const std::string &spec)
 {
 	if (!kc_starts_with(spec, "unix:"))
 		return ec_bindspec_to_inetinfo(spec.c_str());
 	std::list<ec_socket> skl;
-	auto sk = ec_bindspec_to_unixinfo(std::move(spec));
+	auto sk = ec_bindspec_to_unixinfo(spec);
 	if (sk.m_err >= 0)
 		skl.emplace_back(std::move(sk));
 	return {sk.m_err, std::move(skl)};
@@ -1183,35 +1189,36 @@ static std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockinfo(std::string 
  * brackets, but ec_parse_bindaddr2 supports it by chance.
  */
 std::pair<int, std::list<ec_socket>> ec_bindspec_to_sockets(std::vector<std::string> &&in,
-    unsigned int mode, const char *user, const char *group)
+    unsigned int mode, const char *user, const char *group, std::vector<int> &used_fds)
 {
 	std::list<ec_socket> out;
 	int xerr = 0;
 
-	for (auto &&spec : in) {
-		auto p = ec_bindspec_to_sockinfo(std::move(spec));
+	for (const auto &spec : in) {
+		auto p = ec_bindspec_to_sockinfo(spec);
 		if (p.first != 0) {
 			ec_log_err("Unrecognized format in bindspec: \"%s\"", spec.c_str());
 			return {p.first, std::move(out)};
 		}
 		out.splice(out.end(), std::move(p.second));
 	}
-	out.sort();
-	/* Avoid picking up a socket from environment into two ec_socket structs. */
-	out.unique();
 
 	for (auto &sk : out) {
 		auto fd = ec_fdtable_socket_ai(sk);
-		if (fd >= 0) {
+		if (std::find(used_fds.cbegin(), used_fds.cend(), fd) == used_fds.cend() &&
+		    fd >= 0) {
 			ec_log_info("Re-using fd %d for %s", fd, sk.m_spec.c_str());
 			sk.m_fd = fd;
+			used_fds.push_back(fd);
 			continue;
 		}
 		fd = ec_listen_generic(sk, mode, user, group);
-		if (fd < 0)
+		if (fd < 0) {
 			sk.m_err = fd;
-		else
+		} else {
 			sk.m_fd = fd;
+			used_fds.push_back(fd);
+		}
 		if (xerr == 0 && sk.m_err != 0)
 			xerr = sk.m_err;
 	}

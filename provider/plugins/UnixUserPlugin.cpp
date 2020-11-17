@@ -340,8 +340,6 @@ signatures_t UnixUserPlugin::getAllUserObjects(const std::string &match,
     unsigned int ulFlags)
 {
 	signatures_t objectlist;
-	char buffer[PWBUFSIZE];
-	struct passwd pws, *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto forbid_sh = tokenize(m_config->GetSetting("non_login_shell"), ' ', true);
@@ -352,8 +350,7 @@ signatures_t UnixUserPlugin::getAllUserObjects(const std::string &match,
 
 	setpwent();
 	while (true) {
-		if (getpwent_r(&pws, buffer, PWBUFSIZE, &pw) != 0)
-			break;
+		auto pw = getpwent();
 		if (pw == NULL)
 			break;
 
@@ -379,8 +376,6 @@ signatures_t UnixUserPlugin::getAllGroupObjects(const std::string &match,
     unsigned int ulFlags)
 {
 	signatures_t objectlist;
-	char buffer[PWBUFSIZE];
-	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
@@ -390,8 +385,7 @@ signatures_t UnixUserPlugin::getAllGroupObjects(const std::string &match,
 
 	setgrent();
 	while (true) {
-		if (getgrent_r(&grs, buffer, PWBUFSIZE, &gr) != 0)
-			break;
+		auto gr = getgrent();
 		if (gr == NULL)
 			break;
 
@@ -625,7 +619,6 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
 	struct passwd pws;
-	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	auto exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
@@ -640,6 +633,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	std::string username = pws.pw_name; // make sure we have a _copy_ of the string, not just another pointer
 
 	try {
+		struct group grs;
 		findGroupID(tostring(pws.pw_gid), &grs, buffer);
 		objectlist.emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
 	} catch (const std::exception &e) {
@@ -653,8 +647,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	ulock_normal biglock(m_plugin_lock);
 	setgrent();
 	while (true) {
-		if (getgrent_r(&grs, buffer, PWBUFSIZE, &gr) != 0)
-			break;
+		auto gr = getgrent();
 		if (gr == NULL)
 			break;
 
@@ -686,7 +679,6 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 {
 	signatures_t objectlist;
 	char buffer[PWBUFSIZE];
-	struct passwd pws, *pw = NULL;
 	struct group grp;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
@@ -715,8 +707,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	ulock_normal biglock(m_plugin_lock);
 	setpwent();
 	while (true) {
-		if (getpwent_r(&pws, buffer, PWBUFSIZE, &pw) != 0)
-			break;
+		auto pw = getpwent();
 		if (pw == NULL)
 			break;
 
@@ -909,7 +900,13 @@ void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 	if (e == 0)
 		return;
 	char buffer[256];
+#if defined(__GLIBC__) && (!defined(_POSIX_C_SOURCE) || \
+    _POSIX_C_SOURCE < 200112L || defined(_GNU_SOURCE))
 	auto retbuf = strerror_r(e, buffer, sizeof(buffer));
+#else
+	strerror_r(e, buffer, sizeof(buffer));
+	const char *retbuf = buffer;
+#endif
 
 	// from the getpwnam() man page: (notice the last or...)
 	//  ERRORS

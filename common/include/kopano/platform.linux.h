@@ -13,6 +13,7 @@
  */
 #include <kopano/zcdefs.h>
 #include <vector>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <pthread.h>
@@ -74,7 +75,7 @@ typedef int	BOOL;
 typedef void* LPVOID;
 typedef char* LPSTR;
 typedef const char* LPCSTR;
-typedef __int64_t __int64;
+typedef int64_t __int64;
 
 #define container_of(ptr, type, member) \
 	reinterpret_cast<type *>(reinterpret_cast<char *>(ptr) - offsetof(type, member))

@@ -587,11 +587,27 @@ AC_CHECK_LIB([z], [gzopen], GZ_LIBS="-lz",
 )
 AC_SUBST(GZ_LIBS)
 
-AC_CHECK_FUNCS([gettext], INTL_LIBS="", dnl gettext in libc
-  AC_CHECK_LIB([intl], [gettext], INTL_LIBS="-lintl", dnl in -lintl
-    AC_MSG_ERROR([required library libintl missing or unusable])
-  )
-)
+AC_MSG_CHECKING([dcgettext])
+m4_define([LIBINTLTEST], [AC_LANG_SOURCE([
+	#include <libintl.h>
+	int main() { dcgettext("", "", 0); return 0; }
+])])
+INTL_LIBS=""
+AC_LINK_IFELSE([LIBINTLTEST], [
+	AC_MSG_RESULT([yes])
+], [
+	AC_MSG_RESULT([no])
+	AC_MSG_CHECKING([dcgettext in -lintl])
+	LIBS="-lintl"
+	AC_LINK_IFELSE([LIBINTLTEST], [
+		INTL_LIBS="-lintl"
+		AC_MSG_RESULT([yes])
+	], [
+		AC_MSG_RESULT([no])
+		AC_MSG_ERROR([gettext functions neither in libc nor libintl])
+	])
+	LIBS=""
+])
 AC_SUBST(INTL_LIBS)
 
 # check epoll support

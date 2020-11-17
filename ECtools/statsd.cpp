@@ -203,8 +203,10 @@ static void sd_mainloop(std::vector<struct pollfd> &&sk)
 
 static HRESULT sd_listen(ECConfig *cfg, std::vector<struct pollfd> &pollfd)
 {
+	std::vector<int> used_fds;
 	auto info = ec_bindspec_to_sockets(tokenize(sd_config->GetSetting("statsd_listen"), ' ', true),
-	            S_IRWUG, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	            S_IRWUG, cfg->GetSetting("run_as_user"),
+	            cfg->GetSetting("run_as_group"), used_fds);
 	if (info.first < 0)
 		return EXIT_FAILURE;
 

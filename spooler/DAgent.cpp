@@ -2838,8 +2838,10 @@ static void *HandlerLMTP(void *lpArg)
 static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
+	std::vector<int> used_fds;
 	auto lmtp_info = ec_bindspec_to_sockets(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true),
-	                 S_IRWUGO, cfg->GetSetting("run_as_user"), cfg->GetSetting("run_as_group"));
+	                 S_IRWUGO, cfg->GetSetting("run_as_user"),
+	                 cfg->GetSetting("run_as_group"), used_fds);
 	if (lmtp_info.first < 0) {
 		ec_log_err("Socket binding failed");
 		return lmtp_info.first;

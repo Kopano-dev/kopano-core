@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <ctime>
 #include <cmath>
-#if __GNUC_PREREQ(5, 0) && !__GNUC_PREREQ(6, 0) && defined(_GLIBCXX_CMATH)
+#if __GNUC__ >= 5 && __GNUC__ < 6 && defined(_GLIBCXX_CMATH)
 using std::isfinite;
 using std::isnan;
 #endif

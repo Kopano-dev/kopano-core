@@ -26,7 +26,9 @@ ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c,
 		if (arg == nullptr)
 			return;
 		char name[32];
+#ifdef HAVE_PTHREAD_GETNAME_NP
 		pthread_getname_np(pthread_self(), name, sizeof(name));
+#endif
 		ec_log_debug("db_conn %p was not released on T%lu (%s)", arg, kc_threadid(), name);
 	});
 }

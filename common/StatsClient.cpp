@@ -16,8 +16,8 @@
 #include <sys/utsname.h>
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
-#	include <json/writer.h>
 #endif
+#include <json/writer.h>
 #include <libHX/map.h>
 #include <libHX/option.h>
 #include <kopano/platform.h>
@@ -62,7 +62,6 @@ static size_t curl_dummy_write(char *, size_t z, size_t n, void *)
 {
 	return z * n;
 }
-#endif
 
 static bool sc_proxy_from_env(CURL *ch, const char *url)
 {
@@ -77,7 +76,6 @@ static bool sc_proxy_from_env(CURL *ch, const char *url)
 	return true;
 }
 
-#ifdef HAVE_CURL_CURL_H
 static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 {
 	struct mapfree { void operator()(struct HXmap *m) { HXmap_free(m); } };
@@ -95,6 +93,7 @@ static void sc_proxy_from_sysconfig(CURL *ch, const char *url)
 	if (v != nullptr)
 		curl_easy_setopt(ch, CURLOPT_NOPROXY, v);
 }
+#endif
 
 template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 {
@@ -132,7 +131,6 @@ template<typename T> static void setleaf(Json::Value &leaf, const T &elem)
 		break;
 	}
 }
-#endif
 
 std::string ECStatsCollector::stats_as_text()
 {
