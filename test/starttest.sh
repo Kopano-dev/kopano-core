@@ -12,6 +12,7 @@ PYTEST=${PYTEST:-py.test-3}
 export KOPANO_SOCKET=${KOPANO_SOCKET:-file:///run/kopano/server.sock}
 export KOPANO_TEST_USER=${KOPANO_TEST_USER:-user1}
 export KOPANO_TEST_PASSWORD=${KOPANO_TEST_PASSWORD:-user1}
+export KOPANO_TEST_EMAIL=${KOPANO_TEST_EMAIL:-user1@kopano.demo}
 export KOPANO_TEST_USER2=${KOPANO_TEST_USER2:-user2}
 export KOPANO_TEST_PASSWORD2=${KOPANO_TEST_PASSWORD2:-user2}
 export KOPANO_TEST_USER3=${KOPANO_TEST_USER3:-user3}
@@ -25,6 +26,7 @@ export KOPANO_TEST_POP3_USERNAME=${KOPANO_TEST_POP3_USERNAME:-user4}
 export KOPANO_TEST_POP3_PASSWORD=${KOPANO_TEST_POP3_PASSWORD:-user4}
 export KOPANO_TEST_IMAP_HOST=${KOPANO_TEST_IMAP_HOST:-kopano_gateway}
 export KOPANO_TEST_POP3_HOST=${KOPANO_TEST_POP3_HOST:-kopano_gateway}
+export KOPANO_TEST_DAGENT_HOST=${KOPANO_TEST_DAGENT_HOST:-kopano_dagent}
 
 if [ "$CI" -eq "1" ]; then
 	if [ -x "$(command -v dockerize)" ]; then

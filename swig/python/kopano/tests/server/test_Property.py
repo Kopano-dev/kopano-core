@@ -168,5 +168,4 @@ def test_strval(item):
 
 
 def test_str(item):
-    item.subject = ''
-    assert str(item.prop(PR_SUBJECT_W)) == 'Property(PR_SUBJECT_W)'
+    assert str(item.prop(PR_ENTRYID)) == 'Property(PR_ENTRYID)'

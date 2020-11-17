@@ -27,7 +27,31 @@ def store(session):
 @pytest.fixture
 def inbox(store):
     inboxeid = store.GetReceiveFolder(b'IPM', 0)[0]
-    return store.OpenEntry(inboxeid, None, MAPI_MODIFY)
+    inbox = store.OpenEntry(inboxeid, None, MAPI_MODIFY)
+    yield inbox
+    inbox.EmptyFolder(DELETE_HARD_DELETE, None, 0)
+
+
+@pytest.fixture
+def imapsession():
+    user = os.getenv('KOPANO_TEST_USER')
+    password = os.getenv('KOPANO_TEST_PASSWORD')
+    socket = os.getenv('KOPANO_SOCKET')
+
+    return OpenECSession(user, password, socket)
+
+
+@pytest.fixture
+def imapstore(imapsession):
+    return GetDefaultStore(imapsession)
+
+
+@pytest.fixture
+def imapinbox(imapstore):
+    inboxeid = imapstore.GetReceiveFolder(b'IPM', 0)[0]
+    inbox = imapstore.OpenEntry(inboxeid, None, MAPI_MODIFY)
+    yield inbox
+    inbox.EmptyFolder(DELETE_HARD_DELETE, None, 0)
 
 
 @pytest.fixture
@@ -49,7 +73,7 @@ def ipmnote(inbox):
 
 @pytest.fixture
 def pop3():
-    yield poplib.POP3(os.getenv('KOPANO_TEST_POP3_HOST'), os.getenv('KOPANO_TEST_POP3_PORT'))
+    yield poplib.POP3(os.getenv('KOPANO_TEST_POP3_HOST'), os.getenv('KOPANO_TEST_POP3_PORT', 110))
 
 
 @pytest.fixture
@@ -96,7 +120,7 @@ def delim(imap, login):
 
 
 @pytest.fixture
-def message(imap, login):
+def message(imap, login, inbox):
     message = b"""Subject: test
 
     testmail
@@ -106,7 +130,7 @@ def message(imap, login):
 
 
 @pytest.fixture
-def testmsg():
+def testmsg(imapinbox):
     yield b"""Date: Thu, 14 Oct 2010 17:12:27 +0200
     Subject: smaill email
     From: Internet user <internet@localhost>

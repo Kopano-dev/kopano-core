@@ -72,8 +72,8 @@ def test_fetch_empty_doubleuid(imap, folder):
 
 
 def test_fetch_uids(imap, folder, envelop_message):
-    imap.select('inbox')
-    assert imap.fetch('1:*', '(UID FLAGS)') == imap.uid('fetch', '1:*', '(UID FLAGS)')
+    imap.select(folder)
+    assert imap.fetch('1', '(UID FLAGS)') == imap.uid('fetch', '1:*', '(UID FLAGS)')
 
 
 def test_fetch_shortcut_full(imap, folder, envelop_message):

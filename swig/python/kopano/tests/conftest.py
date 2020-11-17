@@ -287,13 +287,11 @@ def daily(calendar):
                                 )
     item.recurring = True
     rec = item.recurrence
-    print(rec)
 
     rec.pattern = 'daily'
     rec.range_type = 'end_date'  # TODO not needed to set?
     rec.start = datetime(2018, 7, 7)
     rec.end = datetime(2018, 7, 25)  # TODO include end date?
-
     rec._save()  # TODO should not be necessary by default?
 
     yield item

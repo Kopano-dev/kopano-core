@@ -16,8 +16,8 @@ export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 export KUSTOMERD_PRESEED_LICENSE
 
-test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin
-test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler-plugins test-admin-junit test-ectools-junit
+test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin
+test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin-junit test-ectools-junit
 test-short: test-short-python-mapi test-short-python-kopano test-short-php
 
 
@@ -44,6 +44,9 @@ test-gateway:
 
 test-libicalmapi:
 	make -C ../libicalmapi test
+
+test-spooler:
+	make -f ../spooler/test.mk
 
 test-spooler-plugins:
 	make -C ../spooler/python test

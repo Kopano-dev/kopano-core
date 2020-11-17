@@ -153,10 +153,10 @@ def test_companyfilter(server, user):
 
 
 def test_storefilter(server, user):
-    server.options.store = [user.guid]
+    server.options.stores = [user.guid]
     stores = list(server.stores())
     assert stores
-    assert stores[0].guid
+    assert stores[0].guid == user.guid
 
     server.options.stores = [user.guid[::-1]]
     with pytest.raises(NotFoundError) as excinfo:
