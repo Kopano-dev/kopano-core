@@ -907,7 +907,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 		goto exitm;
 
 	if(lpNotification->info.newmail.lpszMessageClass){
-		auto strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags).to_utf8();
+		auto strMessageClass = tfstring_to_utf8(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
 		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.z_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
@@ -2235,7 +2235,7 @@ HRESULT WSTransport::HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULON
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveUsername(m_ecSessionId,
-		    convstring(lpszUserName, ulFlags).to_utf8().z_str(),
+		    tfstring_to_utf8(lpszUserName, ulFlags).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -2270,7 +2270,7 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveGroupname(m_ecSessionId,
-		    convstring(lpszGroupName, ulFlags).to_utf8().z_str(),
+		    tfstring_to_utf8(lpszGroupName, ulFlags).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -2656,7 +2656,7 @@ HRESULT WSTransport::HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveCompanyname(m_ecSessionId,
-		    convstring(lpszCompanyName, ulFlags).to_utf8().z_str(),
+		    tfstring_to_utf8(lpszCompanyName, ulFlags).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else

@@ -285,7 +285,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
 			bIsDefaultStore = true;
 	hr = GetProviders(&g_mapProviders, lpMAPISup,
-	     lpszProfileName == nullptr ? nullptr : convstring(lpszProfileName, ulFlags).to_str().c_str(),
+	     lpszProfileName == nullptr ? nullptr : tfstring_to_lcl(lpszProfileName, ulFlags).c_str(),
 	     &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;

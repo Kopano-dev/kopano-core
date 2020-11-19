@@ -21,7 +21,6 @@
 #include <set>
 
 namespace KC {
-class convstring;
 class utf8string;
 }
 

@@ -11,21 +11,25 @@
 
 namespace KC {
 
-class KC_EXPORT convstring KC_FINAL {
-public:
-	KC_HIDDEN convstring(const convstring &) = delete;
-	convstring(const TCHAR *lpsz, ULONG ulFlags);
-	utf8string to_utf8() const;
-	std::string to_str() const;
+/*
+ * Even if the definition of TCHAR is different between ASCII and Unicode
+ * builds, some of the oldest functions in the MAPI spec have the Unicodeness
+ * of arguments conveyed by a flags argument, and the char type means nothing.
+ */
+inline utf8string tfstring_to_utf8(const TCHAR *s, unsigned int fl)
+{
+	if (s == nullptr)
+		return utf8string(nullptr);
+	return (fl & MAPI_UNICODE) ? convert_to<utf8string>(reinterpret_cast<const wchar_t *>(s)) :
+	       convert_to<utf8string>(reinterpret_cast<const char *>(s));
+}
 
-private:
-	template<typename T> KC_HIDDEN T convert_to() const;
-
-	const TCHAR *m_lpsz = nullptr;
-	ULONG m_ulFlags = 0;
-	tstring		m_str;
-
-	mutable convert_context	m_converter;
-};
+inline std::string tfstring_to_lcl(const TCHAR *s, unsigned int fl)
+{
+	if (s == nullptr)
+		return {};
+	return (fl & MAPI_UNICODE) ? convert_to<std::string>(reinterpret_cast<const wchar_t *>(s)) :
+	       convert_to<std::string>(reinterpret_cast<const char *>(s));
+}
 
 } /* namespace */
