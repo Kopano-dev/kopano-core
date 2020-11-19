@@ -607,20 +607,59 @@ class Store(Properties):
         # items, plus any other customly created folder of container class
         # IPF.Note.
         static = {}
+        page_start = kwargs.get("page_start", 0)
+        page_limit = kwargs.get("page_limit", None)
+
         for n in ('inbox', 'outbox', 'sentmail', 'wastebasket', 'drafts', 'junk'):
             f = getattr(self, n)
             if f is not None:
                 static[f.entryid] = True
+
+                # update page_start bound (implementation of [page_start:])
+                if page_start > 0:
+                    page_start -= 1
+                    continue
+
                 yield f
+
+                # update page_limit bound (implementation of [:page_limit])
+                if page_limit is not None:
+                    page_limit -= 1
+                    if page_limit == 0:
+                        return
+
         # Find additional folders using a restrictions.
         restriction = Restriction(SPropertyRestriction(
             RELOP_EQ, PR_CONTAINER_CLASS_W,
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Note')
         ))
-        for folder in self.folders(restriction=restriction, **kwargs):
-            # Yield additional folders, filtering by the fixed ones.
-            if folder.entryid not in static:
-                yield folder
+
+        # update kwargs with new page start and limit values.
+        copy_kwargs = kwargs.copy()
+        copy_kwargs.update({
+            "page_start": page_start,
+            "page_limit": page_limit
+        })
+
+        folders = self.folders(restriction=restriction, recurse=False, **copy_kwargs)
+        for folder in folders:
+            # filtering by the fixed ones.
+            if folder.entryid in static:
+                continue
+
+            # implementation of [page_start:] on the generator
+            if page_start > 0:
+                page_start -= 1
+                continue
+
+            yield folder
+
+            # implementation of [:page_limit] on the generator
+            if page_limit is not None:
+                if page_limit > 0:
+                    page_limit -= 1
+                else:
+                    break
 
     def contact_folders(self, **kwargs):
         restriction = Restriction(SPropertyRestriction(
