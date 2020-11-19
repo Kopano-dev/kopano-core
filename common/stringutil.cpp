@@ -8,6 +8,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <ios>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>

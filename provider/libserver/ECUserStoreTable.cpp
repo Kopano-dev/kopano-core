@@ -2,9 +2,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <list>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
 #include <mapidefs.h>
@@ -170,7 +170,6 @@ ECRESULT ECUserStoreTable::Load() {
 	ECListIntIterator i;
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-    std::list<unsigned int> lstObjIds;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 	objectdetails_t sUserDetails, sDetails;
@@ -210,6 +209,7 @@ ECRESULT ECUserStoreTable::Load() {
 	if(er != erSuccess)
 		return er;
 
+	std::vector<unsigned int> lstObjIds;
 	int iRowId = 0;
 	while(1) {
 		auto lpDBRow = lpDBResult.fetch_row();
@@ -279,7 +279,7 @@ ECRESULT ECUserStoreTable::Load() {
 		m_mapUserStoreData.emplace(iRowId++, std::move(sUserStore));
 	}
 
-	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
+	LoadRows(std::move(lstObjIds), 0);
 	return erSuccess;
 }
 

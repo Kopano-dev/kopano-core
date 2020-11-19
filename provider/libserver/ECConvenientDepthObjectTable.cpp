@@ -60,7 +60,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
-	std::list<unsigned int> lstFolders, lstObjIds;
 	unsigned int ulDepth = 0, ulFlags = lpData->ulFlags;
 
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
@@ -68,8 +67,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	if (er != erSuccess)
 		return er;
 
-	lstFolders.emplace_back(m_ulFolderId);
-
+	/* needs to remain a list<> because modified during iteration */
+	std::list<unsigned int> lstFolders = {m_ulFolderId};
 	for (auto iterFolders = lstFolders.cbegin(); iterFolders != lstFolders.cend(); ) {
 		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.type = " + stringify(MAPI_FOLDER) + " AND hierarchy.flags & " + stringify(MSGFLAG_DELETED) + " = " + stringify(ulFlags & MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
@@ -109,8 +108,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	}
 
 	lstFolders.remove(m_ulFolderId);
-	lstObjIds = std::move(lstFolders);
-	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
+	LoadRows({std::make_move_iterator(lstFolders.cbegin()), std::make_move_iterator(lstFolders.cend())}, 0);
 	return erSuccess;
 }
 

@@ -2,12 +2,15 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <algorithm>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <new>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 #include <kopano/database.hpp>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
@@ -595,7 +598,7 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType,
 	bool filter_private = false;
 	std::string strInQuery, strQuery;
 	std::set<unsigned int> setObjIdPrivate;
-	std::list<unsigned int> lstChildId2;
+	std::vector<unsigned int> lstChildId2;
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	DB_ROW                  lpDBRow = NULL;
@@ -636,9 +639,9 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType,
 			continue;
 		// ignore errors from the update
 		if(filter_private)
-			t.second->lpTable->UpdateRows(ulType, {lstChildId2.cbegin(), lstChildId2.cend()}, OBJECTTABLE_NOTIFY, false);
+			t.second->lpTable->UpdateRows(ulType, std::move(lstChildId2), OBJECTTABLE_NOTIFY, false);
 		else
-			t.second->lpTable->UpdateRows(ulType, {lstChildId.cbegin(), lstChildId.cend()}, OBJECTTABLE_NOTIFY, false);
+			t.second->lpTable->UpdateRows(ulType, std::move(lstChildId), OBJECTTABLE_NOTIFY, false);
 	}
 	return erSuccess;
 }
@@ -677,7 +680,7 @@ ECRESULT ECMailBoxTable::Load()
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	std::list<unsigned int> lstObjIds;
+	std::vector<unsigned int> lstObjIds;
 	while (true) {
 		auto lpDBRow = lpDBResult.fetch_row();
 		if (lpDBRow == nullptr)
@@ -686,7 +689,7 @@ ECRESULT ECMailBoxTable::Load()
 			continue; /* Broken store table? */
 		lstObjIds.emplace_back(atoui(lpDBRow[0]));
 	}
-	LoadRows({lstObjIds.cbegin(), lstObjIds.cend()}, 0);
+	LoadRows(std::move(lstObjIds), 0);
 	return erSuccess;
 }
 
@@ -711,7 +714,7 @@ ECRESULT ECSearchObjectTable::Load()
 		return erSuccess;
 	/* Get the search results */
 	scoped_rlock biglock(m_hLock);
-	std::list<unsigned int> objlist, objlist2;
+	std::vector<unsigned int> objlist, objlist2;
 	std::set<unsigned int> priv;
 	auto er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &objlist);
 	if (er != erSuccess)
@@ -719,7 +722,7 @@ ECRESULT ECSearchObjectTable::Load()
 	if (lpSession->GetSecurity()->IsStoreOwner(m_ulFolderId) != KCERR_NO_ACCESS ||
 	    lpSession->GetSecurity()->GetAdminLevel() > 0 ||
 	    objlist.size() == 0)
-		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, {objlist.cbegin(), objlist.cend()}, 0, true);
+		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, std::move(objlist), 0, true);
 	/*
 	 * Outlook may show the subject of sensitive messages (e.g. in reminder
 	 * popup), so filter these from shared store searches.
@@ -742,10 +745,9 @@ ECRESULT ECSearchObjectTable::Load()
 			continue;
 		priv.emplace(atoui(row[0]));
 	}
-	for (auto i = objlist.begin(); i != objlist.end(); ++i)
-		if (priv.find(*i) == priv.end())
-			objlist2.emplace_back(*i);
-	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, {objlist2.cbegin(), objlist2.cend()}, 0, true);
+	std::copy_if(objlist.cbegin(), objlist.cend(), std::back_inserter(objlist2),
+		[&](const auto &e) { return priv.find(e) == priv.end(); });
+	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, std::move(objlist2), 0, true);
 }
 
 } /* namespace */

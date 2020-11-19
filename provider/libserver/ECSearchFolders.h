@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <vector>
 #include <pthread.h>
 #include "ECDatabaseFactory.h"
 #include <kopano/ECKeyTable.h>
@@ -109,7 +110,7 @@ public:
      * @param[in] ulFolderId The folder id (hierarchyid) of the searchfolder being modified
      * @param[out] lstObjIds List of object IDs in the result set. List is cleared and populated.
      */
-	KC_HIDDEN virtual ECRESULT GetSearchResults(unsigned int store_id, unsigned int folder_id, std::list<unsigned int> *objids);
+	KC_HIDDEN virtual ECRESULT GetSearchResults(unsigned int store_id, unsigned int folder_id, std::vector<unsigned int> *objids);
 
     /**
      * Queue a messages change that should be processed to update the search folders
@@ -362,7 +363,7 @@ private:
      * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
      * @return result
      */
-	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
+	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::vector<unsigned int> &);
 	KC_HIDDEN virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
 	KC_HIDDEN virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore &, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
 

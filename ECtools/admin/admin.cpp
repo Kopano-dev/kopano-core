@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <set>

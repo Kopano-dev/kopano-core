@@ -5,6 +5,8 @@
 #include <kopano/platform.h>
 #include <list>
 #include <map>
+#include <utility>
+#include <vector>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <mapidefs.h>
@@ -318,7 +320,7 @@ ECRESULT ECABObjectTable::Load()
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
 	std::list<localobjectdetails_t> objs;
-	std::list<unsigned int> lstObjects;
+	std::vector<unsigned int> lstObjects;
 	unsigned int ulObjectId = 0, ulObjectFilter = 0;
 	objectid_t objectid;
 
@@ -414,7 +416,7 @@ ECRESULT ECABObjectTable::Load()
 			continue;
 		lstObjects.emplace_back(obj.ulId);
 	}
-	return LoadRows({lstObjects.cbegin(), lstObjects.cend()}, 0);
+	return LoadRows(std::move(lstObjects), 0);
 }
 
 } /* namespace */

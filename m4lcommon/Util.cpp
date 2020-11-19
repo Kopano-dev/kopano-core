@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <exception>
+#include <iterator>
 #include <cwctype>
 #include <mapidefs.h>
 #include <mapiutil.h>

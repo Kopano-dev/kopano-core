@@ -6,6 +6,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <string>
+#include <utility>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>

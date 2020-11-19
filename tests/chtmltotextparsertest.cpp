@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>

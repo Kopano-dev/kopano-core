@@ -5,8 +5,9 @@
 #include <kopano/platform.h>
 #include <algorithm>
 #include <list>
-#include <string>
 #include <memory>
+#include <string>
+#include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 #include <mapi.h>
