@@ -30,7 +30,7 @@
 #include <mapiutil.h>
 #include <cstdio>
 #include <kopano/stringutil.h>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 

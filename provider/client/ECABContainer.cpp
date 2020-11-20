@@ -21,7 +21,6 @@
 #include <mapispi.h>
 #include <mapiutil.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
 #include "ClientUtil.h"
 #include "ECABContainer.h"

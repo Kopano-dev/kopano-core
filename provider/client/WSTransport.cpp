@@ -40,7 +40,6 @@
 #include "versions.h"
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-#include <kopano/charset/convstring.h>
 #include "SOAPSock.h"
 #include "WSMAPIPropStorage.h"
 #include "WSMessageStreamExporter.h"

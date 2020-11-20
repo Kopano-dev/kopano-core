@@ -25,7 +25,7 @@
 #include "ECMemStream.h"
 #include <kopano/mapiguidext.h>
 #include "rtf.h"
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 

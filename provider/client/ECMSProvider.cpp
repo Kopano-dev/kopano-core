@@ -27,7 +27,7 @@
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <csignal>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 

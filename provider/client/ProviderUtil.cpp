@@ -17,7 +17,6 @@
 #include "ECMsgStore.h"
 #include "ECArchiveAwareMessage.h"
 #include "ECMsgStorePublic.h"
-#include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 #include "ProviderUtil.h"
 #include <kopano/charset/convert.h>
