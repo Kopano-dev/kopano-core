@@ -35,6 +35,7 @@
 #include "EntryPoint.h"
 #include <kopano/stringutil.h>
 #include "ECExchangeModifyTable.h"
+#include <kopano/charset/convert.h>
 #include <kopano/charset/convstring.h>
 
 using namespace KC;
