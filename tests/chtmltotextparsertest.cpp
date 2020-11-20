@@ -50,8 +50,8 @@ static int testhtml(std::string file)
 	expectedhtml = StringCRLFtoLF(std::move(expectedhtml));
 	auto ret = expectedhtml.compare(parsed);
 	if (ret != 0) {
-		std::cout << "Expected:\n\"\"\"" << convert_to<std::string>("UTF-8", expectedhtml, rawsize(expectedhtml), CHARSET_WCHAR) << "\"\"\"\n";
-		std::cout << "Observed:\n\"\"\"" << convert_to<std::string>("UTF-8", parsed, rawsize(parsed), CHARSET_WCHAR) << "\"\"\"\n";
+		std::cout << "Expected:\n\"\"\"" << convert_to<utf8string>(expectedhtml).m_str << "\"\"\"\n";
+		std::cout << "Observed:\n\"\"\"" << convert_to<utf8string>(parsed).m_str << "\"\"\"\n";
 	}
 	return ret;
 }

@@ -775,7 +775,7 @@ static std::string SymmetricDecryptBlob(unsigned int ulAlg, const std::string &s
 	 * Otherwise, it must be 2, which means it is already UTF-8.
 	 */
 	if (ulAlg == 1)
-		strRaw = convert_to<std::string>("UTF-8", strRaw, rawsize(strRaw), "WINDOWS-1252");
+		strRaw = convert_to<utf8string>(strRaw, rawsize(strRaw), "WINDOWS-1252").m_str;
 	return strRaw;
 }
 
@@ -1142,7 +1142,7 @@ std::string kc_utf8_to_punyaddr(const char *s)
 std::string kc_wstr_to_punyaddr(const wchar_t *s)
 {
 	/* libidn does not take wchar, just UTF-32 or UTF-8. */
-	return kc_utf8_to_punyaddr(convert_to<std::string>("UTF-8", s, rawsize(s), CHARSET_WCHAR).c_str());
+	return kc_utf8_to_punyaddr(convert_to<utf8string>(s).c_str());
 }
 
 #else

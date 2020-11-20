@@ -254,13 +254,13 @@ static HRESULT adm_list_mbt(KServerContext &srvctx)
 			if (p[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID)
 				outrow["owner"] = bin2hex(p[0].Value.bin);
 			if (p[6].ulPropTag == PR_MAILBOX_OWNER_NAME_W)
-				outrow["owner_name"] = convert_to<std::string>("UTF-8", p[6].Value.lpszW, rawsize(p[6].Value.lpszW), CHARSET_WCHAR);
+				outrow["owner_name"] = convert_to<utf8string>(p[6].Value.lpszW).m_str;
 			if (p[1].ulPropTag == PR_EC_STORETYPE)
 				outrow["type"] = store_type_string(p[1].Value.ul);
 			if (p[2].ulPropTag == PR_STORE_RECORD_KEY)
 				outrow["guid"] = bin2hex(p[2].Value.bin);
 			if (p[3].ulPropTag == PR_DISPLAY_NAME_W)
-				outrow["display_name"] = convert_to<std::string>("UTF-8", p[3].Value.lpszW, rawsize(p[3].Value.lpszW), CHARSET_WCHAR);
+				outrow["display_name"] = convert_to<utf8string>(p[3].Value.lpszW).m_str;
 			if (p[4].ulPropTag == PR_LAST_MODIFICATION_TIME)
 				outrow["mtime"] = static_cast<Json::Value::Int64>(FileTimeToUnixTime(p[4].Value.ft));
 			if (p[5].ulPropTag == PR_MESSAGE_SIZE_EXTENDED)

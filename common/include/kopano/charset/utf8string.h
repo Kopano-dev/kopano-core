@@ -25,9 +25,10 @@ public:
 	utf8string(std::nullptr_t) : m_bNull(true) {}
 	utf8string(const utf8string &) = default;
 	utf8string(utf8string &&) = default;
-	utf8string(size_t n, char c): m_bNull(false), m_str(n, c) {}
+	utf8string(size_t n, char c) : m_str(n, c), m_bNull(false) {}
 	utf8string &operator=(const utf8string &) = default;
 	utf8string &operator=(utf8string &&) = default;
+
 	bool null_or_empty() const { return m_bNull || m_str.empty(); }
 	const_pointer c_str() const { return m_str.c_str(); }
 	const_pointer z_str() const {
@@ -36,10 +37,6 @@ public:
 
 	const_pointer data() const {
 		return m_bNull ? NULL : m_str.data();
-	}
-
-	const std::string &str() const {
-		return m_str;
 	}
 
 	size_type size() const {
@@ -68,9 +65,9 @@ public:
 		m_str.clear();
 	}
 
+	std::string m_str;
 private:
 	bool m_bNull = false;
-	std::string	m_str;
 };
 
 template<> class iconv_charset<utf8string> KC_FINAL {

@@ -356,7 +356,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	auto eidhex = bin2hex(msg_eid.cb, msg_eid.lpb);
 	argv[argc++] = "--send-message-entryid";
 	argv[argc++] = eidhex.c_str();
-	auto encuser = convert_to<std::string>("UTF-8", szUsername, rawsize(szUsername), CHARSET_WCHAR);
+	auto encuser = convert_to<utf8string>(szUsername).m_str;
 	argv[argc++] = "--send-username-enc";
 	argv[argc++] = encuser.c_str();
 	auto logfd = stringify(g_lpLogger->GetFileDescriptor());

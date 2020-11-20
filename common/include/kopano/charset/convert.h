@@ -171,7 +171,8 @@ class KC_EXPORT_DYCAST iconv_context KC_FINAL :
  *
  * 1. convert_to<dsttype>(dstcharset, srcstring, srcsize, srccharset)
  * 2. convert_to<dsttype>(srcstring, srcsize, srccharset)
- *    autoderived: dstcharset
+ *    autoderived: dstcharset (from dsttype)
+ *    see iconv_charset<dsttype>::name() for the charset that will be assumed
  * 3. convert_to<dsttype>(srcstring)
  *    autoderived: dstcharset, srcsize, srccharset
  *

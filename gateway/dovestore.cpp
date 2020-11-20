@@ -130,7 +130,7 @@ char **kpxx_hierarchy_list(void *vstor)
 			pit = eid2name.find(gp->second);
 			peid = gp->second;
 		}
-		unames.emplace_back(convert_to<std::string>("UTF-8", name, rawsize(name), CHARSET_WCHAR));
+		unames.emplace_back(convert_to<utf8string>(name));
 	}
 	auto nl = static_cast<char **>(malloc(sizeof(char *) * (rows->cRows + 1)));
 	if (nl == nullptr)
@@ -187,7 +187,7 @@ int kpxx_folder_get(void *vstor, const char *name, void **fldp)
 
 		auto row = std::lower_bound(&rows[0], &rows[rows->cRows], path[pidx],
 			[](const SRow &r, const std::string &segname) {
-				auto fn = convert_to<std::string>("UTF-8", r.lpProps[0].Value.lpszW, rawsize(r.lpProps[0].Value.lpszW), CHARSET_WCHAR);
+				auto fn = convert_to<utf8string>(r.lpProps[0].Value.lpszW);
 				std::replace(fn.begin(), fn.end(), '/', '_');
 				return fn < segname;
 			});

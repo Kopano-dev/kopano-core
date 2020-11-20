@@ -2457,7 +2457,7 @@ HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
  */
 static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl)
 {
-	auto parts = tokenize(strMsgStoreDN.str(), "/");
+	auto parts = tokenize(strMsgStoreDN.m_str, "/");
 
 	// We need at least 2 parts.
 	if (parts.size() < 2)

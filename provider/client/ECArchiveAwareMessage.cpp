@@ -405,7 +405,7 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 
 	ossHtmlBody << KC_T("</BODY></HTML>");
 	tstring strHtmlBody = ossHtmlBody.str();
-	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
+	return convert_to<utf8string>(strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR).m_str;
 }
 
 HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore,
