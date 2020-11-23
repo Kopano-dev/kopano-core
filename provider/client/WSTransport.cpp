@@ -217,23 +217,23 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	lreq.__size = req_enc.size();
 
 	if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_OIDC) {
-		er = KCOIDCLogon(lpCmd, strUserName, strImpersonateUser,
+		hr = KCOIDCLogon(lpCmd, strUserName, strImpersonateUser,
 		     strPassword, ulCapabilities, m_ecSessionGroupId,
 		     GetAppName().c_str(), lreq, &ecSessionId, &ulServerCapabilities,
 		     &m_sServerGuid, sProfileProps.strClientAppVersion,
 		     sProfileProps.strClientAppMisc);
-		if (er != erSuccess)
-			return kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
+		if (hr != hrSuccess)
+			return hr;
 		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
 		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 	}
 
 	// try single signon logon
-	er = TrySSOLogon(lpCmd, strUserName, strImpersonateUser, ulCapabilities,
+	hr = TrySSOLogon(lpCmd, strUserName, strImpersonateUser, ulCapabilities,
 	     m_ecSessionGroupId, GetAppName().c_str(), lreq, &ecSessionId,
 	     &ulServerCapabilities, &m_sServerGuid,
 	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
-	if (er == erSuccess)
+	if (hr == erSuccess)
 		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
 		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 
@@ -389,7 +389,7 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-ECRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
+HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
     const utf8string &imp_user, const utf8string &password, unsigned int caps,
     ECSESSIONGROUPID ses_grp_id, const char *app_name,
     const xsd__base64Binary &lreq, ECSESSIONID *ses_id,
@@ -409,22 +409,22 @@ ECRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	    imp_user.c_str(), &sso_data, PROJECT_VERSION,
 	    caps, lreq, ses_grp_id, app_name,
 	    cl_app_ver.c_str(), cl_app_misc.c_str(), &resp) != SOAP_OK)
-		return KCERR_LOGON_FAILED;
+		return MAPI_E_LOGON_FAILED;
 	if (resp.er != erSuccess)
-		return resp.er;
+		return kcerr_to_mapierr(resp.er, MAPI_E_LOGON_FAILED);
 	auto er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
 	if (er != erSuccess)
-		return KCERR_INVALID_VERSION;
+		return MAPI_E_VERSION;
 	*ses_id = resp.ulSessionId;
 	*srv_caps = resp.ulCapabilities;
 
 	if (resp.sServerGuid.__ptr != nullptr &&
 	    resp.sServerGuid.__size == sizeof(*srv_guid))
 		memcpy(srv_guid, resp.sServerGuid.__ptr, sizeof(*srv_guid));
-	return erSuccess;
+	return hrSuccess;
 }
 
-ECRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
+HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
     const utf8string &strImpersonateUser, unsigned int ulCapabilities,
     ECSESSIONGROUPID ecSessionGroupId, const char *szAppName,
     const xsd__base64Binary &lreq, ECSESSIONID *lpSessionId,
@@ -432,7 +432,7 @@ ECRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUserna
     const std::string &appVersion, const std::string &appMisc)
 {
 #define KOPANO_GSS_SERVICE "kopano"
-	ECRESULT er = KCERR_LOGON_FAILED;
+	HRESULT er = MAPI_E_LOGON_FAILED;
 #ifdef HAVE_GSSAPI
 	OM_uint32 minor, major;
 	gss_buffer_desc pr_buf, secbufin{};
@@ -480,12 +480,12 @@ ECRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUserna
 		secbufin.length = resp.lpOutput->__size;
 		/* Return kopano-server response to GSS */
 	} while (true);
-	er = resp.er;
+	er = kcerr_to_mapierr(resp.er, MAPI_E_LOGON_FAILED);
 	if (er != erSuccess)
 		goto exit;
 	er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
 	if (er != erSuccess)
-		return KCERR_INVALID_VERSION;
+		return MAPI_E_VERSION;
 	*lpSessionId = resp.ulSessionId;
 	*lpulServerCapabilities = resp.ulCapabilities;
 	if (resp.sServerGuid.__ptr != nullptr &&
