@@ -405,6 +405,8 @@ static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	    caps, lreq, ses_grp_id, app_name,
 	    cl_app_ver.c_str(), cl_app_misc.c_str(), &resp) != SOAP_OK)
 		return KCERR_LOGON_FAILED;
+	if (resp.er != erSuccess)
+		return resp.er;
 
 	*ses_id = resp.ulSessionId;
 	*srv_caps = resp.ulCapabilities;
@@ -412,8 +414,7 @@ static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	if (resp.sServerGuid.__ptr != nullptr &&
 	    resp.sServerGuid.__size == sizeof(*srv_guid))
 		memcpy(srv_guid, resp.sServerGuid.__ptr, sizeof(*srv_guid));
-
-	return resp.er;
+	return erSuccess;
 }
 
 ECRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
