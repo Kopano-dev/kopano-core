@@ -75,8 +75,6 @@ using namespace KC;
 	if(hr != hrSuccess) \
 		goto exitm;
 
-static ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, const xsd__base64Binary &lic, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-
 namespace KC {
 
 template<> size_t GetCacheAdditionalSize(const ECsResolveResult &v)
@@ -383,7 +381,7 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
+ECRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
     const utf8string &imp_user, const utf8string &password, unsigned int caps,
     ECSESSIONGROUPID ses_grp_id, const char *app_name,
     const xsd__base64Binary &lreq, ECSESSIONID *ses_id,
@@ -406,7 +404,9 @@ static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 		return KCERR_LOGON_FAILED;
 	if (resp.er != erSuccess)
 		return resp.er;
-
+	auto er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
+	if (er != erSuccess)
+		return KCERR_INVALID_VERSION;
 	*ses_id = resp.ulSessionId;
 	*srv_caps = resp.ulCapabilities;
 
