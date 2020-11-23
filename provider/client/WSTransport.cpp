@@ -133,7 +133,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	unsigned int ulCapabilities = KOPANO_CAP_GIFN32, ulLogonFlags = 0;
-	unsigned int ulServerCapabilities = 0, ulServerVersion = 0;
+	unsigned int ulServerCapabilities = 0;
 	ECSESSIONID	ecSessionId = 0;
 	std::unique_ptr<KCmdProxy2> new_cmd;
 	KCmdProxy2 *lpCmd = nullptr;
@@ -235,14 +235,10 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	hr = kcerr_to_mapierr(er, MAPI_E_LOGON_FAILED);
 	if (hr != hrSuccess)
 		return hr;
-	/*
-	 * Version is retrieved but not analyzed because we want to be able to
-	 * connect to old servers for development.
-	 */
 	if (sResponse.lpszVersion == nullptr)
 		/* turn ParseKopanoVersion to take const char * in next ABI */
 		return MAPI_E_INVALID_PARAMETER;
-	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, &ulServerVersion);
+	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, nullptr);
 	if (er != erSuccess)
 		return MAPI_E_VERSION;
 
