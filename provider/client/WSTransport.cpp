@@ -126,6 +126,35 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	return hrSuccess;
 }
 
+static HRESULT prepare_licjson(unsigned int tracking_id,
+    const xsd__base64Binary &rsp_soap, std::string &licjson)
+{
+	std::string rsp_str;
+	auto hr = licstream_dec(rsp_soap.__ptr, rsp_soap.__size, rsp_str);
+	if (hr != hrSuccess)
+		return hr;
+	LICENSERESPONSE rsp_bin;
+	if (rsp_str.size() < sizeof(rsp_bin))
+		return MAPI_E_INVALID_PARAMETER;
+	memcpy(&rsp_bin, rsp_str.data(), std::min(sizeof(rsp_bin), rsp_str.size()));
+	rsp_bin.version     = be32_to_cpu(rsp_bin.version);
+	rsp_bin.tracking_id = be32_to_cpu(rsp_bin.tracking_id);
+	if (rsp_bin.tracking_id != tracking_id)
+		return MAPI_E_NO_ACCESS;
+
+	hr = rsp_bin.status = be32_to_cpu(rsp_bin.status);
+	licjson = rsp_str.substr(sizeof(rsp_bin));
+	Json::Value root;
+	std::istringstream sin(licjson);
+	auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
+	if (hr != hrSuccess) {
+		if (valid_json && root.isMember("ers"))
+			return hr_lerrf(hr, "%s", root["ers"].asCString());
+		return hr;
+	}
+	return hrSuccess;
+}
+
 HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 {
 	HRESULT		hr = hrSuccess;
@@ -238,32 +267,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, nullptr);
 	if (er != erSuccess)
 		return MAPI_E_VERSION;
-
 	if (sResponse.ulCapabilities & KOPANO_CAP_LICENSE_SERVER &&
 	    sResponse.sLicenseResponse.__size > 0) {
-		std::string rsp_str;
-		hr = licstream_dec(sResponse.sLicenseResponse.__ptr, sResponse.sLicenseResponse.__size, rsp_str);
+		hr = prepare_licjson(tracking_id, sResponse.sLicenseResponse, m_licjson);
 		if (hr != hrSuccess)
 			return hr;
-		LICENSERESPONSE rsp_bin;
-		if (rsp_str.size() < sizeof(rsp_bin))
-			return MAPI_E_INVALID_PARAMETER;
-		memcpy(&rsp_bin, rsp_str.data(), std::min(sizeof(rsp_bin), rsp_str.size()));
-		rsp_bin.version     = be32_to_cpu(rsp_bin.version);
-		rsp_bin.tracking_id = be32_to_cpu(rsp_bin.tracking_id);
-		if (rsp_bin.tracking_id != tracking_id)
-			return MAPI_E_NO_ACCESS;
-
-		hr = rsp_bin.status = be32_to_cpu(rsp_bin.status);
-		m_licjson = rsp_str.substr(sizeof(rsp_bin));
-		Json::Value root;
-		std::istringstream sin(m_licjson);
-		auto valid_json = Json::parseFromStream(Json::CharReaderBuilder(), sin, &root, nullptr);
-		if (hr != hrSuccess) {
-			if (valid_json && root.isMember("ers"))
-				return hr_lerrf(hr, "%s", root["ers"].asCString());
-			return hr;
-		}
 	}
 
 	ecSessionId = sResponse.ulSessionId;
