@@ -248,6 +248,7 @@ public:
 
 private:
 	HRESULT HrLogon2(const struct sGlobalProfileProps &);
+	KC::ECRESULT TrySSOLogon(KCmdProxy2 *, const KC::utf8string &user, const KC::utf8string &imp_user, unsigned int caps, KC::ECSESSIONGROUPID, const char *app_name, const xsd__base64Binary &lic, KC::ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	HRESULT PostAuth(KCmdProxy *, std::unique_ptr<KCmdProxy2> &&, const sGlobalProfileProps &, const KC::utf8string &imp_user, unsigned int server_caps, KC::ECSESSIONID);
 	// Returns name of calling application (e.g. 'program.exe' or 'httpd')
 	std::string GetAppName();

@@ -76,7 +76,6 @@ using namespace KC;
 		goto exitm;
 
 static ECRESULT KCOIDCLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, const xsd__base64Binary &lic, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
-static ECRESULT TrySSOLogon(KCmdProxy2 *, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, const xsd__base64Binary &lic, ECSESSIONID *, unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
 namespace KC {
 
@@ -417,7 +416,7 @@ static ECRESULT KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	return resp.er;
 }
 
-static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
+ECRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
     const utf8string &strImpersonateUser, unsigned int ulCapabilities,
     ECSESSIONGROUPID ecSessionGroupId, const char *szAppName,
     const xsd__base64Binary &lreq, ECSESSIONID *lpSessionId,
@@ -476,6 +475,9 @@ static ECRESULT TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsername,
 	er = resp.er;
 	if (er != erSuccess)
 		goto exit;
+	er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
+	if (er != erSuccess)
+		return KCERR_INVALID_VERSION;
 	*lpSessionId = resp.ulSessionId;
 	*lpulServerCapabilities = resp.ulCapabilities;
 	if (resp.sServerGuid.__ptr != nullptr &&
