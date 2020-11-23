@@ -236,7 +236,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	if (hr != hrSuccess)
 		return hr;
 	if (sResponse.lpszVersion == nullptr)
-		/* turn ParseKopanoVersion to take const char * in next ABI */
 		return MAPI_E_INVALID_PARAMETER;
 	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, nullptr);
 	if (er != erSuccess)
