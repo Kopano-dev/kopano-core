@@ -4,7 +4,6 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	* C++14 compiler: g++ 5.x or clang++ 3.8
 	* binutils 2.22
 	* pkg-config
-	* Berkeley DB 4.8 (C++ library)
 	* gsoap 2.8.73, generator and library
 	* ICU 52 (C++ library)
 	* libcrypt with crypt_r

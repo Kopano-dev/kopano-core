@@ -91,7 +91,7 @@ sbin_PROGRAMS = \
 	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
 noinst_PROGRAMS = kopano-cfgchecker
-pkglibexec_PROGRAMS = eidprint kopano-indexd kscriptrun mapitime setupenv
+pkglibexec_PROGRAMS = eidprint kscriptrun mapitime setupenv
 setupenv_SOURCES = tests/setupenv.cpp
 setupenv_LDADD = libkcutil.la
 check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
@@ -127,7 +127,7 @@ if ENABLE_BASE
 # (Order was previously implied by the SUBDIRS variable.)
 #
 lib_LTLIBRARIES = \
-	libkcutil.la libmapi.la libkcfreebusy.la libkcindex.la \
+	libkcutil.la libmapi.la libkcfreebusy.la \
 	libkcsoap.la libkcserver.la \
 	libkcicalmapi.la libkcinetmapi.la libkcarchiver.la
 noinst_LTLIBRARIES =
@@ -136,12 +136,12 @@ noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-dbadm.ldx kopano-fsck.ldx \
 	kopano-gateway.ldx kopano-ibrule.ldx kopano-ical.ldx \
-	kopano-indexd.ldx kopano-monitor.ldx kopano-oof.ldx \
+	kopano-monitor.ldx kopano-oof.ldx \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
 	kopano-srvadm.ldx kopano-storeadm.ldx kopano-stats.ldx \
 	libkcarchiver.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcindex.ldd \
+	libkcinetmapi.ldd \
 	libkcserver.ldd libkcutil.ldd libmapi.ldd
 if ENABLE_PYBIND
 lib_LTLIBRARIES += libkcpyplug.la
@@ -261,9 +261,6 @@ kopano_ical_SOURCES = \
 kopano_ical_LDADD = \
 	libmapi.la libkcutil.la libkcicalmapi.la libkcfreebusy.la -lpthread \
 	${ICAL_LIBS} ${ICONV_LIBS} ${icu_uc_LIBS} ${SSL_LIBS} ${XML2_LIBS}
-
-kopano_indexd_SOURCES = ECtools/idx_net.cpp
-kopano_indexd_LDADD = libkcindex.la libkcutil.la ${libHX_LIBS}
 
 
 #
@@ -519,15 +516,6 @@ libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${default_sym}
 
 
-libkcindex_la_SOURCES = ECtools/idx_handler.cpp \
-	ECtools/idx_util.cpp ECtools/idx_util.hpp \
-	ECtools/idx_xapian.cpp \
-	ECtools/idx_plugin.hpp ECtools/indexer.hpp
-libkcindex_la_LIBADD  = libkcutil.la libmapi.la ${dbcxx_LIBS} ${xapian_LIBS}
-libkcindex_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${default_SYFLAGS${NO_VSYM}}
-
-
 #
 # libkcinetmapi
 #
@@ -614,7 +602,6 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
-	libkcindex.la \
 	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${GZ_LIBS} ${kcoidc_LIBS} ${kustomer_LIBS} \
 	${KRB5_LIBS} ${libHX_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
@@ -908,7 +895,6 @@ dist_man_MANS += \
 	doc/kopano-fsck.1 \
 	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 doc/kopano-ibrule.1 \
 	doc/kopano-ical.8 doc/kopano-ical.cfg.5 \
-	doc/kopano-indexd.8 \
 	doc/kopano-ldap.cfg.5 \
 	doc/kopano-monitor.8 doc/kopano-monitor.cfg.5 \
 	doc/kopano-oof.1 doc/kopano-passwd.1 \

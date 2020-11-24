@@ -11,7 +11,6 @@
 #include <vector>
 #include <soapH.h>
 #include <kopano/kcodes.h>
-#include "ECtools/indexer.hpp"
 #include "ECChannelClient.h"
 
 namespace KC {
@@ -37,18 +36,6 @@ private:
 	ECRESULT Find(const std::set<unsigned int> &setFields, const std::string &strTerm);
 	ECRESULT Query(std::list<unsigned int> &lstMatches);
 	ECRESULT Suggest(std::string &suggestion);
-};
-
-class ECSearchClientMM final : public ECSearchClient {
-	public:
-	ECSearchClientMM();
-
-	private:
-	virtual ECRESULT DoCmd(const std::string &c, std::vector<std::string> &r);
-	virtual ECRESULT Connect();
-
-	std::unique_ptr<IIndexer> m_indexer;
-	IIndexer::client_state m_state;
 };
 
 class ECSearchClientNET final :
