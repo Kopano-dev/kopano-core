@@ -2298,13 +2298,8 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 				recip->wstrDeliveryStatus = "450 4.2.0 %s Mailbox temporarily unavailable";
 		}
 
-		if (lpMessageTmp) {
-			if (lpOrigMessage == NULL)
-				// If we delivered the message for the first time,
-				// we keep the intermediate message to make copies of.
-				lpMessageTmp->QueryInterface(IID_IMessage, &~lpOrigMessage);
+		if (lpMessageTmp != nullptr)
 			bFallbackDelivery = bFallbackDeliveryTmp;
-		}
 	}
 	if (lppMessage != nullptr && lpOrigMessage)
 		lpOrigMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
