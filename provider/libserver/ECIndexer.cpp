@@ -322,9 +322,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	}
 	lstMatches.clear();
 	auto stype = lpConfig->GetSetting("search_enabled");
-	if (stype != nullptr && strcmp(stype, "internal") == 0)
-		lpSearchClient.reset(new(std::nothrow) ECSearchClientMM);
-	else if (!parseBool(stype) || szSocket[0] == '\0')
+	if (!parseBool(stype) || szSocket[0] == '\0')
 		return er = KCERR_NOT_FOUND;
 	else
 		lpSearchClient.reset(new(std::nothrow) ECSearchClientNET(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));

@@ -15,37 +15,9 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
-#include "ECtools/indexer.hpp"
 #include "ECSearchClient.h"
 
 namespace KC {
-
-ECSearchClientMM::ECSearchClientMM()
-{
-	auto file = ECConfig::GetDefaultPath("search.cfg");
-	auto ret = IIndexer::create(file, &unique_tie(m_indexer));
-	if (ret != erSuccess)
-		kc_perror("IIndexer::create", ret);
-}
-
-ECRESULT ECSearchClientMM::DoCmd(const std::string &c, std::vector<std::string> &rsp)
-{
-	if (m_indexer == nullptr)
-		return MAPI_E_NOT_FOUND;
-	auto result = m_indexer->exec1(m_state, c.c_str());
-	rsp = tokenize(result, ":;");
-	if (!rsp.empty() && rsp.front() == "OK")
-		rsp.erase(rsp.begin());
-	else
-		return KCERR_CALL_FAILED;
-	return erSuccess;
-}
-
-ECRESULT ECSearchClientMM::Connect()
-{
-	m_state = decltype(m_state)();
-	return erSuccess;
-}
 
 ECSearchClientNET::ECSearchClientNET(const char *szIndexerPath, unsigned int ulTimeOut)
 	: ECChannelClient(szIndexerPath, ":;")
