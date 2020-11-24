@@ -221,6 +221,7 @@ services:
       - ${KOPANOSPORT:-237}:237
       - CI=1
       - FQDN=${FQDN}
+      - TEST_LICENSE_AVAILABLE=${TEST_LICENSE_AVAILABLE}
     networks:
       - kopano-net
     volumes:
