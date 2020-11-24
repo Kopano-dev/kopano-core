@@ -53,7 +53,7 @@ _charset_map = [
     ("windows-1257", 1257),
     ("windows-1258", 1258),
     ("windows-874", 874),
-    ("us-ascii", 2012)
+    ("us-ascii", 20127)
 ]
 
 def GetCharsetByCP(codepage):
