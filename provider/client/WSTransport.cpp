@@ -222,7 +222,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		     strPassword, ulCapabilities, m_ecSessionGroupId,
 		     GetAppName().c_str(), lreq, &ecSessionId, &ulServerCapabilities,
 		     &m_sServerGuid, sProfileProps.strClientAppVersion,
-		     sProfileProps.strClientAppMisc);
+		     sProfileProps.strClientAppMisc, tracking_id);
 		if (hr != hrSuccess)
 			return hr;
 		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
@@ -233,7 +233,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	hr = TrySSOLogon(lpCmd, strUserName, strImpersonateUser, ulCapabilities,
 	     m_ecSessionGroupId, GetAppName().c_str(), lreq, &ecSessionId,
 	     &ulServerCapabilities, &m_sServerGuid,
-	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc,
+	     tracking_id);
 	if (hr == erSuccess)
 		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
 		       strImpersonateUser, ulServerCapabilities, ecSessionId);
@@ -395,7 +396,7 @@ HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
     ECSESSIONGROUPID ses_grp_id, const char *app_name,
     const xsd__base64Binary &lreq, ECSESSIONID *ses_id,
     unsigned int *srv_caps, GUID *srv_guid, const std::string &cl_app_ver,
-    const std::string &cl_app_misc)
+    const std::string &cl_app_misc, unsigned int tracking_id)
 {
 	struct xsd__base64Binary sso_data;
 	struct ssoLogonResponse resp;
@@ -422,6 +423,12 @@ HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	if (resp.sServerGuid.__ptr != nullptr &&
 	    resp.sServerGuid.__size == sizeof(*srv_guid))
 		memcpy(srv_guid, resp.sServerGuid.__ptr, sizeof(*srv_guid));
+	if (resp.ulCapabilities & KOPANO_CAP_LICENSE_SERVER &&
+	    resp.sLicenseResponse.__size > 0) {
+		er = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
+		if (er != hrSuccess)
+			return er;
+	}
 	return hrSuccess;
 }
 
@@ -430,7 +437,8 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
     ECSESSIONGROUPID ecSessionGroupId, const char *szAppName,
     const xsd__base64Binary &lreq, ECSESSIONID *lpSessionId,
     unsigned int *lpulServerCapabilities, GUID *lpsServerGuid,
-    const std::string &appVersion, const std::string &appMisc)
+    const std::string &appVersion, const std::string &appMisc,
+    unsigned int tracking_id)
 {
 #define KOPANO_GSS_SERVICE "kopano"
 	HRESULT er = MAPI_E_LOGON_FAILED;
@@ -492,6 +500,12 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
 	if (resp.sServerGuid.__ptr != nullptr &&
 	    resp.sServerGuid.__size == sizeof(*lpsServerGuid))
 		memcpy(lpsServerGuid, resp.sServerGuid.__ptr, sizeof(*lpsServerGuid));
+	if (resp.ulCapabilities & KOPANO_CAP_LICENSE_SERVER &&
+	    resp.sLicenseResponse.__size > 0) {
+		er = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
+		if (er != hrSuccess)
+			return er;
+	}
  exit:
 	gss_delete_sec_context(&minor, &gss_ctx, nullptr);
 	gss_release_name(&minor, &principal);
