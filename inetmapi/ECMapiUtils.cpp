@@ -134,7 +134,8 @@ void inputStreamMAPIAdapter::reset()
 {
 	LARGE_INTEGER move;
 	move.QuadPart = 0;
-	lpStream->Seek(move, STREAM_SEEK_SET, nullptr);
+	if (lpStream->Seek(move, STREAM_SEEK_SET, nullptr) != hrSuccess)
+		/* ignore */;
 	ateof = false;
 }
 

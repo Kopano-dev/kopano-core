@@ -136,7 +136,8 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	// lpCompressed is the compressed RTF stream, write it to lpCompressedStream
 	lpReadPtr = lpCompressed.get();
 	lpCompressedStream->SetSize(ularge_int_zero);
-	lpCompressedStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr);
+	if (lpCompressedStream->Seek(large_int_zero, STREAM_SEEK_SET, nullptr) != hrSuccess)
+		/* ignore */;
 
 	while(ulCompressedSize) {
 		hr = lpCompressedStream->Write(lpReadPtr, std::min(ulCompressedSize, 16384U), &ulWritten);
