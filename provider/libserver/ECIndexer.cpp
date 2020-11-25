@@ -158,9 +158,6 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
 			else if (sMultiSearch.strTerm == terms.strTerm)
 				// Add the search fields from the subrestriction into ours
 				sMultiSearch.setFields.insert(std::make_move_iterator(terms.setFields.begin()), std::make_move_iterator(terms.setFields.end()));
-			else
-				// There are different search terms in this OR (case 2)
-				return KCERR_INVALID_PARAMETER;
         }
     } else if(lpRestrict->ulType == RES_CONTENT && (lpRestrict->lpContent->ulFuzzyLevel & (FL_SUBSTRING | FL_IGNORECASE)) == (FL_SUBSTRING | FL_IGNORECASE)) {
 		if (setExcludeProps.find(PROP_ID(lpRestrict->lpContent->ulPropTag)) != setExcludeProps.end())
