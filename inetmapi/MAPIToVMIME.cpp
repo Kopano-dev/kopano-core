@@ -373,10 +373,10 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		// recursive processing of embedded message as a new e-mail
 		hr = convertMAPIToVMIME(lpAttachedMessage, &vmNewMess);
+		sopt = sopt_keep;
 		if (hr != hrSuccess)
 			// Logging has been done by convertMAPIToVMIME()
 			return hr;
-		sopt = sopt_keep;
 		lpVMMessageBuilder->appendAttachment(vmime::make_shared<vmime::parsedMessageAttachment>(vmNewMess));
 	} else if (ulAttachmentMethod == ATTACH_BY_VALUE) {
 		auto hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
