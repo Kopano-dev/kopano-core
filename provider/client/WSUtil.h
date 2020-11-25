@@ -31,8 +31,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc, const ENTRYID *lpEntryI
 HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG *lpcbDest, LPENTRYID *lppEntryIdDest, void *lpBase = NULL);
 HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList, struct entryList *lpsEntryList);
 HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList, LPENTRYLIST *lppMsgList);
-HRESULT FreeABProps(struct propmapPairArray *lpsoapPropmap, struct propmapMVPairArray *lpsoapMVPropmap);
-extern HRESULT CopyABPropsToSoap(const KC::SPROPMAP *, const KC::MVPROPMAP *, ULONG flags, struct propmapPairArray **, struct propmapMVPairArray **);
+extern HRESULT CopyABPropsToSoap(struct soap *, const KC::SPROPMAP *, const KC::MVPROPMAP *, unsigned int flags, struct propmapPairArray *&, struct propmapMVPairArray *&);
 extern HRESULT CopyABPropsFromSoap(const struct propmapPairArray *, const struct propmapMVPairArray *, KC::SPROPMAP *, KC::MVPROPMAP *, void *base, ULONG flags);
 extern HRESULT SoapUserArrayToUserArray(const struct userArray *, ULONG flags, ULONG *nusers, KC::ECUSER **);
 extern HRESULT SoapUserToUser(const struct user *, ULONG flags, KC::ECUSER **);
@@ -40,7 +39,7 @@ extern HRESULT SoapGroupArrayToGroupArray(const struct groupArray *, ULONG flags
 extern HRESULT SoapGroupToGroup(const struct group *, ULONG flags, KC::ECGROUP **);
 extern HRESULT SoapCompanyArrayToCompanyArray(const struct companyArray *, ULONG flags, ULONG *ncomp, KC::ECCOMPANY **);
 extern HRESULT SoapCompanyToCompany(const struct company *, ULONG flags, KC::ECCOMPANY **);
-extern HRESULT SvrNameListToSoapMvString8(KC::ECSVRNAMELIST *, ULONG flags, struct mv_string8 **);
+extern HRESULT SvrNameListToSoapMvString8(struct soap *alloc, KC::ECSVRNAMELIST *, unsigned int flags, struct mv_string8 *&);
 extern HRESULT SoapServerListToServerList(const struct serverList *, ULONG flags, KC::ECSERVERLIST **);
 extern HRESULT WrapServerClientStoreEntry(const char *server_name, const entryId *store_id, ULONG *sid_size, ENTRYID **sid);
 extern HRESULT UnWrapServerClientStoreEntry(ULONG sid_size, const ENTRYID *sid, ULONG *unwrap_sid_size, ENTRYID **unwrap_sid);

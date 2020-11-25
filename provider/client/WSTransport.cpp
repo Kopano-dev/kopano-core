@@ -1638,8 +1638,9 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 	sUser.lpsPropmap		= NULL;
 	sUser.lpsMVPropmap		= NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECUser->sPropmap, &lpECUser->sMVPropmap,
-	          ulFlags, &sUser.lpsPropmap, &sUser.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECUser->sPropmap,
+	          &lpECUser->sMVPropmap, ulFlags, sUser.lpsPropmap,
+	          sUser.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -1654,8 +1655,6 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
  exitm:
 	spg.unlock();
-	FreeABProps(sUser.lpsPropmap, sUser.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -1738,8 +1737,9 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 	sUser.lpsPropmap		= NULL;
 	sUser.lpsMVPropmap		= NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECUser->sPropmap, &lpECUser->sMVPropmap,
-	          ulFlags, &sUser.lpsPropmap, &sUser.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECUser->sPropmap,
+	          &lpECUser->sMVPropmap, ulFlags, sUser.lpsPropmap,
+	          sUser.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -1753,8 +1753,6 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	FreeABProps(sUser.lpsPropmap, sUser.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -1984,8 +1982,9 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 	sGroup.lpsPropmap = NULL;
 	sGroup.lpsMVPropmap = NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap,
-	          ulFlags, &sGroup.lpsPropmap, &sGroup.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECGroup->sPropmap,
+	          &lpECGroup->sMVPropmap, ulFlags, sGroup.lpsPropmap,
+	          sGroup.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -2000,8 +1999,6 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
  exitm:
 	spg.unlock();
-	FreeABProps(sGroup.lpsPropmap, sGroup.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -2035,8 +2032,9 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	sGroup.lpsPropmap = NULL;
 	sGroup.lpsMVPropmap = NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap,
-	          ulFlags, &sGroup.lpsPropmap, &sGroup.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECGroup->sPropmap,
+	          &lpECGroup->sMVPropmap, ulFlags, sGroup.lpsPropmap,
+	          sGroup.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -2048,8 +2046,6 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	FreeABProps(sGroup.lpsPropmap, sGroup.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -2499,8 +2495,9 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 	sCompany.lpsPropmap = NULL;
 	sCompany.lpsMVPropmap = NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECCompany->sPropmap, &lpECCompany->sMVPropmap,
-	          ulFlags, &sCompany.lpsPropmap, &sCompany.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECCompany->sPropmap,
+	          &lpECCompany->sMVPropmap, ulFlags, sCompany.lpsPropmap,
+	          sCompany.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -2515,8 +2512,6 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId, lpcbCompanyId, lppCompanyId);
  exitm:
 	spg.unlock();
-	FreeABProps(sCompany.lpsPropmap, sCompany.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -2577,8 +2572,9 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 	sCompany.lpsPropmap = NULL;
 	sCompany.lpsMVPropmap = NULL;
 
-	auto hr = CopyABPropsToSoap(&lpECCompany->sPropmap, &lpECCompany->sMVPropmap,
-	          ulFlags, &sCompany.lpsPropmap, &sCompany.lpsMVPropmap);
+	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECCompany->sPropmap,
+	          &lpECCompany->sMVPropmap, ulFlags, sCompany.lpsPropmap,
+	          sCompany.lpsMVPropmap);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -2590,8 +2586,6 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 	END_SOAP_CALL
  exitm:
 	spg.unlock();
-	FreeABProps(sCompany.lpsPropmap, sCompany.lpsMVPropmap);
-
 	return hr;
 }
 
@@ -3496,10 +3490,11 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 
 	ECRESULT						er = erSuccess;
 	struct getServerDetailsResponse sResponse;
-	memory_ptr<struct mv_string8> lpsSvrNameList;
+	mv_string8 *lpsSvrNameList = nullptr;
 	soap_lock_guard spg(*this);
 
-	auto hr = SvrNameListToSoapMvString8(lpServerNameList, ulFlags & MAPI_UNICODE, &~lpsSvrNameList);
+	auto hr = SvrNameListToSoapMvString8(m_lpCmd->soap, lpServerNameList,
+	          ulFlags & MAPI_UNICODE, lpsSvrNameList);
 	if (hr != hrSuccess)
 		goto exitm;
 

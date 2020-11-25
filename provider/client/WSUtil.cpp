@@ -1359,8 +1359,8 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 	return hrSuccess;
 }
 
-static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
-    void *lpBase, convert_context *lpConverter, char **lppszUtf8)
+static HRESULT TStringToUtf8(struct soap *alloc, const TCHAR *lpszTstring,
+    unsigned int ulFlags, convert_context *lpConverter, char **lppszUtf8)
 {
 	if (lpszTstring == nullptr || lppszUtf8 == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1376,13 +1376,8 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 		          reinterpret_cast<const char *>(lpszTstring),
 		          rawsize(reinterpret_cast<const char *>(lpszTstring)), CHARSET_CHAR);
 
-	size_t cbDest = strDest.length() + 1;
-	auto hr = MAPIAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszUtf8));
-	if (hr != hrSuccess)
-		return hr;
-
-	memcpy(*lppszUtf8, strDest.c_str(), cbDest);
-	return hrSuccess;
+	*lppszUtf8 = soap_strdup(alloc, strDest.c_str());
+	return *lppszUtf8 != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
 HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
@@ -1446,25 +1441,22 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 	return hrSuccess;
 }
 
-HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
+HRESULT CopyABPropsToSoap(struct soap *alloc, const SPROPMAP *lpPropmap,
     const MVPROPMAP *lpMVPropmap, ULONG ulFlags,
-    struct propmapPairArray **lppsoapPropmap,
-    struct propmapMVPairArray **lppsoapMVPropmap)
+    struct propmapPairArray *&soapPropmap,
+    struct propmapMVPairArray *&soapMVPropmap)
 {
-	memory_ptr<struct propmapPairArray> soapPropmap;
-	memory_ptr<struct propmapMVPairArray> soapMVPropmap;
 	convert_context	converter;
 	ULONG ulConvFlags;
 
 	if (lpPropmap && lpPropmap->cEntries) {
-		auto hr = MAPIAllocateBuffer(sizeof *soapPropmap, &~soapPropmap);
-		if (hr != hrSuccess)
-			return hr;
+		soapPropmap = soap_new_propmapPairArray(alloc);
+		if (soapPropmap == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		soapPropmap->__size = lpPropmap->cEntries;
-		hr = MAPIAllocateMore(soapPropmap->__size * sizeof(*soapPropmap->__ptr),
-		     soapPropmap, reinterpret_cast<void **>(&soapPropmap->__ptr));
-		if (hr != hrSuccess)
-			return hr;
+		soapPropmap->__ptr = soap_new_propmapPair(alloc, lpPropmap->cEntries);
+		if (soapPropmap->__ptr == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 
 		for (gsoap_size_t i = 0; i < soapPropmap->__size; ++i) {
 			if (PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) != PT_BINARY) {
@@ -1474,22 +1466,21 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 				soapPropmap->__ptr[i].ulPropId = lpPropmap->lpEntries[i].ulPropId;
 				ulConvFlags = 0;
 			}
-
-			hr = TStringToUtf8(lpPropmap->lpEntries[i].lpszValue, ulConvFlags, soapPropmap, &converter, &soapPropmap->__ptr[i].lpszValue);
+			auto hr = TStringToUtf8(alloc, lpPropmap->lpEntries[i].lpszValue,
+			          ulConvFlags, &converter, &soapPropmap->__ptr[i].lpszValue);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
 
 	if (lpMVPropmap && lpMVPropmap->cEntries) {
-		auto hr = MAPIAllocateBuffer(sizeof *soapMVPropmap, &~soapMVPropmap);
-		if (hr != hrSuccess)
-			return hr;
+		soapMVPropmap = soap_new_propmapMVPairArray(alloc);
+		if (soapMVPropmap == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		soapMVPropmap->__size = lpMVPropmap->cEntries;
-		hr = MAPIAllocateMore(soapMVPropmap->__size * sizeof(*soapMVPropmap->__ptr),
-		     soapMVPropmap, reinterpret_cast<void **>(&soapMVPropmap->__ptr));
-		if (hr != hrSuccess)
-			return hr;
+		soapMVPropmap->__ptr = soap_new_propmapMVPair(alloc, lpMVPropmap->cEntries);
+		if (soapMVPropmap->__ptr == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 
 		for (gsoap_size_t i = 0; i < soapMVPropmap->__size; ++i) {
 			if (PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) != PT_MV_BINARY) {
@@ -1501,32 +1492,19 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 			}
 
 			soapMVPropmap->__ptr[i].sValues.__size = lpMVPropmap->lpEntries[i].cValues;
-			hr = MAPIAllocateMore(soapMVPropmap->__ptr[i].sValues.__size * sizeof(*soapMVPropmap->__ptr[i].sValues.__ptr),
-			     soapMVPropmap, reinterpret_cast<void **>(&soapMVPropmap->__ptr[i].sValues.__ptr));
-			if (hr != hrSuccess)
-				return hr;
+			soapMVPropmap->__ptr[i].sValues.__ptr = soap_new_string(alloc, lpMVPropmap->lpEntries[i].cValues);
+			if (soapMVPropmap->__ptr[i].sValues.__ptr == nullptr)
+				return MAPI_E_NOT_ENOUGH_MEMORY;
 
 			for (gsoap_size_t j = 0; j < soapMVPropmap->__ptr[i].sValues.__size; ++j) {
-				hr = TStringToUtf8(lpMVPropmap->lpEntries[i].lpszValues[j], ulConvFlags, soapMVPropmap, &converter, &soapMVPropmap->__ptr[i].sValues.__ptr[j]);
+				auto hr = TStringToUtf8(alloc, lpMVPropmap->lpEntries[i].lpszValues[j],
+				          ulConvFlags, &converter, &soapMVPropmap->__ptr[i].sValues.__ptr[j]);
 				if (hr != hrSuccess)
 					return hr;
 			}
 		}
 	}
 
-	if (lppsoapPropmap != nullptr)
-		*lppsoapPropmap = soapPropmap.release();
-	if (lppsoapMVPropmap != nullptr)
-		*lppsoapMVPropmap = soapMVPropmap.release();
-	return hrSuccess;
-}
-
-HRESULT FreeABProps(struct propmapPairArray *lpsoapPropmap, struct propmapMVPairArray *lpsoapMVPropmap)
-{
-	if (lpsoapPropmap)
-		MAPIFreeBuffer(lpsoapPropmap);
-	if (lpsoapMVPropmap)
-		MAPIFreeBuffer(lpsoapMVPropmap);
 	return hrSuccess;
 }
 
@@ -1775,35 +1753,32 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
 	return hrSuccess;
 }
 
-HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
-    ULONG ulFlags, struct mv_string8 **lppsSvrNameList)
+HRESULT SvrNameListToSoapMvString8(struct soap *alloc,
+    ECSVRNAMELIST *lpSvrNameList, unsigned int ulFlags,
+    struct mv_string8 *&lpsSvrNameList)
 {
-	if (lpSvrNameList == nullptr || lppsSvrNameList == nullptr)
+	if (lpSvrNameList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	memory_ptr<struct mv_string8> lpsSvrNameList;
 	convert_context		converter;
-	auto hr = MAPIAllocateBuffer(sizeof(*lpsSvrNameList), &~lpsSvrNameList);
-	if (hr != hrSuccess)
-		return hr;
-	memset(lpsSvrNameList, 0, sizeof *lpsSvrNameList);
+	lpsSvrNameList = soap_new_mv_string8(alloc);
+	if (lpsSvrNameList == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 
 	if (lpSvrNameList->cServers > 0) {
 		lpsSvrNameList->__size = lpSvrNameList->cServers;
-		hr = MAPIAllocateMore(lpSvrNameList->cServers * sizeof(*lpsSvrNameList->__ptr),
-		     lpsSvrNameList, reinterpret_cast<void **>(&lpsSvrNameList->__ptr));
-		if (hr != hrSuccess)
-			return hr;
-		memset(lpsSvrNameList->__ptr, 0, lpSvrNameList->cServers * sizeof *lpsSvrNameList->__ptr);
+		lpsSvrNameList->__ptr = soap_new_string(alloc, lpSvrNameList->cServers);
+		if (lpsSvrNameList->__ptr == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 
 		for (unsigned i = 0; i < lpSvrNameList->cServers; ++i) {
-			hr = TStringToUtf8(lpSvrNameList->lpszaServer[i], ulFlags, lpSvrNameList, &converter, &lpsSvrNameList->__ptr[i]);
+			auto hr = TStringToUtf8(alloc, lpSvrNameList->lpszaServer[i],
+			          ulFlags, &converter, &lpsSvrNameList->__ptr[i]);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
 
-	*lppsSvrNameList = lpsSvrNameList.release();
 	return hrSuccess;
 }
 
