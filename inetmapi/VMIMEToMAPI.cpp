@@ -571,14 +571,11 @@ HRESULT VMIMEToMAPI::hreplyto(vmime::shared_ptr<vmime::mailboxList> &&mblist,
 HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
     IMessage *lpMessage)
 {
-	std::string		strClientTime;
 	ULONG			cbFromEntryID; // representing entry id
 	memory_ptr<ENTRYID> lpFromEntryID, lpSenderEntryID;
 	ULONG			cbSenderEntryID;
 	// setprops
 	memory_ptr<FLATENTRYLIST> lpEntryList;
-	int				nProps = 0;
-	KPropbuffer<22> msgProps;
 	// temp
 	unsigned int cbEntryID, ulRecipProps;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -599,6 +596,11 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	} };
 
 	try {
+		unsigned int nProps = 0;
+		std::string strFromEmail, strFromSearchKey, strSenderSearchKey;
+		std::wstring wstrFromName, wstrSenderName;
+		KPropbuffer<22> msgProps;
+
 		// internet message ID
 		auto field = vmHeader->findField(vmime::fields::MESSAGE_ID);
 		if (field != nullptr)
@@ -683,8 +685,6 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// The real sender of the mail
-		std::string strFromEmail, strFromSearchKey, strSenderSearchKey;
-		std::wstring wstrFromName, wstrSenderName;
 		if(vmHeader->hasField(vmime::fields::FROM)) {
 			strFromEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getEmail().toString();
 			if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName().isEmpty())
