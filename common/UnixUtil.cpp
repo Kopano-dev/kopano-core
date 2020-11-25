@@ -215,6 +215,21 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
 	return 0;
 }
 
+struct popen_fdset {
+	int in[2] = {-1, -1}, out[2] = {-1, -1}, err[2] = {-1, -1}, null = -1;
+
+	~popen_fdset()
+	{
+		if (in[0] != -1) close(in[0]);
+		if (in[1] != -1) close(in[1]);
+		if (out[0] != -1) close(out[0]);
+		if (out[1] != -1) close(out[1]);
+		if (err[0] != -1) close(err[0]);
+		if (err[1] != -1) close(err[1]);
+		if (null != -1) close(null);
+	}
+};
+
 /**
  * Starts a new process with a read and write channel. Optionally sets
  * resource limites and environment variables.
@@ -233,32 +248,16 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
 pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
     int *lpulErr, const char **env)
 {
-	posix_spawn_file_actions_t fa;
-	int ulIn[2] = {-1, -1}, ulOut[2] = {-1, -1};
-	int ulErr[2] = {-1, -1}, nullfd = -1;
-	pid_t pid = -1;
-
 	if (argv == nullptr || argv[0] == nullptr)
 		return -EINVAL;
-	auto cl1 = make_scope_success([&]() {
-		if (ulIn[0] != -1)
-			close(ulIn[0]);
-		if (ulIn[1] != -1)
-			close(ulIn[1]);
-		if (ulOut[0] != -1)
-			close(ulOut[0]);
-		if (ulOut[1] != -1)
-			close(ulOut[1]);
-		if (ulErr[0] != -1)
-			close(ulErr[0]);
-		if (ulErr[1] != -1)
-			close(ulErr[1]);
-		if (nullfd != -1)
-			close(nullfd);
-	});
+
+	posix_spawn_file_actions_t fa;
+	popen_fdset fd;
+	pid_t pid = -1;
+
 	if (lpulIn == nullptr || lpulOut == nullptr || lpulErr == nullptr) {
-		nullfd = open("/dev/null", O_RDWR);
-		if (nullfd < 0)
+		fd.null = open("/dev/null", O_RDWR);
+		if (fd.null < 0)
 			return -errno;
 	}
 	memset(&fa, 0, sizeof(fa));
@@ -269,85 +268,90 @@ pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
 
 	/* Close child-unused ends of the pipes; move child-used ends to fd 0-2. */
 	if (lpulIn != nullptr) {
-		if (pipe(ulIn) < 0)
+		if (pipe(fd.in) < 0)
 			return -errno;
-		ret = posix_spawn_file_actions_addclose(&fa, ulIn[1]);
+		ret = posix_spawn_file_actions_addclose(&fa, fd.in[1]);
 		if (ret != 0)
 			return -ret;
-		ret = posix_spawn_file_actions_adddup2(&fa, ulIn[0], STDIN_FILENO);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.in[0], STDIN_FILENO);
 		if (ret != 0)
 			return -ret;
 	} else {
-		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDIN_FILENO);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.null, STDIN_FILENO);
 		if (ret != 0)
 			return -ret;
 	}
 
 	if (lpulOut != nullptr) {
-		if (pipe(ulOut) < 0)
+		if (pipe(fd.out) < 0)
 			return -errno;
-		ret = posix_spawn_file_actions_addclose(&fa, ulOut[0]);
+		ret = posix_spawn_file_actions_addclose(&fa, fd.out[0]);
 		if (ret != 0)
 			return -ret;
-		ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDOUT_FILENO);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.out[1], STDOUT_FILENO);
 		if (ret != 0)
 			return -ret;
 	} else {
-		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDOUT_FILENO);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.null, STDOUT_FILENO);
 		if (ret != 0)
 			return -ret;
 	}
 
 	if (lpulErr == nullptr) {
-		ret = posix_spawn_file_actions_adddup2(&fa, nullfd, STDERR_FILENO);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.null, STDERR_FILENO);
 		if (ret != 0)
 			return -ret;
 	} else if (lpulErr == lpulOut) {
-		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulOut[1], STDERR_FILENO)) != 0)
-			return -ret;
-	} else {
-		if (lpulErr != nullptr && lpulErr != lpulOut && pipe(ulErr) < 0)
-			return -errno;
-		ret = posix_spawn_file_actions_addclose(&fa, ulErr[0]);
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.out[1], STDERR_FILENO);
 		if (ret != 0)
 			return -ret;
-		if ((ret = posix_spawn_file_actions_adddup2(&fa, ulErr[1], STDERR_FILENO)) != 0)
+	} else {
+		if (lpulErr != nullptr && lpulErr != lpulOut && pipe(fd.err) < 0)
+			return -errno;
+		ret = posix_spawn_file_actions_addclose(&fa, fd.err[0]);
+		if (ret != 0)
+			return -ret;
+		ret = posix_spawn_file_actions_adddup2(&fa, fd.err[1], STDERR_FILENO);
+		if (ret != 0)
 			return -ret;
 	}
 
 	/* Close all pipe ends that were not already fd 0-2. */
-	if (ulIn[0] != -1 && ulIn[0] != STDIN_FILENO && (ret = posix_spawn_file_actions_addclose(&fa, ulIn[0])) != 0)
+	if (fd.in[0] != -1 && fd.in[0] != STDIN_FILENO &&
+	    (ret = posix_spawn_file_actions_addclose(&fa, fd.in[0])) != 0)
 		return -ret;
 	if (lpulErr != lpulOut) {
-		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO &&
-		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+		if (fd.out[1] != -1 && fd.out[1] != STDOUT_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, fd.out[1])) != 0)
 			return -ret;
-		if (ulErr[1] != -1 && ulErr[1] != STDERR_FILENO &&
-		    (ret = posix_spawn_file_actions_addclose(&fa, ulErr[1])) != 0)
+		if (fd.err[1] != -1 && fd.err[1] != STDERR_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, fd.err[1])) != 0)
 			return -ret;
 	} else {
-		if (ulOut[1] != -1 && ulOut[1] != STDOUT_FILENO && ulOut[1] != STDERR_FILENO &&
-		    (ret = posix_spawn_file_actions_addclose(&fa, ulOut[1])) != 0)
+		if (fd.out[1] != -1 && fd.out[1] != STDOUT_FILENO &&
+		    fd.out[1] != STDERR_FILENO &&
+		    (ret = posix_spawn_file_actions_addclose(&fa, fd.out[1])) != 0)
 			return -ret;
 	}
-	if (nullfd != -1 && nullfd != STDIN_FILENO && nullfd != STDOUT_FILENO && nullfd != STDERR_FILENO &&
-	    (ret = posix_spawn_file_actions_addclose(&fa, nullfd)) != 0)
+	if (fd.null != -1 && fd.null != STDIN_FILENO &&
+	    fd.null != STDOUT_FILENO && fd.null != STDERR_FILENO &&
+	    (ret = posix_spawn_file_actions_addclose(&fa, fd.null)) != 0)
 		return -ret;
 
 	ret = posix_spawn(&pid, argv[0], &fa, nullptr, const_cast<char **>(argv), const_cast<char **>(env));
 	if (ret != 0)
 		return -ret;
 	if (lpulIn != nullptr) {
-		*lpulIn = ulIn[1];
-		ulIn[1] = -1;
+		*lpulIn = fd.in[1];
+		fd.in[1] = -1;
 	}
 	if (lpulOut != nullptr) {
-		*lpulOut = ulOut[0];
-		ulOut[0] = -1;
+		*lpulOut = fd.out[0];
+		fd.out[0] = -1;
 	}
 	if (lpulErr != nullptr && lpulErr != lpulOut) {
-		*lpulErr = ulErr[0];
-		ulErr[0] = -1;
+		*lpulErr = fd.err[0];
+		fd.err[0] = -1;
 	}
 	return pid;
 }
