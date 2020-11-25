@@ -75,7 +75,7 @@ pipeline {
                 stage('Run Test Suite') {
                     steps {
                         echo 'Testing..'
-                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) KUSTOMERD_PRESEED_LICENSE=${KUSTOMERD_PRESEED_LICENSE} DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
+                        sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) KUSTOMERD_PRESEED_LICENSE=${KUSTOMERD_PRESEED_LICENSE} TEST_LICENSE_AVAILABLE=$(test -z ${KUSTOMERD_PRESEED_LICENSE} || echo "1")  DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
 			junit testResults: 'php-ext/test.log'
 			junit testResults: 'libicalmapi/test.xml'
 			junit testResults: 'gateway/test.xml'

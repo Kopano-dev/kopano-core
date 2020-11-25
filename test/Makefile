@@ -6,6 +6,7 @@ DOCKERCOMPOSE_EXEC_ARGS ?= -T -u $(shell id -u) -e HOME=$(WORKSPACE) -e WORKSPAC
 DOCKERCOMPOSE_LOGS_ARGS ?=
 EXTRA_LOCAL_ADMIN_USER ?= $(shell id -u)
 KUSTOMERD_PRESEED_LICENSE ?=
+TEST_LICENSE_AVAILABLE ?=
 
 BUILD_TAG ?= $(shell whoami || date +%s)
 
@@ -15,6 +16,7 @@ BATS ?= bats
 export COMPOSE_PROJECT_NAME=kopanocore-test-$(BUILD_TAG)
 export EXTRA_LOCAL_ADMIN_USER
 export KUSTOMERD_PRESEED_LICENSE
+export TEST_LICENSE_AVAILABLE
 
 test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin
 test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin-junit test-ectools-junit

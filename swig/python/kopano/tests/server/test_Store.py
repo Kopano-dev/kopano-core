@@ -299,6 +299,14 @@ def test_lastlogoff(store):
     assert store.last_logoff == dt
 
 
+def test_storeinfo(store):
+    licenseinfo = store.licenseinfo
+    assert licenseinfo['err'] == 0
+    # No libkustomerd support assumed
+    if not os.getenv('TEST_LICENSE_AVAILABLE'):
+        assert licenseinfo['ers'] == 'Success'
+
+
 def test_iter(store):
     assert isinstance(list(store)[0], Folder)
 
