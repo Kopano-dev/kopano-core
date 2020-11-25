@@ -703,6 +703,8 @@ int KCmdService::logon(const char *user, const char *pass,
 	if (sLicenseRequest.__size > 0) {
 		std::string out;
 		er = ECLicense_Auth(sLicenseRequest.__ptr, sLicenseRequest.__size, out);
+		if (er != erSuccess)
+			return er;
 		if (out.size() > 0) {
 			lpsResponse->sLicenseResponse.__size = out.size();
 			lpsResponse->sLicenseResponse.__ptr = soap_new_unsignedByte(soap, out.size());
@@ -801,6 +803,8 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 		if (sLicenseRequest.__size > 0) {
 			std::string out;
 			er = ECLicense_Auth(sLicenseRequest.__ptr, sLicenseRequest.__size, out);
+			if (er != erSuccess)
+				return er;
 			if (out.size() > 0) {
 				lpsResponse->sLicenseResponse.__size = out.size();
 				lpsResponse->sLicenseResponse.__ptr = soap_new_unsignedByte(soap, out.size());
@@ -8400,12 +8404,14 @@ SOAP_ENTRY_START(getLicenseAuth, r->er, const struct xsd__base64Binary &req,
 {
 	std::string out;
 	er = ECLicense_Auth(req.__ptr, req.__size, out);
+	if (er != erSuccess)
+		return er;
 	if (out.size() > 0) {
 		r->sAuthResponse.__size = out.size();
 		r->sAuthResponse.__ptr = soap_new_unsignedByte(soap, out.size());
 		memcpy(r->sAuthResponse.__ptr, out.data(), out.size());
 	}
-	return er;
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 

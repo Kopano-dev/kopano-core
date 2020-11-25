@@ -27,12 +27,12 @@ class ECMemBlock final : public ECUnknown {
 	ECMemBlock(const char *buffer, unsigned int len, unsigned int flags);
 	~ECMemBlock();
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-	virtual HRESULT	ReadAt(unsigned int pos, unsigned int len, char *buffer, unsigned int *have_read);
+	virtual void ReadAt(unsigned int pos, unsigned int len, char *buffer, unsigned int *have_read);
 	virtual HRESULT WriteAt(unsigned int pos, unsigned int len, const char *buffer, unsigned int *have_written);
 	virtual HRESULT Commit();
 	virtual HRESULT Revert();
 	virtual HRESULT SetSize(unsigned int ulSize);
-	virtual HRESULT GetSize(unsigned int *size) const;
+	virtual void GetSize(unsigned int *size) const;
 	virtual char *GetBuffer() { return lpCurrent; }
 
 	private:
@@ -76,7 +76,8 @@ HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
 }
 
 // Reads at most ulLen chars, may be shorter due to shorter data len
-HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead)
+void ECMemBlock::ReadAt(unsigned int ulPos, unsigned int ulLen, char *buffer,
+    unsigned int *ulBytesRead)
 {
 	ULONG ulToRead = cbCurrent - ulPos;
 
@@ -84,7 +85,6 @@ HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulByte
 	memcpy(buffer, lpCurrent+ulPos, ulToRead);
 	if(ulBytesRead)
 		*ulBytesRead = ulToRead;
-	return hrSuccess;
 }
 
 HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
@@ -149,10 +149,9 @@ HRESULT ECMemBlock::SetSize(ULONG ulSize)
 	return hrSuccess;
 }
 
-HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
+void ECMemBlock::GetSize(ULONG *ulSize) const
 {
 	*ulSize = cbCurrent;
-	return hrSuccess;
 }
 
 ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
@@ -225,12 +224,12 @@ HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 	// Outlookspy tries to read the whole thing into a small textbox in one go which takes rather long
 	// so I suspect PST files and Exchange have some kind of limit here (it should never be a problem
 	// if the client is correctly coded, but hey ...)
-	auto hr = lpMemBlock->ReadAt(static_cast<ULONG>(liPos.QuadPart),
+	lpMemBlock->ReadAt(static_cast<ULONG>(liPos.QuadPart),
 	          cb, static_cast<char *>(pv), &ulRead);
 	liPos.QuadPart += ulRead;
 	if(pcbRead)
 		*pcbRead = ulRead;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
@@ -259,9 +258,7 @@ HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
 {
 	ULONG ulSize = 0;
-	auto hr = lpMemBlock->GetSize(&ulSize);
-	if(hr != hrSuccess)
-		return hr;
+	lpMemBlock->GetSize(&ulSize);
 
 	switch(dwOrigin) {
 	case STREAM_SEEK_SET:
@@ -293,10 +290,7 @@ HRESULT ECMemStream::SetSize(ULARGE_INTEGER libNewSize)
 HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten)
 {
 	ULONG ulOffset = 0, ulWritten = 0, ulSize = 0;
-	auto hr = lpMemBlock->GetSize(&ulSize);
-	if(hr != hrSuccess)
-		return hr;
-
+	lpMemBlock->GetSize(&ulSize);
 	assert(liPos.u.HighPart == 0);
 	ulOffset = liPos.u.LowPart;
 
@@ -356,10 +350,7 @@ HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 
 	if (pstatstg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto hr = lpMemBlock->GetSize(&ulSize);
-	if(hr != hrSuccess)
-		return hr;
-
+	lpMemBlock->GetSize(&ulSize);
 	memset(pstatstg, 0, sizeof(STATSTG));
 	pstatstg->cbSize.QuadPart = ulSize;
 	pstatstg->type = STGTY_STREAM;
