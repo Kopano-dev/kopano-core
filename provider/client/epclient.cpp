@@ -19,12 +19,13 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECGuid.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/charset/convert.h>
+#include <kopano/charset/utf8string.h>
 #include <edkmdb.h>
 #include <edkguid.h>
 #include "SSLUtil.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"
-#include <kopano/charset/convstring.h>
 
 using namespace KC;
 
@@ -209,8 +210,10 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 	}
 
 	std::string redir_srv;
-	ret = d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	      0, NULL, &d.eid_size, &~d.eid, &redir_srv);
+	auto u8name = PROP_TYPE(name->ulPropTag) == PT_UNICODE ?
+	              convert_to<utf8string>(name->Value.lpszW) :
+	              convert_to<utf8string>(name->Value.lpszA);
+	ret = d.transport->HrResolveUserStore(u8name, 0, nullptr, &d.eid_size, &~d.eid, &redir_srv);
 	if (ret != MAPI_E_UNABLE_TO_COMPLETE)
 		return ret;
 
@@ -222,8 +225,7 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 	ret = d.transport->HrLogon(new_props);
 	if (ret != hrSuccess)
 		return ret;
-	return d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	       0, NULL, &d.eid_size, &~d.eid);
+	return d.transport->HrResolveUserStore(u8name, 0, nullptr, &d.eid_size, &~d.eid);
 }
 
 static HRESULT initprov_storearc(struct initprov &d)
@@ -262,8 +264,10 @@ static HRESULT initprov_storearc(struct initprov &d)
 	if (ret != hrSuccess)
 		return ret;
 	d.transport = std::move(alt_transport);
-	return d.transport->HrResolveTypedStore(convstring::from_SPropValue(name),
-	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &~d.eid);
+	auto u8name = PROP_TYPE(name->ulPropTag) == PT_UNICODE ?
+	              convert_to<utf8string>(name->Value.lpszW) :
+	              convert_to<utf8string>(name->Value.lpszA);
+	return d.transport->HrResolveTypedStore(u8name, ECSTORE_TYPE_ARCHIVE, &d.eid_size, &~d.eid);
 }
 
 static HRESULT

@@ -19,7 +19,6 @@
 #include "EntryPoint.h"
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-#include <kopano/charset/convstring.h>
 
 using namespace KC;
 
@@ -202,6 +201,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 	auto hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, lpPropSourceKey->Value.bin.cb, lpPropSourceKey->Value.bin.lpb, 0, NULL, &cbEntryId, &~lpEntryId);
 	if(hr == MAPI_E_NOT_FOUND){
+		auto pdn = convert_to<utf8string>(lpPropDisplayName->Value.lpszW);
 		// Folder is not yet available in our store
 		if(lpPropParentSourceKey->Value.bin.cb > 0){
 			// Find the parent folder in which the new folder is to be created
@@ -217,11 +217,17 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 			if(hr != hrSuccess)
 				return hr;
 			// Create the folder, loop through some names if it collides
-			hr = lpECParentFolder->lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpPropDisplayName->Value.lpszW), strFolderComment, 0, m_ulSyncId, lpOrigSourceKey, cbOrigEntryId, (LPENTRYID)lpOrigEntryId, &cbEntryId, &~lpEntryId);
+			hr = lpECParentFolder->lpFolderOps->HrCreateFolder(ulFolderType,
+			     pdn, strFolderComment, 0, m_ulSyncId, lpOrigSourceKey,
+			     cbOrigEntryId, reinterpret_cast<ENTRYID *>(lpOrigEntryId),
+			     &cbEntryId, &~lpEntryId);
 			if(hr != hrSuccess)
 				return hr;
 		}else{
-			hr = m_lpFolder->lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpPropDisplayName->Value.lpszW), strFolderComment, 0, m_ulSyncId, lpOrigSourceKey, cbOrigEntryId, (LPENTRYID)lpOrigEntryId, &cbEntryId, &~lpEntryId);
+			hr = m_lpFolder->lpFolderOps->HrCreateFolder(ulFolderType,
+			     pdn, strFolderComment, 0, m_ulSyncId, lpOrigSourceKey,
+			     cbOrigEntryId, reinterpret_cast<ENTRYID *>(lpOrigEntryId),
+			     &cbEntryId, &~lpEntryId);
 			if (hr != hrSuccess)
 				return hr;
 		}

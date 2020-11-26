@@ -13,19 +13,15 @@ namespace KC {
 
 class KC_EXPORT convstring KC_FINAL {
 public:
-	static convstring from_SPropValue(const SPropValue *lpsPropVal);
-	KC_HIDDEN static convstring from_SPropValue(const SPropValue &);
 	KC_HIDDEN convstring() = default;
 	KC_HIDDEN convstring(const convstring &);
 	KC_HIDDEN convstring(const char *);
-	convstring(const wchar_t *lpsz);
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
 
 	bool null_or_empty() const;
 
 	operator utf8string() const;
 	operator std::string() const;
-	operator std::wstring() const;
 	const char *z_str() const;
 	const char *u8_str() const;
 

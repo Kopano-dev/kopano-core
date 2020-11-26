@@ -8,44 +8,6 @@
 
 namespace KC {
 
-/** Create a convstring instance from a SPropValue.
- *
- * Extarcts the lpszA or lpszW depending on the PROP_TYPE of the provided
- * prop value and creates a convstring object representing the data.
- *
- * @param[in]	lpsPropVal
- *			Pointer to the SPropValue object to extract the data from.
- * @return	A new convstring object.
- */
-convstring convstring::from_SPropValue(const SPropValue *lpsPropVal)
-{
-	if (!lpsPropVal)
-		return convstring();
-
-	switch (PROP_TYPE(lpsPropVal->ulPropTag)) {
-	case PT_STRING8:
-		return convstring(lpsPropVal->Value.lpszA);
-	case PT_UNICODE:
-		return convstring(lpsPropVal->Value.lpszW);
-	default:
-		return convstring();
-	}
-}
-
-/** Create a convstring instance from a SPropValue.
- *
- * Extarcts the lpszA or lpszW depending on the PROP_TYPE of the provided
- * prop value and creates a convstring object representing the data.
- *
- * @param[in]	sPropVal
- *			Reference to the SPropValue object to extract the data from.
- * @return	A new convstring object.
- */
-convstring convstring::from_SPropValue(const SPropValue &sPropVal)
-{
-	return from_SPropValue(&sPropVal);
-}
-
 /**
  * Create a new convstring object based on another convstring object.
  *
@@ -75,21 +37,6 @@ convstring::convstring(const convstring &other) :
  */
 convstring::convstring(const char *lpsz)
 : m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
-{
-}
-
-/** Create a new convstring object based on a raw char pointer.
- *
- * Creates an object and assumes that the provided string is encoded
- * as a wide character string.
- *
- * @param[in]	lpsz
- *			The string to base the new object on. This string
- *			is expected to be encoded as a wide character string.
- */
-convstring::convstring(const wchar_t *lpsz)
-: m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
-, m_ulFlags(MAPI_UNICODE)
 {
 }
 
@@ -186,15 +133,6 @@ convstring::operator utf8string() const
 convstring::operator std::string() const
 {
 	return convert_to<std::string>();
-}
-
-/** Convert this convstring object to a std::wstring.
- *
- * @return	A std::wstring representing the internal string encoded as a wide character string.
- */
-convstring::operator std::wstring() const
-{
-	return convert_to<std::wstring>();
 }
 
 /**
