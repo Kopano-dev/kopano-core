@@ -176,7 +176,7 @@ bool convstring::null_or_empty() const
  */
 convstring::operator utf8string() const
 {
-	return (m_lpsz == NULL ? utf8string::null_string() : convert_to<utf8string>());
+	return m_lpsz == nullptr ? utf8string(nullptr) : convert_to<utf8string>();
 }
 
 /** Convert this convstring object to a std::string.

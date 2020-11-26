@@ -27,13 +27,8 @@ public:
 		return s;
 	}
 
-	static utf8string null_string() {
-		utf8string s;
-		s.set_null();
-		return s;
-	}
-
 	utf8string() = default;
+	utf8string(std::nullptr_t) : m_bNull(true) {}
 	utf8string(const utf8string &) = default;
 	utf8string(utf8string &&) = default;
 	utf8string(size_t n, char c): m_bNull(false), m_str(n, c) {}
@@ -77,11 +72,6 @@ public:
 
 	void clear() {
 		m_str.clear();
-	}
-
-	void set_null() {
-		clear();
-		m_bNull = true;
 	}
 
 private:
