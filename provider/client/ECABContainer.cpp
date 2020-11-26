@@ -730,9 +730,9 @@ HRESULT ECABProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IABLogon> lpABLogon;
 	object_ptr<IABProvider> lpOnline;
-	convstring tstrProfileName(lpszProfileName, ulFlags);
 
-	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), &sProviderInfo);
+	auto hr = GetProviders(&g_mapProviders, lpMAPISup,
+	          convstring(lpszProfileName, ulFlags).z_str(), &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);

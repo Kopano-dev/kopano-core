@@ -175,7 +175,7 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	utf8string strServerName = convstring(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
 
-	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~lpszServerPath, &bIsPeer);
+	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.z_str(), &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
 	if (bIsPeer) {

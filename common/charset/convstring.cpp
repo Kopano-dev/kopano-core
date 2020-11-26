@@ -205,7 +205,7 @@ convstring::operator std::wstring() const
  * @note	Don't call this too often as the results are stored internally since storage needs to be
  *		guaranteed for the caller to be able to use the data.
  */
-const char* convstring::c_str() const
+const char *convstring::z_str() const
 {
 	return (m_lpsz ? convert_to<char*>() : NULL);
 }

@@ -79,11 +79,11 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_STRING8:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA).c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA).z_str());
 		break;
 	case PT_UNICODE:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW).c_str());
+		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW).z_str());
 		break;
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
@@ -184,7 +184,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
 		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
-			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).c_str());
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).z_str());
 		break;
 	case PT_MV_UNICODE:
 		if (lpConverter == NULL) {
@@ -196,7 +196,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
 		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
-			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).c_str());
+			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).z_str());
 		break;
 	case PT_MV_CLSID:
 		dp->__union = SOAP_UNION_propValData_mvbin;
@@ -2285,8 +2285,8 @@ HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFold
 		auto &dst       = destination[i];
 
 		dst.type           = src.folder_type;
-		dst.name           = src.name.c_str();
-		dst.comment        = src.comment.c_str();
+		dst.name           = src.name.z_str();
+		dst.comment        = src.comment.z_str();
 		dst.open_if_exists = src.open_if_exists;
 		dst.sync_id        = src.sync_id;
 

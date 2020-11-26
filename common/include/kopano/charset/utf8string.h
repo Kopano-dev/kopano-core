@@ -40,7 +40,8 @@ public:
 	utf8string &operator=(const utf8string &) = default;
 	utf8string &operator=(utf8string &&) = default;
 
-	const_pointer c_str() const {
+	const_pointer c_str() const { return m_str.c_str(); }
+	const_pointer z_str() const {
 		return m_bNull ? NULL : m_str.c_str();
 	}
 
@@ -93,9 +94,7 @@ public:
 	static const char *name() {
 		return "UTF-8";
 	}
-	static const char *rawptr(const utf8string &from) {
-		return reinterpret_cast<const char*>(from.c_str());
-	}
+	static const char *rawptr(const utf8string &from) { return from.z_str(); }
 	static size_t rawsize(const utf8string &from) {
 		return from.size();
 	}

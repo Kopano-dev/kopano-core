@@ -26,7 +26,7 @@ public:
 	operator utf8string() const;
 	operator std::string() const;
 	operator std::wstring() const;
-	const char *c_str() const;
+	const char *z_str() const;
 	const char *u8_str() const;
 
 private:

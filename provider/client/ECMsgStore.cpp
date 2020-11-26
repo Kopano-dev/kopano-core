@@ -1121,7 +1121,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 			return hr;
 
 		// MsgStoreDN successfully converted
-		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
+		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.z_str(), &~ptrServerPath, &bIsPeer);
 		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0)
 			// Try again old, style since the MsgStoreDN contained an unknown server name or the server does not support multi-server.
 			return CreateStoreEntryID(nullptr, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);

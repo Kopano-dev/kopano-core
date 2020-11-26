@@ -239,8 +239,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 
 	// Login with username and password
-	er = lpCmd->logon(strUserName.c_str(), strPassword.c_str(),
-	     strImpersonateUser.c_str(), PROJECT_VERSION, ulCapabilities,
+	er = lpCmd->logon(strUserName.z_str(), strPassword.z_str(),
+	     strImpersonateUser.z_str(), PROJECT_VERSION, ulCapabilities,
 	     ulLogonFlags, lreq, m_ecSessionGroupId,
 	     GetAppName().c_str(), sProfileProps.strClientAppVersion.c_str(),
 	     sProfileProps.strClientAppMisc.c_str(), &sResponse);
@@ -406,8 +406,8 @@ HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 	sso_data.__ptr = reinterpret_cast<unsigned char *>(const_cast<char *>(token.c_str()));
 	sso_data.__size = token.length();
 
-	if (cmd->ssoLogon(resp.ulSessionId, user.c_str(),
-	    imp_user.c_str(), &sso_data, PROJECT_VERSION,
+	if (cmd->ssoLogon(resp.ulSessionId, user.z_str(),
+	    imp_user.z_str(), &sso_data, PROJECT_VERSION,
 	    caps, lreq, ses_grp_id, app_name,
 	    cl_app_ver.c_str(), cl_app_misc.c_str(), &resp) != SOAP_OK)
 		return MAPI_E_LOGON_FAILED;
@@ -476,8 +476,8 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
 		sso_data.__ptr = reinterpret_cast<unsigned char *>(secbufout.value);
 		sso_data.__size = secbufout.length;
 
-		if (lpCmd->ssoLogon(resp.ulSessionId, strUsername.c_str(),
-		    strImpersonateUser.c_str(), &sso_data, PROJECT_VERSION,
+		if (lpCmd->ssoLogon(resp.ulSessionId, strUsername.z_str(),
+		    strImpersonateUser.z_str(), &sso_data, PROJECT_VERSION,
 		    ulCapabilities, lreq, ecSessionGroupId, szAppName,
 		    appVersion.c_str(), appMisc.c_str(), &resp) != SOAP_OK)
 			goto exit;
@@ -908,7 +908,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 
 	if(lpNotification->info.newmail.lpszMessageClass){
 		utf8string strMessageClass = convstring(lpNotification->info.newmail.lpszMessageClass, lpNotification->info.newmail.ulFlags);
-		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.c_str());
+		sNotification.newmail->lpszMessageClass = soap_strdup(nullptr, strMessageClass.z_str());
 	}
 	sNotification.newmail->ulMessageFlags = lpNotification->info.newmail.ulMessageFlags;
 
@@ -1146,7 +1146,7 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 		case MNID_STRING: {
 			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
 			auto strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
-			sNamedProps.__ptr[i].lpString = soap_strdup(nullptr, strNameUTF8.c_str());
+			sNamedProps.__ptr[i].lpString = soap_strdup(nullptr, strNameUTF8.z_str());
 			break;
 		}
 		default:
@@ -1370,7 +1370,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->getReceiveFolder(m_ecSessionId, sEntryId,
-		    strMessageClass.c_str(), &sReceiveFolderTable) != SOAP_OK)
+		    strMessageClass.z_str(), &sReceiveFolderTable) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sReceiveFolderTable.er;
@@ -1422,7 +1422,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 		ECRESULT result = KCERR_NETWORK_ERROR;
 		if (m_lpCmd->setReceiveFolder(m_ecSessionId, sStoreId,
 		    lpEntryID != nullptr ? &sEntryId : nullptr,
-		    strMessageClass.c_str(), &result) != SOAP_OK)
+		    strMessageClass.z_str(), &result) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = result;
@@ -1529,7 +1529,7 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->resolveUserStore(m_ecSessionId, strUserName.c_str(),
+		if (m_lpCmd->resolveUserStore(m_ecSessionId, strUserName.z_str(),
 		    ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC,
 		    ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -1587,7 +1587,7 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveUserStore(m_ecSessionId,
-		    strUserName.c_str(), 1 << ulStoreType, 0,
+		    strUserName.z_str(), 1 << ulStoreType, 0,
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
