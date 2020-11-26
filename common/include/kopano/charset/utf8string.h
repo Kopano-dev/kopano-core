@@ -21,12 +21,6 @@ public:
 	typedef std::string::const_pointer	const_pointer;
 	typedef std::string::size_type		size_type;
 
-	static utf8string from_string(const std::string &str) {
-		utf8string s;
-		s.m_str = str;
-		return s;
-	}
-
 	utf8string() = default;
 	utf8string(std::nullptr_t) : m_bNull(true) {}
 	utf8string(const utf8string &) = default;

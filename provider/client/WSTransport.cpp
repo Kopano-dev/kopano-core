@@ -1391,7 +1391,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 	if(hr != hrSuccess)
 		goto exitm;
 	if(er != KCERR_NOT_FOUND && lpstrExplicitClass != NULL)
-		*lpstrExplicitClass = utf8string::from_string(sReceiveFolderTable.sReceiveFolder.lpszAExplicitClass);
+		*lpstrExplicitClass = convert_to<utf8string>(sReceiveFolderTable.sReceiveFolder.lpszAExplicitClass);
 
 	*lppEntryID = lpEntryID.release();
 	*lpcbEntryID = cbEntryID;

@@ -168,7 +168,7 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	if ((ulFlags & ~MAPI_UNICODE) != 0)
 		return MAPI_E_UNKNOWN_FLAGS;
 
-	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
+	auto strPseudoUrl = convert_to<utf8string>("pseudo://");
 	memory_ptr<char> lpszServerPath;
 	bool bIsPeer = false;
 	WSTransport *lpNewTransport = NULL;

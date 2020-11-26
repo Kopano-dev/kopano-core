@@ -2475,7 +2475,7 @@ static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string
 	if (strcasecmp(riPart->c_str(), "cn=Unknown") == 0)
 		return MAPI_E_NO_SUPPORT;
 
-	*lpstrPseudoUrl = utf8string::from_string("pseudo://" + riPart->substr(3));
+	*lpstrPseudoUrl = convert_to<utf8string>("pseudo://" + riPart->substr(3));
 	return hrSuccess;
 }
 
