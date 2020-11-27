@@ -1090,8 +1090,8 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 	ULONG		cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
 	object_ptr<WSTransport> lpTmpTransport;
-	convstring		tstrMsgStoreDN(lpszMsgStoreDN, ulFlags);
-	convstring		tstrMailboxDN(lpszMailboxDN, ulFlags);
+	utf8string tstrMsgStoreDN = convstring(lpszMsgStoreDN, ulFlags);
+	utf8string tstrMailboxDN = convstring(lpszMailboxDN, ulFlags);
 
 	if (tstrMsgStoreDN.null_or_empty()) {
 		// No messagestore DN provided. Just try the current server and let it redirect us if needed.
@@ -1185,13 +1185,13 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	memory_ptr<ENTRYID> lpEntryId;
 	bool			bIsPeer = true;
 	memory_ptr<char> ptrServerPath;
-	std::string		strPseudoUrl;
-	convstring		tstrServerName(lpszServerName, ulFlags);
+	utf8string strPseudoUrl;
+	utf8string tstrServerName = convstring(lpszServerName, ulFlags);
 	const auto strUserName = convert_to<utf8string>("SYSTEM");
 
 	if (!tstrServerName.null_or_empty()) {
-		strPseudoUrl = "pseudo://";
-		strPseudoUrl += tstrServerName;
+		strPseudoUrl.append("pseudo://", strlen("pseudo://"));
+		strPseudoUrl.append(tstrServerName);
 		auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr != hrSuccess)
 			return hr;

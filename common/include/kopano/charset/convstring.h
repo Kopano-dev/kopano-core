@@ -14,11 +14,8 @@ namespace KC {
 class KC_EXPORT convstring KC_FINAL {
 public:
 	KC_HIDDEN convstring() = default;
-	KC_HIDDEN convstring(const convstring &);
+	KC_HIDDEN convstring(const convstring &) = delete;
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
-
-	bool null_or_empty() const;
-
 	operator utf8string() const;
 	operator std::string() const;
 
