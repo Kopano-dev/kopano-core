@@ -15,14 +15,12 @@ class KC_EXPORT convstring KC_FINAL {
 public:
 	KC_HIDDEN convstring() = default;
 	KC_HIDDEN convstring(const convstring &);
-	KC_HIDDEN convstring(const char *);
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
 
 	bool null_or_empty() const;
 
 	operator utf8string() const;
 	operator std::string() const;
-	const char *z_str() const;
 
 private:
 	template<typename T> KC_HIDDEN T convert_to() const;

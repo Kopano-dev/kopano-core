@@ -26,20 +26,6 @@ convstring::convstring(const convstring &other) :
 		m_lpsz = m_str.c_str();
 }
 
-/** Create a new convstring object based on a raw char pointer.
- *
- * Creates an object and assumes that the provided string is encoded
- * in the current locale.
- *
- * @param[in]	lpsz
- *			The string to base the new object on. This string
- *			is expected to be encoded in the current locale.
- */
-convstring::convstring(const char *lpsz)
-: m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
-{
-}
-
 /** Create a new convstring object based on a raw pointer.
  *
  * Creates an object and assumes that the provided string is encoded in
@@ -110,19 +96,6 @@ convstring::operator utf8string() const
 convstring::operator std::string() const
 {
 	return convert_to<std::string>();
-}
-
-/**
- * Convert this convstring object to a raw char pointer.
- *
- * @return	A character pointer that represents the internal string encoded in the current locale.
- *
- * @note	Don't call this too often as the results are stored internally since storage needs to be
- *		guaranteed for the caller to be able to use the data.
- */
-const char *convstring::z_str() const
-{
-	return (m_lpsz ? convert_to<char*>() : NULL);
 }
 
 } /* namespace */

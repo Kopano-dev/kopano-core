@@ -732,7 +732,8 @@ HRESULT ECABProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IABProvider> lpOnline;
 
 	auto hr = GetProviders(&g_mapProviders, lpMAPISup,
-	          convstring(lpszProfileName, ulFlags).z_str(), &sProviderInfo);
+	          lpszProfileName == nullptr ? nullptr : std::string(convstring(lpszProfileName, ulFlags)).c_str(),
+	          &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);
