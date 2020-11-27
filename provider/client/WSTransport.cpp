@@ -2235,7 +2235,7 @@ HRESULT WSTransport::HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULON
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveUsername(m_ecSessionId,
-		    convstring(lpszUserName, ulFlags).u8_str(),
+		    utf8string(convstring(lpszUserName, ulFlags)).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -2270,7 +2270,7 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveGroupname(m_ecSessionId,
-		    convstring(lpszGroupName, ulFlags).u8_str(),
+		    utf8string(convstring(lpszGroupName, ulFlags)).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -2656,7 +2656,7 @@ HRESULT WSTransport::HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->resolveCompanyname(m_ecSessionId,
-		    convstring(lpszCompanyName, ulFlags).u8_str(),
+		    utf8string(convstring(lpszCompanyName, ulFlags)).z_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else

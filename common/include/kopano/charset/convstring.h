@@ -23,11 +23,9 @@ public:
 	operator utf8string() const;
 	operator std::string() const;
 	const char *z_str() const;
-	const char *u8_str() const;
 
 private:
 	template<typename T> KC_HIDDEN T convert_to() const;
-	template<typename T> KC_HIDDEN T convert_to(const char *tocode) const;
 
 	const TCHAR *m_lpsz = nullptr;
 	ULONG m_ulFlags = 0;

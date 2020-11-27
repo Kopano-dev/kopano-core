@@ -78,29 +78,6 @@ T convstring::convert_to() const {
 		return m_converter.convert_to<T>(reinterpret_cast<const char*>(m_lpsz));
 }
 
-/** Perform a conversion from the internal string to the requested encoding.
- *
- * With this version the to charset is explicitly specified.
- * @tparam	T
- *			The type to convert to string to. The actual encoding
- *			is determined implicitly by this type.
- * @param[in]	tocode
- *					The charset in which to encode the converted string.
- * @return	An object of type T.
- */
-template<typename T>
-T convstring::convert_to(const char *tocode) const {
-	if (m_lpsz == NULL)
-		return T();
-	if (m_ulFlags & MAPI_UNICODE) {
-		auto lpszw = reinterpret_cast<const wchar_t *>(m_lpsz);
-		return m_converter.convert_to<T>(tocode, lpszw, rawsize(lpszw), CHARSET_WCHAR);
-	} else {
-		auto lpsza = reinterpret_cast<const char *>(m_lpsz);
-		return m_converter.convert_to<T>(tocode, lpsza, rawsize(lpsza), CHARSET_CHAR);
-	}
-}
-
 /** Check if the convstring is initialized with a NULL pointer or with an empty string.
  *
  * @return	A boolean specifying of the internal string is a NULL pointer or an empty string.
@@ -146,19 +123,6 @@ convstring::operator std::string() const
 const char *convstring::z_str() const
 {
 	return (m_lpsz ? convert_to<char*>() : NULL);
-}
-
-/**
- * Convert this convstring object to a raw char pointer encoded in UTF-8.
- *
- * @return	A character pointer that represents the internal string encoded in the current locale.
- *
- * @note	Don't call this too often as the results are stored internally since storage needs to be
- *		guaranteed for the caller to be able to use the data.
- */
-const char* convstring::u8_str() const
-{
-	return (m_lpsz ? convert_to<char*>("UTF-8") : NULL);
 }
 
 } /* namespace */
