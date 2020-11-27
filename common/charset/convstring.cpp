@@ -50,7 +50,7 @@ T convstring::convert_to() const {
  *
  * @return	An utf8string representing the internal string encoded in UTF-8.
  */
-convstring::operator utf8string() const
+utf8string convstring::to_utf8() const
 {
 	return m_lpsz == nullptr ? utf8string(nullptr) : convert_to<utf8string>();
 }
@@ -59,7 +59,7 @@ convstring::operator utf8string() const
  *
  * @return	A std::string representing the internal string encoded in the current locale.
  */
-convstring::operator std::string() const
+std::string convstring::to_str() const
 {
 	return convert_to<std::string>();
 }

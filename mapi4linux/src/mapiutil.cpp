@@ -52,7 +52,7 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
     ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
 {
-	std::string strDLLName = convstring(lpszDLLName, ulFlags);
+	auto strDLLName = convstring(lpszDLLName, ulFlags).to_str();
 
 	if (lpszDLLName == nullptr || lpOrigEntry == nullptr ||
 	    lpcbWrappedEntry == nullptr || lppWrappedEntry == nullptr ||

@@ -592,7 +592,7 @@ HRESULT ECMsgStore::SetReceiveFolder(const TCHAR *lpszMessageClass,
 	if (IsPublicStore())
 		return MAPI_E_NO_SUPPORT;
 	return lpTransport->HrSetReceiveFolder(m_cbEntryId, m_lpEntryId,
-	       convstring(lpszMessageClass, ulFlags), cbEntryID, lpEntryID);
+	       convstring(lpszMessageClass, ulFlags).to_utf8(), cbEntryID, lpEntryID);
 }
 
 // If the open store a publicstore
@@ -620,7 +620,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	LPENTRYID	lpEntryID = NULL;
 	utf8string	strExplicitClass;
 	auto hr = lpTransport->HrGetReceiveFolder(m_cbEntryId, m_lpEntryId,
-	          convstring(lpszMessageClass, ulFlags), &cbEntryID,
+	          convstring(lpszMessageClass, ulFlags).to_utf8(), &cbEntryID,
 	          &lpEntryID, lppszExplicitClass ? &strExplicitClass : nullptr);
 	if(hr != hrSuccess)
 		return hr;
@@ -1090,8 +1090,8 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 	ULONG		cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
 	object_ptr<WSTransport> lpTmpTransport;
-	utf8string tstrMsgStoreDN = convstring(lpszMsgStoreDN, ulFlags);
-	utf8string tstrMailboxDN = convstring(lpszMailboxDN, ulFlags);
+	auto tstrMsgStoreDN = convstring(lpszMsgStoreDN, ulFlags).to_utf8();
+	auto tstrMailboxDN = convstring(lpszMailboxDN, ulFlags).to_utf8();
 
 	if (tstrMsgStoreDN.null_or_empty()) {
 		// No messagestore DN provided. Just try the current server and let it redirect us if needed.
@@ -1186,7 +1186,7 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	bool			bIsPeer = true;
 	memory_ptr<char> ptrServerPath;
 	utf8string strPseudoUrl;
-	utf8string tstrServerName = convstring(lpszServerName, ulFlags);
+	auto tstrServerName = convstring(lpszServerName, ulFlags).to_utf8();
 	const auto strUserName = convert_to<utf8string>("SYSTEM");
 
 	if (!tstrServerName.null_or_empty()) {
@@ -2368,11 +2368,13 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 		auto hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
+		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags).to_utf8(),
+		     ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
-		auto hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
+		auto hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags).to_utf8(),
+		          ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	}

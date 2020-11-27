@@ -13,11 +13,10 @@ namespace KC {
 
 class KC_EXPORT convstring KC_FINAL {
 public:
-	KC_HIDDEN convstring() = default;
 	KC_HIDDEN convstring(const convstring &) = delete;
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
-	operator utf8string() const;
-	operator std::string() const;
+	utf8string to_utf8() const;
+	std::string to_str() const;
 
 private:
 	template<typename T> KC_HIDDEN T convert_to() const;
