@@ -577,7 +577,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		    hr == MAPI_E_VERSION || hr == MAPI_E_INVALID_PARAMETER ||
 		    hr == MAPI_E_NO_ACCESS) {
 			goto exit2;
-		} else if (hr != erSuccess) { // Big error?
+		} else if (hr != hrSuccess) { // Big error?
 			assert(false);
 			goto exit2;
 		}

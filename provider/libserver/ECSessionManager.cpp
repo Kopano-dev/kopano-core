@@ -575,7 +575,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 	if(ulStore == 0) {
 		auto hr = m_lpECCacheManager->GetStore(ulKey, &ulStore, nullptr);
-		if(hr != erSuccess)
+		if (hr != hrSuccess)
 			return hr;
 	}
 

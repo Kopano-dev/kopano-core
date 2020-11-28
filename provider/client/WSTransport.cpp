@@ -233,7 +233,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	     &ulServerCapabilities, &m_sServerGuid,
 	     sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc,
 	     tracking_id);
-	if (hr == erSuccess)
+	if (hr == hrSuccess)
 		return PostAuth(lpCmd, std::move(new_cmd), sProfileProps,
 		       strImpersonateUser, ulServerCapabilities, ecSessionId);
 
@@ -412,8 +412,8 @@ HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 		return MAPI_E_LOGON_FAILED;
 	if (resp.er != erSuccess)
 		return kcerr_to_mapierr(resp.er, MAPI_E_LOGON_FAILED);
-	auto er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
-	if (er != erSuccess)
+	auto hr = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
+	if (hr != hrSuccess)
 		return MAPI_E_VERSION;
 	*ses_id = resp.ulSessionId;
 	*srv_caps = resp.ulCapabilities;
@@ -423,9 +423,9 @@ HRESULT WSTransport::KCOIDCLogon(KCmdProxy2 *cmd, const utf8string &user,
 		memcpy(srv_guid, resp.sServerGuid.__ptr, sizeof(*srv_guid));
 	if (resp.ulCapabilities & KOPANO_CAP_LICENSE_SERVER &&
 	    resp.sLicenseResponse.__size > 0) {
-		er = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
-		if (er != hrSuccess)
-			return er;
+		hr = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hrSuccess;
 }
@@ -439,7 +439,7 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
     unsigned int tracking_id)
 {
 #define KOPANO_GSS_SERVICE "kopano"
-	HRESULT er = MAPI_E_LOGON_FAILED;
+	HRESULT hr = MAPI_E_LOGON_FAILED;
 #ifdef HAVE_GSSAPI
 	OM_uint32 minor, major;
 	gss_buffer_desc pr_buf, secbufin{};
@@ -487,11 +487,11 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
 		secbufin.length = resp.lpOutput->__size;
 		/* Return kopano-server response to GSS */
 	} while (true);
-	er = kcerr_to_mapierr(resp.er, MAPI_E_LOGON_FAILED);
-	if (er != erSuccess)
+	hr = kcerr_to_mapierr(resp.er, MAPI_E_LOGON_FAILED);
+	if (hr != hrSuccess)
 		goto exit;
-	er = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
-	if (er != erSuccess)
+	hr = ParseKopanoVersion(resp.lpszVersion, &m_server_version, nullptr);
+	if (hr != hrSuccess)
 		return MAPI_E_VERSION;
 	*lpSessionId = resp.ulSessionId;
 	*lpulServerCapabilities = resp.ulCapabilities;
@@ -500,15 +500,15 @@ HRESULT WSTransport::TrySSOLogon(KCmdProxy2 *lpCmd, const utf8string &strUsernam
 		memcpy(lpsServerGuid, resp.sServerGuid.__ptr, sizeof(*lpsServerGuid));
 	if (resp.ulCapabilities & KOPANO_CAP_LICENSE_SERVER &&
 	    resp.sLicenseResponse.__size > 0) {
-		er = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
-		if (er != hrSuccess)
-			return er;
+		hr = prepare_licjson(tracking_id, resp.sLicenseResponse, m_licjson);
+		if (hr != hrSuccess)
+			return hr;
 	}
  exit:
 	gss_delete_sec_context(&minor, &gss_ctx, nullptr);
 	gss_release_name(&minor, &principal);
 #endif
-	return er;
+	return hr;
 #undef KOPANO_GSS_SERVICE
 }
 
@@ -711,7 +711,7 @@ HRESULT WSTransport::logoff_nd()
 	}
 	END_SOAP_CALL
  exitm:
-	return er;
+	return hr;
 }
 
 HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
@@ -1090,7 +1090,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, ulPropTag, &sResponse) != SOAP_OK)
-			er = MAPI_E_NETWORK_ERROR;
+			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
 	}
@@ -1209,19 +1209,19 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, &~lppNames);
-	if (er != erSuccess)
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, &~lppNames);
+	if (hr != hrSuccess)
 		goto exitm;
 
 	// Loop through all the returned names, and put it into the return value
 	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
 		// Each MAPINAMEID must be allocated
-		er = MAPIAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
-		if (er != erSuccess)
+		hr = MAPIAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
+		if (hr != hrSuccess)
 			goto exitm;
 		if(sResponse.lpsNames.__ptr[i].lpguid && sResponse.lpsNames.__ptr[i].lpguid->__ptr) {
-			er = MAPIAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
-			if (er != erSuccess)
+			hr = MAPIAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
+			if (hr != hrSuccess)
 				goto exitm;
 			memcpy(lppNames[i]->lpguid, sResponse.lpsNames.__ptr[i].lpguid->__ptr, sizeof(GUID));
 		}
@@ -1230,9 +1230,9 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			lppNames[i]->ulKind = MNID_ID;
 		} else if(sResponse.lpsNames.__ptr[i].lpString) {
 			auto strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
-			er = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
+			hr = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
-			if (er != erSuccess)
+			if (hr != hrSuccess)
 				goto exitm;
 			/* Also copy the trailing '\0' */
 			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(wchar_t));
@@ -1279,16 +1279,16 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), &~lpsRowSet);
-	if (er != erSuccess)
+	hr = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), &~lpsRowSet);
+	if (hr != hrSuccess)
 		goto exitm;
 	lpsRowSet->cRows = 0;
 	for (gsoap_size_t i = 0; i < sReceiveFolders.sFolderArray.__size; ++i) {
 		ulRowId = i+1;
 
 		lpsRowSet->aRow[i].cValues = NUM_RFT_PROPS;
-		er = MAPIAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
-		if (er != erSuccess)
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
+		if (hr != hrSuccess)
 			goto exitm;
 		++lpsRowSet->cRows;
 		memset(lpsRowSet->aRow[i].lpProps, 0, sizeof(SPropValue)*NUM_RFT_PROPS);
@@ -1298,42 +1298,42 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].ulPropTag = PR_INSTANCE_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb = 4; //fixme: maybe fix, normal 8 now
-		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb));
-		if (er != erSuccess)
+		if (hr != hrSuccess)
 			goto exitm;
 		memset(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, 0, lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb);
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, &ulRowId, sizeof(ulRowId));
 
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].ulPropTag = PR_ENTRYID;
 		lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb));
-		if (er != erSuccess)
+		if (hr != hrSuccess)
 			goto exitm;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb);
 
 		// Use the entryid for record key
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].ulPropTag = PR_RECORD_KEY;
 		lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb = sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__size;
-		er = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
+		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb));
-		if (er != erSuccess)
+		if (hr != hrSuccess)
 			goto exitm;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb);
 
 		if (ulFlags & MAPI_UNICODE) {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_W;
 			unicode = converter.convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
-			er = MAPIAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
-			if (er != erSuccess)
+			hr = MAPIAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
+			if (hr != hrSuccess)
 				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length() + 1) * sizeof(wchar_t));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
-			er = MAPIAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
-			if (er != erSuccess)
+			hr = MAPIAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
+			if (hr != hrSuccess)
 				goto exitm;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA, sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass, nLen);
 		}
@@ -2945,7 +2945,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	if (sRightResponse.pRightsArray != nullptr) {
 		hr = MAPIAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
 		     &~lpECPermissions);
-		if (hr != erSuccess)
+		if (hr != hrSuccess)
 			goto exitm;
 		for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
 			lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
@@ -3187,8 +3187,8 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
-	if (er != erSuccess)
+	hr = MAPIAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
+	if (hr != hrSuccess)
 		goto exitm;
 	lpsQuota->bUseDefaultQuota = sResponse.sQuota.bUseDefaultQuota;
 	lpsQuota->bIsUserDefaultQuota = sResponse.sQuota.bIsUserDefaultQuota;
@@ -3351,8 +3351,8 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
-	if (er != erSuccess)
+	hr = MAPIAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
+	if (hr != hrSuccess)
 		goto exitm;
 	lpsQuotaStatus->llStoreSize = sResponse.llStoreSize;
 	lpsQuotaStatus->quotaStatus = (eQuotaStatus)sResponse.ulQuotaStatus;
@@ -3543,8 +3543,8 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	}
 	END_SOAP_CALL
 
-	er = MAPIAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
-	if (er != erSuccess)
+	hr = MAPIAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
+	if (hr != hrSuccess)
 		goto exitm;
 
 	for (gsoap_size_t i = 0; i < sResponse.sChangesArray.__size; ++i) {
@@ -3553,18 +3553,18 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 		lpChanges[i].ulFlags = sResponse.sChangesArray.__ptr[i].ulFlags;
 
 		if(sResponse.sChangesArray.__ptr[i].sSourceKey.__size > 0) {
-			er = MAPIAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
+			hr = MAPIAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sSourceKey.lpb));
-			if (er != erSuccess)
+			if (hr != hrSuccess)
 				goto exitm;
 			lpChanges[i].sSourceKey.cb = sResponse.sChangesArray.__ptr[i].sSourceKey.__size;
 			memcpy(lpChanges[i].sSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sSourceKey.__size);
 		}
 
 		if(sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size > 0) {
-			er = MAPIAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
+			hr = MAPIAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sParentSourceKey.lpb));
-			if (er != erSuccess)
+			if (hr != hrSuccess)
 				goto exitm;
 			lpChanges[i].sParentSourceKey.cb = sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size;
 			memcpy(lpChanges[i].sParentSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size);
@@ -3924,7 +3924,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 		er = sNotifications.er;	// hrSuccess or KCWARN_KEEP_ALIVE only
 
 	hr = kcerr_to_mapierr(er);
-	if(hr != erSuccess)
+	if (hr != hrSuccess)
 		goto exit;
 
 	if(sNotifications.pNotificationArray != NULL) {

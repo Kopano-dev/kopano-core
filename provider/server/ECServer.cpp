@@ -1196,7 +1196,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		LogConfigErrors(g_lpConfig.get());
-		er = MAPI_E_UNCONFIGURED;
+		er = KCERR_UNCONFIGURED;
 		return retval;
 	}
 	if (g_dump_config)
@@ -1206,7 +1206,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	auto g_lpLogger = CreateLogger(g_lpConfig.get(), szName);
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
-		er = MAPI_E_UNCONFIGURED;
+		er = KCERR_UNCONFIGURED;
 		return retval;
 	}
 	ec_log_set(g_lpLogger);
@@ -1243,7 +1243,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	auto did_setid = unix_runas(g_lpConfig.get());
 	if (did_setid < 0) {
-		er = MAPI_E_CALL_FAILED;
+		er = KCERR_CALL_FAILED;
 		return retval;
 	}
 	auto do_allocator = kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
