@@ -80,7 +80,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	if(lpNewEntryId) {
 		hr = CopyMAPIEntryIdToSOAPEntryId(cbNewEntryId, lpNewEntryId, &lpsEntryId);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	if (lpsSourceKey) {
 		sSourceKey.__ptr = lpsSourceKey->lpb;
@@ -106,7 +106,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	{
 		hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sEntryId, lpcbEntryId, lppEntryId);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 exit:
@@ -139,10 +139,8 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 			er = rsp.er;
 	}
 	END_SOAP_CALL
-	if (rsp.entryids == nullptr || rsp.entryids->__size != batch.size()) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (rsp.entryids == nullptr || rsp.entryids->__size != batch.size())
+		return MAPI_E_CALL_FAILED;
 	hr = convert_soapfolders_to_wsfolder(rsp, batch);
  exit:
 	return hr;
@@ -158,7 +156,7 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 	// Cheap copy entryid
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -198,11 +196,10 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 
 	if(lpMsgList) {
 		if(lpMsgList->cValues == 0)
-			goto exit;
-
+			return hr;
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	START_SOAP_CALL
@@ -235,13 +232,13 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 		lpsEntryList = soap_new_entryList(nullptr);
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, lpsEntryList);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	if (lpRestriction)
 	{
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrict, lpRestriction);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	START_SOAP_CALL
 	{
@@ -277,15 +274,15 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	if(lppRestriction) {
 		hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = CopySOAPRestrictionToMAPIRestriction(lpRestriction, sResponse.lpRestrict, lpRestriction);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	if(lppMsgList) {
 		hr = CopySOAPEntryListToMAPIEntryList(sResponse.lpFolderIDs, &~lpMsgList);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	if(lppMsgList)
 		*lppMsgList = lpMsgList.release();
@@ -307,10 +304,10 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryDest, lpEntryDest, &sEntryDest, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -337,10 +334,10 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 
 	auto hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryDest, lpEntryDest, &sEntryDest, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -366,7 +363,7 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -395,7 +392,7 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -427,7 +424,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (m_lpTransport->m_lpCmd == nullptr ||
 	    m_lpTransport->m_lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
@@ -436,24 +433,24 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 
 	hr = kcerr_to_mapierr(er);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lppPropPCL) {
 		hr = MAPIAllocateBuffer(sizeof *lpSPropValPCL, &~lpSPropValPCL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = CopySOAPPropValToMAPIPropVal(lpSPropValPCL, &sChangeInfo.sPropPCL, lpSPropValPCL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (lppPropCK) {
 		hr = MAPIAllocateBuffer(sizeof *lpSPropValCK, &~lpSPropValCK);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = CopySOAPPropValToMAPIPropVal(lpSPropValCK, &sChangeInfo.sPropCK, lpSPropValCK);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// All went well, modify output parameters

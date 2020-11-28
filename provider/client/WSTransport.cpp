@@ -543,12 +543,10 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG *lpcbStoreID,
 			hr = MAPI_E_NOT_FOUND;
 	}
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Create a client store entry, add the servername
 	hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -568,7 +566,7 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
 	if(lpMasterID) {
 		hr = UnWrapServerClientStoreEntry(cbMasterID, lpMasterID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
-			goto exitm;
+			return hr;
 		sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 		sEntryId.__size = cbUnWrapStoreID;
 	}
@@ -592,21 +590,17 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
 			hr = MAPI_E_NOT_FOUND;
 	}
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	if(lppRootID && lpcbRootID) {
 		hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sRootId, lpcbRootID, lppRootID);
 		if(hr != hrSuccess)
-			goto exitm;
+			return hr;
 	}
 
-	if(lppStoreID && lpcbStoreID) {
+	if (lppStoreID != nullptr && lpcbStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
-		if(hr != hrSuccess)
-			goto exitm;
-	}
-
  exitm:
 	return hr;
 }
@@ -627,7 +621,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	// Remove the servername
 	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
@@ -661,7 +655,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	// Remove the servername
 	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
@@ -725,7 +719,7 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -870,7 +864,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, const ENTRYLIST *lpMsgList, 
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	START_SOAP_CALL
 	{
 		if (m_lpCmd->deleteObjects(m_ecSessionId, ulFlags, &sEntryList, ulSyncId, &er) != SOAP_OK)
@@ -1077,7 +1071,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	auto hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart,
 	          &ptrsSourceKeyPairs);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sPropTags.__size = lpsProps->cValues;
 	sPropTags.__ptr = (unsigned int*)lpsProps->aulPropTag;
 
@@ -1093,13 +1087,11 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	}
 	END_SOAP_CALL
 
-	if (sResponse.sMsgStreams.__size > 0 && !soap_check_mime_attachments(m_lpCmd->soap)) {
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exitm;
-	}
+	if (sResponse.sMsgStreams.__size > 0 && !soap_check_mime_attachments(m_lpCmd->soap))
+		return MAPI_E_NETWORK_ERROR;
 	hr = WSMessageStreamExporter::Create(ulStart, ulChanges, sResponse.sMsgStreams, this, &~ptrStreamExporter);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	*lppsStreamExporter = ptrStreamExporter.release();
  exitm:
 	return hr;
@@ -1203,18 +1195,18 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * sResponse.lpsNames.__size, &~lppNames);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Loop through all the returned names, and put it into the return value
 	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
 		// Each MAPINAMEID must be allocated
 		hr = MAPIAllocateMore(sizeof(MAPINAMEID), lppNames, reinterpret_cast<void **>(&lppNames[i]));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		if(sResponse.lpsNames.__ptr[i].lpguid && sResponse.lpsNames.__ptr[i].lpguid->__ptr) {
 			hr = MAPIAllocateMore(sizeof(GUID), lppNames, reinterpret_cast<void **>(&lppNames[i]->lpguid));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			memcpy(lppNames[i]->lpguid, sResponse.lpsNames.__ptr[i].lpguid->__ptr, sizeof(GUID));
 		}
 		if(sResponse.lpsNames.__ptr[i].lpId) {
@@ -1225,7 +1217,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			hr = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			/* Also copy the trailing '\0' */
 			memcpy(lppNames[i]->Kind.lpwstrName, strNameW.c_str(), (strNameW.size() + 1) * sizeof(wchar_t));
 			lppNames[i]->ulKind = MNID_STRING;
@@ -1257,7 +1249,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
@@ -1273,7 +1265,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 	hr = MAPIAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), &~lpsRowSet);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	lpsRowSet->cRows = 0;
 	for (gsoap_size_t i = 0; i < sReceiveFolders.sFolderArray.__size; ++i) {
 		ulRowId = i+1;
@@ -1281,7 +1273,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		lpsRowSet->aRow[i].cValues = NUM_RFT_PROPS;
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		++lpsRowSet->cRows;
 		memset(lpsRowSet->aRow[i].lpProps, 0, sizeof(SPropValue)*NUM_RFT_PROPS);
 
@@ -1293,7 +1285,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		memset(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, 0, lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.cb);
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_INST_KEY].Value.bin.lpb, &ulRowId, sizeof(ulRowId));
 
@@ -1302,7 +1294,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_ENTRYID].Value.bin.cb);
 
 		// Use the entryid for record key
@@ -1311,7 +1303,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		hr = MAPIAllocateMore(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb, lpsRowSet->aRow[i].lpProps,
 		     reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		memcpy(lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.lpb, sReceiveFolders.sFolderArray.__ptr[i].sEntryId.__ptr, lpsRowSet->aRow[i].lpProps[RFT_RECORD_KEY].Value.bin.cb);
 
 		if (ulFlags & MAPI_UNICODE) {
@@ -1319,14 +1311,14 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 			unicode = converter.convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
 			hr = MAPIAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW, unicode.c_str(), (unicode.length() + 1) * sizeof(wchar_t));
 		} else {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_A;
 			nLen = strlen(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass)+1;
 			hr = MAPIAllocateMore(nLen, lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			memcpy(lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszA, sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass, nLen);
 		}
 	}
@@ -1350,7 +1342,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 
 	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
 
@@ -1373,14 +1365,12 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 		// This is only by an empty message store ??
 		*lpcbEntryID = 0;
 		*lppEntryID = NULL;
-
-		hr = hrSuccess;
-		goto exitm;
+		return hrSuccess;
 	}
 	hr = CopySOAPEntryIdToMAPIEntryId(&sReceiveFolderTable.sReceiveFolder.sEntryId,
 	     &cbEntryID, &~lpEntryID, nullptr);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	if(er != KCERR_NOT_FOUND && lpstrExplicitClass != NULL)
 		*lpstrExplicitClass = convert_to<utf8string>(sReceiveFolderTable.sReceiveFolder.lpszAExplicitClass);
 
@@ -1402,12 +1392,12 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 
 	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sStoreId.__size = cbUnWrapStoreID;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	START_SOAP_CALL
 	{
 		ECRESULT result = KCERR_NETWORK_ERROR;
@@ -1457,7 +1447,7 @@ HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID,
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbMessageID, lpMessageID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1477,7 +1467,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1496,7 +1486,7 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1539,15 +1529,12 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 			hr = MAPI_E_NOT_FOUND;
 	}
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	if (lpulUserID != nullptr)
 		*lpulUserID = sResponse.ulUserId;
-	if(lpcbStoreID && lppStoreID) {
+	if (lpcbStoreID != nullptr && lppStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
-		if(hr != hrSuccess)
-			goto exitm;
-	}
  exitm:
 	return hr;
 }
@@ -1586,12 +1573,9 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 	}
 	END_SOAP_CALL
 
-	if(lpcbStoreID && lppStoreID) {
+	if (lpcbStoreID != nullptr && lppStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
-		if(hr != hrSuccess)
-			goto exitm;
-	}
  exitm:
 	return hr;
 }
@@ -1674,7 +1658,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
 		ulUserId = ABEID_ID(lpUserID);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserID, lpUserID, &sUserId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1687,7 +1671,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
 
 	hr = SoapUserToUser(sResponse.lpsUser, ulFlags, &~lpECUser);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	*lppECUser = lpECUser.release();
  exitm:
 	return hr;
@@ -1778,13 +1762,13 @@ HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserID, lpUserID, &sUserId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbStoreID, lpStoreID, &sStoreId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbRootID, lpRootID, &sRootId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1809,7 +1793,7 @@ HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sStoreGuid.__ptr = (unsigned char*)lpGuid;
 	sStoreGuid.__size = sizeof(GUID);
@@ -1836,7 +1820,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1882,7 +1866,7 @@ HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, const ENTRYID *lpUserId)
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -1921,7 +1905,7 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
 	{
 		hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 	}
 	*lpcUsers = 0;
 
@@ -1935,8 +1919,6 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
 	END_SOAP_CALL
 
 	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -1975,7 +1957,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 	          &lpECGroup->sMVPropmap, ulFlags, sGroup.lpsPropmap,
 	          sGroup.lpsMVPropmap);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2024,7 +2006,7 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	          &lpECGroup->sMVPropmap, ulFlags, sGroup.lpsPropmap,
 	          sGroup.lpsMVPropmap);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2059,7 +2041,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupID, lpGroupID, &sGroupId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2072,7 +2054,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
 
 	hr = SoapGroupToGroup(sResponse.lpsGroup, ulFlags, &lpGroup);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	*lppECGroup = lpGroup;
  exitm:
 	return hr;
@@ -2089,7 +2071,7 @@ HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, const ENTRYID *lpGroupId)
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2125,7 +2107,7 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2138,7 +2120,7 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcSenders, lppSenders);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
  exitm:
 	return hr;
 }
@@ -2156,10 +2138,10 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbSenderId, lpSenderId, &sSenderId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2184,10 +2166,10 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbSenderId, lpSenderId, &sSenderId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2293,7 +2275,7 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	*lpcGroups = 0;
 
@@ -2307,8 +2289,6 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
 	END_SOAP_CALL
 
 	hr = SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags, lpcGroups, lppsGroups);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2325,10 +2305,10 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Remove group
 	START_SOAP_CALL
@@ -2353,10 +2333,10 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Remove group
 	START_SOAP_CALL
@@ -2393,7 +2373,7 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbGroupId, lpGroupId, &sGroupId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Get an userlist of a group
 	START_SOAP_CALL
@@ -2406,8 +2386,6 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId,
 	END_SOAP_CALL
 
 	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2436,7 +2414,7 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	// Get a grouplist of an user
 	START_SOAP_CALL
@@ -2449,8 +2427,6 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId,
 	END_SOAP_CALL
 
 	hr = SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags, lpcGroup, lppsGroups);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2512,7 +2488,7 @@ HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, const ENTRYID *lpCompany
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2597,7 +2573,7 @@ HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2610,8 +2586,7 @@ HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
 
 	hr = SoapCompanyToCompany(sResponse.lpsCompany, ulFlags, &lpCompany);
 	if (hr != hrSuccess)
-		goto exitm;
-
+		return hr;
 	*lppECCompany = lpCompany;
  exitm:
 	return hr;
@@ -2684,8 +2659,6 @@ HRESULT WSTransport::HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 	END_SOAP_CALL
 
 	hr = SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags, lpcCompanies, lppsCompanies);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2704,10 +2677,10 @@ HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbSetCompanyId, lpSetCompanyId,
 	          &sSetCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2733,10 +2706,10 @@ HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbSetCompanyId, lpSetCompanyId,
 	          &sSetCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2774,7 +2747,7 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId,
 	          &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	*lpcCompanies = 0;
 
@@ -2788,8 +2761,6 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 	END_SOAP_CALL
 
 	hr = SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags, lpcCompanies, lppsCompanies);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2806,10 +2777,10 @@ HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2833,10 +2804,10 @@ HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -2873,7 +2844,7 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId,
 	          &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	*lpcUsers = 0;
 
@@ -2887,8 +2858,6 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 	END_SOAP_CALL
 
 	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -2913,7 +2882,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID,
 	          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
@@ -2932,7 +2901,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 		hr = MAPIAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size,
 		     &~lpECPermissions);
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
 			lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
 			lpECPermissions[i].ulState	= sRightResponse.pRightsArray->__ptr[i].ulState;
@@ -2941,7 +2910,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 			     reinterpret_cast<unsigned int *>(&lpECPermissions[i].sUserId.cb),
 			     reinterpret_cast<ENTRYID **>(&lpECPermissions[i].sUserId.lpb), lpECPermissions);
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 		}
 		*lpcPermissions = sRightResponse.pRightsArray->__size;
 	}
@@ -2974,7 +2943,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID,
 	          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
@@ -2997,7 +2966,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 
 			hr = CopyMAPIEntryIdToSOAPEntryId(lpECPermissions[i].sUserId.cb, (LPENTRYID)lpECPermissions[i].sUserId.lpb, &rArray.__ptr[nItem].sUserId, true);
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			++nItem;
 		}
 	}
@@ -3029,7 +2998,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID,
 	          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sEntryId.__size = cbUnWrapStoreID;
@@ -3080,7 +3049,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 	auto hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(lpAdrList),
 	          &lpsRowSet, &converter);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3103,10 +3072,10 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 			hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAdrList->aEntries[i].cValues,
 			     reinterpret_cast<void **>(&lpAdrList->aEntries[i].rgPropVals));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			hr = CopySOAPRowToMAPIRow(&sResponse.sRowSet.__ptr[i], lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].rgPropVals, &converter);
 			if(hr != hrSuccess)
-				goto exitm;
+				return hr;
 
 			lpFlagList->ulFlag[i] = sResponse.aFlags.__ptr[i];
 		}else { // MAPI_AMBIGUOUS or MAPI_UNRESOLVED
@@ -3130,7 +3099,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 	{
 		hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId, &sCompanyId, true);
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		ulCompanyId = ABEID_ID(lpCompanyId);
 	}
 
@@ -3161,7 +3130,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3174,7 +3143,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	hr = MAPIAllocateBuffer(sizeof(ECQUOTA), reinterpret_cast<void **>(&lpsQuota));
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	lpsQuota->bUseDefaultQuota = sResponse.sQuota.bUseDefaultQuota;
 	lpsQuota->bIsUserDefaultQuota = sResponse.sQuota.bIsUserDefaultQuota;
 	lpsQuota->llHardSize = sResponse.sQuota.llHardSize;
@@ -3199,7 +3168,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sQuota.bUseDefaultQuota = lpsQuota->bUseDefaultQuota;
 	sQuota.bIsUserDefaultQuota = lpsQuota->bIsUserDefaultQuota;
@@ -3234,10 +3203,10 @@ HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId,
 	          &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbRecipientId, lpRecipientId, &sRecipientId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3263,10 +3232,10 @@ HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId,
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbCompanyId, lpCompanyId,
 	          &sCompanyId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbRecipientId, lpRecipientId, &sRecipientId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3291,7 +3260,7 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	*lpcUsers = 0;
 
@@ -3305,8 +3274,6 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
 	END_SOAP_CALL
 
 	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -3325,7 +3292,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserId, lpUserId, &sUserId, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3338,7 +3305,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
 
 	hr = MAPIAllocateBuffer(sizeof(ECQUOTASTATUS), reinterpret_cast<void **>(&lpsQuotaStatus));
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 	lpsQuotaStatus->llStoreSize = sResponse.llStoreSize;
 	lpsQuotaStatus->quotaStatus = (eQuotaStatus)sResponse.ulQuotaStatus;
 
@@ -3456,7 +3423,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 
 	hr = MAPIAllocateBuffer(ulLen, reinterpret_cast<void **>(&lpszServerPath));
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	memcpy(lpszServerPath, sResponse.lpszServerPath != nullptr ? sResponse.lpszServerPath : "", ulLen);
 	*lppszServerPath = lpszServerPath;
@@ -3479,7 +3446,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	auto hr = SvrNameListToSoapMvString8(m_lpCmd->soap, lpServerNameList,
 	          ulFlags & MAPI_UNICODE, lpsSvrNameList);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3491,8 +3458,6 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	END_SOAP_CALL
 
 	hr = SoapServerListToServerList(&sResponse.sServerList, ulFlags & MAPI_UNICODE, lppsServerList);
-	if (hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -3516,8 +3481,8 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	soap_lock_guard spg(*this);
 	if(lpsRestrict) {
     	hr = CopyMAPIRestrictionToSOAPRestriction(&lpsSoapRestrict, lpsRestrict);
-    	if(hr != hrSuccess)
-	        goto exitm;
+		if (hr != hrSuccess)
+			return hr;
     }
 
 	START_SOAP_CALL
@@ -3531,7 +3496,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 
 	hr = MAPIAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), &~lpChanges);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	for (gsoap_size_t i = 0; i < sResponse.sChangesArray.__size; ++i) {
 		lpChanges[i].ulChangeId = sResponse.sChangesArray.__ptr[i].ulChangeId;
@@ -3542,7 +3507,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 			hr = MAPIAllocateMore(sResponse.sChangesArray.__ptr[i].sSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sSourceKey.lpb));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			lpChanges[i].sSourceKey.cb = sResponse.sChangesArray.__ptr[i].sSourceKey.__size;
 			memcpy(lpChanges[i].sSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sSourceKey.__size);
 		}
@@ -3551,7 +3516,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 			hr = MAPIAllocateMore( sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size,
 			     lpChanges, reinterpret_cast<void **>(&lpChanges[i].sParentSourceKey.lpb));
 			if (hr != hrSuccess)
-				goto exitm;
+				return hr;
 			lpChanges[i].sParentSourceKey.cb = sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size;
 			memcpy(lpChanges[i].sParentSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size);
 		}
@@ -3610,7 +3575,7 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
 	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID,
 	          &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sStoreId.__size = cbUnWrapStoreID;
@@ -3631,8 +3596,6 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
 	END_SOAP_CALL
 
 	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sEntryId, lpcbEntryID, lppEntryID, NULL);
-	if(hr != hrSuccess)
-		goto exitm;
  exitm:
 	return hr;
 }
@@ -3649,7 +3612,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	assert(lplstSyncState != NULL);
 	soap_lock_guard spg(*this);
 	if (lstSyncId.empty())
-		goto exitm;
+		return hr;
 	ulaSyncId.__ptr = soap_new_unsignedInt(nullptr, lstSyncId.size());
 	for (auto sync_id : lstSyncId)
 		ulaSyncId.__ptr[ulaSyncId.__size++] = sync_id;
@@ -3705,7 +3668,7 @@ HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, b
 	soap_lock_guard spg(*this);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &eidMessage, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{
@@ -3806,7 +3769,7 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
 	if (sResponse.szValue != nullptr) {
 		hr = MAPIAllocateBuffer(strlen(sResponse.szValue) + 1, reinterpret_cast<void **>(&szValue));
 		if (hr != hrSuccess)
-			goto exitm;
+			return hr;
 		strcpy(szValue, sResponse.szValue);
 	}
     *lpszValue = szValue;
@@ -3945,7 +3908,7 @@ HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId,
 
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &eidFolder, true);
 	if (hr != hrSuccess)
-		goto exitm;
+		return hr;
 
 	START_SOAP_CALL
 	{

@@ -107,8 +107,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	 */
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
 		mo->lstAvailable.emplace_back(sResponse.aPropTag.__ptr[i]);
 
@@ -116,7 +115,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		/* can call AllocateMore on lpProp */
 		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		/*
 		 * The ECRecipient ctor makes a deep copy of *lpProp, so it is
 		 * ok to have *lpProp overwritten on the next iteration.
@@ -210,10 +209,8 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	struct loadPropResponse	sResponse;
 	soap_lock_guard spg(*m_lpTransport);
 
-	if (ulObjId == 0 && (ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID) == 0) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (ulObjId == 0 && !(ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID))
+		return MAPI_E_NO_SUPPORT;
 
 	START_SOAP_CALL
 	{
@@ -225,13 +222,11 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 	END_SOAP_CALL
 
-	if(sResponse.lpPropVal == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (sResponse.lpPropVal == nullptr)
+		return MAPI_E_NOT_FOUND;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValDst);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, sResponse.lpPropVal, lpsPropValDst);
 	*lppsPropValue = lpsPropValDst.release();
 exit:
@@ -515,7 +510,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 		/* Instance ID was unknown, we should resend entire message again, but this time include the instance body */
 		hr = HrUpdateSoapObject(lpsMapiObject, &sSaveObj, &converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		goto retry;
 	}
 	END_SOAP_CALL
@@ -523,7 +518,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// Update our copy of the object with the IDs and mod props from the server
 	hr = HrUpdateMapiObject(lpsMapiObject, &sResponse.sSaveObject);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// HrUpdateMapiObject() has now moved the modified properties of all objects recursively
 	// into their 'normal' properties list (lstProperties). This is correct because when we now
@@ -617,14 +612,12 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	soap_lock_guard spg(*m_lpTransport);
 	if (!lppsMapiObject) {
 		assert(false);
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 	if (*lppsMapiObject) {
 		// memleak detected
 		assert(false);
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	START_SOAP_CALL
@@ -644,7 +637,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)	// Store does not exist on this server
 		hr = MAPI_E_UNCONFIGURED;			// Force a reconfigure
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	lpsMapiObject = new MAPIOBJECT; /* ulObjType, ulObjId and ulUniqueId are unknown here */
 	ECSoapObjectToMapiObject(&sResponse.sSaveObject, lpsMapiObject);
 	*lppsMapiObject = lpsMapiObject;
