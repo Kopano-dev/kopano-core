@@ -56,11 +56,11 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRow
 {
 	ECRESULT er = erSuccess;
 	struct tableQueryRowsResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableQueryRows(ecSessionId,
@@ -78,11 +78,11 @@ HRESULT WSTableView::HrCloseTable()
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	soap_lock_guard spg(*m_lpTransport);
 
 	if(ulTableId == 0)
 		return hrSuccess;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableClose(ecSessionId, ulTableId, &er) != SOAP_OK)
@@ -110,11 +110,11 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 	sColumns.__ptr = (unsigned int *)&lpsPropTagArray->aulPropTag;
 	sColumns.__size = lpsPropTagArray->cValues;
 
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableSetColumns(ecSessionId,
@@ -128,13 +128,13 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 {
 	ECRESULT er = erSuccess;
-	struct tableQueryColumnsResponse sResponse;
 	LPSPropTagArray lpsPropTags = NULL;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableQueryColumnsResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableQueryColumns(ecSessionId,
@@ -176,11 +176,11 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 		sSort.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
 	}
 
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableSort(ecSessionId, ulTableId,
@@ -196,11 +196,11 @@ HRESULT WSTableView::HrOpenTable()
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct tableOpenResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	if (ulTableId != 0)
 		return hrSuccess;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableOpenResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
@@ -217,12 +217,12 @@ HRESULT WSTableView::HrOpenTable()
 HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 {
 	ECRESULT er = erSuccess;
-	struct tableGetRowCountResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableGetRowCountResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableGetRowCount(ecSessionId,
@@ -243,7 +243,6 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 {
 	ECRESULT er = erSuccess;
 	struct restrictTable *lpRestrict = NULL;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
 	auto cleanup = make_scope_exit([&]() { soap_del_PointerTorestrictTable(&lpRestrict); });
 	if (hr != hrSuccess)
@@ -252,6 +251,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableFindRow(ecSessionId,
@@ -266,12 +266,12 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSought)
 {
 	ECRESULT er = erSuccess;
-	struct tableSeekRowResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableSeekRowResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableSeekRow(ecSessionId,
@@ -294,12 +294,12 @@ HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 		return MAPI_E_INVALID_PARAMETER;
 
 	ECRESULT er = erSuccess;
-	tableBookmarkResponse	sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	tableBookmarkResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableCreateBookmark(ecSessionId,
@@ -317,11 +317,11 @@ HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
 {
 	ECRESULT er = erSuccess;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableFreeBookmark(ecSessionId,
@@ -337,8 +337,6 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 {
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
-	struct tableExpandRowResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
@@ -346,6 +344,8 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	sInstanceKey.__size = cbInstanceKey;
 	sInstanceKey.__ptr = pbInstanceKey;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableExpandRowResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableExpandRow(ecSessionId,
@@ -369,8 +369,6 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 {
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
-	struct tableCollapseRowResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
@@ -378,6 +376,8 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	sInstanceKey.__size = cbInstanceKey;
 	sInstanceKey.__ptr = pbInstanceKey;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableCollapseRowResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableCollapseRow(ecSessionId,
@@ -395,17 +395,17 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbCollapseState, BYTE *lpInstanceKey, ULONG cbInstanceKey)
 {
 	ECRESULT er = erSuccess;
-	struct tableGetCollapseStateResponse sResponse;
 	struct xsd__base64Binary sBookmark;
 
 	sBookmark.__size = cbInstanceKey;
 	sBookmark.__ptr = lpInstanceKey;
 
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableGetCollapseStateResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableGetCollapseState(ecSessionId,
@@ -427,16 +427,16 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 {
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sState;
-	struct tableSetCollapseStateResponse sResponse;
 
 	sState.__ptr = lpCollapseState;
 	sState.__size = cbCollapseState;
 
-	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if (hr != hrSuccess)
 		return hr;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableSetCollapseStateResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableSetCollapseState(ecSessionId,
@@ -462,7 +462,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 {
 	struct propTagArray sColumns;
 	struct tableMultiRequest sRequest;
-	struct tableMultiResponse sResponse;
 	struct restrictTable *lpsRestrictTable = NULL;
 	struct tableQueryRowsRequest sQueryRows;
 	struct tableSortRequest sSort;
@@ -497,7 +496,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 		soap_del_sortOrderArray(&sSort.sSortOrder);
 		soap_del_PointerTorestrictTable(&lpsRestrictTable);
 	});
-	soap_lock_guard spg(*m_lpTransport);
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	if(lpsRestriction) {
@@ -532,6 +530,8 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	    sRequest.lpQueryRows = &sQueryRows;
 	}
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableMultiResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableMulti(ecSessionId, sRequest, &sResponse) != SOAP_OK)
@@ -605,11 +605,11 @@ HRESULT WSTableOutGoingQueue::HrOpenTable()
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-	struct tableOpenResponse sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 	if (ulTableId != 0)
 		return hrSuccess;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct tableOpenResponse sResponse;
 	START_SOAP_CALL
 	{
 		//m_sEntryId is the id of a store

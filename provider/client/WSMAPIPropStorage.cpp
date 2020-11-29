@@ -82,9 +82,9 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ECRESULT er = hrSuccess;
 	std::unique_ptr<MAPIOBJECT> mo;
 	memory_ptr<SPropValue> lpProp;
-	struct readPropsResponse sResponse;
 	convert_context	converter;
 	soap_lock_guard spg(*m_lpTransport);
+	struct readPropsResponse sResponse;
 
 	START_SOAP_CALL
 	{
@@ -203,12 +203,12 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> lpsPropValDst;
-	struct loadPropResponse	sResponse;
-	soap_lock_guard spg(*m_lpTransport);
 
 	if (ulObjId == 0 && !(ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID))
 		return MAPI_E_NO_SUPPORT;
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct loadPropResponse	sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->loadProp(ecSessionId, m_sEntryId,
@@ -482,7 +482,6 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	ECRESULT	er = erSuccess;
 	struct saveObject sSaveObj;
 	auto cleanup = make_scope_exit([&]() { soap_del_saveObject(&sSaveObj); });
-	struct loadObjectResponse sResponse;
 	convert_context converter;
 
 	auto hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
@@ -490,7 +489,9 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 		soap_del_saveObject(&sSaveObj);
 		return hr;
 	}
+
 	soap_lock_guard spg(*m_lpTransport);
+	struct loadObjectResponse sResponse;
 	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL
 	{
@@ -588,7 +589,6 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct loadObjectResponse sResponse;
 	MAPIOBJECT *lpsMapiObject = NULL;
 	struct notifySubscribe sNotSubscribe;
 
@@ -600,7 +600,6 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		sNotSubscribe.sKey.__ptr = m_sEntryId.__ptr;
 	}
 
-	soap_lock_guard spg(*m_lpTransport);
 	if (!lppsMapiObject) {
 		assert(false);
 		return MAPI_E_INVALID_PARAMETER;
@@ -611,6 +610,8 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
+	soap_lock_guard spg(*m_lpTransport);
+	struct loadObjectResponse sResponse;
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->loadObject(ecSessionId, m_sEntryId,
