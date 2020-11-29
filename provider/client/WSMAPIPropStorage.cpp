@@ -21,16 +21,14 @@
  * This is a PropStorage object for use with the WebServices storage platform
  */
 #define START_SOAP_CALL retry: \
-	if (m_lpTransport->m_lpCmd == nullptr) { \
-		hr = MAPI_E_NETWORK_ERROR; \
-		goto exit; \
-	}
+	if (m_lpTransport->m_lpCmd == nullptr) \
+		return MAPI_E_NETWORK_ERROR;
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
-		goto exit;
+		return hr;
 
 using namespace KC;
 
@@ -123,8 +121,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		mo->lstProperties.emplace_back(lpProp);
 	}
 	*lppsMapiObject = mo.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // Called when the session ID has changed
@@ -229,7 +226,6 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 		return hr;
 	hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, sResponse.lpPropVal, lpsPropValDst);
 	*lppsPropValue = lpsPropValDst.release();
-exit:
 	return hr;
 }
 
@@ -516,17 +512,12 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	END_SOAP_CALL
 
 	// Update our copy of the object with the IDs and mod props from the server
-	hr = HrUpdateMapiObject(lpsMapiObject, &sResponse.sSaveObject);
-	if (hr != hrSuccess)
-		return hr;
-
+	return HrUpdateMapiObject(lpsMapiObject, &sResponse.sSaveObject);
 	// HrUpdateMapiObject() has now moved the modified properties of all objects recursively
 	// into their 'normal' properties list (lstProperties). This is correct because when we now
 	// open a subobject, it needs all the properties.
 	// However, because we already have all properties of the top-level message in-memory via
 	// ECGenericProps, the properties in
-exit:
-	return hr;
 }
 
 ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lpsSaveObj,
@@ -642,8 +633,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ECSoapObjectToMapiObject(&sResponse.sSaveObject, lpsMapiObject);
 	*lppsMapiObject = lpsMapiObject;
 	m_bSubscribed = m_ulConnection != 0;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {

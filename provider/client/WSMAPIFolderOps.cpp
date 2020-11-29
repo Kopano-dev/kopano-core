@@ -15,16 +15,14 @@
 #include <kopano/charset/utf8string.h>
 
 #define START_SOAP_CALL retry: \
-	if (m_lpTransport->m_lpCmd == nullptr) { \
-		hr = MAPI_E_NETWORK_ERROR; \
-		goto exit; \
-	}
+	if (m_lpTransport->m_lpCmd == nullptr) \
+		return MAPI_E_NETWORK_ERROR;
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
-		goto exit;
+		return hr;
 
 /*
  * The WSMAPIFolderOps for use with the WebServices transport
@@ -103,13 +101,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	END_SOAP_CALL
 
 	if(lpcbEntryId != NULL && lppEntryId != NULL)
-	{
 		hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sEntryId, lpcbEntryId, lppEntryId);
-		if(hr != hrSuccess)
-			return hr;
-	}
-
-exit:
 	return hr;
 }
 
@@ -141,9 +133,7 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 	END_SOAP_CALL
 	if (rsp.entryids == nullptr || rsp.entryids->__size != batch.size())
 		return MAPI_E_CALL_FAILED;
-	hr = convert_soapfolders_to_wsfolder(rsp, batch);
- exit:
-	return hr;
+	return convert_soapfolders_to_wsfolder(rsp, batch);
 }
 
 HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
@@ -165,8 +155,7 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
@@ -182,8 +171,7 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULONG ulSyncId)
@@ -210,9 +198,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
@@ -247,8 +233,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestriction *lppRestriction, ULONG *lpulFlags)
@@ -290,8 +275,7 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 		*lppRestriction = lpRestriction.release();
 	if(lpulFlags)
 		*lpulFlags = sResponse.ulFlags;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
@@ -316,8 +300,7 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
@@ -346,9 +329,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
@@ -375,8 +356,7 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	}
 	END_SOAP_CALL
 	*lpulMessageStatus = sMessageStatus.ulMessageStatus;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
@@ -407,8 +387,7 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 
 	if(lpulOldStatus)
 		*lpulOldStatus = sMessageStatus.ulMessageStatus;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
@@ -458,8 +437,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 		*lppPropPCL = lpSPropValPCL.release();
 	if (lppPropCK != nullptr)
 		*lppPropCK = lpSPropValCK.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)

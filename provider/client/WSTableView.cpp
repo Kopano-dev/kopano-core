@@ -15,16 +15,14 @@
  * TableView operations for WS transport
  */
 #define START_SOAP_CALL retry: \
-	if (m_lpTransport->m_lpCmd == nullptr) { \
-		hr = MAPI_E_NETWORK_ERROR; \
-		goto exit; \
-	}
+	if (m_lpTransport->m_lpCmd == nullptr) \
+		return MAPI_E_NETWORK_ERROR;
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
-		goto exit;
+		return hr;
 
 using namespace KC;
 
@@ -72,9 +70,8 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRow
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
-exit:
-	return hr;
+	return CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet,
+	       lppRowSet, ulType);
 }
 
 HRESULT WSTableView::HrCloseTable()
@@ -95,9 +92,7 @@ HRESULT WSTableView::HrCloseTable()
 			er = erSuccess; // Don't care about end of session
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
@@ -127,9 +122,7 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
@@ -159,8 +152,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 		lpsPropTags->aulPropTag[i] = sResponse.sPropTagArray.__ptr[i];
 	lpsPropTags->cValues = sResponse.sPropTagArray.__size;
 	*lppsPropTags = lpsPropTags;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
@@ -197,9 +189,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrOpenTable()
@@ -221,8 +211,7 @@ HRESULT WSTableView::HrOpenTable()
 	}
 	END_SOAP_CALL
 	ulTableId = sResponse.ulTableId;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
@@ -246,8 +235,7 @@ HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 
 	*lpulRowCount = sResponse.ulCount;
 	*lpulCurrentRow = sResponse.ulRow;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
@@ -272,9 +260,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSought)
@@ -299,8 +285,7 @@ HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSough
 
 	if(lplRowsSought)
 		*lplRowsSought = sResponse.lRowsSought;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
@@ -326,8 +311,7 @@ HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 	END_SOAP_CALL
 
 	*lpbkPosition = sResponse.ulbkPosition;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
@@ -345,8 +329,7 @@ HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
@@ -378,7 +361,6 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.rowSet, lppRows, ulType);
 	if(lpulMoreRows)
 		*lpulMoreRows = sResponse.ulMoreRows;
-exit:
 	return hr;
 }
 
@@ -407,8 +389,7 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	END_SOAP_CALL
 
 	*lpulRowCount = sResponse.ulRows;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbCollapseState, BYTE *lpInstanceKey, ULONG cbInstanceKey)
@@ -439,8 +420,7 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 	if (hr != hrSuccess)
 		return hr;
 	*lpcbCollapseState = sResponse.sCollapseState.__size;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseState, BOOKMARK *lpbkPosition)
@@ -472,8 +452,7 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 		return hr;
 	if(lpbkPosition)
 		*lpbkPosition = sResponse.ulBookmark;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
@@ -566,7 +545,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 		ulTableId = sResponse.ulTableId;
 	if (lppRowSet)
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
-exit:
 	return hr;
 }
 
@@ -643,6 +621,5 @@ HRESULT WSTableOutGoingQueue::HrOpenTable()
 	}
 	END_SOAP_CALL
 	ulTableId = sResponse.ulTableId;
-exit:
-	return hr;
+	return hrSuccess;
 }

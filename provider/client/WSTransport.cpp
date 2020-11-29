@@ -64,15 +64,14 @@ using namespace KC;
 #define START_SOAP_CALL retry: \
     if(m_lpCmd == NULL) { \
         ec_log_debug("K-0159: cannot issue RPCs: m_lpCmd is unset"); \
-        hr = MAPI_E_NETWORK_ERROR; \
-        goto exitm; \
+		return MAPI_E_NETWORK_ERROR; \
     }
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
-		goto exitm;
+		return hr;
 
 namespace KC {
 
@@ -546,9 +545,9 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG *lpcbStoreID,
 		return hr;
 
 	// Create a client store entry, add the servername
-	hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
- exitm:
-	return hr;
+	return WrapServerClientStoreEntry(sResponse.lpszServerPath ?
+	       sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(),
+	       &sResponse.sStoreId, lpcbStoreID, lppStoreID);
 }
 
 HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
@@ -601,7 +600,6 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
 	if (lppStoreID != nullptr && lpcbStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
- exitm:
 	return hr;
 }
 
@@ -634,9 +632,8 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	}
 	END_SOAP_CALL
 
-	hr = Utf8ToTString(sResponse.lpszStoreName, ulFlags, NULL, NULL, lppszStoreName);
- exitm:
-	return hr;
+	return Utf8ToTString(sResponse.lpszStoreName, ulFlags, nullptr,
+	       nullptr, lppszStoreName);
 }
 
 HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
@@ -669,8 +666,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	END_SOAP_CALL
 
 	*lpulStoreType = sResponse.ulStoreType;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrLogOff()
@@ -704,8 +700,7 @@ HRESULT WSTransport::logoff_nd()
 			m_has_session = false;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
@@ -727,8 +722,7 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
 			er = KCERR_SERVER_NOT_RESPONDING;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
@@ -871,8 +865,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, const ENTRYLIST *lpMsgList, 
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
@@ -910,8 +903,7 @@ HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, ULONG ulEventMask)
@@ -932,8 +924,7 @@ HRESULT WSTransport::HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, 
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConnection, ULONG ulEventMask)
@@ -954,8 +945,7 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, ULONG ulEventMask)
@@ -983,8 +973,7 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrUnSubscribe(ULONG ulConnection)
@@ -999,8 +988,7 @@ HRESULT WSTransport::HrUnSubscribe(ULONG ulConnection)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
@@ -1024,8 +1012,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 static inline void soap_del_PointerTosourceKeyPairArray(struct sourceKeyPairArray **a)
@@ -1093,8 +1080,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	if (hr != hrSuccess)
 		return hr;
 	*lppsStreamExporter = ptrStreamExporter.release();
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId,
@@ -1166,8 +1152,7 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(*lpServerIDs, sResponse.lpsPropTags.__ptr, sizeof(ULONG) * sResponse.lpsPropTags.__size);
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
@@ -1229,8 +1214,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 
 	*lpcResolved = sResponse.lpsNames.__size;
 	*lpppNames = lppNames.release();
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
@@ -1324,8 +1308,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	}
 
 	*lppsRowSet = lpsRowSet.release();
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
@@ -1376,8 +1359,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 
 	*lppEntryID = lpEntryID.release();
 	*lpcbEntryID = cbEntryID;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
@@ -1409,8 +1391,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 			er = result;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, const ENTRYID *lpEntryID,
@@ -1435,8 +1416,7 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID,
@@ -1455,8 +1435,7 @@ HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
@@ -1475,8 +1454,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
@@ -1494,8 +1472,7 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulFlags, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer)
@@ -1535,7 +1512,6 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 	if (lpcbStoreID != nullptr && lppStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
- exitm:
 	return hr;
 }
 
@@ -1576,7 +1552,6 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 	if (lpcbStoreID != nullptr && lppStoreID != nullptr)
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
- exitm:
 	return hr;
 }
 
@@ -1627,9 +1602,7 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
 }
 
 /**
@@ -1673,8 +1646,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
 	if(hr != hrSuccess)
 		return hr;
 	*lppECUser = lpECUser.release();
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1725,8 +1697,7 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 			er = result;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1776,8 +1747,7 @@ HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId,
@@ -1804,8 +1774,7 @@ HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId,
@@ -1828,8 +1797,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrRemoveStore(const GUID *lpGuid, ULONG ulSyncId)
@@ -1851,8 +1819,7 @@ HRESULT WSTransport::HrRemoveStore(const GUID *lpGuid, ULONG ulSyncId)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, const ENTRYID *lpUserId)
@@ -1874,8 +1841,7 @@ HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, const ENTRYID *lpUserId)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1918,9 +1884,8 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
 	}
 	END_SOAP_CALL
 
-	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
- exitm:
-	return hr;
+	return SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags,
+	       lpcUsers, lppsUsers);
 }
 
 // IECServiceAdmin group functions
@@ -1967,9 +1932,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
 }
 
 /**
@@ -2014,8 +1977,7 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2056,8 +2018,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
 	if (hr != hrSuccess)
 		return hr;
 	*lppECGroup = lpGroup;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, const ENTRYID *lpGroupId)
@@ -2079,8 +2040,7 @@ HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, const ENTRYID *lpGroupId)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2118,11 +2078,8 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, const ENTRYID *lpUserId,
 	}
 	END_SOAP_CALL
 
-	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcSenders, lppSenders);
-	if(hr != hrSuccess)
-		return hr;
- exitm:
-	return hr;
+	return SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags,
+	       lpcSenders, lppSenders);
 }
 
 HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -2149,8 +2106,7 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -2177,8 +2133,7 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2211,9 +2166,7 @@ HRESULT WSTransport::HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULON
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
 }
 
 /**
@@ -2246,9 +2199,7 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
 }
 
 /**
@@ -2287,10 +2238,8 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags, lpcGroups, lppsGroups);
- exitm:
-	return hr;
+	return SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags,
+	       lpcGroups, lppsGroups);
 }
 
 HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId,
@@ -2317,8 +2266,7 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
@@ -2345,8 +2293,7 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2384,10 +2331,8 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
- exitm:
-	return hr;
+	return SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags,
+	       lpcUsers, lppsUsers);
 }
 
 /**
@@ -2425,10 +2370,8 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags, lpcGroup, lppsGroups);
- exitm:
-	return hr;
+	return SoapGroupArrayToGroupArray(&sResponse.sGroupArray, ulFlags,
+	       lpcGroup, lppsGroups);
 }
 
 /**
@@ -2472,9 +2415,8 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId, lpcbCompanyId, lppCompanyId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId,
+	       lpcbCompanyId, lppCompanyId);
 }
 
 HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
@@ -2496,8 +2438,7 @@ HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, const ENTRYID *lpCompany
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2546,8 +2487,7 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2588,8 +2528,7 @@ HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
 	if (hr != hrSuccess)
 		return hr;
 	*lppECCompany = lpCompany;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2623,9 +2562,8 @@ HRESULT WSTransport::HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId, lpcbCompanyId, lppCompanyId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId,
+	       lpcbCompanyId, lppCompanyId);
 }
 
 /**
@@ -2657,10 +2595,8 @@ HRESULT WSTransport::HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags, lpcCompanies, lppsCompanies);
- exitm:
-	return hr;
+	return SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags,
+	       lpcCompanies, lppsCompanies);
 }
 
 HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId,
@@ -2688,8 +2624,7 @@ HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId,
@@ -2717,8 +2652,7 @@ HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2759,10 +2693,8 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags, lpcCompanies, lppsCompanies);
- exitm:
-	return hr;
+	return SoapCompanyArrayToCompanyArray(&sResponse.sCompanyArray, ulFlags,
+	       lpcCompanies, lppsCompanies);
 }
 
 HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId,
@@ -2788,8 +2720,7 @@ HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId,
@@ -2815,8 +2746,7 @@ HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2856,10 +2786,8 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
- exitm:
-	return hr;
+	return SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags,
+	       lpcUsers, lppsUsers);
 }
 
 HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
@@ -2917,8 +2845,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 
 	*lppECPermissions = lpECPermissions.release();
 	lpECPermissions = NULL;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
@@ -2977,8 +2904,7 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
@@ -3011,9 +2937,7 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sOwner, lpcbOwnerId, lppOwnerId);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sOwner, lpcbOwnerId, lppOwnerId);
 }
 
 /**
@@ -3083,8 +3007,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 			lpFlagList->ulFlag[i] = sResponse.aFlags.__ptr[i];
 		}
 	}
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
@@ -3112,8 +3035,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 			er = sResponse;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -3151,8 +3073,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 	lpsQuota->llWarnSize = sResponse.sQuota.llWarnSize;
 
 	*lppsQuota = lpsQuota;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -3185,8 +3106,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
 			er = sResponse;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId,
@@ -3214,8 +3134,7 @@ HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId,
@@ -3243,8 +3162,7 @@ HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -3272,10 +3190,8 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags, lpcUsers, lppsUsers);
- exitm:
-	return hr;
+	return SoapUserArrayToUserArray(&sResponse.sUserArray, ulFlags,
+	       lpcUsers, lppsUsers);
 }
 
 HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
@@ -3310,8 +3226,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
 	lpsQuotaStatus->quotaStatus = (eQuotaStatus)sResponse.ulQuotaStatus;
 
 	*lppsQuotaStatus = lpsQuotaStatus;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrPurgeSoftDelete(ULONG ulDays)
@@ -3326,8 +3241,7 @@ HRESULT WSTransport::HrPurgeSoftDelete(ULONG ulDays)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrPurgeCache(ULONG ulFlags)
@@ -3342,8 +3256,7 @@ HRESULT WSTransport::HrPurgeCache(ULONG ulFlags)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
- exitm:
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrPurgeDeferredUpdates(ULONG *lpulRemaining)
@@ -3363,8 +3276,7 @@ HRESULT WSTransport::HrPurgeDeferredUpdates(ULONG *lpulRemaining)
         *lpulRemaining = sResponse.ulDeferredRemaining;
 	}
 	END_SOAP_CALL
- exitm:
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer)
@@ -3428,8 +3340,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	memcpy(lpszServerPath, sResponse.lpszServerPath != nullptr ? sResponse.lpszServerPath : "", ulLen);
 	*lppszServerPath = lpszServerPath;
 	*lpbIsPeer = sResponse.bIsPeer;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
@@ -3456,10 +3367,8 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = SoapServerListToServerList(&sResponse.sServerList, ulFlags & MAPI_UNICODE, lppsServerList);
- exitm:
-	return hr;
+	return SoapServerListToServerList(&sResponse.sServerList,
+	       ulFlags & MAPI_UNICODE, lppsServerList);
 }
 
 HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
@@ -3525,8 +3434,7 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 	*lpulMaxChangeId = sResponse.ulMaxChangeId;
 	*lpcChanges = sResponse.sChangesArray.__size;
 	*lppChanges = lpChanges.release();
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, ULONG* lpulSyncId){
@@ -3549,8 +3457,7 @@ HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncI
 	END_SOAP_CALL
 
 	*lpulSyncId = sResponse.ulSyncId;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
@@ -3594,10 +3501,8 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPEntryIdToMAPIEntryId(&sResponse.sEntryId, lpcbEntryID, lppEntryID, NULL);
- exitm:
-	return hr;
+	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sEntryId, lpcbEntryID,
+	       lppEntryID, nullptr);
 }
 
 HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCSTATE *lplstSyncState)
@@ -3631,8 +3536,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 		sSyncState.ulChangeId = sResponse.sSyncStates.__ptr[i].ulChangeId;
 		lplstSyncState->emplace_back(std::move(sSyncState));
 	}
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 const char *WSTransport::GetServerName() const
@@ -3677,8 +3581,7 @@ HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, b
 		/* else: er is already set and good to use */
 	}
 	END_SOAP_CALL
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrCheckCapabilityFlags(unsigned int ulFlags, bool *lpbResult)
@@ -3707,8 +3610,7 @@ HRESULT WSTransport::license_auth(const std::string &in, std::string &out)
 	}
 	END_SOAP_CALL
 	out.assign(reinterpret_cast<char *>(rsp.sAuthResponse.__ptr), rsp.sAuthResponse.__size);
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
@@ -3728,8 +3630,7 @@ HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
             er = KCERR_NETWORK_ERROR;
     }
     END_SOAP_CALL;
- exitm:
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrTestSet(const char *szName, const char *szValue)
@@ -3744,8 +3645,7 @@ HRESULT WSTransport::HrTestSet(const char *szName, const char *szValue)
 			er = KCERR_NETWORK_ERROR;
     }
     END_SOAP_CALL
- exitm:
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
@@ -3773,8 +3673,7 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
 		strcpy(szValue, sResponse.szValue);
 	}
     *lpszValue = szValue;
- exitm:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetSessionId(ECSESSIONID *lpSessionId, ECSESSIONGROUPID *lpSessionGroupId)
@@ -3921,7 +3820,5 @@ HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId,
 
 	if (lpulUpdates)
 		*lpulUpdates = sResponse.ulUpdates;
-
- exitm:
-	return hr;
+	return hrSuccess;
 }
