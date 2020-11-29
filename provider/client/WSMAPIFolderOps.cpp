@@ -246,11 +246,6 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
-	hr = kcerr_to_mapierr(er);
-	if(hr != hrSuccess)
-		goto exit;
-
 exit:
 	spg.unlock();
 	soap_del_PointerTorestrictTable(&lpsRestrict);
