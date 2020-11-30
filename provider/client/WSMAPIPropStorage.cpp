@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
+#include <kopano/scope.hpp>
 #include "WSMAPIPropStorage.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
@@ -81,7 +82,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = hrSuccess;
-	MAPIOBJECT *mo = NULL;
+	std::unique_ptr<MAPIOBJECT> mo;
 	memory_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
@@ -99,7 +100,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	// Convert the property tags to a MAPIOBJECT
 	//(type,objectid)
-	mo = new MAPIOBJECT;
+	mo.reset(new MAPIOBJECT);
 	/*
 	 * This is only done to have a base for AllocateMore, otherwise a local
 	 * automatic variable would have sufficed.
@@ -122,11 +123,8 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		 */
 		mo->lstProperties.emplace_back(lpProp);
 	}
-	*lppsMapiObject = mo;
+	*lppsMapiObject = mo.release();
 exit:
-	spg.unlock();
-	if (hr != hrSuccess)
-		delete mo;
 	return hr;
 }
 
@@ -492,6 +490,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 {
 	ECRESULT	er = erSuccess;
 	struct saveObject sSaveObj;
+	auto cleanup = make_scope_exit([&]() { soap_del_saveObject(&sSaveObj); });
 	struct loadObjectResponse sResponse;
 	convert_context converter;
 
@@ -532,8 +531,6 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// However, because we already have all properties of the top-level message in-memory via
 	// ECGenericProps, the properties in
 exit:
-	spg.unlock();
-	soap_del_saveObject(&sSaveObj);
 	return hr;
 }
 

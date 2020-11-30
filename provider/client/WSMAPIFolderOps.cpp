@@ -6,6 +6,7 @@
 #include <vector>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "WSMAPIFolderOps.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
@@ -73,6 +74,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	struct xsd__base64Binary sSourceKey;
 	struct createFolderResponse sResponse;
 	entryId*	lpsEntryId = NULL;
+	auto cleanup = make_scope_exit([&]() { soap_del_PointerToentryId(&lpsEntryId); });
 	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpNewEntryId) {
@@ -108,8 +110,6 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	}
 
 exit:
-	spg.unlock();
-	soap_del_PointerToentryId(&lpsEntryId);
 	return hr;
 }
 
@@ -119,6 +119,11 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 	ECRESULT er = erSuccess;
 	struct create_folders_response rsp;
 	std::vector<new_folder> folders(batch.size());
+	auto cleanup = make_scope_exit([&]() {
+		for (auto &folder : folders)
+			if (folder.entryid != nullptr)
+				soap_del_PointerToentryId(&folder.entryid);
+	});
 	convert_wsfolder_to_soapfolder(batch, folders);
 
 	new_folder_set soap_batch;
@@ -140,10 +145,6 @@ HRESULT WSMAPIFolderOps::create_folders(std::vector<WSFolder> &batch)
 	}
 	hr = convert_soapfolders_to_wsfolder(rsp, batch);
  exit:
-	spg.unlock();
-	for (auto &folder : folders)
-		if (folder.entryid != nullptr)
-			soap_del_PointerToentryId(&folder.entryid);
 	return hr;
 }
 
@@ -192,6 +193,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
+	auto cleanup = make_scope_exit([&]() { soap_del_entryList(&sEntryList); });
 	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
@@ -213,8 +215,6 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	END_SOAP_CALL
 
 exit:
-	spg.unlock();
-	soap_del_entryList(&sEntryList);
 	return hr;
 }
 
@@ -225,6 +225,10 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 	HRESULT			hr = hrSuccess;
 	struct entryList*		lpsEntryList = NULL;
 	struct restrictTable*	lpsRestrict = NULL;
+	auto cleanup = make_scope_exit([&] () {
+		soap_del_PointerTorestrictTable(&lpsRestrict);
+		soap_del_PointerToentryList(&lpsEntryList);
+	});
 	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
@@ -247,9 +251,6 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 	}
 	END_SOAP_CALL
 exit:
-	spg.unlock();
-	soap_del_PointerTorestrictTable(&lpsRestrict);
-	soap_del_PointerToentryList(&lpsEntryList);
 	return hr;
 }
 
@@ -330,6 +331,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
+	auto cleanup = make_scope_exit([&]() { soap_del_entryList(&sEntryList); });
 	entryId			sEntryDest;	//Do not free, cheap copy
 	soap_lock_guard spg(*m_lpTransport);
 
@@ -349,8 +351,6 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 	END_SOAP_CALL
 
 exit:
-	spg.unlock();
-	soap_del_entryList(&sEntryList);
 	return hr;
 }
 

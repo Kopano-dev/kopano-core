@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <kopano/scope.hpp>
 #include "WSTableView.h"
 #include <kopano/ECGuid.h>
 #include "SOAPSock.h"
@@ -107,6 +108,7 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 
 	// Save the columns so that we can restore the column state when reconnecting
 	m_lpsPropTagArray = (LPSPropTagArray) new char[CbNewSPropTagArray(lpsPropTagArray->cValues)];
+	auto cleanup = make_scope_exit([&]() { delete[] lpsOld; });
 	memcpy(&m_lpsPropTagArray->aulPropTag, &lpsPropTagArray->aulPropTag, sizeof(ULONG) * lpsPropTagArray->cValues);
 	m_lpsPropTagArray->cValues = lpsPropTagArray->cValues;
 
@@ -127,7 +129,6 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 	END_SOAP_CALL
 
 exit:
-	delete[] lpsOld;
 	return hr;
 }
 
@@ -171,6 +172,10 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 
 	// Remember sort order for reconnect
 	m_lpsSortOrderSet = (LPSSortOrderSet)new char [CbSSortOrderSet(lpsSortOrderSet)];
+	auto cleanup = make_scope_exit([&]() {
+		delete[] lpOld;
+		soap_del_sortOrderArray(&sSort);
+	});
 	memcpy(m_lpsSortOrderSet, lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet));
 
 	sSort.__size = lpsSortOrderSet->cSorts;
@@ -195,9 +200,6 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 	END_SOAP_CALL
 
 exit:
-	spg.unlock();
-	delete[] lpOld;
-	soap_del_sortOrderArray(&sSort);
 	return hr;
 }
 
@@ -256,6 +258,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 	struct restrictTable *lpRestrict = NULL;
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
+	auto cleanup = make_scope_exit([&]() { soap_del_PointerTorestrictTable(&lpRestrict); });
 	if (hr != hrSuccess)
 		goto exit;
 	hr = HrOpenTable();
@@ -272,8 +275,6 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 	END_SOAP_CALL
 
 exit:
-	spg.unlock();
-	soap_del_PointerTorestrictTable(&lpRestrict);
 	return hr;
 }
 
@@ -514,6 +515,10 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     	sRequest.lpSetColumns = &sColumns;
 	}
 
+	auto cleanup = make_scope_exit([&]() {
+		soap_del_sortOrderArray(&sSort.sSortOrder);
+		soap_del_PointerTorestrictTable(&lpsRestrictTable);
+	});
 	soap_lock_guard spg(*m_lpTransport);
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -563,9 +568,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	if (lppRowSet)
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
-	spg.unlock();
-	soap_del_sortOrderArray(&sSort.sSortOrder);
-	soap_del_PointerTorestrictTable(&lpsRestrictTable);
 	return hr;
 }
 
