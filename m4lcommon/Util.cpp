@@ -1260,7 +1260,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 {
 	ULONG cRead;
 	std::wstring strHtml;
-	wchar_t lpBuffer[BUFSIZE];
+	auto lpBuffer = std::make_unique<wchar_t[]>(BUFSIZE);
 	static const char header1[] = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">\n"
 	                              "<HTML>\n"
 	                              "<HEAD>\n"
@@ -1313,7 +1313,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 
 	while (1) {
 		strHtml.clear();
-		hr = text->Read(lpBuffer, BUFSIZE * sizeof(wchar_t), &cRead);
+		hr = text->Read(lpBuffer.get(), BUFSIZE * sizeof(wchar_t), &cRead);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1434,7 +1434,7 @@ HRESULT Util::HrTextToHtml(const wchar_t *text, std::string &strHTML, ULONG ulCo
 HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 {
 	ULONG cRead;
-	wchar_t c[BUFSIZE];
+	auto c = std::make_unique<wchar_t[]>(BUFSIZE);
 	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n"
 	                             "{\\f0\\fswiss Arial;}\n"
 	                             "{\\f1\\fmodern Courier New;}\n"
@@ -1447,7 +1447,7 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 	rtf->Write(header, strlen(header), NULL);
 
 	while(1) {
-		auto ret = text->Read(c, BUFSIZE * sizeof(wchar_t), &cRead);
+		auto ret = text->Read(c.get(), BUFSIZE * sizeof(wchar_t), &cRead);
 		if (ret != hrSuccess || cRead == 0)
 			break;
 		cRead /= sizeof(wchar_t);
@@ -1682,7 +1682,7 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
-	char buffer[BUFSIZE];
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1694,10 +1694,10 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
-		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
+		hr = sInput->Read(buffer.get(), BUFSIZE, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			break;
-		strOutput.append(buffer, ulRead);
+		strOutput.append(buffer.get(), ulRead);
 	}
 	return hr;
 }
@@ -1716,7 +1716,7 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
-	char buffer[BUFSIZE];
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
 
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
@@ -1728,10 +1728,10 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
-		hr = sInput->Read(buffer, BUFSIZE, &ulRead);
+		hr = sInput->Read(buffer.get(), BUFSIZE, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			break;
-		strOutput.append(reinterpret_cast<wchar_t *>(buffer), ulRead / sizeof(wchar_t));
+		strOutput.append(reinterpret_cast<wchar_t *>(buffer.get()), ulRead / sizeof(wchar_t));
 	}
 	return hr;
 }
