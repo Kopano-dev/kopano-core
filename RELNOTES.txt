@@ -1,3 +1,14 @@
+9.0.13 (2020-12-02)
+===================
+Fixes:
+* storeadm: cure an observed nullptr deref [KC-1873]
+* dagent: treat each recipient's message copy as an individual entity [KC-1882]
+* client: read JSON license block for SSO/OIDC logons [KC-1892]
+Enhancements:
+* ldapplugin: avoid DN cache reference when not requested and reduce time to
+  obtain DN cache [KC-1876]
+
+
 9.0.12 (2020-10-23)
 ===================
 Fixes:
