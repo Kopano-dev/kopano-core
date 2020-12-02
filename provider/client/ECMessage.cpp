@@ -6,6 +6,7 @@
 #	include "config.h"
 #endif
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -2285,7 +2286,8 @@ HRESULT ECMessage::GetBodyType(const std::string &rtf, eBodyType *lpulBodyType)
 HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 {
 	object_ptr<IStream> ptrRtfCompressedStream, ptrRtfUncompressedStream;
-	char lpBuf[4096];
+	static constexpr size_t BUFSIZE = 4096;
+	auto lpBuf = std::make_unique<char[]>(BUFSIZE);
 	std::string strRtfData;
 
 	auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~ptrRtfCompressedStream);
@@ -2310,12 +2312,12 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 	while (1) {
 		ULONG ulRead;
 
-		hr = ptrRtfUncompressedStream->Read(lpBuf, 4096, &ulRead);
+		hr = ptrRtfUncompressedStream->Read(lpBuf.get(), BUFSIZE, &ulRead);
 		if (hr != hrSuccess)
 			return hr;
 		if (ulRead == 0)
 			break;
-		strRtfData.append(lpBuf, ulRead);
+		strRtfData.append(lpBuf.get(), ulRead);
 	}
 
 	*lpstrRtfData = std::move(strRtfData);

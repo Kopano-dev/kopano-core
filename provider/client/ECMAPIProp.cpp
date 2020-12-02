@@ -489,14 +489,14 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 {
 	object_ptr<IECSecurity> ptrSecurity;
 	ULONG				cPerms = 0;
-	struct soap			soap;
+	auto xsoap = std::make_unique<soap>();
 	std::ostringstream	os;
 	struct rightsArray	rights;
 	std::string			strAclData;
 
 	auto laters = make_scope_success([&]() {
-		soap_destroy(&soap);
-		soap_end(&soap); // clean up allocated temporaries
+		soap_destroy(xsoap.get());
+		soap_end(xsoap.get()); // clean up allocated temporaries
 	});
 	auto hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
@@ -507,16 +507,16 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 		return hr;
 
 	rights.__size = cPerms;
-	rights.__ptr  = soap_new_rights(&soap, cPerms);
+	rights.__ptr  = soap_new_rights(xsoap.get(), cPerms);
 	std::transform(ptrPerms.get(), ptrPerms + cPerms, rights.__ptr, &ECPermToRightsCheap);
 
-	soap_set_omode(&soap, SOAP_C_UTFSTRING);
-	soap_begin(&soap);
-	soap.os = &os;
-	soap_serialize_rightsArray(&soap, &rights);
-	if (soap_begin_send(&soap) != 0 ||
-	    soap_put_rightsArray(&soap, &rights, "rights", "rightsArray") != 0 ||
-	    soap_end_send(&soap) != 0)
+	soap_set_omode(xsoap.get(), SOAP_C_UTFSTRING);
+	soap_begin(xsoap.get());
+	xsoap->os = &os;
+	soap_serialize_rightsArray(xsoap.get(), &rights);
+	if (soap_begin_send(xsoap.get()) != 0 ||
+	    soap_put_rightsArray(xsoap.get(), &rights, "rights", "rightsArray") != 0 ||
+	    soap_end_send(xsoap.get()) != 0)
 		return MAPI_E_NETWORK_ERROR;
 
 	strAclData = os.str();
@@ -530,28 +530,26 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 	    PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
 		return MAPI_E_INVALID_PARAMETER;
 
-	struct soap			soap;
+	auto xsoap = std::make_unique<soap>();
 	struct rightsArray	rights;
 	std::string			strAclData;
 
 	auto laters = make_scope_success([&]() {
-		soap_destroy(&soap);
-		soap_end(&soap); // clean up allocated temporaries
+		soap_destroy(xsoap.get());
+		soap_end(xsoap.get()); // clean up allocated temporaries
 	});
 
 	{
 		std::istringstream is(std::string(reinterpret_cast<const char *>(lpsPropValue->Value.bin.lpb), lpsPropValue->Value.bin.cb));
 
-		soap.is = &is;
-		soap_set_imode(&soap, SOAP_C_UTFSTRING);
-		soap_begin(&soap);
-		if (soap_begin_recv(&soap) != 0)
+		xsoap->is = &is;
+		soap_set_imode(xsoap.get(), SOAP_C_UTFSTRING);
+		soap_begin(xsoap.get());
+		if (soap_begin_recv(xsoap.get()) != 0)
 			return MAPI_E_NETWORK_FAILURE;
-
-		if (!soap_get_rightsArray(&soap, &rights, "rights", "rightsArray"))
+		if (!soap_get_rightsArray(xsoap.get(), &rights, "rights", "rightsArray"))
 			return MAPI_E_CORRUPT_DATA;
-
-		if (soap_end_recv(&soap) != 0)
+		if (soap_end_recv(xsoap.get()) != 0)
 			return MAPI_E_NETWORK_ERROR;
 	}
 	memory_ptr<ECPERMISSION> ptrPerms;

@@ -393,12 +393,12 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	std::ostringstream os;
 	struct rowSet *	lpSOAPRowSet = NULL;
 	char *szXML = NULL;
-	struct soap soap;
+	auto xsoap = std::make_unique<soap>();
 
 	auto laters = make_scope_success([&]() {
 		soap_del_PointerTorowSet(&lpSOAPRowSet);
-		soap_destroy(&soap);
-		soap_end(&soap); // clean up allocated temporaries
+		soap_destroy(xsoap.get());
+		soap_end(xsoap.get()); // clean up allocated temporaries
 	});
 
 	// Get a view
@@ -427,13 +427,13 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 		return hr;
 
 	// Convert to XML
-	soap_set_omode(&soap, SOAP_C_UTFSTRING);
-	soap_begin(&soap);
-	soap.os = &os;
-	soap_serialize_rowSet(&soap, lpSOAPRowSet);
-	if (soap_begin_send(&soap) != 0 ||
-	    soap_put_rowSet(&soap, lpSOAPRowSet, "tableData", "rowSet") != 0 ||
-	    soap_end_send(&soap) != 0)
+	soap_set_omode(xsoap.get(), SOAP_C_UTFSTRING);
+	soap_begin(xsoap.get());
+	xsoap->os = &os;
+	soap_serialize_rowSet(xsoap.get(), lpSOAPRowSet);
+	if (soap_begin_send(xsoap.get()) != 0 ||
+	    soap_put_rowSet(xsoap.get(), lpSOAPRowSet, "tableData", "rowSet") != 0 ||
+	    soap_end_send(xsoap.get()) != 0)
 		return MAPI_E_NETWORK_ERROR;
 
 	// os now contains XML for row data
@@ -452,22 +452,22 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	rowset_ptr lpsRowSet;
 	unsigned int cValues, ulHighestRuleID = 1;
 	SPropValue		sRowId;
-	struct soap soap;
+	auto xsoap = std::make_unique<soap>();
 	convert_context converter;
 
 	auto laters = make_scope_success([&]() {
-		soap_destroy(&soap);
-		soap_end(&soap); // clean up allocated temporaries
+		soap_destroy(xsoap.get());
+		soap_end(xsoap.get()); // clean up allocated temporaries
 	});
 
-	soap.is = &is;
-	soap_set_imode(&soap, SOAP_C_UTFSTRING);
-	soap_begin(&soap);
-	if (soap_begin_recv(&soap) != 0)
+	xsoap->is = &is;
+	soap_set_imode(xsoap.get(), SOAP_C_UTFSTRING);
+	soap_begin(xsoap.get());
+	if (soap_begin_recv(xsoap.get()) != 0)
 		return MAPI_E_NETWORK_FAILURE;
-	if (!soap_get_rowSet(&soap, &sSOAPRowSet, "tableData", "rowSet"))
+	if (!soap_get_rowSet(xsoap.get(), &sSOAPRowSet, "tableData", "rowSet"))
 		return MAPI_E_CORRUPT_DATA;
-	if (soap_end_recv(&soap) != 0)
+	if (soap_end_recv(xsoap.get()) != 0)
 		return MAPI_E_NETWORK_FAILURE;
 	auto hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
 	if(hr != hrSuccess)
