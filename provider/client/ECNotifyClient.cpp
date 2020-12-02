@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iterator>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <utility>
