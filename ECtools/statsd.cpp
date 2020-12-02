@@ -167,27 +167,27 @@ static void sd_check_sockets(std::vector<struct pollfd> &pollfd)
 	for (size_t i = 0; i < pollfd.size(); ++i) {
 		if (!(pollfd[i].revents & POLLIN))
 			continue;
-		struct soap x;
+		auto x = std::make_unique<soap>();
 		int domain = AF_UNSPEC;
 		socklen_t dlen = sizeof(domain);
 		if (getsockopt(pollfd[i].fd, SOL_SOCKET, SO_DOMAIN, &domain, &dlen) == 0 &&
 		    domain != AF_LOCAL) {
-			x.master = pollfd[i].fd;
-			soap_accept(&x);
-			x.master = -1;
+			x->master = pollfd[i].fd;
+			soap_accept(x.get());
+			x->master = -1;
 		} else {
-			socklen_t peerlen = sizeof(x.peer.addr);
-			x.socket = accept(pollfd[i].fd, &x.peer.addr, &peerlen);
-			x.peerlen = peerlen;
-			if (x.socket == SOAP_INVALID_SOCKET ||
-			    peerlen > sizeof(x.peer.storage)) {
-				x.peerlen = 0;
-				memset(&x.peer, 0, sizeof(x.peer));
+			socklen_t peerlen = sizeof(x->peer.addr);
+			x->socket = accept(pollfd[i].fd, &x->peer.addr, &peerlen);
+			x->peerlen = peerlen;
+			if (x->socket == SOAP_INVALID_SOCKET ||
+			    peerlen > sizeof(x->peer.storage)) {
+				x->peerlen = 0;
+				memset(&x->peer, 0, sizeof(x->peer));
 			}
 			/* Do like gsoap's soap_accept would */
-			x.keep_alive = -(((x.imode | x.omode) & SOAP_IO_KEEPALIVE) != 0);
+			x->keep_alive = -(((x->imode | x->omode) & SOAP_IO_KEEPALIVE) != 0);
 		}
-		sd_handle_request(std::move(x));
+		sd_handle_request(std::move(*x));
 	}
 }
 
