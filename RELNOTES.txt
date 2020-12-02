@@ -1,3 +1,20 @@
+9.0.12 (2020-10-23)
+===================
+Fixes:
+* ldapplugin: add back missing parseBool for starttls yes/no [KC-1295]
+* libserver: cure wrong PR_DISPLAY_NAME for company public stores [KC-1828]
+* spooler/dagent: Refuses to parse mails if libkcpyplug0 isn't installed
+  [KC-1823]
+* common: have ec_fdtable_socket_ai not stop iteration on EBADF [KC-1838]
+* pyko: disable syslog log method support [KC-1858]
+* pyko: honor log_timestamp log setting [KC-1859]
+Changes:
+* server: print license information in log on startup [KC-1812]
+* server: deliver boolean flag to MAPI clients based on libkustomer ensure
+  results [KC-1821]
+* pyko: add upstream reference and license for queue based logger [KC-1859]
+
+
 9.0.11 (2020-07-29)
 ===================
 Changes from the 8.7.x branch up to 8.7.16 are included.
