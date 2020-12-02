@@ -1452,7 +1452,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 
 	if (!(flags & MTV_SPOOL))
 		return hrSuccess;
-	char buffer[4096]{};
+	char buffer[256]{};
 	if (gethostname(buffer, sizeof buffer) == -1)
 		strcpy(buffer, "???");
 	vmime::relay relay;

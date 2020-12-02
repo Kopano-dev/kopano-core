@@ -1694,7 +1694,8 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	ULONG ulChecksum = 0;
 	object_ptr<IStream> lpClone;
 	ULONG ulRead = 0;
-	unsigned char buffer[4096];
+	static constexpr size_t BUFSIZE = 4096;
+	auto buffer = std::make_unique<unsigned char[]>(BUFSIZE);
 	unsigned int i = 0;
 
 	auto hr = lpStream->Clone(&~lpClone);
@@ -1705,7 +1706,7 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 		return hr;
 
 	while (true) {
-		hr = lpClone->Read(buffer, 4096, &ulRead);
+		hr = lpClone->Read(buffer.get(), BUFSIZE, &ulRead);
 		if(hr != hrSuccess)
 			return hr;
 		if(ulRead == 0)
