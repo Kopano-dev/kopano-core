@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <utility>
 #include <kopano/platform.h>
