@@ -224,11 +224,12 @@ ECRESULT ECStreamSerializer::Read(void *ptr, size_t size, size_t nmemb)
 ECRESULT ECStreamSerializer::Skip(size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
-	char buffer[4096];
+	static constexpr size_t BUFSIZE = 4096;
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
 	ULONG read = 0;
 
 	for (size_t total = 0; total < nmemb * size; total += read) {
-		er = m_lpBuffer->Read(buffer, std::min(sizeof(buffer), (size * nmemb) - total), &read);
+		er = m_lpBuffer->Read(buffer.get(), std::min(BUFSIZE, size * nmemb - total), &read);
 		if (er != erSuccess)
 			return er;
 	}
@@ -239,14 +240,15 @@ ECRESULT ECStreamSerializer::Flush()
 {
 	ECRESULT er;
 	ULONG cbRead = 0;
-	char buf[16384];
+	static constexpr size_t BUFSIZE = 16384;
+	auto buf = std::make_unique<char[]>(BUFSIZE);
 
 	while (true) {
-		er = m_lpBuffer->Read(buf, sizeof(buf), &cbRead);
+		er = m_lpBuffer->Read(buf.get(), BUFSIZE, &cbRead);
 		if (er != erSuccess)
 			return er;
 		m_ulRead += cbRead;
-		if (cbRead < sizeof(buf))
+		if (cbRead < BUFSIZE)
 			break;
 	}
 	return er;

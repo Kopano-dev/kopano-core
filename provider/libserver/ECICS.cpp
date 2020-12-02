@@ -515,14 +515,15 @@ static ECRESULT getchanges_contents(struct soap *soap, ECSession *lpSession, ECD
 	std::vector<DB_ROW> db_rows;
 	std::vector<DB_LENGTHS> db_lengths;
 	static constexpr unsigned int ncols = 7;
-	unsigned long col_lengths[1000*ncols];
+	static constexpr size_t ROWS_AT_A_TIME = 1000;
+	auto col_lengths = std::make_unique<unsigned long[]>(ROWS_AT_A_TIME*ncols);
 	unsigned int length_counter = 0;
 
 	while (lpDBResult && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBLen == NULL)
 			continue;
-		memcpy(&col_lengths[length_counter*ncols], lpDBLen, ncols * sizeof(*col_lengths));
+		memcpy(&col_lengths[length_counter*ncols], lpDBLen, ncols * sizeof(decltype(col_lengths)::element_type));
 		lpDBLen = &col_lengths[length_counter*ncols];
 		++length_counter;
 		if (lpDBRow[icsSourceKey] == NULL || lpDBRow[icsParentSourceKey] == NULL) {
@@ -531,7 +532,7 @@ static ECRESULT getchanges_contents(struct soap *soap, ECSession *lpSession, ECD
 		}
 		db_rows.emplace_back(lpDBRow);
 		db_lengths.emplace_back(lpDBLen);
-		if (db_rows.size() == 1000) {
+		if (db_rows.size() == ROWS_AT_A_TIME) {
 			er = lpHelper->ProcessRows(db_rows, db_lengths);
 			if (er != erSuccess)
 				return er;

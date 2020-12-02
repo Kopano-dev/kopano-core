@@ -1037,21 +1037,20 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
-	unsigned char szBuffer[CHUNK_SIZE]{};
+	auto szBuffer = std::make_unique<unsigned char[]>(CHUNK_SIZE);
 
 	// make chunks of 393216 bytes (384*1024)
 	size_t iSizeLeft = iSize, ulChunk = 0;
 
 	while (iSizeLeft > 0) {
 		size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
-		auto er = lpSource->Read(szBuffer, 1, iChunkSize);
+		auto er = lpSource->Read(szBuffer.get(), 1, iChunkSize);
 		if (er != erSuccess)
 			return er;
 
 		std::string strQuery = "INSERT INTO lob (instanceid, chunkid, tag, val_binary) VALUES (" +
 			stringify(ulInstanceId.siid) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
-			", " + m_lpDatabase->EscapeBinary(szBuffer, iChunkSize) + ")";
-
+			", " + m_lpDatabase->EscapeBinary(szBuffer.get(), iChunkSize) + ")";
 		er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			return ec_perror("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed", er);
@@ -1447,7 +1446,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 {
 	ECRESULT er = erSuccess;
 	bool bCompressed = false;
-	char buffer[CHUNK_SIZE];
+	auto buffer = std::make_unique<char[]>(CHUNK_SIZE);
 
 	*lpiSize = 0;
 	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
@@ -1482,7 +1481,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 #endif
 
 		for(;;) {
-			ssize_t lReadNow = gzread_retry(gzfp, buffer, sizeof(buffer));
+			ssize_t lReadNow = gzread_retry(gzfp, buffer.get(), CHUNK_SIZE);
 			if (lReadNow < 0) {
 				ec_log_err("ECFileAttachment::LoadAttachmentInstance(): Error while gzreading attachment data from \"%s\".", filename.c_str());
 				er = KCERR_DATABASE_ERROR;
@@ -1491,9 +1490,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 
 			if (lReadNow == 0)
 				break;
-
-			lpSink->Write(buffer, 1, lReadNow);
-
+			lpSink->Write(buffer.get(), 1, lReadNow);
 			*lpiSize += lReadNow;
 		}
 
@@ -1502,7 +1499,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	}
 	else {
 		for(;;) {
-			ssize_t lReadNow = read_retry(fd, buffer, sizeof(buffer));
+			ssize_t lReadNow = read_retry(fd, buffer.get(), CHUNK_SIZE);
 			if (lReadNow < 0) {
 				ec_log_err("ECFileAttachment::LoadAttachmentInstance(SOAP): Error while reading attachment data from \"%s\": %s", filename.c_str(), strerror(errno));
 				er = KCERR_DATABASE_ERROR;
@@ -1511,9 +1508,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 
 			if (lReadNow == 0)
 				break;
-
-			lpSink->Write(buffer, 1, lReadNow);
-
+			lpSink->Write(buffer.get(), 1, lReadNow);
 			*lpiSize += lReadNow;
 		}
 	}
@@ -1683,7 +1678,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 {
 	ECRESULT er = erSuccess;
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-	unsigned char szBuffer[CHUNK_SIZE];
+	auto szBuffer = std::make_unique<unsigned char[]>(CHUNK_SIZE);
 	size_t iSizeLeft = iSize;
 
 	int fd = open(filename.c_str(), O_RDWR | O_CREAT, S_IWUSR | S_IRUSR);
@@ -1710,14 +1705,14 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
 
-			er = lpSource->Read(szBuffer, 1, iChunkSize);
+			er = lpSource->Read(szBuffer.get(), 1, iChunkSize);
 			if (er != erSuccess) {
 				ec_log_err("Problem retrieving attachment from ECSource: %s (0x%x)", GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything yielding UNKNOWN */)), er);
 				er = KCERR_DATABASE_ERROR;
 				break;
 			}
 
-			ssize_t iWritten = gzwrite_retry(gzfp, szBuffer, iChunkSize);
+			ssize_t iWritten = gzwrite_retry(gzfp, szBuffer.get(), iChunkSize);
 			if (iWritten != static_cast<ssize_t>(iChunkSize)) {
 				ec_log_err("Unable to gzwrite %zu bytes to attachment \"%s\", returned %zd",
 					iChunkSize, filename.c_str(), iWritten);
@@ -1757,14 +1752,14 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ext_siid &ulInstanceId,
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
 
-			er = lpSource->Read(szBuffer, 1, iChunkSize);
+			er = lpSource->Read(szBuffer.get(), 1, iChunkSize);
 			if (er != erSuccess) {
 				ec_log_err("Problem retrieving attachment from ECSource: %s (0x%x)", GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U)), er);
 				er = KCERR_DATABASE_ERROR;
 				break;
 			}
 
-			ssize_t iWritten = write_retry(fd, szBuffer, iChunkSize);
+			ssize_t iWritten = write_retry(fd, szBuffer.get(), iChunkSize);
 			if (iWritten != static_cast<ssize_t>(iChunkSize)) {
 				ec_log_err("Unable to write %zu bytes to streaming attachment: %s", iChunkSize, strerror(errno));
 				er = KCERR_DATABASE_ERROR;
@@ -2268,16 +2263,16 @@ ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
 	}
 
 	give_filesize_hint(fd, dsize);
+	auto buffer = std::make_unique<char[]>(CHUNK_SIZE);
 	while (dsize > 0) {
 		size_t chunk_size = std::min(static_cast<size_t>(CHUNK_SIZE), dsize);
-		char buffer[CHUNK_SIZE];
-		ret = src->Read(buffer, 1, chunk_size);
+		ret = src->Read(buffer.get(), 1, chunk_size);
 		if (ret != erSuccess) {
 			close(fd);
 			return ret;
 		}
-		SHA256_Update(&shactx, buffer, chunk_size);
-		ssize_t did_write = write_retry(fd, buffer, chunk_size);
+		SHA256_Update(&shactx, buffer.get(), chunk_size);
+		ssize_t did_write = write_retry(fd, buffer.get(), chunk_size);
 		if (did_write != static_cast<ssize_t>(chunk_size)) {
 			ec_log_err("K-1289: Unable to write bytes to attachment \"%s\": %s.",
 				sl.content_file.c_str(), strerror(errno));
@@ -2429,9 +2424,9 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(const ext_siid &instance,
 		return KCERR_NO_ACCESS;
 	}
 	my_readahead(fd);
+	auto buffer = std::make_unique<char[]>(CHUNK_SIZE);
 	while (true) {
-		char buffer[CHUNK_SIZE];
-		ssize_t rd = read_retry(fd, buffer, sizeof(buffer));
+		ssize_t rd = read_retry(fd, buffer.get(), CHUNK_SIZE);
 		if (rd < 0) {
 			ec_log_err("K-1284: read: %s", strerror(errno));
 			close(fd);
@@ -2439,7 +2434,7 @@ ECRESULT ECFileAttachment2::LoadAttachmentInstance(const ext_siid &instance,
 		} else if (rd == 0) {
 			break;
 		}
-		sink->Write(buffer, 1, rd);
+		sink->Write(buffer.get(), 1, rd);
 		*dsize += rd;
 	}
 	close(fd);

@@ -1308,20 +1308,20 @@ ECRESULT ECSearchFolders::LoadSearchCriteria2(const std::string &xmldata,
     struct searchCriteria **lppSearchCriteria)
 {
 	std::istringstream xml(xmldata);
-	struct soap xmlsoap;
+	auto xmlsoap = std::make_unique<soap>();
 	struct searchCriteria crit;
 	ECRESULT er = erSuccess;
 
 	/* Use the soap (de)serializer to store the data */
-	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-	xmlsoap.is = &xml;
-	soap_default_searchCriteria(&xmlsoap, &crit);
-	if (soap_begin_recv(&xmlsoap) != 0)
+	soap_set_mode(xmlsoap.get(), SOAP_XML_TREE | SOAP_C_UTFSTRING);
+	xmlsoap->is = &xml;
+	soap_default_searchCriteria(xmlsoap.get(), &crit);
+	if (soap_begin_recv(xmlsoap.get()) != 0)
 		return KCERR_NETWORK_ERROR;
-	soap_get_searchCriteria(&xmlsoap, &crit, "SearchCriteria", NULL);
+	soap_get_searchCriteria(xmlsoap.get(), &crit, "SearchCriteria", nullptr);
 
 	// We now have the object, allocated by xmlsoap object,
-	if (soap_end_recv(&xmlsoap) != 0)
+	if (soap_end_recv(xmlsoap.get()) != 0)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = CopySearchCriteria(nullptr, &crit, lppSearchCriteria);
@@ -1329,9 +1329,9 @@ ECRESULT ECSearchFolders::LoadSearchCriteria2(const std::string &xmldata,
 	 * We do not need the error here: lppSearchCriteria will not be
 	 * touched, and we need to free the soap structs.
 	 */
-	soap_destroy(&xmlsoap);
-	soap_end(&xmlsoap);
-	soap_done(&xmlsoap);
+	soap_destroy(xmlsoap.get());
+	soap_end(xmlsoap.get());
+	soap_done(xmlsoap.get());
 	return er;
 }
 
@@ -1361,21 +1361,21 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId,
 ECRESULT ECSearchFolders::SaveSearchCriteriaRow(ECDatabase *lpDatabase,
     unsigned int ulFolderId, const struct searchCriteria *lpSearchCriteria)
 {
-	struct soap				xmlsoap;
+	auto xmlsoap = std::make_unique<soap>();
 	struct searchCriteria	sSearchCriteria;
 	std::ostringstream		xml;
 
 	// We use the soap serializer / deserializer to store the data
-	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
+	soap_set_mode(xmlsoap.get(), SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	sSearchCriteria.lpFolders = lpSearchCriteria->lpFolders;
 	sSearchCriteria.lpRestrict = lpSearchCriteria->lpRestrict;
 	sSearchCriteria.ulFlags = lpSearchCriteria->ulFlags;
-	xmlsoap.os = &xml;
-	soap_serialize_searchCriteria(&xmlsoap, &sSearchCriteria);
-	if (soap_begin_send(&xmlsoap) != 0 ||
-	    soap_put_searchCriteria(&xmlsoap, &sSearchCriteria, "SearchCriteria", nullptr) != 0)
+	xmlsoap->os = &xml;
+	soap_serialize_searchCriteria(xmlsoap.get(), &sSearchCriteria);
+	if (soap_begin_send(xmlsoap.get()) != 0 ||
+	    soap_put_searchCriteria(xmlsoap.get(), &sSearchCriteria, "SearchCriteria", nullptr) != 0)
 		return KCERR_NOT_ENOUGH_MEMORY;
-	if (soap_end_send(&xmlsoap) != 0)
+	if (soap_end_send(xmlsoap.get()) != 0)
 		return KCERR_NETWORK_ERROR;
 
 	// Make sure we're linking with the correct SOAP (c++ version)

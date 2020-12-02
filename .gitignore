@@ -10,6 +10,7 @@ Makefile.in
 *.lo
 *.mo
 *.o
+*.su
 .dirstamp
 stamp-h1
 stamp-h2

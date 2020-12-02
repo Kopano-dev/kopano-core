@@ -669,7 +669,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 	auto uid = ~static_cast<uid_t>(0);
 	pid_t pid = 0;
 #ifdef HAVE_GETPWNAM_R
-	char strbuf[1024];
+	static constexpr size_t STRBUFSIZE = 1024;
+	auto strbuf = std::make_unique<char[]>(STRBUFSIZE);
 #endif
 	auto er = kc_peer_cred(socket, &uid, &pid);
 	if (er != erSuccess)
@@ -681,7 +682,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 	// Lookup user name
 	pw = NULL;
 #ifdef HAVE_GETPWNAM_R
-	getpwnam_r(lpszName, &pwbuf, strbuf, sizeof(strbuf), &pw);
+	getpwnam_r(lpszName, &pwbuf, strbuf.get(), STRBUFSIZE, &pw);
 #else
 	// OpenBSD does not have getpwnam_r() .. FIXME: threading issue!
 	pw = getpwnam(lpszName);
@@ -699,9 +700,9 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 		auto admuid = strtoul(p, &end, 10);
 #ifdef HAVE_GETPWNAM_R
 		if (p != end && end != nullptr && *end != '\0')
-			getpwuid_r(admuid, &pwbuf, strbuf, sizeof(strbuf), &pw);
+			getpwuid_r(admuid, &pwbuf, strbuf.get(), STRBUFSIZE, &pw);
 		else
-			getpwnam_r(p, &pwbuf, strbuf, sizeof(strbuf), &pw);
+			getpwnam_r(p, &pwbuf, strbuf.get(), STRBUFSIZE, &pw);
 #else
 		pw = p != end && end != nullptr && *end != '\0' ? getpwuid(admuid) : getpwnam(p);
 #endif
@@ -1142,7 +1143,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
 {
 	ECRESULT er = KCERR_INVALID_PARAMETER;
 	struct xsd__base64Binary *lpOutput = NULL;
-	char buffer[NTLMBUFFER];
+	auto buffer = std::make_unique<char[]>(NTLMBUFFER);
 	std::string strEncoded, strDecoded, strAnswer;
 	ssize_t bytes = 0;
 	char separator = '\\';      // get config version
@@ -1208,7 +1209,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap *soap,
 		write(m_stdin, "\n", 1);
 	}
 
-	memset(buffer, 0, NTLMBUFFER);
+	memset(buffer.get(), 0, NTLMBUFFER);
 	pollfd[0].fd = m_stdout;
 	pollfd[1].fd = m_stderr;
 	pollfd[0].events = pollfd[1].events = POLLIN;
@@ -1230,19 +1231,19 @@ retry:
 	// stderr is optional, and always written first
 	if (pollfd[1].revents & POLLIN) {
 		// log stderr of ntlm_auth to logfile (loop?)
-		bytes = read(m_stderr, buffer, NTLMBUFFER-1);
+		bytes = read(m_stderr, buffer.get(), NTLMBUFFER - 1);
 		if (bytes < 0)
 			return er;
 		buffer[bytes] = '\0';
 		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
 		// login error is returned to the client, which was expected anyway.
-		ec_log_notice("Received error from ntlm_auth:\n%s", buffer);
+		ec_log_notice("Received error from ntlm_auth:\n%s", buffer.get());
 		return er;
 	}
 
 	// stdout is mandatory, so always read from this pipe
-	memset(buffer, 0, NTLMBUFFER);
-	bytes = read(m_stdout, buffer, NTLMBUFFER-1);
+	memset(buffer.get(), 0, NTLMBUFFER);
+	bytes = read(m_stdout, buffer.get(), NTLMBUFFER - 1);
 	if (bytes < 0) {
 		ec_log_err("Unable to read data from ntlm_auth: %s", strerror(errno));
 		return er;
@@ -1267,7 +1268,7 @@ retry:
 		 * Extract response text (if any) following the reply code
 		 * (and space). Else left empty.
 		 */
-		strAnswer.assign(buffer + 3, bytes - 3);
+		strAnswer.assign(&buffer[3], bytes - 3);
 
 	if (buffer[0] == 'B' && buffer[1] == 'H') {
 		/*
@@ -1275,7 +1276,7 @@ retry:
 		 * (unlikely), or ntlm_auth found some reason not to complete,
 		 * like /var/lib/samba/winbindd_privileged being inaccessible.
 		 */
-		ec_log_err("ntlm_auth returned generic error \"%.*s\"", static_cast<int>(bytes), buffer);
+		ec_log_err("ntlm_auth returned generic error \"%.*s\"", static_cast<int>(bytes), buffer.get());
 		return er;
 	} else if (buffer[0] == 'T' && buffer[1] == 'T') {
 		// Try This
@@ -1333,7 +1334,7 @@ retry:
 		er = KCERR_LOGON_FAILED;
 	} else {
 		// unknown response?
-		ec_log_err("Unknown response from ntlm_auth: %.*s", static_cast<int>(bytes), buffer);
+		ec_log_err("Unknown response from ntlm_auth: %.*s", static_cast<int>(bytes), buffer.get());
 		return KCERR_CALL_FAILED;
 	}
 

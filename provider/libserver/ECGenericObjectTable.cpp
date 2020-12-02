@@ -1073,14 +1073,15 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
     return er;
 }
 
-ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__base64Binary sBookmark, struct xsd__base64Binary *lpsCollapseState)
+ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *msoap,
+    struct xsd__base64Binary sBookmark, struct xsd__base64Binary *lpsCollapseState)
 {
     struct collapseState sCollapseState;
     int n = 0;
     std::ostringstream os;
     sObjectTableKey sKey;
     struct rowSet *lpsRowSet = NULL;
-    struct soap xmlsoap;	// static, so c++ inits struct, no need for soap init
+	auto xmlsoap = std::make_unique<soap>();
 	ulock_rec biglock(m_hLock);
 
 	auto er = Populate();
@@ -1089,13 +1090,13 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
 
     // Generate a binary collapsestate which is simply an XML stream of all categories with their collapse state
     sCollapseState.sCategoryStates.__size = m_mapCategories.size();
-	sCollapseState.sCategoryStates.__ptr  = soap_new_categoryState(soap, sCollapseState.sCategoryStates.__size);
+	sCollapseState.sCategoryStates.__ptr  = soap_new_categoryState(msoap, sCollapseState.sCategoryStates.__size);
 
 	for (const auto &p : m_mapCategories) {
 		sCollapseState.sCategoryStates.__ptr[n].fExpanded = p.second->m_fExpanded;
-		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = soap_new_propVal(soap, p.second->m_cProps);
+		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = soap_new_propVal(msoap, p.second->m_cProps);
 		for (unsigned int i = 0; i < p.second->m_cProps; ++i) {
-			er = CopyPropVal(&p.second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], soap);
+			er = CopyPropVal(&p.second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], msoap);
             if (er != erSuccess)
                 goto exit;
         }
@@ -1117,7 +1118,9 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
             // in the current sort.
             ECObjectTableList list;
 			list.emplace_back(sKey);
-            er = m_lpfnQueryRowData(this, &xmlsoap, lpSession, &list, lpsPropTagArray, m_lpObjectData, &lpsRowSet, false, true);
+			er = m_lpfnQueryRowData(this, xmlsoap.get(), lpSession,
+			     &list, lpsPropTagArray, m_lpObjectData, &lpsRowSet,
+			     false, true);
             if(er != erSuccess)
                 goto exit;
             // Copy row 1 from rowset into our bookmark props.
@@ -1126,20 +1129,20 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
         }
     }
 
-	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-    xmlsoap.os = &os;
-    soap_serialize_collapseState(&xmlsoap, &sCollapseState);
-    soap_begin_send(&xmlsoap);
-    soap_put_collapseState(&xmlsoap, &sCollapseState, "CollapseState", NULL);
-	if (soap_end_send(&xmlsoap) != 0)
+	soap_set_mode(xmlsoap.get(), SOAP_XML_TREE | SOAP_C_UTFSTRING);
+	xmlsoap->os = &os;
+	soap_serialize_collapseState(xmlsoap.get(), &sCollapseState);
+	soap_begin_send(xmlsoap.get());
+	soap_put_collapseState(xmlsoap.get(), &sCollapseState, "CollapseState", nullptr);
+	if (soap_end_send(xmlsoap.get()) != 0)
 		return KCERR_NETWORK_ERROR;
     // os.str() now contains serialized objects, copy into return structure
     lpsCollapseState->__size = os.str().size();
-	lpsCollapseState->__ptr  = soap_new_unsignedByte(soap, os.str().size());
+	lpsCollapseState->__ptr  = soap_new_unsignedByte(msoap, os.str().size());
     memcpy(lpsCollapseState->__ptr, os.str().c_str(), os.str().size());
 exit:
-	soap_destroy(&xmlsoap);
-	soap_end(&xmlsoap);
+	soap_destroy(xmlsoap.get());
+	soap_end(xmlsoap.get());
 	// static struct, so c++ destructor frees memory
 	biglock.unlock();
     return er;
@@ -1147,7 +1150,7 @@ exit:
 
 ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollapseState, unsigned int *lpulBookmark)
 {
-    struct soap xmlsoap;
+	auto xmlsoap = std::make_unique<soap>();
 	struct collapseState cst;
     std::istringstream is(std::string((const char *)sCollapseState.__ptr, sCollapseState.__size));
 	sObjectTableKey sKey;
@@ -1159,17 +1162,17 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
         goto exit;
 
     // The collapse state is the serialized collapse state as returned by GetCollapseState(), which we need to parse here
-	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-    xmlsoap.is = &is;
-	soap_default_collapseState(&xmlsoap, &cst);
-    if (soap_begin_recv(&xmlsoap) != 0) {
+	soap_set_mode(xmlsoap.get(), SOAP_XML_TREE | SOAP_C_UTFSTRING);
+	xmlsoap->is = &is;
+	soap_default_collapseState(xmlsoap.get(), &cst);
+	if (soap_begin_recv(xmlsoap.get()) != 0) {
 		er = KCERR_NETWORK_ERROR;
 		goto exit;
     }
-	soap_get_collapseState(&xmlsoap, &cst, "CollapseState", NULL);
-    if(xmlsoap.error) {
+	soap_get_collapseState(xmlsoap.get(), &cst, "CollapseState", nullptr);
+	if (xmlsoap->error != 0) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_crit("ECGenericObjectTable::SetCollapseState(): xmlsoap error %d", xmlsoap.error);
+		ec_log_crit("ECGenericObjectTable::SetCollapseState(): xmlsoap error %d", xmlsoap->error);
 		goto exit;
     }
 
@@ -1223,11 +1226,11 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 	 * ExpandRow and CollapseRow. You just need to reload the table
 	 * yourself.
 	 */
-	if (soap_end_recv(&xmlsoap) != 0)
+	if (soap_end_recv(xmlsoap.get()) != 0)
 		er = KCERR_NETWORK_ERROR;
 exit:
-	soap_destroy(&xmlsoap);
-	soap_end(&xmlsoap);
+	soap_destroy(xmlsoap.get());
+	soap_end(xmlsoap.get());
 	giblock.unlock();
 	return er;
 }

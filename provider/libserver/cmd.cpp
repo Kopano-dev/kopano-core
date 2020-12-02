@@ -433,14 +433,15 @@ ECRESULT ECFifoSerializer::Flush()
 {
 	ECRESULT er;
 	size_t cbRead = 0;
-	char buf[16384];
+	static constexpr size_t BUFSIZE = 16384;
+	auto buf = std::make_unique<char[]>(BUFSIZE);
 
 	while (true) {
-		er = m_lpBuffer->Read(buf, sizeof(buf), STR_DEF_TIMEOUT, &cbRead);
+		er = m_lpBuffer->Read(buf.get(), BUFSIZE, STR_DEF_TIMEOUT, &cbRead);
 		if (er != erSuccess)
 			return er;
 		m_ulRead += cbRead;
-		if (cbRead < sizeof(buf))
+		if (cbRead < BUFSIZE)
 			break;
 	}
 	return er;
