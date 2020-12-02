@@ -5,6 +5,9 @@
 #pragma once
 #include <kopano/zcdefs.h>
 #include <string>
+#if __cplusplus >= 201700L
+#	include <string_view>
+#endif
 #include <vector>
 #include <kopano/charset/convert.h>
 
@@ -15,10 +18,10 @@ public:
 	ConsoleTable(size_t rows, size_t columns);
 	void Clear();
 	void Resize(size_t rows, size_t columns);
-	bool SetHeader(size_t col, const std::string& entry);
+	bool SetHeader(size_t col, const string_view &entry);
 	void set_lead(const char *lead) { m_lead = lead; }
-	bool AddColumn(size_t col, const std::string& entry);
-	bool SetColumn(size_t row, size_t col, const std::string& entry);
+	bool AddColumn(size_t col, const string_view &entry);
+	bool SetColumn(size_t row, size_t col, const string_view &entry);
 	void PrintTable();
 	void DumpTable();
 

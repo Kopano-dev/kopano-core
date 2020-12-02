@@ -48,18 +48,19 @@ void ECArchiverLogger::logv(unsigned int loglevel, const char *format, va_list &
 
 std::string ECArchiverLogger::CreateFormat(const char *format)
 {
-	char buffer[4096];
+	static constexpr size_t BUFSIZE = 4096;
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
 	std::string strPrefix;
 
 	if (m_strUser.empty())
 		return strPrefix + format;
 
 	if (m_strFolder.empty()) {
-		auto len = snprintf(buffer, sizeof(buffer), "For \"" TSTRING_PRINTF "\": ", m_strUser.c_str());
-		strPrefix = EscapeFormatString(std::string(buffer, len));
+		auto len = snprintf(buffer.get(), BUFSIZE, "For \"" TSTRING_PRINTF "\": ", m_strUser.c_str());
+		strPrefix = EscapeFormatString(std::string(buffer.get(), len));
 	} else {
-		auto len = snprintf(buffer, sizeof(buffer), "For \"" TSTRING_PRINTF "\" in folder \"" TSTRING_PRINTF "\": ", m_strUser.c_str(), m_strFolder.c_str());
-		strPrefix = EscapeFormatString(std::string(buffer, len));
+		auto len = snprintf(buffer.get(), BUFSIZE, "For \"" TSTRING_PRINTF "\" in folder \"" TSTRING_PRINTF "\": ", m_strUser.c_str(), m_strFolder.c_str());
+		strPrefix = EscapeFormatString(std::string(buffer.get(), len));
 	}
 
 	return strPrefix + format;

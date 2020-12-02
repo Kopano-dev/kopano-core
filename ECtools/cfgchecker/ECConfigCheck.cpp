@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <sys/stat.h>
@@ -44,7 +45,8 @@ static void clearCharacters(std::string &s, const std::string &whitespaces)
 
 void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 {
-	char cBuffer[1024];
+	static constexpr size_t BUFSIZE = 1024;
+	auto cBuffer = std::make_unique<char[]>(BUFSIZE);
 
 	if (!lpszConfigFile) {
 		m_bDirty = true;
@@ -57,11 +59,11 @@ void ECConfigCheck::readConfigFile(const char *lpszConfigFile)
 	}
 
 	while (!feof(fp)) {
-		memset(&cBuffer, 0, sizeof(cBuffer));
-		if (!fgets(cBuffer, sizeof(cBuffer), fp))
+		memset(cBuffer.get(), 0, BUFSIZE);
+		if (!fgets(cBuffer.get(), BUFSIZE, fp))
 			continue;
 
-		std::string strLine = cBuffer, strName, strValue;
+		std::string strLine = cBuffer.get(), strName, strValue;
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
 			continue;

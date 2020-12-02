@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#if __cplusplus >= 201700L
+#	include <string_view>
+#endif
 #include <vector>
 
 namespace KC {
@@ -69,7 +72,7 @@ void ConsoleTable::Resize(size_t rows, size_t columns)
  * @param[in] entry name of the header
  * @retval		true on success, false if offsets are out of range
  */
-bool ConsoleTable::SetHeader(size_t col, const std::string &entry)
+bool ConsoleTable::SetHeader(size_t col, const string_view &entry)
 {
 	size_t len;
 
@@ -91,7 +94,7 @@ bool ConsoleTable::SetHeader(size_t col, const std::string &entry)
  * @param[in]	entry	utf-8 string to set in the table in current terminal charset
  * @retval		true on success, false if offsets are out of range
  */
-bool ConsoleTable::AddColumn(size_t col, const std::string &entry)
+bool ConsoleTable::AddColumn(size_t col, const string_view &entry)
 {
 	if (col >= m_iColumns)
 		return false;
@@ -111,7 +114,7 @@ bool ConsoleTable::AddColumn(size_t col, const std::string &entry)
  * @param[in]	entry	utf-8 string to set in the table in current terminal charset
  * @retval		true on success, false if offsets are out of range
  */
-bool ConsoleTable::SetColumn(size_t row, size_t col, const std::string &entry)
+bool ConsoleTable::SetColumn(size_t row, size_t col, const string_view &entry)
 {
 	if (col >= m_iColumns || row >= m_iRows)
 		return false;
