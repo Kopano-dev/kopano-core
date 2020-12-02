@@ -1141,8 +1141,6 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
-	char szHeader[PATH_MAX]{}, szTemp[PATH_MAX]{};
-	wchar_t szwHeader[PATH_MAX]{};
 	int fd = -1;
 	std::wstring strFromName, strFromType, strFromEmail, strBody;
 	std::vector<std::string> cmdline = {strBaseCommand};
@@ -1188,6 +1186,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		kc_pwarn("SendOutOfOffice: spv_postload", hr);
 
 	// See if we're looping
+	char szTemp[256]{};
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
 		if (dagent_avoid_autoreply(tokenize(lpMessageProps[0].Value.lpszA, "\n"))) {
 			ec_log_debug("Avoiding OOF reply to an automated message.");
@@ -1228,47 +1227,40 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 
 	// \n is on the beginning of the next header line because of snprintf and the requirement of the \n
 	// PATH_MAX should never be reached though.
-	auto quoted = ToQuotedBase64Header(lpRecip->wstrFullname);
-	snprintf(szHeader, PATH_MAX, "From: %s <%s>", quoted.c_str(), lpRecip->strSMTP.c_str());
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	auto szHeader = "From: " + ToQuotedBase64Header(lpRecip->wstrFullname) + " <" + lpRecip->strSMTP + ">";
+	hr = WriteOrLogError(fd, szHeader.c_str(), szHeader.size());
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(1)", hr);
-	snprintf(szHeader, PATH_MAX, "\nTo: %ls", strFromEmail.c_str());
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	szHeader = "\nTo: " + convert_to<std::string>(strFromEmail);
+	hr = WriteOrLogError(fd, szHeader.c_str(), szHeader.size());
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(2)", hr);
 
 	// add anti-loop header for Kopano
-	snprintf(szHeader, PATH_MAX, "\nX-Kopano-Vacation: autorespond");
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	const char fixstr_1[] = "\nX-Kopano-Vacation: autorespond";
+	hr = WriteOrLogError(fd, fixstr_1, strlen(fixstr_1));
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(3)", hr);
 	/*
 	 * Add anti-loop header for Exchange, see
 	 * http://msdn.microsoft.com/en-us/library/ee219609(v=exchg.80).aspx
-	 */
-	snprintf(szHeader, PATH_MAX, "\nX-Auto-Response-Suppress: All");
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess)
-		return kc_perrorf("WriteOrLogError failed(4)", hr);
-	/*
 	 * Add anti-loop header for vacation(1) compatible implementations,
 	 * see book "Sendmail" (ISBN 0596555342), section 10.9.
 	 * RFC 3834 §3.1.8.
 	 */
-	snprintf(szHeader, PATH_MAX, "\nPrecedence: bulk");
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	const char fixstr_2[] =
+		"\nX-Auto-Response-Suppress: All"
+		"\nPrecedence: bulk";
+	hr = WriteOrLogError(fd, fixstr_2, strlen(fixstr_2));
 	if (hr != hrSuccess)
-		return kc_perrorf("WriteOrLogError failed(5)", hr);
+		return kc_perrorf("WriteOrLogError failed(4)", hr);
 
 	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W)
 		// convert as one string because of [] characters
-		swprintf(szwHeader, PATH_MAX, L"%ls [%ls]", szSubject, lpMessageProps[3].Value.lpszW);
+		szHeader = "\nSubject: " + ToQuotedBase64Header(szSubject + L" ["s + lpMessageProps[3].Value.lpszW + L"]");
 	else
-		swprintf(szwHeader, PATH_MAX, L"%ls", szSubject);
-	quoted = ToQuotedBase64Header(szwHeader);
-	snprintf(szHeader, PATH_MAX, "\nSubject: %s", quoted.c_str());
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+		szHeader = "\nSubject: " + ToQuotedBase64Header(szSubject);
+	hr = WriteOrLogError(fd, szHeader.c_str(), szHeader.size());
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(4)", hr);
 
@@ -1276,35 +1268,24 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	time_t now = time(NULL);
 	tm local;
 	localtime_r(&now, &local);
-	strftime_l(szHeader, PATH_MAX, "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
+	char timebuf[80];
+	strftime_l(timebuf, sizeof(timebuf), "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
 	freelocale(timelocale);
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+	if (WriteOrLogError(fd, timebuf, strlen(timebuf)) != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(5)", hr);
 
-	snprintf(szHeader, PATH_MAX, "\nContent-Type: text/plain; charset=utf-8; format=flowed");
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
+	const char fixstr_3[] =
+		"\nContent-Type: text/plain; charset=utf-8; format=flowed"
+		"\nContent-Transfer-Encoding: base64"
+		"\nMIME-Version: 1.0\n\n";
+	hr = WriteOrLogError(fd, fixstr_3, strlen(fixstr_3));
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(6)", hr);
 
-	snprintf(szHeader, PATH_MAX, "\nContent-Transfer-Encoding: base64");
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess)
-		return kc_perrorf("WriteOrLogError failed(7)", hr);
-
-	snprintf(szHeader, PATH_MAX, "\nMIME-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess)
-		return kc_perrorf("WriteOrLogError failed(8)", hr);
-
-	snprintf(szHeader, PATH_MAX, "\n\n"); // last header line has double \n
-	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess)
-		return kc_perrorf("WriteOrLogError failed(9)", hr);
-
 	// write body
 	auto unquoted = convert_to<utf8string>(strBody).m_str;
-	quoted = base64_encode(unquoted.c_str(), unquoted.length());
-	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
+	szHeader = base64_encode(unquoted.c_str(), unquoted.length());
+	hr = WriteOrLogError(fd, szHeader.c_str(), szHeader.length(), 76);
 	if (hr != hrSuccess)
 		return kc_perrorf("WriteOrLogError failed(10)", hr);
 	close(fd);
@@ -2531,7 +2512,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 	if (dummy != nullptr) {
 		server_name = dummy;
 	} else {
-		char buffer[4096]{};
+		char buffer[256]{};
 		if (gethostname(buffer, sizeof buffer) == -1)
 			strcpy(buffer, "???");
 		server_name = buffer;
@@ -2539,7 +2520,7 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 
 	time_t t = time(nullptr);
 	struct tm *tm = localtime(&t);
-	char time_str[4096];
+	char time_str[64];
 	strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z (%Z)", tm);
 	fprintf(tmp, "Received: from %s (%s)\r\n", helo.c_str(), args->lpChannel->peer_addr());
 	fprintf(tmp, "\tby %s (kopano-dagent) with LMTP;\r\n", server_name.c_str());
@@ -2762,11 +2743,12 @@ static void *HandlerLMTP(void *lpArg)
 			for (const auto &company : mapRCPT)
 				for (const auto &server : company.second)
 					for (const auto &recip : server.second) {
-						char wbuffer[4096];
+						static constexpr size_t BUFSIZE = 4096;
+						auto wbuffer = std::make_unique<char[]>(BUFSIZE);
 						for (const auto &i : recip->vwstrRecipients) {
 							static_assert(std::is_same<decltype(recip->wstrDeliveryStatus.c_str()), decltype(i.c_str())>::value, "need compatible types");
-							snprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-							mapRecipientResults.emplace(i, wbuffer);
+							snprintf(wbuffer.get(), BUFSIZE, recip->wstrDeliveryStatus.c_str(), i.c_str());
+							mapRecipientResults.emplace(i, wbuffer.get());
 							if (save_all || save_error)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
