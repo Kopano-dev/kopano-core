@@ -7,6 +7,7 @@
 // Parts rewritten by Zarafa
 #include <kopano/platform.h>
 #include <map>
+#include <memory>
 #include <set>
 #include <kopano/codepage.h>
 #include <kopano/CommonUtil.h>
@@ -128,7 +129,7 @@ static void InitRTFState(RTFSTATE *sState)
 }
 
 static std::wstring RTFFlushStateOutput(convert_context &convertContext,
-    RTFSTATE *sState, ULONG ulState)
+    std::unique_ptr<RTFSTATE[]> &sState, ULONG ulState)
 {
 	std::wstring wstrUnicode;
 
@@ -159,7 +160,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 	const char *szHTMLCharset;
 	std::wstring strOutput;
 	int ulState = 0;
-	RTFSTATE sState[RTF_MAXSTATE];
+	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
 	fontmap_t mapFontToCharset;
 	convert_context convertContext;
 
@@ -378,7 +379,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	int ulState = 0;
 	bool bPar = false;
 	int nLineChar=0;
-	RTFSTATE sState[RTF_MAXSTATE];
+	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
 	fontmap_t mapFontToCharset;
 	convert_context convertContext;
 
@@ -653,7 +654,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	const char *szHTMLCharset;
 	std::wstring strOutput;
 	int ulState = 0;
-	RTFSTATE sState[RTF_MAXSTATE];
+	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
 	convert_context convertContext;
 	fontmap_t mapFontToCharset;
 	bool bPar = false;

@@ -424,7 +424,7 @@ static const char msgtrunc[] = "(message truncated due to size)";
 
 void ECLogger_File::logv(unsigned int level, const char *format, va_list &va)
 {
-	char msgbuffer[EC_LOG_BUFSIZE];
+	thread_local char msgbuffer[EC_LOG_BUFSIZE];
 	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
 	static_assert(EC_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic EC_LOG_BUFSIZE");
 	if (len >= sizeof(msgbuffer))
@@ -488,7 +488,7 @@ void ECLogger_Syslog::logv(unsigned int loglevel, const char *format, va_list &v
 #ifdef HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
-	char msgbuffer[EC_LOG_BUFSIZE];
+	thread_local char msgbuffer[EC_LOG_BUFSIZE];
 	if (_vsnprintf_l(msgbuffer, sizeof(msgbuffer), format, datalocale, va) >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
@@ -554,7 +554,7 @@ void ECLogger_Tee::logf(unsigned int level, const char *format, ...)
 
 void ECLogger_Tee::logv(unsigned int level, const char *format, va_list &va)
 {
-	char msgbuffer[EC_LOG_BUFSIZE];
+	thread_local char msgbuffer[EC_LOG_BUFSIZE];
 	if (_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va) >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	for (auto log : m_loggers)
@@ -603,7 +603,7 @@ void ECLogger_Pipe::Reset() {
 
 void ECLogger_Pipe::log(unsigned int loglevel, const char *message)
 {
-	char msgbuffer[EC_LOG_BUFSIZE];
+	thread_local char msgbuffer[EC_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
 	msgbuffer[1] = '\0';
 	size_t off = 1, rem = sizeof(msgbuffer) - 1;
@@ -631,7 +631,7 @@ void ECLogger_Pipe::logf(unsigned int level, const char *format, ...)
 
 void ECLogger_Pipe::logv(unsigned int loglevel, const char *format, va_list &va)
 {
-	char msgbuffer[EC_LOG_BUFSIZE];
+	thread_local char msgbuffer[EC_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
 	msgbuffer[1] = '\0';
 	size_t off = 1, rem = sizeof(msgbuffer) - 1;
@@ -698,7 +698,7 @@ namespace PrivatePipe {
 	    ECConfig *lpConfig)
 	{
 		ssize_t ret;
-		char buffer[EC_LOG_BUFSIZE]{};
+		auto buffer = std::make_unique<char[]>(EC_LOG_BUFSIZE);
 		std::string complete;
 		const char *p = NULL;
 		int s;
@@ -743,11 +743,11 @@ namespace PrivatePipe {
 			complete.clear();
 			do {
 				// if we don't read anything from the fd, it was the end
-				ret = read(readfd, buffer, sizeof buffer);
+				ret = read(readfd, buffer.get(), EC_LOG_BUFSIZE);
 				if (ret <= 0)
 					break;
-				complete.append(buffer,ret);
-			} while (ret == sizeof buffer);
+				complete.append(buffer.get(), ret);
+			} while (ret == EC_LOG_BUFSIZE);
 			if (ret <= 0)
 				break;
 

@@ -343,18 +343,19 @@ HRESULT ECChannel::HrGets(char *szBuffer, size_t ulBufSize, size_t *lpulRead)
 HRESULT ECChannel::HrReadLine(std::string &strBuffer, size_t ulMaxBuffer)
 {
 	size_t ulRead = 0;
-	char buffer[65536];
+	static constexpr size_t BUFSIZE = 65536;
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
 
 	// clear the buffer before appending
 	strBuffer.clear();
 	do {
-		auto hr = HrGets(buffer, 65536, &ulRead);
+		auto hr = HrGets(buffer.get(), BUFSIZE, &ulRead);
 		if (hr != hrSuccess)
 			return hr;
-		strBuffer.append(buffer, ulRead);
+		strBuffer.append(buffer.get(), ulRead);
 		if (strBuffer.size() > ulMaxBuffer)
 			return MAPI_E_TOO_BIG;
-	} while (ulRead == 65535);	// zero-terminator is not counted
+	} while (ulRead == BUFSIZE - 1); // NUL terminator is not counted
 	return hrSuccess;
 }
 
@@ -410,16 +411,17 @@ HRESULT ECChannel::HrWriteLine(const string_view &strBuffer)
 HRESULT ECChannel::HrReadAndDiscardBytes(size_t ulByteCount)
 {
 	size_t ulTotRead = 0;
-	char szBuffer[4096];
+	static constexpr size_t BUFSIZE = 4096;
+	auto szBuffer = std::make_unique<char[]>(BUFSIZE);
 
 	while (ulTotRead < ulByteCount) {
 		size_t ulBytesLeft = ulByteCount - ulTotRead;
-		auto ulRead = std::min(ulBytesLeft, sizeof(szBuffer));
+		auto ulRead = std::min(ulBytesLeft, BUFSIZE);
 
 		if (lpSSL)
-			ulRead = SSL_read(lpSSL, szBuffer, ulRead);
+			ulRead = SSL_read(lpSSL, szBuffer.get(), ulRead);
 		else
-			ulRead = recv(fd, szBuffer, ulRead, 0);
+			ulRead = recv(fd, szBuffer.get(), ulRead, 0);
 
 		if (ulRead == static_cast<size_t>(-1)) {
 			if (errno == EINTR)

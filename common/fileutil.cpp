@@ -44,12 +44,12 @@ namespace KC {
  */
 HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 {
-	char bufferin[BLOCKSIZE/2], bufferout[BLOCKSIZE+1];
-	size_t sizebufferout;
-
 	if(fin == NULL || fout == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
+	auto bufferin = std::make_unique<char[]>(BLOCKSIZE/2);
+	auto bufferout = std::make_unique<char[]>(BLOCKSIZE+1);
+	size_t sizebufferout;
 	std::unique_ptr<FILE, file_deleter> fTmp(tmpfile());
 	if(fTmp == NULL) {
 		ec_log_err("Unable to create tmp file: %s", strerror(errno));
@@ -57,14 +57,13 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 	}
 
 	while (!feof(fin)) {
-		size_t readsize = fread(bufferin, 1, BLOCKSIZE / 2, fin);
+		size_t readsize = fread(bufferin.get(), 1, BLOCKSIZE / 2, fin);
 		if (ferror(fin)) {
 			ec_log_err("%s/fread: %s", __func__, strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
-
-		BufferLFtoCRLF(readsize, bufferin, bufferout, &sizebufferout);
-		if (fwrite(bufferout, 1, sizebufferout, fTmp.get()) != sizebufferout) {
+		BufferLFtoCRLF(readsize, bufferin.get(), bufferout.get(), &sizebufferout);
+		if (fwrite(bufferout.get(), 1, sizebufferout, fTmp.get()) != sizebufferout) {
 			ec_log_err("%s/fwrite: %s", __func__, strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
@@ -85,15 +84,15 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer)
 {
 	lpstrBuffer->clear();
-	char buf[BLOCKSIZE];
+	auto buf = std::make_unique<char[]>(BLOCKSIZE);
 	while (!feof(f)) {
-		auto rd = fread(buf, 1, sizeof(buf), f);
+		auto rd = fread(buf.get(), 1, BLOCKSIZE, f);
 		if (ferror(f)) {
 			ec_log_err("MapFileToString/fread: %s", strerror(errno));
 			return MAPI_E_CORRUPT_DATA;
 		}
 		try {
-			lpstrBuffer->append(buf, rd);
+			lpstrBuffer->append(buf.get(), rd);
 		} catch (const std::bad_alloc &) {
 			ec_log_err("MapFileToString/malloc: %s", strerror(errno));
 			return MAPI_E_NOT_ENOUGH_MEMORY;

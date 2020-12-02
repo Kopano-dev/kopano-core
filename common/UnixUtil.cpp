@@ -401,12 +401,13 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 		return false;
 	}
 
-	char buffer[1024];
-	while (fgets(buffer, sizeof(buffer), fp)) {
-		size_t z = strlen(buffer);
+	static constexpr size_t BUFSIZE = 4096;
+	auto buffer = std::make_unique<char[]>(BUFSIZE);
+	while (fgets(buffer.get(), BUFSIZE, fp)) {
+		size_t z = strlen(buffer.get());
 		if (z > 0 && buffer[z-1] == '\n')
 			buffer[--z] = '\0';
-		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer);
+		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer.get());
 	}
 
 	fclose(fp);

@@ -398,7 +398,7 @@ bool ECConfigImpl::InitConfigFile(unsigned int ls_flags)
 bool ECConfigImpl::ReadConfigFile(const std::string &file,
     unsigned int ls_flags, unsigned int ulGroup)
 {
-	char cBuffer[MAXLINELEN]{};
+	auto cBuffer = std::make_unique<char[]>(MAXLINELEN);
 	std::string strFilename, strLine, strName, strValue;
 	size_t pos;
 
@@ -434,11 +434,11 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	}
 
 	while (!feof(fp.get())) {
-		memset(&cBuffer, 0, sizeof(cBuffer));
-		if (!fgets(cBuffer, sizeof(cBuffer), fp.get()))
+		memset(cBuffer.get(), 0, MAXLINELEN);
+		if (!fgets(cBuffer.get(), MAXLINELEN, fp.get()))
 			continue;
 
-		strLine = cBuffer;
+		strLine = cBuffer.get();
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
