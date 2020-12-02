@@ -203,19 +203,18 @@ static objectclass_t shell_to_class(ECConfig *cfg, const char *shell)
 
 objectsignature_t UnixUserPlugin::resolveUserName(const std::string &name)
 {
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	struct passwd pws;
-	findUser(name, &pws, buffer);
+	findUser(name, &pws, buffer.get());
 	objectid_t objectid{tostring(pws.pw_uid), shell_to_class(m_config, pws.pw_shell)};
 	return objectsignature_t(objectid, getDBSignature(objectid) + pws.pw_gecos + pws.pw_name);
 }
 
 objectsignature_t UnixUserPlugin::resolveGroupName(const std::string &name)
 {
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	struct group grp;
-  
-	findGroup(name, &grp, buffer);
+	findGroup(name, &grp, buffer.get());
 	return objectsignature_t(objectid_t(tostring(grp.gr_gid), DISTLIST_SECURITY), grp.gr_name);
 }
 
@@ -272,7 +271,7 @@ objectsignature_t UnixUserPlugin::authenticateUser(const std::string &username,
     const std::string &password, const objectid_t &companyname)
 {
 	struct passwd pws, *pw = NULL;
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	auto exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
@@ -281,7 +280,7 @@ objectsignature_t UnixUserPlugin::authenticateUser(const std::string &username,
 	cryptdata.reset(new struct crypt_data); // malloc because it is > 128K !
 	memset(cryptdata.get(), 0, sizeof(struct crypt_data));
 
-	int ret = getpwnam_r(username.c_str(), &pws, buffer, PWBUFSIZE, &pw);
+	auto ret = getpwnam_r(username.c_str(), &pws, buffer.get(), PWBUFSIZE, &pw);
 	if (ret != 0)
 		errnoCheck(username, ret);
 	if (pw == NULL)
@@ -536,7 +535,7 @@ signatures_t UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 
 objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 {
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	objectdetails_t ud;
 	struct passwd pws;
 	struct group grp;
@@ -549,12 +548,12 @@ objectdetails_t UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		findUserID(externid.id, &pws, buffer);
+		findUserID(externid.id, &pws, buffer.get());
 		ud = objectdetailsFromPwent(&pws);
 		break;
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
-		findGroupID(externid.id, &grp, buffer);
+		findGroupID(externid.id, &grp, buffer.get());
 		ud = objectdetailsFromGrent(&grp);
 		break;
 	default:
@@ -617,7 +616,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
     const objectid_t &childid)
 {
 	signatures_t objectlist;
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	struct passwd pws;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
@@ -628,13 +627,12 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 		return DBPlugin::getParentObjectsForObject(relation, childid);
 
 	LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
-
-	findUserID(childid.id, &pws, buffer);
+	findUserID(childid.id, &pws, buffer.get());
 	std::string username = pws.pw_name; // make sure we have a _copy_ of the string, not just another pointer
 
 	try {
 		struct group grs;
-		findGroupID(tostring(pws.pw_gid), &grs, buffer);
+		findGroupID(tostring(pws.pw_gid), &grs, buffer.get());
 		objectlist.emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
 	} catch (const std::exception &e) {
 		// Ignore error
@@ -678,7 +676,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
     const objectid_t &parentid)
 {
 	signatures_t objectlist;
-	char buffer[PWBUFSIZE];
+	auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 	struct group grp;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
@@ -692,8 +690,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		return DBPlugin::getSubObjectsForObject(relation, parentid);
 
 	LOG_PLUGIN_DEBUG("%s Relation: Group member", __FUNCTION__);
-
-	findGroupID(parentid.id, &grp, buffer);
+	findGroupID(parentid.id, &grp, buffer.get());
 	for (unsigned int i = 0; grp.gr_mem[i] != NULL; ++i)
 		try {
 			objectlist.emplace_back(resolveUserName(grp.gr_mem[i]));
@@ -763,11 +760,11 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 	// See if we get matches based on database details as well
 	try {
-		char buffer[PWBUFSIZE];
+		auto buffer = std::make_unique<char[]>(PWBUFSIZE);
 		static constexpr const char *search_props[] = {OP_EMAILADDRESS, nullptr};
 		for (const auto &sig : DBPlugin::searchObjects(match, search_props, nullptr, ulFlags)) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
-			int ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
+			auto ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer.get(), PWBUFSIZE, &pw);
 			if (ret != 0)
 				errnoCheck(sig.id.id, ret);
 			if (pw == NULL)	// object not found anymore
@@ -842,9 +839,9 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 	if (!strcmp(pw->pw_passwd, "x")) {
 		// shadow password entry
 		struct spwd spws, *spw = NULL;
-		char sbuffer[PWBUFSIZE];
+		auto sbuffer = std::make_unique<char[]>(PWBUFSIZE);
 
-		if (getspnam_r(pw->pw_name, &spws, sbuffer, PWBUFSIZE, &spw) != 0) {
+		if (getspnam_r(pw->pw_name, &spws, sbuffer.get(), PWBUFSIZE, &spw) != 0) {
 			ec_log_warn("getspnam_r: %s", strerror(errno));
 			/* set invalid password entry, cannot login without a password */
 			ud.SetPropString(OB_PROP_S_PASSWORD, "x");
