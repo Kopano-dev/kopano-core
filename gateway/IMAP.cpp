@@ -18,6 +18,7 @@
 #include <cstring>
 #include <sstream>
 #include <algorithm>
+#include <libHX/defs.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <mapi.h>
@@ -784,7 +785,7 @@ int IMAP::check_mboxname_with_resp(const std::wstring &s,
 HRESULT IMAP::HrCmdSelect(const std::string &strTag,
     const std::vector<std::string> &args, bool bReadOnly)
 {
-	char szResponse[IMAP_RESP_MAX + 1];
+	char szResponse[HXSIZEOF_Z32+36];
 	unsigned int ulUnseen = 0;
 	ULONG ulUIDValidity = 1;
 	const std::string &strFolder = args[0];
@@ -821,13 +822,13 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 	// $Forwarded = PR_LAST_VERB_EXECUTED: NOTEIVERB_FORWARD
 	HrResponse(RESP_UNTAGGED, "FLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)");
 	HrResponse(RESP_UNTAGGED, "OK [PERMANENTFLAGS (\\Seen \\Draft \\Deleted \\Flagged \\Answered $Forwarded)] Permanent flags");
-	snprintf(szResponse, IMAP_RESP_MAX, "OK [UIDNEXT %u] Predicted next UID", m_ulLastUid + 1);
+	snprintf(szResponse, sizeof(szResponse), "OK [UIDNEXT %u] Predicted next UID", m_ulLastUid + 1);
 	HrResponse(RESP_UNTAGGED, szResponse);
 	if(ulUnseen) {
-    	snprintf(szResponse, IMAP_RESP_MAX, "OK [UNSEEN %u] First unseen message", ulUnseen);
+		snprintf(szResponse, sizeof(szResponse), "OK [UNSEEN %u] First unseen message", ulUnseen);
 		HrResponse(RESP_UNTAGGED, szResponse);
 	}
-	snprintf(szResponse, IMAP_RESP_MAX, "OK [UIDVALIDITY %u] UIDVALIDITY value", ulUIDValidity);
+	snprintf(szResponse, sizeof(szResponse), "OK [UIDVALIDITY %u] UIDVALIDITY value", ulUIDValidity);
 	HrResponse(RESP_UNTAGGED, szResponse);
 	HrResponse(RESP_TAGGED_OK, strTag, bReadOnly ?
 		"[READ-ONLY] EXAMINE completed" : "[READ-WRITE] SELECT completed");
@@ -3313,7 +3314,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 {
 	HRESULT hr = hrSuccess;
 	std::string strItem, strParts, strMessage, strMessagePart, strFlags;
-	char szBuffer[IMAP_RESP_MAX + 1];
+	char szBuffer[HXSIZEOF_Z64+8];
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	sending_options sopt;
@@ -3328,7 +3329,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 	std::vector<std::string> vProps;
 
 	// Response always starts with "<id> FETCH ("
-	snprintf(szBuffer, IMAP_RESP_MAX, "%u FETCH (", ulMailnr + 1);
+	snprintf(szBuffer, sizeof(szBuffer), "%u FETCH (", ulMailnr + 1);
 	strResponse = szBuffer;
 
 	// rules to open the message:
@@ -3621,8 +3622,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 					strMessagePart.erase(0, ulCount);
 					strMessagePart.erase(ulPos);
 				}
-
-				snprintf(szBuffer, IMAP_RESP_MAX, "<%u>", ulCount);
+				snprintf(szBuffer, sizeof(szBuffer), "<%u>", ulCount);
 				vProps.back() += szBuffer;
 			}
 
@@ -3630,7 +3630,7 @@ HRESULT IMAP::HrPropertyFetchRow(SPropValue *lpProps, unsigned int cValues,
 				vProps.emplace_back("NIL");
 			} else {
 				// Output actual data
-				snprintf(szBuffer, IMAP_RESP_MAX, "{%u}\r\n", (ULONG)strMessagePart.size());
+				snprintf(szBuffer, sizeof(szBuffer), "{%zu}\r\n", strMessagePart.size());
 				vProps.emplace_back(szBuffer);
 				vProps.back() += strMessagePart;
 			}
