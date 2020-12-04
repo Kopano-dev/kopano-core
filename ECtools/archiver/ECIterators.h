@@ -8,26 +8,30 @@
 
 namespace KC {
 
-class KC_EXPORT ECHierarchyIteratorBase {
+class KC_EXPORT HierarchyIteratorBase {
 public:
-	KC_HIDDEN ECHierarchyIteratorBase() :
+	KC_HIDDEN HierarchyIteratorBase() :
 	    m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0)
 	{
 		// creates the "end" iterator
 	}
-	ECHierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
+	HierarchyIteratorBase(IMAPIContainer *, unsigned int flags = 0, unsigned int depth = 0);
 
-	KC_HIDDEN object_ptr<IMAPIContainer> &dereference() const
+	KC_HIDDEN object_ptr<IMAPIContainer> dereference() const
 	{
 		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
-		return const_cast<object_ptr<IMAPIContainer> &>(m_ptrCurrent);
+		return m_ptrCurrent;
 	}
 
 	void increment();
 
-	KC_HIDDEN bool equal(const ECHierarchyIteratorBase &rhs) const
+	bool operator==(const HierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent;
+	}
+	bool operator!=(const HierarchyIteratorBase &rhs) const
+	{
+		return !operator==(rhs);
 	}
 
 private:
@@ -38,24 +42,18 @@ private:
 	object_ptr<IMAPIContainer> m_ptrCurrent;
 };
 
-template<typename ContainerPtrType> class ECHierarchyIterator final :
+using ECHierarchyIteratorBase = HierarchyIteratorBase;
+
+template<typename ContainerPtrType> class HierarchyIterator final :
     public ECHierarchyIteratorBase
 {
 public:
-	ECHierarchyIterator() = default;
-	ECHierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
+	HierarchyIterator() = default;
+	HierarchyIterator(IMAPIContainer *c, unsigned int flags = 0, unsigned int depth = 0) :
 		ECHierarchyIteratorBase(c, flags, depth)
 	{}
 
-	bool operator==(const ECHierarchyIterator<ContainerPtrType> &r) const
-	{
-		return ECHierarchyIteratorBase::equal(r);
-	}
-	bool operator!=(const ECHierarchyIterator<ContainerPtrType> &r) const
-	{
-		return !operator==(r);
-	}
-	ECHierarchyIterator<ContainerPtrType> &operator++()
+	HierarchyIterator<ContainerPtrType> &operator++()
 	{
 		ECHierarchyIteratorBase::increment();
 		return *this;
@@ -70,7 +68,6 @@ private:
 	mutable ContainerPtrType	m_ptr;
 };
 
-typedef ECHierarchyIterator<object_ptr<IMAPIFolder>> ECFolderIterator;
-typedef ECHierarchyIterator<object_ptr<IABContainer>> ECABContainerIterator;
+template<typename T> using ECHierarchyIterator = HierarchyIterator<T>;
 
 } /* namespace */

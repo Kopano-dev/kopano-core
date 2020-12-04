@@ -7,7 +7,7 @@
 #include <string>
 
 namespace KC {
-class ECConfig;
+class Config;
 class ECCacheManager;
 struct ECSearchResultArray;
 }
@@ -17,5 +17,5 @@ struct ECSearchResultArray;
 #include "soapH.h"
 
 namespace KC {
-extern ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECCacheManager *lpCacheManager, GUID *guidServer, GUID *guidStore, ECListInt &lstFolders, struct restrictTable *lpRestrict, struct restrictTable **lppNewRestrict, std::list<unsigned int> &lstIndexerResults, std::string &suggestion);
+extern ECRESULT GetIndexerResults(ECDatabase *lpDatabase, Config *, ECCacheManager *lpCacheManager, GUID *guidServer, GUID *guidStore, ECListInt &lstFolders, struct restrictTable *lpRestrict, struct restrictTable **lppNewRestrict, std::list<unsigned int> &lstIndexerResults, std::string &suggestion);
 }

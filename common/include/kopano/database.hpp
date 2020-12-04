@@ -36,7 +36,7 @@ struct sSQLDatabase_t {
 	const char *lpSQL;
 };
 
-class ECConfig;
+class Config;
 class KDatabase;
 
 class KC_EXPORT DB_RESULT KC_FINAL {
@@ -99,9 +99,9 @@ class KC_EXPORT KDatabase : public kt_completion {
 	KDatabase();
 	virtual ~KDatabase() { Close(); }
 	ECRESULT Close();
-	ECRESULT Connect(ECConfig *, bool reconn, unsigned int mysql_flags, unsigned int gcm);
-	ECRESULT CreateDatabase(ECConfig *, bool);
-	virtual ECRESULT CreateTables(ECConfig *, const char **charsetp = nullptr);
+	ECRESULT Connect(Config *, bool reconn, unsigned int mysql_flags, unsigned int gcm);
+	ECRESULT CreateDatabase(Config *, bool);
+	virtual ECRESULT CreateTables(Config *, const char **charsetp = nullptr);
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr);
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr);
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false);

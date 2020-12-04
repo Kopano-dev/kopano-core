@@ -27,12 +27,12 @@ struct configsetting_t {
 
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 
-class KC_EXPORT ECConfig {
+class KC_EXPORT Config {
 public:
-	static ECConfig *Create(const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
-	static ECConfig *Create(const std::nothrow_t &, const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
+	static Config *Create(const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
+	static Config *Create(const std::nothrow_t &, const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
 	static const char *GetDefaultPath(const char *basename);
-	KC_HIDDEN virtual ~ECConfig() = default;
+	KC_HIDDEN virtual ~Config() = default;
 	KC_HIDDEN virtual bool LoadSettings(const char *file, bool ignore_missing = false) = 0;
 	KC_HIDDEN virtual int ParseParams(int argc, char **argv) = 0;
 	KC_HIDDEN virtual const char *GetSettingsPath() const = 0;
@@ -48,5 +48,7 @@ public:
 	KC_HIDDEN virtual const std::list<std::string> *GetErrors() = 0;
 	KC_HIDDEN virtual int dump_config(FILE *) = 0;
 };
+
+using ECConfig = Config;
 
 } /* namespace */

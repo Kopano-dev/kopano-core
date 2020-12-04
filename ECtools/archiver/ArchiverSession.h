@@ -11,8 +11,8 @@
 
 namespace KC {
 
-class ECConfig;
-class ECLogger;
+class Config;
+class Logger;
 
 /**
  * The ArchiverSession class wraps the MAPISession and provides commonly used operations. It also
@@ -20,9 +20,9 @@ class ECLogger;
  */
 class KC_EXPORT ArchiverSession final {
 public:
-	static HRESULT Create(ECConfig *lpConfig, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiverSession> *);
-	static HRESULT Create(IMAPISession *, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiverSession> *);
-	KC_HIDDEN static HRESULT Create(IMAPISession *, ECConfig *, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiverSession> *);
+	static HRESULT Create(Config *, std::shared_ptr<Logger>, std::shared_ptr<ArchiverSession> *);
+	static HRESULT Create(IMAPISession *, std::shared_ptr<Logger>, std::shared_ptr<ArchiverSession> *);
+	KC_HIDDEN static HRESULT Create(IMAPISession *, Config *, std::shared_ptr<Logger>, std::shared_ptr<ArchiverSession> *);
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
 	KC_HIDDEN HRESULT OpenStore(const entryid_t &, unsigned int flags, IMsgStore **);
 	HRESULT OpenStore(const entryid_t &eid, LPMDB *ret);
@@ -32,7 +32,7 @@ public:
 	KC_HIDDEN HRESULT GetGAL(IABContainer **);
 	KC_HIDDEN HRESULT CompareStoreIds(IMsgStore *user_store, IMsgStore *arc_store, bool *res);
 	KC_HIDDEN HRESULT CompareStoreIds(const entryid_t &, const entryid_t &, bool *res);
-	KC_HIDDEN HRESULT CreateRemote(const char *server_path, std::shared_ptr<ECLogger>, std::shared_ptr<ArchiverSession> *);
+	KC_HIDDEN HRESULT CreateRemote(const char *server_path, std::shared_ptr<Logger>, std::shared_ptr<ArchiverSession> *);
 	KC_HIDDEN HRESULT OpenMAPIProp(unsigned int eid_size, ENTRYID *eid, IMAPIProp **prop);
 	KC_HIDDEN HRESULT OpenOrCreateArchiveStore(const tstring &user, const tstring &server, IMsgStore **arc_store);
 	KC_HIDDEN HRESULT GetArchiveStoreEntryId(const tstring &user, const tstring &server, entryid_t *arc_id);
@@ -41,15 +41,15 @@ public:
 	const char *GetSSLPass() const;
 
 private:
-	KC_HIDDEN ArchiverSession(std::shared_ptr<ECLogger>);
-	KC_HIDDEN HRESULT Init(ECConfig *);
+	KC_HIDDEN ArchiverSession(std::shared_ptr<Logger>);
+	KC_HIDDEN HRESULT Init(Config *);
 	KC_HIDDEN HRESULT Init(const char *server_path, const char *ssl_path, const char *ssl_pass);
 	KC_HIDDEN HRESULT Init(IMAPISession *, const char *ssl_path, const char *ssl_pass);
 	KC_HIDDEN HRESULT CreateArchiveStore(const tstring &user, const tstring &server, IMsgStore **arc_store);
 
 	object_ptr<IMAPISession> m_ptrSession;
 	object_ptr<IMsgStore> m_ptrAdminStore;
-	std::shared_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<Logger> m_lpLogger;
 	std::string m_strSslPath, m_strSslPass;
 };
 

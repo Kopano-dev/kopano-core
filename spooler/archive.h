@@ -9,7 +9,7 @@
 #include <list>
 #include <memory>
 
-namespace KC { class ECLogger; }
+namespace KC { class Logger; }
 
 class ArchiveResult final {
 public:
@@ -26,8 +26,8 @@ class Archive;
 class Archive final {
 public:
 	static HRESULT Create(IMAPISession *, std::unique_ptr<Archive> *);
-	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage, std::shared_ptr<KC::ECLogger>);
-	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult, std::shared_ptr<KC::ECLogger>);
+	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage, std::shared_ptr<KC::Logger>);
+	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult, std::shared_ptr<KC::Logger>);
 
 	bool HaveErrorMessage() const { return !m_strErrorMessage.empty(); }
 	LPCTSTR GetErrorMessage() const { return m_strErrorMessage.c_str(); }

@@ -77,7 +77,7 @@ using namespace KC;
 
 namespace KC {
 
-template<> size_t GetCacheAdditionalSize(const ECsResolveResult &v)
+template<> size_t GetCacheAdditionalSize(const ResolveResult &v)
 {
 	return MEMORY_USAGE_STRING(v.serverPath);
 }
@@ -3425,8 +3425,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	struct resolvePseudoUrlResponse sResponse;
 	char							*lpszServerPath = NULL;
 	unsigned int					ulLen = 0;
-	ECsResolveResult				*lpCachedResult = NULL;
-	ECsResolveResult				cachedResult;
+	ResolveResult cachedResult, *lpCachedResult = nullptr;
 
 	// First try the cache
 	ulock_rec l_cache(m_ResolveResultCacheMutex);

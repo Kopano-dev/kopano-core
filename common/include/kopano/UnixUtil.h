@@ -10,7 +10,7 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 class fs_deleter {
 	public:
@@ -21,7 +21,7 @@ class fs_deleter {
 	}
 };
 
-extern KC_EXPORT int unix_runas(ECConfig *);
+extern KC_EXPORT int unix_runas(Config *);
 extern KC_EXPORT int unix_chown(const char *filename, const char *user, const char *group);
 extern KC_EXPORT void unix_coredump_enable(const char *);
 extern KC_EXPORT int unix_fork_function(void *(*)(void *), void *param, int nfds, int *closefds);

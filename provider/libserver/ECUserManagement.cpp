@@ -395,7 +395,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass,
 		ulCompanyId = 0;
 	}
 
-	std::map<unsigned int, ECsUserObject> alluser;
+	std::map<unsigned int, UserObject> alluser;
 	er = smgr->GetCacheManager()->get_all_user_objects(objclass,
 	     smgr->IsHostedSupported(), ulCompanyId, alluser);
 	if (er != erSuccess)

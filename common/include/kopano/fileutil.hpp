@@ -12,7 +12,7 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 class KC_EXPORT TmpPath KC_FINAL {
 	private:
@@ -20,7 +20,7 @@ class KC_EXPORT TmpPath KC_FINAL {
 
 	public:
 	KC_HIDDEN TmpPath();
-	bool OverridePath(ECConfig *const ec);
+	bool OverridePath(Config *);
 	KC_HIDDEN const std::string &getTempPath() const { return path; }
 	static TmpPath instance;
 };

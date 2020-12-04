@@ -10,13 +10,13 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 class ECStatsCollector;
 class zcp_versiontuple;
 
 class KC_EXPORT ECDatabase final : public KDatabase {
 public:
-	ECDatabase(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
+	ECDatabase(std::shared_ptr<Config>, std::shared_ptr<ECStatsCollector>);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary();
 	ECRESULT Connect();
@@ -46,7 +46,7 @@ public:
 
 	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
-	std::shared_ptr<ECConfig> m_lpConfig;
+	std::shared_ptr<Config> m_lpConfig;
 	std::shared_ptr<ECStatsCollector> m_stats;
 };
 

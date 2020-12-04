@@ -11,9 +11,7 @@
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/zcdefs.h>
 
-namespace KC {
-class ECLogger;
-}
+namespace KC { class Logger; }
 
 class ECExchangeImportContentsChanges KC_FINAL_OPG :
     public KC::ECUnknown, public KC::IECImportContentsChanges {
@@ -55,6 +53,6 @@ private:
 	IStream *m_lpStream = nullptr;
 	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	KC::memory_ptr<SPropValue> m_lpSourceKey;
-	std::shared_ptr<KC::ECLogger> m_lpLogger;
+	std::shared_ptr<KC::Logger> m_lpLogger;
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 };

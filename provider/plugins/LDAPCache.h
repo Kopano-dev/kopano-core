@@ -19,7 +19,7 @@
 
 using namespace KC;
 class LDAPUserPlugin;
-namespace KC { class ECConfig; }
+namespace KC { class Config; }
 
 /**
  * @defgroup userplugin_ldap_cache LDAP user plugin cache
@@ -58,7 +58,7 @@ private:
 
 	public:
 	/* objectid => signatures */
-	class timed_sglist_t : public signatures_t, public ECsCacheEntry {
+	class timed_sglist_t : public signatures_t, public CacheEntry {
 		public:
 		timed_sglist_t(const signatures_t &a) : signatures_t(a) {}
 		timed_sglist_t(signatures_t &&a) : signatures_t(std::move(a)) {}
@@ -147,7 +147,7 @@ public:
 	static bool isDNInList(const dn_list_t &, const std::string &dn);
 
 	std::pair<bool, signatures_t> get_parents(userobject_relation_t, const objectid_t &);
-	void set_parents(userobject_relation_t, const objectid_t &, const signatures_t &, ECConfig * = nullptr);
+	void set_parents(userobject_relation_t, const objectid_t &, const signatures_t &, Config * = nullptr);
 };
 
 /** @} */

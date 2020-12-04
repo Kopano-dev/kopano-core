@@ -10,7 +10,7 @@
 
 namespace KC {
 
-ECArchiverLogger::ECArchiverLogger(std::shared_ptr<ECLogger> lpLogger) :
+ArchiverLogger::ArchiverLogger(std::shared_ptr<ECLogger> lpLogger) :
 	ECLogger(0), m_lpLogger(std::move(lpLogger))
 {
 }

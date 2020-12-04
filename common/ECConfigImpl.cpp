@@ -43,7 +43,7 @@ enum {
 
 namespace KC {
 
-class ECConfigImpl;
+class ConfigImpl;
 
 struct settingkey_t {
 	char s[256];
@@ -53,16 +53,16 @@ struct settingkey_t {
 
 struct directive_t {
 	const char *lpszDirective;
-	bool (ECConfigImpl::*fExecute)(const char *, unsigned int);
+	bool (ConfigImpl::*fExecute)(const char *, unsigned int);
 };
 
 /* Note: char* in map is allocated ONCE to 1024, and GetSetting will always return the same pointer to this buffer */
 typedef std::map<settingkey_t, char *> settingmap_t;
 
-class ECConfigImpl KC_FINAL : public ECConfig {
+class ConfigImpl KC_FINAL : public Config {
 	public:
-	ECConfigImpl(const configsetting_t *defaults, const char *const *directives);
-	~ECConfigImpl();
+	ConfigImpl(const configsetting_t *defaults, const char *const *directives);
+	~ConfigImpl();
 	virtual bool LoadSettings(const char *file, bool ignore_missing = false) override;
 	virtual int ParseParams(int argc, char **argv) override;
 	const char *GetSettingsPath() const override { return m_szConfigFile; }
@@ -106,6 +106,8 @@ class ECConfigImpl KC_FINAL : public ECConfig {
 	std::map<const char *, std::wstring> m_convertCache;
 	static const directive_t s_sDirectives[];
 };
+
+using ECConfigImpl = ConfigImpl;
 
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
@@ -160,7 +162,7 @@ const char *ECConfig::GetDefaultPath(const char *base)
 
 // Configuration file parser
 
-ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
+ConfigImpl::ConfigImpl(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives) :
 	m_lpDefaults(lpDefaults)
 {

@@ -30,7 +30,7 @@ class ECRestrictionList;
  * Base class for all other ECxxxRestriction classes.
  * It defines the interface needed to hook the various restrictions together.
  */
-class KC_EXPORT ECRestriction {
+class KC_EXPORT Restriction {
 public:
 	enum {
 		Full    = 0,
@@ -38,7 +38,7 @@ public:
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
 
-	KC_HIDDEN virtual ~ECRestriction() = default;
+	KC_HIDDEN virtual ~Restriction() = default;
 
 	/**
 	 * Create an LPSRestiction object that represents the restriction on which CreateMAPIRestriction was called.
@@ -77,16 +77,18 @@ public:
 	 * method is invoked.
 	 * @return	A copy of the current object.
 	 */
-	KC_HIDDEN virtual ECRestriction *Clone() const & = 0;
-	KC_HIDDEN virtual ECRestriction *Clone() && = 0;
-	KC_HIDDEN ECRestrictionList operator+(ECRestriction &&) &&;
-	KC_HIDDEN ECRestrictionList operator+(const ECRestriction &) const;
+	KC_HIDDEN virtual Restriction *Clone() const & = 0;
+	KC_HIDDEN virtual Restriction *Clone() && = 0;
+	KC_HIDDEN ECRestrictionList operator+(Restriction &&) &&;
+	KC_HIDDEN ECRestrictionList operator+(const Restriction &) const;
 
 protected:
-	KC_HIDDEN ECRestriction() = default;
+	KC_HIDDEN Restriction() = default;
 	KC_HIDDEN static HRESULT CopyProp(SPropValue *src, void *base, unsigned int flags, SPropValue **dst);
 	KC_HIDDEN static void DummyFree(void *);
 };
+
+using ECRestriction = Restriction;
 
 /**
  * An ECRestrictionList is a list of ECRestriction objects.

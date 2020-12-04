@@ -11,9 +11,9 @@
 
 namespace KC {
 
-class KC_EXPORT ECArchiverLogger final : public ECLogger {
+class KC_EXPORT ArchiverLogger final : public ECLogger {
 public:
-	ECArchiverLogger(std::shared_ptr<ECLogger>);
+	ArchiverLogger(std::shared_ptr<ECLogger>);
 	inline KC_HIDDEN tstring SetUser(const tstring &s) { return std::exchange(m_strUser, s); }
 	inline KC_HIDDEN tstring SetFolder(const tstring &s) { return std::exchange(m_strFolder, s); }
 	KC_HIDDEN const tstring &GetUser() const { return m_strUser; }
@@ -26,12 +26,14 @@ public:
 private:
 	KC_HIDDEN std::string CreateFormat(const char *fmt);
 	KC_HIDDEN std::string EscapeFormatString(const std::string &fmt);
-	ECArchiverLogger(const ECArchiverLogger &) = delete;
-	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
+	ArchiverLogger(const ArchiverLogger &) = delete;
+	ArchiverLogger &operator=(const ArchiverLogger &) = delete;
 
 	std::shared_ptr<ECLogger> m_lpLogger;
 	tstring m_strUser, m_strFolder;
 };
+
+using ECArchiverLogger = ArchiverLogger;
 
 class KC_EXPORT ScopedUserLogging final {
 public:

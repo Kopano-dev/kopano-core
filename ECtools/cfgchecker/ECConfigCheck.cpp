@@ -17,7 +17,7 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile) :
+ConfigCheck::ConfigCheck(const char *lpszName, const char *lpszConfigFile) :
 	m_lpszName(lpszName), m_lpszConfigFile(lpszConfigFile)
 {
 	readConfigFile(lpszConfigFile);

@@ -21,7 +21,7 @@ struct sockaddr;
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 // ECChannel is the communication channel with the other side. Initially, it is
 // a simple way to read/write full lines of data. The reason why we specify
@@ -49,7 +49,7 @@ public:
 	int peer_is_local() const;
 	KC_HIDDEN bool UsingSsl() const { return lpSSL != nullptr; }
 	KC_HIDDEN bool sslctx() const { return lpCTX != nullptr; }
-	static HRESULT HrSetCtx(ECConfig *);
+	static HRESULT HrSetCtx(Config *);
 	static HRESULT HrFreeCtx();
 
 private:

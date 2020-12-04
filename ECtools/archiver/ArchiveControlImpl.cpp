@@ -35,6 +35,8 @@ using namespace KC::operations;
 
 namespace KC {
 
+using ECFolderIterator = ECHierarchyIterator<object_ptr<IMAPIFolder>>;
+
 /**
  * Create a new Archive object.
  *

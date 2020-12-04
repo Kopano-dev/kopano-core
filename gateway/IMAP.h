@@ -16,9 +16,7 @@
 #include <kopano/hl.hpp>
 #include "ClientProto.h"
 
-namespace KC {
-class ECRestriction;
-}
+namespace KC { class Restriction; }
 
 /**
  * @defgroup gateway_imap IMAP
@@ -293,7 +291,7 @@ private:
 	ULONG LastOrNumber(const char *szNr, bool bUID);
 	HRESULT HrParseSeqSet(const std::string &seq, std::list<ULONG> &mails);
 	HRESULT HrParseSeqUidSet(const std::string &seq, std::list<ULONG> &mails);
-	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<KC::ECRestriction> &);
+	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<KC::Restriction> &);
 	HRESULT HrStore(const std::list<ULONG> &mails, std::string msgdata_itemname, std::string msgdata_itemvalue, bool *do_del);
 	HRESULT HrStore_flags(const std::string &dataitemvalue, IMessage *, bool &xdelete);
 	HRESULT HrStore_pflags(IMessage *, bool &xdelete, const std::vector<std::string> &flags);
@@ -318,7 +316,7 @@ private:
 	std::string PropsToFlags(LPSPropValue props, unsigned int nprops, bool recent, bool read);
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
-	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<KC::ECRestriction> &&);
+	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<KC::Restriction> &&);
 	HRESULT HrGetCurrentFolder(KC::object_ptr<IMAPIFolder> &);
 };
 

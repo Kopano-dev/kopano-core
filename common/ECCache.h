@@ -35,7 +35,7 @@ template<> inline size_t GetCacheAdditionalSize(const std::string &s)
 	return MEMORY_USAGE_STRING(s);
 }
 
-class ECsCacheEntry {
+class CacheEntry {
 public:
 	time_t ulLastAccess = 0;
 };
@@ -45,12 +45,12 @@ struct ECCacheStat {
 	uint64_t items, size, maxsize, req, hit;
 };
 
-class KC_EXPORT ECCacheBase {
+class KC_EXPORT CacheBase {
 public:
 	typedef unsigned long		count_type;
 	typedef size_t size_type;
 
-	KC_HIDDEN virtual ~ECCacheBase() = default;
+	KC_HIDDEN virtual ~CacheBase() = default;
 	KC_HIDDEN virtual count_type ItemCount() const = 0;
 	KC_HIDDEN virtual size_type Size() const = 0;
 	KC_HIDDEN size_type MaxSize() const { return m_ulMaxSize; }
@@ -75,7 +75,7 @@ public:
 	}
 
 protected:
-	ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge);
+	CacheBase(const std::string &name, size_type maxsize, long maxage);
 	KC_HIDDEN void IncrementHitCount() { ++m_ulCacheHit; }
 	KC_HIDDEN void IncrementValidCount() { ++m_ulCacheValid; }
 	KC_HIDDEN void ClearCounters() { m_ulCacheHit = m_ulCacheValid = 0; }
@@ -88,14 +88,15 @@ private:
 	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
 };
 
-template<typename MapType> class ECCache KC_FINAL : public ECCacheBase {
+using ECCacheBase = CacheBase;
+
+template<typename MapType> class Cache KC_FINAL : public CacheBase {
 public:
 	typedef typename MapType::key_type key_type;
 	typedef typename MapType::mapped_type mapped_type;
 
-	ECCache(const std::string &strCachename, size_type ulMaxSize, long lMaxAge)
-		: ECCacheBase(strCachename, ulMaxSize, lMaxAge)
-		, m_ulSize(0)
+	Cache(const std::string &name, size_type size, long age) :
+		CacheBase(name, size, age), m_ulSize(0)
 	{ }
 
 	void ClearCache()
@@ -286,5 +287,7 @@ private:
 	MapType m_map;
 	size_type			m_ulSize;
 };
+
+template<typename T> using ECCache = Cache<T>;
 
 } /* namespace */

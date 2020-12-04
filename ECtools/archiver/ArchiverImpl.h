@@ -12,6 +12,7 @@ namespace KC {
 
 class ArchiveManage;
 class ArchiverSession;
+class Config;
 
 class ArchiverImpl final : public Archiver {
 public:
@@ -19,7 +20,7 @@ public:
 	eResult GetControl(std::unique_ptr<ArchiveControl> *, bool force_cleanup) override;
 	eResult GetManage(const TCHAR *user, std::unique_ptr<ArchiveManage> *) override;
 	eResult AutoAttach(unsigned int flags) override;
-	ECConfig *GetConfig() const override { return m_lpsConfig.get(); }
+	Config *GetConfig() const override { return m_lpsConfig.get(); }
 	ECLogger *GetLogger(eLogType which) const override; /* Inherits default (which = DefaultLog) from Archiver::GetLogger */
 
 private:
@@ -27,7 +28,7 @@ private:
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
 	AutoMAPI m_MAPI;
-	std::unique_ptr<ECConfig> m_lpsConfig;
+	std::unique_ptr<Config> m_lpsConfig;
 	std::shared_ptr<ECLogger> m_lpLogger;
 	std::shared_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
 	std::shared_ptr<ArchiverSession> m_ptrSession;

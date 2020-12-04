@@ -32,10 +32,10 @@ struct config_check_t {
 	int (*check)(const config_check_t *);
 };
 
-class ECConfigCheck {
+class ConfigCheck {
 public:
-	ECConfigCheck(const char *lpszName, const char *lpszConfigFile);
-	virtual ~ECConfigCheck() = default;
+	ConfigCheck(const char *lpszName, const char *lpszConfigFile);
+	virtual ~ConfigCheck() = default;
 	/* Must be overwritten by subclass */
 	virtual void loadChecks() = 0;
 	bool isDirty() const;
@@ -79,6 +79,8 @@ private:
 	std::list<config_check_t> m_lChecks;
 	bool m_bDirty = false, m_bHosted = false, m_bMulti = false;
 };
+
+using ECConfigCheck = ConfigCheck;
 
 class DAgentConfigCheck final : public ECConfigCheck {
 	public:

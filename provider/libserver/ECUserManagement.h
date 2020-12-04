@@ -21,7 +21,6 @@ struct soap;
 
 namespace KC {
 
-class ECConfig;
 struct LICENSEREQUEST;
 
 class localobjectdetails_t final : public objectdetails_t {

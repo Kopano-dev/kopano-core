@@ -9,7 +9,8 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
+class Logger;
 
 struct configsetting_t;
 
@@ -35,8 +36,8 @@ public:
 	KC_HIDDEN virtual eResult GetControl(std::unique_ptr<ArchiveControl> *, bool force_cleanup = false) = 0;
 	KC_HIDDEN virtual eResult GetManage(const TCHAR *user, std::unique_ptr<ArchiveManage> *) = 0;
 	KC_HIDDEN virtual eResult AutoAttach(unsigned int flags) = 0;
-	KC_HIDDEN virtual ECConfig *GetConfig() const = 0;
-	KC_HIDDEN virtual ECLogger *GetLogger(eLogType which = DefaultLog) const = 0;
+	KC_HIDDEN virtual Config *GetConfig() const = 0;
+	KC_HIDDEN virtual Logger *GetLogger(eLogType which = DefaultLog) const = 0;
 
 protected:
 	KC_HIDDEN Archiver() = default;

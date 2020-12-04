@@ -16,7 +16,7 @@
 
 namespace KC {
 
-class ECConfig;
+class Config;
 
 enum SCName {
 	/* server stats */
@@ -136,7 +136,7 @@ typedef std::map<SCName, ECStat> SCMap;
 
 class KC_EXPORT ECStatsCollector {
 	public:
-	ECStatsCollector(std::shared_ptr<ECConfig>);
+	ECStatsCollector(std::shared_ptr<Config>);
 	virtual ~ECStatsCollector();
 	virtual void fill_odm() {}
 	virtual void start();
@@ -181,7 +181,7 @@ class KC_EXPORT ECStatsCollector {
 	std::unordered_map<std::string, ECStat2> m_ondemand;
 	std::atomic<bool> terminate{false};
 	pthread_t countsSubmitThread{};
-	std::shared_ptr<ECConfig> m_config;
+	std::shared_ptr<Config> m_config;
 	std::condition_variable m_exitsig;
 	std::mutex m_odm_lock;
 };

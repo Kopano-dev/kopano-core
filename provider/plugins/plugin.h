@@ -97,7 +97,7 @@ public:
 typedef std::list<objectsignature_t> signatures_t;
 typedef std::vector<unsigned int> abprops_t;
 
-class ECConfig;
+class Config;
 
 /**
  * Main user plugin interface
@@ -383,7 +383,7 @@ protected:
 	/**
 	 * Pointer to local configuration manager.
 	 */
-	ECConfig *m_config;
+	Config *m_config;
 
 	/**
 	 * Pointer to statscollector

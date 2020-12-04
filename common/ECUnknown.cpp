@@ -158,7 +158,7 @@ HRESULT GetNonPortableObjectType(unsigned int eid_size,
 	return hrSuccess;
 }
 
-ECCacheBase::ECCacheBase(const std::string &name, size_type size, long age) :
+CacheBase::CacheBase(const std::string &name, size_type size, long age) :
 	m_strCachename(name), m_ulMaxSize(size), m_lMaxAge(age)
 {}
 
