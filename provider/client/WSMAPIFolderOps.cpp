@@ -91,8 +91,8 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->createFolder(ecSessionId,
-		    m_sEntryId, lpsEntryId, ulFolderType, strFolderName.c_str(),
-		    strComment.c_str(), !!fOpenIfExists, ulSyncId, sSourceKey,
+		    m_sEntryId, lpsEntryId, ulFolderType, strFolderName.z_str(),
+		    strComment.z_str(), !!fOpenIfExists, ulSyncId, sSourceKey,
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -319,7 +319,7 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->copyFolder(ecSessionId, sEntryFrom, sEntryDest,
-		    strNewFolderName.c_str(), ulFlags, ulSyncId, &er) != SOAP_OK)
+		    strNewFolderName.z_str(), ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL

@@ -653,7 +653,7 @@ libkcutil_la_SOURCES = \
 	common/UnixUtil.cpp common/fileutil.cpp common/license.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
-	common/charset/convstring.cpp common/charset/localeutil.cpp
+	common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${curl_LIBS} ${GZ_LIBS} ${iconv_LIBS} \
 	${idn_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${INTL_LIBS} \

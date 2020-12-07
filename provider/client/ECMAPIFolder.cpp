@@ -30,7 +30,7 @@
 #include <mapiutil.h>
 #include <cstdio>
 #include <kopano/stringutil.h>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 
@@ -561,8 +561,8 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 	// Create the actual folder on the server
 	memory_ptr<ENTRYID> lpEntryId;
 	auto hr = lpFolderOps->HrCreateFolder(ulFolderType,
-	          convstring(lpszFolderName, ulFlags),
-	          convstring(lpszFolderComment, ulFlags), ulFlags & OPEN_IF_EXISTS,
+	          tfstring_to_utf8(lpszFolderName, ulFlags),
+	          tfstring_to_utf8(lpszFolderComment, ulFlags), ulFlags & OPEN_IF_EXISTS,
 	          0, nullptr, 0, nullptr, &cbEntryId, &~lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
@@ -594,8 +594,8 @@ HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
 		auto &src          = folders[i];
 		auto &dst          = batch[i];
 		dst.folder_type    = src.folder_type;
-		dst.name           = convstring(src.name, src.flags);
-		dst.comment        = convstring(src.comment, src.flags);
+		dst.name           = tfstring_to_utf8(src.name, src.flags);
+		dst.comment        = tfstring_to_utf8(src.comment, src.flags);
 		dst.open_if_exists = src.flags & OPEN_IF_EXISTS;
 		dst.sync_id        = 0;
 		dst.sourcekey      = nullptr;
@@ -615,8 +615,8 @@ HRESULT ECMAPIFolder::create_folders(std::vector<ECFolder> &folders)
 			const ECFolder &f = folders[i];
 			/* Create the actual folder on the server */
 			ret = lpFolderOps->HrCreateFolder(f.folder_type,
-			      convstring(f.name, f.flags),
-			      convstring(f.comment, f.flags),
+			      tfstring_to_utf8(f.name, f.flags),
+			      tfstring_to_utf8(f.comment, f.flags),
 			      f.flags & OPEN_IF_EXISTS, 0, nullptr, 0, nullptr,
 			      &entry_ids[i].first, &~entry_ids[i].second);
 			if (ret != hrSuccess)
@@ -697,7 +697,7 @@ HRESULT ECMAPIFolder::CopyFolder2(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	/* FIXME: Progressbar */
 	return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
 	       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
-	       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
+	       tfstring_to_utf8(lpszNewFolderName, ulFlags), ulFlags, 0);
 }
 
 HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,

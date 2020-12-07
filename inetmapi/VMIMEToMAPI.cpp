@@ -2269,7 +2269,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (HrGetCPByCharset(cs_cand[cs_best].c_str(), &sCodepage.Value.ul) != hrSuccess) {
 			/* Win32 does not know the charset — change encoding to something it knows. */
 			sCodepage.Value.ul = 65001;
-			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
+			strHTML = m_converter.convert_to<utf8string>(strHTML, rawsize(strHTML), cs_cand[cs_best].c_str()).m_str;
 			ec_log_info("No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
 		}
 
@@ -2289,7 +2289,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 				hr = Util::ReadProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
-				strCurrentHTML = m_converter.convert_to<std::string>("UTF-8", strCurrentHTML, rawsize(strCurrentHTML), lpszCharset);
+				strCurrentHTML = m_converter.convert_to<utf8string>(strCurrentHTML, rawsize(strCurrentHTML), lpszCharset).m_str;
 				hr = Util::WriteProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
@@ -2297,7 +2297,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 
 			if (sCodepage.Value.ul != 65001)
 				// Convert new body part to UTF-8
-				strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
+				strHTML = m_converter.convert_to<utf8string>(strHTML, rawsize(strHTML), mime_charset.getName().c_str()).m_str;
 			// Everything is UTF-8 now
 			sCodepage.Value.ul = 65001;
 			mime_charset = "utf-8";

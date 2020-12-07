@@ -25,7 +25,7 @@
 #include "ECMemStream.h"
 #include <kopano/mapiguidext.h>
 #include "rtf.h"
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 
@@ -52,8 +52,6 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
     ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
 {
-	std::string strDLLName = convstring(lpszDLLName, ulFlags);
-
 	if (lpszDLLName == nullptr || lpOrigEntry == nullptr ||
 	    lpcbWrappedEntry == nullptr || lppWrappedEntry == nullptr ||
 	    cbOrigEntry <= 4 + sizeof(GUID))
@@ -66,6 +64,7 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	// - then the dll name + termination char + padding to 32 bits
 	// - then the entry id
 
+	auto strDLLName = tfstring_to_lcl(lpszDLLName, ulFlags);
 	unsigned int cbDLLName = strDLLName.size() + 1;
 	unsigned int cbPad = (4 - ((4 + sizeof(GUID) + 2 + cbDLLName) & 0x03)) & 0x03;
 

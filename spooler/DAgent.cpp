@@ -411,7 +411,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 		// in UTF-8, *not* in the current locale.
 		std::vector<std::string> cmdline = {
 			autoresponder,
-			convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+			convert_to<utf8string>(lpRecip->wstrUsername).m_str,
 			g_lpConfig->GetSettingsPath(), strEntryID
 		};
 		ec_log_debug("Starting autoaccept");
@@ -475,7 +475,7 @@ static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
 		// in UTF-8, *not* in the current locale.
 		std::vector<std::string> cmdline = {
 			autoprocessor,
-			convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
+			convert_to<utf8string>(lpRecip->wstrUsername).m_str,
 			g_lpConfig->GetSettingsPath(), strEntryID
 		};
 		ec_log_debug("Starting autoprocessing");
@@ -1302,7 +1302,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		return kc_perrorf("WriteOrLogError failed(9)", hr);
 
 	// write body
-	auto unquoted = convert_to<std::string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
+	auto unquoted = convert_to<utf8string>(strBody).m_str;
 	quoted = base64_encode(unquoted.c_str(), unquoted.length());
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
 	if (hr != hrSuccess)

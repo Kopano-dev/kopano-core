@@ -17,7 +17,7 @@
 #include <kopano/platform.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/stringutil.h>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 #include <kopano/namedprops.h>
 #include <kopano/ecversion.h>
 #include <kopano/ECRestriction.h>

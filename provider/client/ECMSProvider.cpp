@@ -27,7 +27,7 @@
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <csignal>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 
@@ -256,7 +256,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IMSProvider> lpOnline;
 	convert_context converter;
 	memory_ptr<ENTRYID> lpStoreID;
-	convstring			tstrProfileName(lpszProfileName, ulFlags);
 	auto laters = make_scope_success([&]() {
 		if (lppMAPIError != nullptr)
 			*lppMAPIError = nullptr;
@@ -285,7 +284,9 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
 	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
 			bIsDefaultStore = true;
-	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), &sProviderInfo);
+	hr = GetProviders(&g_mapProviders, lpMAPISup,
+	     lpszProfileName == nullptr ? nullptr : tfstring_to_lcl(lpszProfileName, ulFlags).c_str(),
+	     &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, &~lpOnline);

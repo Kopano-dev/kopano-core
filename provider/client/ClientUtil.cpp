@@ -22,7 +22,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 #include "SOAPSock.h"
 
@@ -522,15 +522,15 @@ HRESULT ClientUtil::GetGlobalProfileProperties(IProfSect *sect, struct sGlobalPr
 	if (s[3].ulPropTag == PR_EC_USERNAME_W)
 		gp->strUserName = s[3].Value.lpszW;
 	else if (s[2].ulPropTag == PR_EC_USERNAME_A)
-		gp->strUserName = convstring::from_SPropValue(&s[2]);
+		gp->strUserName = convert_to<std::wstring>(s[2].Value.lpszA);
 	if (s[5].ulPropTag == PR_EC_USERPASSWORD_W)
 		gp->strPassword = s[5].Value.lpszW;
 	else if (s[4].ulPropTag == PR_EC_USERPASSWORD_A)
-		gp->strPassword = convstring::from_SPropValue(&s[4]);
+		gp->strPassword = convert_to<std::wstring>(s[4].Value.lpszA);
 	if (s[7].ulPropTag == PR_EC_IMPERSONATEUSER_W)
 		gp->strImpersonateUser = s[7].Value.lpszW;
 	else if (s[6].ulPropTag == PR_EC_IMPERSONATEUSER_A)
-		gp->strImpersonateUser = convstring::from_SPropValue(&s[6]);
+		gp->strImpersonateUser = convert_to<std::wstring>(s[6].Value.lpszA);
 	if (s[8].ulPropTag == PR_EC_FLAGS)
 		gp->ulProfileFlags = s[8].Value.ul;
 	if (s[9].ulPropTag == PR_EC_SSLKEY_FILE)

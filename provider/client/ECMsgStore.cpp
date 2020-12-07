@@ -35,7 +35,7 @@
 #include "EntryPoint.h"
 #include <kopano/stringutil.h>
 #include "ECExchangeModifyTable.h"
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 
@@ -592,7 +592,7 @@ HRESULT ECMsgStore::SetReceiveFolder(const TCHAR *lpszMessageClass,
 	if (IsPublicStore())
 		return MAPI_E_NO_SUPPORT;
 	return lpTransport->HrSetReceiveFolder(m_cbEntryId, m_lpEntryId,
-	       convstring(lpszMessageClass, ulFlags), cbEntryID, lpEntryID);
+	       tfstring_to_utf8(lpszMessageClass, ulFlags), cbEntryID, lpEntryID);
 }
 
 // If the open store a publicstore
@@ -620,7 +620,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	LPENTRYID	lpEntryID = NULL;
 	utf8string	strExplicitClass;
 	auto hr = lpTransport->HrGetReceiveFolder(m_cbEntryId, m_lpEntryId,
-	          convstring(lpszMessageClass, ulFlags), &cbEntryID,
+	          tfstring_to_utf8(lpszMessageClass, ulFlags), &cbEntryID,
 	          &lpEntryID, lppszExplicitClass ? &strExplicitClass : nullptr);
 	if(hr != hrSuccess)
 		return hr;
@@ -1090,8 +1090,8 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 	ULONG		cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
 	object_ptr<WSTransport> lpTmpTransport;
-	convstring		tstrMsgStoreDN(lpszMsgStoreDN, ulFlags);
-	convstring		tstrMailboxDN(lpszMailboxDN, ulFlags);
+	auto tstrMsgStoreDN = tfstring_to_utf8(lpszMsgStoreDN, ulFlags);
+	auto tstrMailboxDN  = tfstring_to_utf8(lpszMailboxDN, ulFlags);
 
 	if (tstrMsgStoreDN.null_or_empty()) {
 		// No messagestore DN provided. Just try the current server and let it redirect us if needed.
@@ -1121,7 +1121,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 			return hr;
 
 		// MsgStoreDN successfully converted
-		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
+		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.z_str(), &~ptrServerPath, &bIsPeer);
 		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0)
 			// Try again old, style since the MsgStoreDN contained an unknown server name or the server does not support multi-server.
 			return CreateStoreEntryID(nullptr, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
@@ -1185,13 +1185,13 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	memory_ptr<ENTRYID> lpEntryId;
 	bool			bIsPeer = true;
 	memory_ptr<char> ptrServerPath;
-	std::string		strPseudoUrl;
-	convstring		tstrServerName(lpszServerName, ulFlags);
+	utf8string strPseudoUrl;
+	auto tstrServerName = tfstring_to_utf8(lpszServerName, ulFlags);
 	const auto strUserName = convert_to<utf8string>("SYSTEM");
 
 	if (!tstrServerName.null_or_empty()) {
-		strPseudoUrl = "pseudo://";
-		strPseudoUrl += tstrServerName;
+		strPseudoUrl.append("pseudo://", strlen("pseudo://"));
+		strPseudoUrl.append(tstrServerName);
 		auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr != hrSuccess)
 			return hr;
@@ -2362,17 +2362,20 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 
 	ULONG cbStoreID;
 	memory_ptr<ENTRYID> ptrStoreID;
+	auto tusername = tfstring_to_utf8(lpszUserName, ulFlags);
 
 	if (lpszServerName != NULL) {
 		object_ptr<WSTransport> ptrTransport;
 		auto hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
+		hr = ptrTransport->HrResolveTypedStore(tfstring_to_utf8(lpszUserName, ulFlags),
+		     ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
-		auto hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
+		auto hr = lpTransport->HrResolveTypedStore(tfstring_to_utf8(lpszUserName, ulFlags),
+		          ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -2454,7 +2457,7 @@ HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
  */
 static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl)
 {
-	auto parts = tokenize(strMsgStoreDN.str(), "/");
+	auto parts = tokenize(strMsgStoreDN.m_str, "/");
 
 	// We need at least 2 parts.
 	if (parts.size() < 2)
@@ -2475,7 +2478,7 @@ static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string
 	if (strcasecmp(riPart->c_str(), "cn=Unknown") == 0)
 		return MAPI_E_NO_SUPPORT;
 
-	*lpstrPseudoUrl = utf8string::from_string("pseudo://" + riPart->substr(3));
+	*lpstrPseudoUrl = convert_to<utf8string>("pseudo://" + riPart->substr(3));
 	return hrSuccess;
 }
 

@@ -16,7 +16,7 @@
 #include <kopano/mapiext.h>
 #include <kopano/stringutil.h>
 #include "ECMsgStorePublic.h"
-#include <kopano/charset/convstring.h>
+#include <kopano/charset/convert.h>
 #include <kopano/ECGetText.h>
 #include <mapiutil.h>
 

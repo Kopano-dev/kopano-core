@@ -17,7 +17,6 @@
 #include "ECMsgStore.h"
 #include "ECArchiveAwareMessage.h"
 #include "ECMsgStorePublic.h"
-#include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 #include "ProviderUtil.h"
 #include <kopano/charset/convert.h>
@@ -168,14 +167,14 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	if ((ulFlags & ~MAPI_UNICODE) != 0)
 		return MAPI_E_UNKNOWN_FLAGS;
 
-	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
+	auto strPseudoUrl = convert_to<utf8string>("pseudo://");
 	memory_ptr<char> lpszServerPath;
 	bool bIsPeer = false;
 	WSTransport *lpNewTransport = NULL;
-	utf8string strServerName = convstring(lpszServerName, ulFlags);
+	auto strServerName = tfstring_to_utf8(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
 
-	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~lpszServerPath, &bIsPeer);
+	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.z_str(), &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
 	if (bIsPeer) {

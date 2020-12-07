@@ -131,14 +131,10 @@ static int oof_show(IMsgStore *store)
 	/* whether dagent/spooler would consider OOF active at this very moment */
 	root["active"] = active;
 
-	if (props[3].ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT) {
-		subject = convert_to<std::string>("UTF-8", props[3].Value.lpszW, rawsize(props[3].Value.lpszW), CHARSET_WCHAR);
-		root["subject"] = subject.c_str();
-	}
-	if (props[4].ulPropTag == PR_EC_OUTOFOFFICE_MSG) {
-		message = convert_to<std::string>("UTF-8", props[4].Value.lpszW, rawsize(props[4].Value.lpszW), CHARSET_WCHAR);
-		root["message"] = message.c_str();
-	}
+	if (props[3].ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT)
+		root["subject"] = convert_to<utf8string>(props[3].Value.lpszW).m_str;
+	if (props[4].ulPropTag == PR_EC_OUTOFOFFICE_MSG)
+		root["message"] = convert_to<utf8string>(props[4].Value.lpszW).m_str;
 	return hrSuccess;
 }
 

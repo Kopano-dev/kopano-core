@@ -7,6 +7,5 @@ nobase_pkginclude_HEADERS = \
 	buildconfig.h kcodes.h \
 	codepage.h fileutil.hpp platform.h platform.linux.h \
 	stringutil.h timeutil.hpp ustringutil.h zcdefs.h \
-	charset/convert.h charset/convstring.h \
-	charset/traits.h charset/utf8string.h
+	charset/convert.h charset/traits.h charset/utf8string.h
 nobase_nodist_pkginclude_HEADERS = ecversion.h
