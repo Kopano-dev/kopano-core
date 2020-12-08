@@ -6982,7 +6982,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	bool			bPartialCompletion = false;
 	unsigned int ulGrandParent = 0, ulDestFolderId = 0;
 	ECListInt			lObjectIds;
-	std::set<EntryId> setEntryIds;
+	std::set<std::string> setEntryIds;
 	USE_DATABASE_NORESULT();
 
 	const EntryId dstEntryId(&sDestFolderId);
@@ -6992,10 +6992,10 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	}
 
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
-		setEntryIds.emplace(aMessages->__ptr[i]);
-	setEntryIds.emplace(sDestFolderId);
+		setEntryIds.emplace(EntryId(aMessages->__ptr[i]));
+	setEntryIds.emplace(dstEntryId);
 	kd_trans dtx;
-	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
+	er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
 	if (er != erSuccess)
 		return er_lerrf(er, "Failed locking folders");
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
@@ -8661,11 +8661,10 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	kd_trans dtx;
 
 	if(ulPropTag == PR_ENTRYID) {
-		std::set<EntryId>	setEntryIDs;
-
+		std::set<std::string> setEntryIDs;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setEntryIDs.emplace(sSourceKeyPairs.__ptr[i].sObjectKey);
-		er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED, dtx, er);
+			setEntryIDs.emplace(EntryId(sSourceKeyPairs.__ptr[i].sObjectKey));
+		er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIDs, LOCK_SHARED, dtx, er);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
 		std::set<std::string> setParentSourcekeys;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
