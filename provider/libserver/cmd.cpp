@@ -8649,7 +8649,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 	USE_DATABASE_NORESULT();
 	kd_trans dtx;
 
-	er = BeginLockFolders(lpDatabase, {SOURCEKEY(folderSourceKey)}, LOCK_SHARED, dtx, er);
+	er = BeginLockFolders(lpDatabase, PR_SOURCE_KEY, {std::string(SOURCEKEY(folderSourceKey))}, LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
@@ -8979,10 +8979,10 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 			setEntryIDs.emplace(sSourceKeyPairs.__ptr[i].sObjectKey);
 		er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED, dtx, er);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
-		std::set<SOURCEKEY> setParentSourcekeys;
+		std::set<std::string> setParentSourcekeys;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setParentSourcekeys.emplace(sSourceKeyPairs.__ptr[i].sParentKey);
-		er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED, dtx, er);
+			setParentSourcekeys.emplace(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
+		er = BeginLockFolders(lpDatabase, PR_SOURCE_KEY, setParentSourcekeys, LOCK_SHARED, dtx, er);
     } else
 		er = KCERR_INVALID_PARAMETER;
 

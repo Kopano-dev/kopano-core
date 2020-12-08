@@ -1639,7 +1639,7 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 	return lpDatabase->DoSelect(strQuery, NULL);
 }
 
-static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     const std::set<std::string> &setIds, unsigned int ulFlags, kd_trans &dtx,
     ECRESULT &dtxerr)
 {
@@ -1735,23 +1735,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 	if (dtxerr != erSuccess)
 		return dtxerr;
     return LockFolders(lpDatabase, ulFlags & LOCK_SHARED, setFolders);
-}
-
-/**
- * Begin a new transaction and lock folders
- *
- * Sourcekey of folders should be passed in setFolders.
- *
- */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
-    const std::set<SOURCEKEY> &setFolders, unsigned int ulFlags,
-    kd_trans &dtx, ECRESULT &dtxerr)
-{
-    std::set<std::string> setIds;
-
-	std::transform(setFolders.cbegin(), setFolders.cend(), std::inserter(setIds, setIds.begin()),
-		[](const auto &s) { return static_cast<std::string>(s); });
-	return BeginLockFolders(lpDatabase, PR_SOURCE_KEY, setIds, ulFlags, dtx, dtxerr);
 }
 
 /**
