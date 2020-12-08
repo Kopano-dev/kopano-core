@@ -1667,35 +1667,40 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(const entryId *lpEntryId,
     unsigned int *lpulObjId)
 {
 	// Make sure flags is 0 when getting from db/cache
-	if (lpEntryId == nullptr)
-		ec_log_err("K-1575: null entryid passed to %s", __func__);
-	EntryId eid(lpEntryId);
-	try {
-		eid.setFlags(0);
-	} catch (const std::runtime_error &e) {
-		ec_log_err("K-1573: eid.setFlags: %s", e.what());
-		/*
-		 * The subsequent functions will catch the too-small eid.size
-		 * and return INVALID_PARAM appropriately.
-		 */
+	if (lpEntryId == nullptr || lpEntryId->__ptr == nullptr ||
+	    lpEntryId->__size == 0) {
+		ec_log_err("K-1573: null/zero-len entryid passed to %s", __func__);
+		return KCERR_INVALID_PARAMETER;
 	}
-	return GetObjectFromProp(PROP_ID(PR_ENTRYID), eid.size(), eid, lpulObjId);
+	if (lpEntryId->__size >= sizeof(EID_V0)) {
+		/*
+		 * Both EID_V0 and EID fit the size check; and they have
+		 * usFlags in the same spot.
+		 */
+		std::string eid(reinterpret_cast<const char *>(lpEntryId->__ptr), lpEntryId->__size);
+		memset(&eid[offsetof(EID_V0, usFlags)], 0, sizeof(EID_V0::usFlags));
+		return GetObjectFromProp(PROP_ID(PR_ENTRYID), eid.size(),
+		       reinterpret_cast<const unsigned char *>(eid.c_str()), lpulObjId);
+	}
+	return GetObjectFromProp(PROP_ID(PR_ENTRYID), lpEntryId->__size, lpEntryId->__ptr, lpulObjId);
 }
 
 ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
     unsigned int ulObjId)
 {
     // MAke sure flags is 0 when saving in DB
-	if (lpEntryId == nullptr)
-		ec_log_err("K-1576: null entryid passed to %s", __func__);
-    EntryId eid(lpEntryId);
-	try {
-		eid.setFlags(0);
-	} catch (const std::runtime_error &e) {
-		ec_log_err("K-1574: eid.setFlags: %s", e.what());
-		/* ignore exception - the following functions will catch the too-small eid.size */
+	if (lpEntryId == nullptr || lpEntryId->__ptr == nullptr ||
+	    lpEntryId->__size == 0) {
+		ec_log_err("K-1574: null/zero-len entryid passed to %s", __func__);
+		return KCERR_INVALID_PARAMETER;
 	}
-	return SetObjectProp(PROP_ID(PR_ENTRYID), eid.size(), eid, ulObjId);
+	if (lpEntryId->__size >= sizeof(EID_V0)) {
+		std::string eid(reinterpret_cast<const char *>(lpEntryId->__ptr), lpEntryId->__size);
+		memset(&eid[offsetof(EID_V0, usFlags)], 0, sizeof(EID_V0::usFlags));
+		return SetObjectProp(PROP_ID(PR_ENTRYID), eid.size(),
+		       reinterpret_cast<const unsigned char *>(eid.c_str()), ulObjId);
+	}
+	return SetObjectProp(PROP_ID(PR_ENTRYID), lpEntryId->__size, lpEntryId->__ptr, ulObjId);
 }
 
 /**
