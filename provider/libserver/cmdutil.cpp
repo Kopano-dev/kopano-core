@@ -1760,22 +1760,6 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     return LockFolders(lpDatabase, ulFlags & LOCK_SHARED, setFolders);
 }
 
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
-    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
-{
-    // No locking needed for stores
-	try {
-		if (entryid.type() == MAPI_STORE) {
-			dtx = lpDatabase->Begin(dtxerr);
-			return dtxerr;
-		}
-	} catch (const std::runtime_error &e) {
-		ec_log_err("entryid.type(): %s", e.what());
-		return KCERR_INVALID_PARAMETER;
-	}
-	return BeginLockFolders(lpDatabase, PR_ENTRYID, {entryid}, ulFlags, dtx, dtxerr);
-}
-
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
 // retrieved with far less SQL queries, since this function bulk-receives the data. You may pass EITHER ulObjId OR ulParentId to retrieve an object itself, or
 // children of an object.
