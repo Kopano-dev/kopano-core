@@ -1789,13 +1789,6 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
     return BeginLockFolders(lpDatabase, set, ulFlags, dtx, dtxerr);
 }
 
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey,
-    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
-{
-	return BeginLockFolders(lpDatabase, std::set<SOURCEKEY>({sourcekey}),
-	       ulFlags, dtx, dtxerr);
-}
-
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
 // retrieved with far less SQL queries, since this function bulk-receives the data. You may pass EITHER ulObjId OR ulParentId to retrieve an object itself, or
 // children of an object.

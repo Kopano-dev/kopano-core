@@ -8649,7 +8649,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 	USE_DATABASE_NORESULT();
 	kd_trans dtx;
 
-	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED, dtx, er);
+	er = BeginLockFolders(lpDatabase, {SOURCEKEY(folderSourceKey)}, LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
