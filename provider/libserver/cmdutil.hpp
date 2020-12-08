@@ -184,7 +184,6 @@ ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, 
 // Lock folders and start transaction:
 extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<SOURCEKEY> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
 extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<EntryId> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
-extern ECRESULT BeginLockFolders(ECDatabase *, const SOURCEKEY &, unsigned int flags, kd_trans &, ECRESULT &); /* single sourcekey, folder or message */
 extern ECRESULT BeginLockFolders(ECDatabase *, const EntryId &, unsigned int flags, kd_trans &, ECRESULT &); /* single entryid, folder or message */
 
 struct NAMEDPROPDEF {
