@@ -6250,12 +6250,19 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 SOAP_ENTRY_END()
 
 struct COPYITEM {
-	unsigned int ulId, ulType, ulParent, ulNewId, ulFlags;
-	unsigned int ulMessageFlags, ulOwner;
-	SOURCEKEY sSourceKey, sParentSourceKey, sNewSourceKey;
-	EntryId sOldEntryId, sNewEntryId;
-	bool		 bMoved;
+	~COPYITEM();
+	unsigned int ulId = 0, ulType = 0, ulParent = 0, ulNewId = 0, ulFlags = 0;
+	unsigned int ulMessageFlags = 0, ulOwner = 0;
+	SOURCEKEY sSourceKey{}, sParentSourceKey{}, sNewSourceKey{};
+	entryId *sOldEntryId = nullptr, *sNewEntryId = nullptr;
+	bool bMoved = false;
 };
+
+COPYITEM::~COPYITEM()
+{
+	FreeEntryId(sOldEntryId, true);
+	FreeEntryId(sNewEntryId, true);
+}
 
 // Move one or more messages and/or moved a softdeleted message to a normal message
 // exception: This function does internal Begin + Commit/Rollback
@@ -6391,7 +6398,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		    (cop.ulFlags & MSGFLAG_DELETED) == 0)
 			continue;
 
-		er = gcache->GetEntryIdFromObject(cop.ulId, nullptr, 0, &lpsOldEntryId);
+		er = gcache->GetEntryIdFromObject(cop.ulId, nullptr, 0, &cop.sOldEntryId);
 		if(er != erSuccess) {
 			// FIXME isn't this an error?
 			ec_log_err("MoveObjects: problem retrieving entry id of object %u: %s (%x)",
@@ -6401,23 +6408,16 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			// FIXME: Delete from list: cop
 			continue;
 		}
-		cop.sOldEntryId = EntryId(lpsOldEntryId);
-		FreeEntryId(lpsOldEntryId, true);
-		lpsOldEntryId = NULL;
-
-		er = CreateEntryId(guidStore, MAPI_MESSAGE, &lpsNewEntryId);
+		er = CreateEntryId(guidStore, MAPI_MESSAGE, &cop.sNewEntryId);
 		if (er != erSuccess) {
 			ec_log_err("MoveObjects: CreateEntryID for type MAPI_MESSAGE failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			return er;
 		}
-		cop.sNewEntryId = EntryId(lpsNewEntryId);
-		FreeEntryId(lpsNewEntryId, true);
-		lpsNewEntryId = NULL;
 
 		// Update entryid (changes on move)
 		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" +
 			stringify(cop.ulId) + ", 4095, " +
-			lpDatabase->EscapeBinary(cop.sNewEntryId) + ")";
+			lpDatabase->EscapeBinary(cop.sNewEntryId->__ptr, cop.sNewEntryId->__size) + ")";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess) {
 			ec_log_err("MoveObjects: problem setting new entry id: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -6587,7 +6587,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY),
 			cop.sNewSourceKey.size(), cop.sNewSourceKey, cop.ulId);
 		gcache->SetObjectProp(PROP_ID(PR_ENTRYID),
-			cop.sNewEntryId.size(), cop.sNewEntryId, cop.ulId);
+			cop.sNewEntryId->__size, cop.sNewEntryId->__ptr, cop.ulId);
 	}
 
 	er = dtx.commit();
