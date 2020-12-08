@@ -2797,7 +2797,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 	kd_trans dtx;
 	EntryId entryid(sEntryId);
 	if (entryid.type() != MAPI_STORE) {
-		er = BeginLockFolders(lpDatabase, entryid, LOCK_SHARED, dtx, er);
+		er = BeginLockFolders(lpDatabase, PR_ENTRYID, {entryid}, LOCK_SHARED, dtx, er);
 		if (er != erSuccess)
 			return er;
 	}
