@@ -1643,6 +1643,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     const std::set<std::string> &setIds, unsigned int ulFlags, kd_trans &dtx,
     ECRESULT &dtxerr)
 {
+	ulTag = PROP_ID(ulTag);
     ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
@@ -1750,8 +1751,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
 
 	std::transform(setFolders.cbegin(), setFolders.cend(), std::inserter(setIds, setIds.begin()),
 		[](const auto &s) { return static_cast<std::string>(s); });
-	return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds,
-	       ulFlags, dtx, dtxerr);
+	return BeginLockFolders(lpDatabase, PR_SOURCE_KEY, setIds, ulFlags, dtx, dtxerr);
 }
 
 /**
@@ -1767,8 +1767,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
     std::set<std::string> setIds;
 
     std::copy(setEntryIds.begin(), setEntryIds.end(), std::inserter(setIds, setIds.begin()));
-	return BeginLockFolders(lpDatabase, PROP_ID(PR_ENTRYID), setIds,
-	       ulFlags, dtx, dtxerr);
+	return BeginLockFolders(lpDatabase, PR_ENTRYID, setIds, ulFlags, dtx, dtxerr);
 }
 
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
