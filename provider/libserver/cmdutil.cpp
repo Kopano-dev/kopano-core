@@ -1737,27 +1737,9 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     return LockFolders(lpDatabase, ulFlags & LOCK_SHARED, setFolders);
 }
 
-/**
- * Begin a new transaction and lock folders
- *
- * EntryID of messages and folders to lock can be passed in setEntryIds. In practice, only the folders
- * in which the messages reside are locked.
- */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
-    const std::set<EntryId> &setEntryIds, unsigned int ulFlags,
-    kd_trans &dtx, ECRESULT &dtxerr)
-{
-    std::set<std::string> setIds;
-
-    std::copy(setEntryIds.begin(), setEntryIds.end(), std::inserter(setIds, setIds.begin()));
-	return BeginLockFolders(lpDatabase, PR_ENTRYID, setIds, ulFlags, dtx, dtxerr);
-}
-
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
     unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
 {
-    std::set<EntryId> set;
-
     // No locking needed for stores
 	try {
 		if (entryid.type() == MAPI_STORE) {
@@ -1768,8 +1750,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
 		ec_log_err("entryid.type(): %s", e.what());
 		return KCERR_INVALID_PARAMETER;
 	}
-	set.emplace(entryid);
-    return BeginLockFolders(lpDatabase, set, ulFlags, dtx, dtxerr);
+	return BeginLockFolders(lpDatabase, PR_ENTRYID, {entryid}, ulFlags, dtx, dtxerr);
 }
 
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be
