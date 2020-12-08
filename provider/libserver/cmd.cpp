@@ -2785,6 +2785,16 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	return er;
 }
 
+static inline bool usType_is_store(const entryId &e)
+{
+	/* can take either EID_V0 or EID - both have usType in the same spot */
+	if (e.__size < sizeof(EID_V0))
+		return false;
+	uint16_t mtype = 0;
+	memcpy(&mtype, &reinterpret_cast<EID_V0 *>(e.__ptr)->usType, sizeof(mtype));
+	return le16_to_cpu(mtype) == MAPI_STORE;
+}
+
 SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
     struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags,
     struct loadObjectResponse *lpsLoadObjectResponse)
@@ -2795,16 +2805,14 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 
 	struct saveObject sSavedObject;
 	kd_trans dtx;
-	EntryId entryid(sEntryId);
-	if (entryid.type() != MAPI_STORE) {
-		er = BeginLockFolders(lpDatabase, PR_ENTRYID, {entryid}, LOCK_SHARED, dtx, er);
+	if (!usType_is_store(sEntryId)) {
+		er = BeginLockFolders(lpDatabase, PR_ENTRYID,
+		     {std::string(reinterpret_cast<const char *>(sEntryId.__ptr), sEntryId.__size)},
+		     LOCK_SHARED, dtx, er);
 		if (er != erSuccess)
 			return er;
 	}
-	auto laters = make_scope_success([&]() {
-		if (entryid.type() != MAPI_STORE)
-			dtx.commit();
-	});
+	auto laters = make_scope_success([&]() { dtx.commit(); });
 	/*
 	 * 2 Reasons to send KCERR_UNABLE_TO_COMPLETE (and have the client try to open the store elsewhere):
 	 *  1. We can't find the object based on the entryid.
