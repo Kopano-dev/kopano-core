@@ -775,6 +775,10 @@ static HRESULT HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 		break;
 	case OP_FORWARD:
 	case OP_DELEGATE: {
+		if (lpSrc->lpadrlist == nullptr) {
+			lpDest->lpadrlist = nullptr;
+			break;
+		}
 		auto hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries),
 		          lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
 		if (hr != hrSuccess)
