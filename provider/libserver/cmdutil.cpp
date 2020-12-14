@@ -1667,18 +1667,20 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 			continue;
 		}
 
-		EntryId eid(s);
-		try {
-			if (eid.type() == MAPI_FOLDER)
-				setFolders.emplace(ulId);
-			else if (eid.type() == MAPI_MESSAGE)
-				setMessages.emplace(ulId);
-			else
-				assert(false);
-		} catch (const std::runtime_error &e) {
-			ec_log_err("eid.type(): %s", e.what());
-			return MAPI_E_CORRUPT_DATA;
-		}
+		auto mtype = [](const std::string &s) -> uint16_t {
+			if (s.size() < sizeof(EID_V0))
+				return 0;
+			uint16_t mtype = 0;
+			/* deal with unaligned access */
+			memcpy(&mtype, &reinterpret_cast<const EID_V0 *>(s.data())->usType, sizeof(mtype));
+			return mtype;
+		}(s);
+		if (mtype == MAPI_FOLDER)
+			setFolders.emplace(ulId);
+		else if (mtype == MAPI_MESSAGE)
+			setMessages.emplace(ulId);
+		else
+			assert(false);
     }
 
     if(!setUncached.empty()) {
