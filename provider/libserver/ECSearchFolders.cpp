@@ -379,7 +379,8 @@ static bool is_in_target_folder(unsigned int type, unsigned int folder_id,
 	const auto begin = sc.lpFolders->__ptr, end = begin + sc.lpFolders->__size;
 	auto yes = std::any_of(begin, end, [&](const entryId &target) {
 		unsigned int nid;
-		return cache->GetObjectFromEntryId(&target, &nid) == erSuccess && nid == folder_id;
+		return target.__size > 0 &&
+		       cache->GetObjectFromEntryId(&target, &nid) == erSuccess && nid == folder_id;
 	});
 	if (yes)
 		return true;
