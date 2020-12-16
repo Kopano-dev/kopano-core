@@ -52,7 +52,7 @@ EXTRA_DIST = .astylerc .clang-format .clang_complete .editorconfig .gitignore \
 AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${prefix}/lib/mapi.d:${sysconfdir}/mapi.d\" -DPKGLIBDIR='"${pkglibdir}"' \
 	-DUSCRIPTDIR='"${uscriptlibdir}"' -DUSCRIPTLDIR='"${uscriptconfdir}"' \
-	-DSOAP_CMAC='__attribute__((visibility("default")))' \
+	-DSOAP_CMAC='__attribute__((visibility("default")))' -DSOAP_NOTHROW= \
 	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
 	-I${top_srcdir}/common \
