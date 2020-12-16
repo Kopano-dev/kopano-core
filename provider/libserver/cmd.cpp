@@ -6994,15 +6994,14 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	std::set<std::string> setEntryIds;
 	USE_DATABASE_NORESULT();
 
-	const EntryId dstEntryId(&sDestFolderId);
 	if(aMessages == NULL) {
 		ec_log_err("SOAP::copyObjects: list of messages (entryList) missing");
 		return KCERR_INVALID_PARAMETER;
 	}
 
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
-		setEntryIds.emplace(EntryId(aMessages->__ptr[i]));
-	setEntryIds.emplace(dstEntryId);
+		setEntryIds.emplace(std::string(reinterpret_cast<char *>(aMessages->__ptr[i].__ptr), aMessages->__ptr[i].__size));
+	setEntryIds.emplace(std::string(reinterpret_cast<char *>(sDestFolderId.__ptr), sDestFolderId.__size));
 	kd_trans dtx;
 	er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
 	if (er != erSuccess)
@@ -7010,7 +7009,8 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "Failed obtaining object by entry id (%s)", static_cast<std::string>(dstEntryId).c_str());
+		return er_lerrf(er, "Failed obtaining object by entry id (%s)",
+		       bin2hex(sDestFolderId.__size, sDestFolderId.__ptr).c_str());
 
 	// Check permission, Destination folder
 	er = lpecSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreate);
@@ -7070,12 +7070,13 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	SOURCEKEY sParentSourceKey, sDestSourceKey; /* old + new parent */
 	std::string strSubQuery, name;
 	USE_DATABASE();
-	const EntryId srcEntryId(&sEntryId), dstEntryId(&sDestFolderId);
+	auto hex_srceid = bin2hex(sEntryId.__size, sEntryId.__ptr);
+	auto hex_dsteid = bin2hex(sEntryId.__size, sEntryId.__ptr);
 
 	// NOTE: lpszNewFolderName can be NULL
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "GetObjectFromEntryId failed for %s", static_cast<std::string>(srcEntryId).c_str());
+		return er_lerrf(er, "GetObjectFromEntryId failed for %s", hex_srceid.c_str());
 
 	// Get source store
 	auto gcache = g_lpSessionManager->GetCacheManager();
@@ -7084,7 +7085,7 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 		return er_lerrf(er, "GetStore failed for folder id %u", ulFolderId);
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "GetObjectFromEntryId failed for %s", static_cast<std::string>(dstEntryId).c_str());
+		return er_lerrf(er, "GetObjectFromEntryId failed for %s", hex_dsteid.c_str());
 	// Get dest store
 	er = gcache->GetStore(ulDestFolderId, &ulDestStoreId, nullptr);
 	if (er != erSuccess)
@@ -7120,8 +7121,8 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	if (er != erSuccess)
 		return er_lerrf(er, "Cannot get type of destination folder (%u)", ulDestFolderId);
 	if (ulSourceType != MAPI_FOLDER || ulDestType != MAPI_FOLDER) {
-		const std::string srcEntryIdStr = srcEntryId, dstEntryIdStr = dstEntryId;
-		ec_log_err("SOAP::copyFolder source (%u) or destination (%u) is not a folder, invalid entry id (%s / %s)", ulSourceType, ulDestType, srcEntryIdStr.c_str(), dstEntryIdStr.c_str());
+		ec_log_err("SOAP::copyFolder source (%u) or destination (%u) is not a folder, invalid entry id (%s / %s)",
+			ulSourceType, ulDestType, hex_srceid.c_str(), hex_dsteid.c_str());
 		return KCERR_INVALID_ENTRYID;
 	}
 	// Check folder and dest folder are the same
@@ -8671,8 +8672,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 
 	if(ulPropTag == PR_ENTRYID) {
 		std::set<std::string> setEntryIDs;
-	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setEntryIDs.emplace(EntryId(sSourceKeyPairs.__ptr[i].sObjectKey));
+		for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
+			setEntryIDs.emplace(std::string(reinterpret_cast<const char *>(sSourceKeyPairs.__ptr[i].sObjectKey.__ptr), sSourceKeyPairs.__ptr[i].sObjectKey.__size));
 		er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIDs, LOCK_SHARED, dtx, er);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
 		std::set<std::string> setParentSourcekeys;
