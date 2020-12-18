@@ -1290,7 +1290,10 @@ class Folder(Properties):
     def event(self, eventid):
         eventid = _bdec(eventid)
         leid = _utils.unpack_short(eventid, 1)
-        item = self.item(_benc(eventid[3:3 + leid]))
+        entryid = _benc(eventid[3:3 + leid])
+        if not entryid:
+            raise ArgumentError("invalid eventid")
+        item = self.item(entryid)
         if eventid[0] == 0:
             return item
         else:
