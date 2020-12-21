@@ -396,12 +396,17 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		lpEntryID = lpEntryIDServer;
-		memcpy(&lpABeid, lpEntryID, sizeof(ABEID));
+		auto ab = reinterpret_cast<const ABEID *>(lpEntryID);
+		memcpy(lpABeid.abFlags, ab->abFlags, sizeof(ab->abFlags));
+		lpABeid.guid = ab->guid;
+		lpABeid.ulVersion = ab->ulVersion;
+		lpABeid.ulType = ab->ulType;
+		lpABeid.ulId = ab->ulId;
 
 		// Check sane entryid
-		if (lpABeid.ulType != MAPI_ABCONT &&
-		    lpABeid.ulType != MAPI_MAILUSER &&
-		    lpABeid.ulType != MAPI_DISTLIST)
+		if (le16_to_cpu(lpABeid.ulType) != MAPI_ABCONT &&
+		    le16_to_cpu(lpABeid.ulType) != MAPI_MAILUSER &&
+		    le16_to_cpu(lpABeid.ulType) != MAPI_DISTLIST)
 			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// Check entryid GUID, must be either MUIDECSAB or m_ABPGuid
@@ -411,7 +416,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	}
 
 	//TODO: check entryid serverside?
-	switch (lpABeid.ulType) {
+	switch (le16_to_cpu(lpABeid.ulType)) {
 	case MAPI_ABCONT: {
 		auto hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 		if (hr != hrSuccess)
@@ -474,7 +479,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	}
 
 	if(lpulObjType)
-		*lpulObjType = lpABeid.ulType;
+		*lpulObjType = le16_to_cpu(lpABeid.ulType);
 	return hrSuccess;
 }
 
