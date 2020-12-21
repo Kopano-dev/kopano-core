@@ -122,7 +122,7 @@ HRESULT recurrence::HrGetRecurrenceState(std::string &output)
 void recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 {
 	struct tm tm;
-	char bufstart[32], bufend[32], startocc[8], endocc[8];
+	char bufstart[32], bufend[32], startocc[12], endocc[12];
 	auto everyn = m_sRecState.ulPeriod;
 	gmtime_safe(getStartDate(), &tm);
 	strftime(bufstart, sizeof(bufstart), "%F", &tm);
