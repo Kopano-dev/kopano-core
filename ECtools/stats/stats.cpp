@@ -462,7 +462,7 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 		return stringify_double(lpProp->Value.flt);
 	case PT_I8: {
 		char buf[HXSIZEOF_Z64+2];
-		snprintf(buf, sizeof(buf), "0x%lx", lpProp->Value.li.QuadPart);
+		snprintf(buf, sizeof(buf), "0x%llx", static_cast<unsigned long long>(lpProp->Value.li.QuadPart));
 		return buf;
 	}
 	case PT_SYSTIME: {

@@ -662,7 +662,8 @@ void LDAPUserPlugin::my_ldap_search_s(const char *base, int scope,
 	}
 
 	llelapsedtime = dur2us(decltype(tstart)::clock::now() - tstart);
-	LOG_PLUGIN_DEBUG("ldaptiming [%luµs] (\"%s\" \"%s\" %s), results: %d", llelapsedtime, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
+	LOG_PLUGIN_DEBUG("ldaptiming [%ldµs] (\"%s\" \"%s\" %s), results: %d", static_cast<long>(llelapsedtime),
+		base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 	*lppres = res.release(); // deref the pointer from object
 	m_lpStatsCollector->inc(SCN_LDAP_SEARCH);
 	m_lpStatsCollector->inc(SCN_LDAP_SEARCH_TIME, llelapsedtime);

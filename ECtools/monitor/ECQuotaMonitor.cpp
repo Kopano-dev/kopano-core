@@ -93,7 +93,9 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	if(hr != hrSuccess)
 		kc_perror("Quota monitor failed", hr);
 	else
-		ec_log_info("Quota monitor done in %lu seconds. Processed: %u, Failed: %u", tmEnd - tmStart, lpecQuotaMonitor->m_ulProcessed, lpecQuotaMonitor->m_ulFailed);
+		ec_log_info("Quota monitor done in %lld seconds. Processed: %u, Failed: %u",
+			static_cast<long long>(tmEnd - tmStart),
+			lpecQuotaMonitor->m_ulProcessed, lpecQuotaMonitor->m_ulFailed);
 	return NULL;
 }
 

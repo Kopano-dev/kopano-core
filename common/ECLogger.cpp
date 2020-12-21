@@ -141,7 +141,8 @@ size_t ECLogger::MakeTimestamp(char *buffer, size_t z)
 	localtime_r(&ts.tv_sec, &local);
 	if (strftime(buffer, z, "%FT%T", &local) == 0)
 		return 0;
-	snprintf(buffer + strlen(buffer), z - strlen(buffer), ".%06ld", ts.tv_nsec / 1000);
+	snprintf(buffer + strlen(buffer), z - strlen(buffer), ".%06lld",
+	         static_cast<long long>(ts.tv_nsec) / 1000);
 	return strlen(buffer);
 }
 

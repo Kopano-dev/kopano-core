@@ -948,14 +948,14 @@ bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,
     const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus,
     OccrInfo **lppOccrInfoAll, ULONG *lpcValues)
 {
-	ec_log_debug("Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
+	ec_log_debug("Testing match: %lld ==> %s", static_cast<long long>(tsNow), ctime(&tsNow));
 	if (!isOccurrenceValid(UTCToLocal(tsStart, ttZinfo), UTCToLocal(tsEnd, ttZinfo), tsNow + getStartTimeOffset())) {
-		ec_log_debug("Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
+		ec_log_debug("Skipping match: %lld ==> %s", static_cast<long long>(tsNow), ctime(&tsNow));
 		return false;
 	}
 	auto tsOccStart = LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
 	auto tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
-	ec_log_debug("Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+	ec_log_debug("Adding match: %lld ==> %s", static_cast<long long>(tsOccStart), ctime(&tsOccStart));
 	AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, lppOccrInfoAll, lpcValues);
 	return true;
 }
@@ -983,10 +983,10 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 	                  tsEnd : LocalToUTC(getEndDateTime(), ttZinfo);
 	auto tsDayEnd = StartOfDay(UTCToLocal(tsRangeEnd, ttZinfo));
 
-	ec_log_debug("DURATION START TIME: %lu ==> %s", tsStart, ctime(&tsStart));
-	ec_log_debug("DURATIION END TIME: %lu ==> %s", tsEnd, ctime(&tsEnd));
-	ec_log_debug("Rec Start TIME: %lu ==> %s", tsDayStart, ctime(&tsDayStart));
-	ec_log_debug("Rec End TIME: %lu ==> %s", tsDayEnd, ctime(&tsDayEnd));
+	ec_log_debug("DURATION START TIME: %lld ==> %s", static_cast<long long>(tsStart), ctime(&tsStart));
+	ec_log_debug("DURATIION END TIME: %lld ==> %s", static_cast<long long>(tsEnd), ctime(&tsEnd));
+	ec_log_debug("Rec Start TIME: %lld ==> %s", static_cast<long long>(tsDayStart), ctime(&tsDayStart));
+	ec_log_debug("Rec End TIME: %lld ==> %s", static_cast<long long>(tsDayEnd), ctime(&tsDayEnd));
 	switch (getFrequency())
 	{
 	case DAILY:
@@ -1156,7 +1156,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		auto tsOccStart = RTimeToUnixTime(lpException.ulStartDateTime); /* tsOccStart is localtime */
 		tsOccStart = LocalToUTC(tsOccStart, ttZinfo);
 		if(tsOccStart > tsEnd) {									// tsStart, tsEnd == gmtime
-			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+			ec_log_debug("Skipping exception start match: %lld ==> %s", static_cast<long long>(tsOccStart), ctime(&tsOccStart));
 			continue;
 		}
 		sOccrInfo.fbBlock.m_tmStart = UnixTimeToRTime(tsOccStart);
@@ -1165,7 +1165,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		auto tsOccEnd = RTimeToUnixTime(lpException.ulEndDateTime);
 		tsOccEnd = LocalToUTC(tsOccEnd, ttZinfo);
 		if(tsOccEnd < tsStart) {
-			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
+			ec_log_debug("Skipping exception end match: %lld ==> %s", static_cast<long long>(tsOccEnd), ctime(&tsOccEnd));
 			continue;
 		}
 		sOccrInfo.fbBlock.m_tmEnd = UnixTimeToRTime(tsOccEnd);
@@ -1175,7 +1175,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 
 		// Freebusy status
 		sOccrInfo.tBaseDate = RTimeToUnixTime(lpException.ulOriginalStartDate);
-		ec_log_debug("Adding exception match: %lu ==> %s", sOccrInfo.tBaseDate, ctime(&sOccrInfo.tBaseDate));
+		ec_log_debug("Adding exception match: %lld ==> %s", static_cast<long long>(sOccrInfo.tBaseDate), ctime(&sOccrInfo.tBaseDate));
 		hr = HrAddFBBlock(sOccrInfo, &lpOccrInfoAll, lpcValues);
 	}
 
