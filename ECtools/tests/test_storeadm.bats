@@ -57,6 +57,14 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "mailbox" {
+  run kopano-storeadm -M
+  [ "$status" -eq 0 ]
+  mailbox=$(echo $output | jq ".[] | select(.owner_name == \"${KOPANO_TEST_FULLNAME3}\")")
+  size=$(echo $mailbox | jq .size)
+  [ "$size" -gt 0 ]
+}
+
 @test "version" {
   run kopano-storeadm -V
   re="kopano-storeadm [[:digit:]]+.[[:digit:]]+.[[:digit:]]+"
