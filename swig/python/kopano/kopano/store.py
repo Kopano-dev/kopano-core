@@ -1105,6 +1105,7 @@ class Store(Properties):
     def searches(self):
         """Return all permanent search folders."""
         findroot = self.root.folder('FINDER_ROOT')
+        log = self.server.log
 
         # extract special type of guid from search folder
         # PR_EXTENDED_FOLDER_FLAGS to match against
@@ -1113,6 +1114,9 @@ class Store(Properties):
             try:
                 prop = folder.prop(PR_EXTENDED_FOLDER_FLAGS)
                 subprops = self._subprops(prop.value)
+                if not subprops or len(subprops) < 3:
+                    log.error("PR_EXTENDED_FOLDER_FLAGS is corrupt for search folder: '%s'", folder.name)
+                    continue
                 guid_folder[subprops[2]] = folder
             except NotFoundError:
                 pass
