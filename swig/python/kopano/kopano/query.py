@@ -73,8 +73,8 @@ MESSAGE_KEYWORD_PROP = {
     'body': PR_BODY_W,
     'content': PR_BODY_W, # TODO what does content mean
     'received': PR_MESSAGE_DELIVERY_TIME,
-    'hasattachment': PR_HASATTACH,
-    'hasattachments': PR_HASATTACH,
+    'hasAttachment': PR_HASATTACH,
+    'hasAttachments': PR_HASATTACH,
     'size': PR_MESSAGE_SIZE,
     'read': (PR_MESSAGE_FLAGS, MSGFLAG_READ),
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
