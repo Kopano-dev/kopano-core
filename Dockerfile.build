@@ -56,7 +56,6 @@ RUN apt-get update -y \
         gettext \
         gsoap \
         libcurl4-openssl-dev \
-        libdb++-dev \
         libgoogle-perftools-dev \
         libgsoap-dev \
         libhx-dev \
@@ -75,7 +74,6 @@ RUN apt-get update -y \
         libtool \
         libtool-bin \
         libvmime-dev \
-        libxapian-dev \
         libxml2-dev \
         lsb-release \
         m4 \
