@@ -43,7 +43,7 @@ extern KC_EXPORT int u8_icompare(const char *, const char *, const ECLocale &);
 extern KC_EXPORT bool u8_contains(const char *haystack, const char *needle, const ECLocale &);
 extern KC_EXPORT bool u8_icontains(const char *haystack, const char *needle, const ECLocale &);
 extern KC_EXPORT size_t u8_cappedbytes(const char *s, size_t max);
-extern KC_EXPORT size_t u8_len(const char *, size_t = ~0ULL);
+extern KC_EXPORT size_t u8_len(const char *, size_t = size_t(-1));
 extern KC_EXPORT wchar_t u8_readbyte(const char *&);
 extern KC_EXPORT ECLocale createLocaleFromName(const char *);
 extern KC_EXPORT ECRESULT LocaleIdToLCID(const char *locale, unsigned int *id);

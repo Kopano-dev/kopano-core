@@ -150,9 +150,9 @@ static void log_request(struct soap *soap, int soaperr)
 		!st.imp.empty() ? bin2txt(st.imp).c_str() : "-",
 		st.func ?: "-", ers,
 		dur2dbl(st.sk_wall_dur), dur2dbl(st.enq_wall_dur),
-		dur2dbl(st.wi_wall_dur), static_cast<long>(st.wi_cpu[2].tv_sec), st.wi_cpu[2].tv_nsec / 1000,
-		dur2dbl(st.rh1_wall_dur), static_cast<long>(st.rh1_cpu[2].tv_sec), st.rh1_cpu[2].tv_nsec / 1000,
-		dur2dbl(st.rh2_wall_dur), static_cast<long>(st.rh2_cpu[2].tv_sec), st.rh2_cpu[2].tv_nsec / 1000,
+		dur2dbl(st.wi_wall_dur), static_cast<long>(st.wi_cpu[2].tv_sec), static_cast<long>(st.wi_cpu[2].tv_nsec / 1000),
+		dur2dbl(st.rh1_wall_dur), static_cast<long>(st.rh1_cpu[2].tv_sec), static_cast<long>(st.rh1_cpu[2].tv_nsec / 1000),
+		dur2dbl(st.rh2_wall_dur), static_cast<long>(st.rh2_cpu[2].tv_sec), static_cast<long>(st.rh2_cpu[2].tv_nsec / 1000),
 		st.agent.c_str()));
 }
 
