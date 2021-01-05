@@ -23,7 +23,8 @@ from MAPI.Tags import (
     PR_MAPPING_SIGNATURE, PR_EC_ARCHIVE_SERVERS,
     EMS_AB_ADDRESS_LOOKUP, PR_GIVEN_NAME_W, PR_SURNAME_W,
     PR_MOBILE_TELEPHONE_NUMBER_W, PR_OFFICE_LOCATION_W,
-    PR_TITLE_W, PR_EMS_AB_THUMBNAIL_PHOTO,
+    PR_TITLE_W, PR_EMS_AB_THUMBNAIL_PHOTO, PR_PREFERRED_BY_NAME_W,
+    PR_BUSINESS_TELEPHONE_NUMBER_W, PR_BIRTHDAY, PR_POSTAL_CODE_W
 )
 
 from .store import Store
@@ -167,6 +168,33 @@ class User(Properties):
     @password.setter
     def password(self, value):
         self._update(password=str(value))
+
+    @property
+    def preferred_name(self):
+        """User preferred name."""
+        return self.get(PR_PREFERRED_BY_NAME_W, "")
+
+    @property
+    def business_phones(self):
+        """User business phones.
+
+        Note:
+             Based on Microsoft Graph document:
+             "Although this is a string collection, only one number
+              can be set for this property."
+        """
+        phone = self.get(PR_BUSINESS_TELEPHONE_NUMBER_W)
+        return [phone] if phone else []
+
+    @property
+    def birthday(self):
+        """User birthday."""
+        return self.get(PR_BIRTHDAY, "")
+
+    @property
+    def postal_code(self):
+        """User postal code."""
+        return self.get(PR_POSTAL_CODE_W, "")
 
     # TODO uniform with contact.photo.. class Picture (filename, dimensions..)?
     @property
