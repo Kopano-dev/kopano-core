@@ -761,7 +761,7 @@ kscriptrun_SOURCES = ECtools/scriptrun.cpp
 kscriptrun_LDADD = libkcutil.la
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
-	${curl_LIBS} ${icu_uc_LIBS}
+	${curl_LIBS} ${icu_uc_LIBS} -lpthread
 tests_ablookup_SOURCES = tests/ablookup.cpp
 tests_ablookup_LDADD = libmapi.la libkcutil.la
 tests_htmltext_SOURCES = tests/htmltext.cpp
