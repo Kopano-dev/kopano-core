@@ -17,7 +17,6 @@ Mandatory build-time dependencies and their minimum versions (if any):
 	  or libvmime 0.9.2-56-gf173b0a (github.com/kisli/vmime; see below)
 	* libxml2 2.6
 	* MariaDB Connector/C 3.0 or MySQL Connector/C 5.1
-	* Xapian 1.2.21 (C++ library)
 	* zlib 1.2
 
 Optional build-time dependencies and their minimum versions:
