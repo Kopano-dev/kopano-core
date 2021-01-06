@@ -94,7 +94,7 @@ noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = eidprint kscriptrun mapitime setupenv
 setupenv_SOURCES = tests/setupenv.cpp
 setupenv_LDADD = libkcutil.la
-check_PROGRAMS = tests/ablookup tests/htmltext tests/imtomapi \
+check_PROGRAMS = tests/ablookup tests/htmltext \
 	tests/kc-335 tests/kc-1759 tests/mapialloctime \
 	tests/readflag tests/ustring tests/zcpmd5 tests/chtmltotextparsertest \
 	tests/rtfhtmltest
@@ -770,8 +770,6 @@ tests_chtmltotextparsertest_SOURCES = tests/chtmltotextparsertest.cpp
 tests_chtmltotextparsertest_LDADD = libkcutil.la
 tests_rtfhtmltest_SOURCES = tests/rtfhtmltest.cpp
 tests_rtfhtmltest_LDADD = libkcutil.la
-tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
-tests_imtomapi_LDADD = libkcinetmapi.la libmapi.la libkcutil.la
 tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
 tests_kc_335_LDADD = libmapi.la libkcutil.la
 tests_kc_1759_SOURCES = tests/kc-1759.cpp
