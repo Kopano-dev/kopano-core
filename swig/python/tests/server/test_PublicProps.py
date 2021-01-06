@@ -17,9 +17,8 @@ def test_generated_props(publicstore, proptag, value):
     assert props[0].Value == value
 
 
-# TODO: figure out the MAPI_E_COLISSION error on SetProps
 @pytest.mark.parametrize("proptag,value", [(PR_DISPLAY_NAME_A, b'hello'), (PR_DISPLAY_NAME_W, 'フォルダ')])
-def xtest_folder_setprops(publicfolder, proptag, value):
+def test_folder_setprops(publicfolder, proptag, value):
     publicfolder.SetProps([SPropValue(proptag, value)])
     props = publicfolder.GetProps([proptag], 0)
     assert props[0].Value == value
