@@ -89,7 +89,7 @@ extern KC_EXPORT std::string stringify_float(double);
 extern KC_EXPORT std::string stringify_double(double, int prec = 18, bool locale = false);
 extern KC_EXPORT std::wstring wstringify_hex(unsigned int);
 
-#define tstringify			wstringify
+#define tstringify wstringify
 #define tstringify_hex wstringify_hex
 
 static inline unsigned int atoui(const char *s) { return strtoul(s, nullptr, 10); }
@@ -103,13 +103,19 @@ static inline bool parseBool(const char *s)
 {
 	/* Empty string was considered true (ZCP), same here (KC) */
 	return s == nullptr || (strcmp(s, "0") != 0 &&
-	       strcmp(s, "false") != 0 && strcmp(s, "no") != 0);
+	       strcasecmp(s, "false") != 0 && strcasecmp(s, "no") != 0);
 }
 
 static inline bool parse_yesno(const char *s)
 {
 	/* Empty string -> false */
 	return s != nullptr && *s != '\0' && parseBool(s);
+}
+
+static inline bool parseBoolPositive(const char *s)
+{
+	return s != nullptr && *s != '\0' && (strcmp(s, "1") == 0 || strcasecmp(s, "true") == 0 ||
+		strcmp(s, "yes") == 0);
 }
 
 extern KC_EXPORT std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
