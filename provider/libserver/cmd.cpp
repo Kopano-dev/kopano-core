@@ -746,14 +746,12 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	ECSESSIONID		newSessionID = 0;
 	GUID sServerGuid{};
 	xsd__base64Binary *lpOutput = NULL;
-	const char *lpszEnabled = NULL;
 
 	if (lpInput == nullptr || lpInput->__size == 0 ||
 	    lpInput->__ptr == nullptr || szUsername == nullptr ||
 	    cl_ver == nullptr)
 		goto exit;
-	lpszEnabled = g_lpSessionManager->GetConfig()->GetSetting("enable_sso");
-	if (!(lpszEnabled && strcasecmp(lpszEnabled, "yes") == 0))
+	if (!parse_yesno(g_lpSessionManager->GetConfig()->GetSetting("enable_sso")))
 		goto nosso;
 	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
@@ -8827,13 +8825,13 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 {
 	unsigned int ulObjectId = 0, ulParentId = 0, ulParentCheck = 0;
 	unsigned int ulObjFlags = 0, ulStoreId = 0, ulMode = 0;
-	unsigned long		ulObjCnt = 0;
-	GUID				sGuid;
-	ECObjectTableList	rows;
-	struct rowSet		*lpRowSet = NULL; // Do not free, used in response data
-	ECODStore			ecODStore;
+	unsigned long ulObjCnt = 0;
+	GUID sGuid;
+	ECObjectTableList rows;
+	struct rowSet *lpRowSet = NULL; // Do not free, used in response data
+	ECODStore ecODStore;
 	std::unique_ptr<ECDatabase> lpBatchDB;
-	bool				bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
+	bool bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	// Backward compat, old clients do not send ulPropTag
 	if(!ulPropTag)
