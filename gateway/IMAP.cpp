@@ -461,7 +461,7 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
 		// authentication capabilities
 		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
 			strCapabilities += " STARTTLS";
-		if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0)
+		if (!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0)
 			strCapabilities += " LOGINDISABLED";
 		else
 			strCapabilities += " AUTH=PLAIN";
@@ -469,7 +469,7 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
 	if (lpSession || bAllFlags) {
 		// capabilities after authentication
 		strCapabilities += " CHILDREN XAOL-OPTION NAMESPACE QUOTA";
-		if (idle && strcmp(idle, "yes") == 0)
+		if (parse_yesno(idle))
 			strCapabilities += " IDLE";
 	}
 	return strCapabilities;
@@ -584,7 +584,7 @@ HRESULT IMAP::HrCmdAuthenticate(const std::string &strTag,
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	// If plaintext authentication was disabled, any authentication attempt must be refused very soon.
-	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0) {
 		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
 		ec_log_err("Aborted login from [%s] without username (tried to use disallowed plaintext auth)",
@@ -652,7 +652,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	}
 
 	// If plaintext authentication was disabled, any login attempt must be refused very soon.
-	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0) {
 		HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
 						"did it anyway. If anyone was listening, the password was exposed.");
 

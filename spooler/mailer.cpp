@@ -1674,7 +1674,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// this can be misused by MAPI client that just set PR_AUTO_FORWARDED. Since it would have been just as
 		// easy for the client just to spoof their 'from' address via SMTP, we're allowing this for now. You can
 		// completely turn it off via the 'allow_redirect_spoofing' setting.
-	else if (strcmp(g_lpConfig->GetSetting("allow_redirect_spoofing"), "yes") == 0 &&
+	else if (parse_yesno(g_lpConfig->GetSetting("allow_redirect_spoofing")) &&
 	    HrGetOneProp(lpMessage, PR_AUTO_FORWARDED, &~lpAutoForward) == hrSuccess &&
 	    lpAutoForward->Value.b) {
 			bAllowSendAs = true;
@@ -1687,12 +1687,12 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		hr = lpAddrBook->CompareEntryIDs(lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
 		     lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, 0, &ulCmpRes);
 		if (hr == hrSuccess && ulCmpRes == false) {
-			if (strcmp(g_lpConfig->GetSetting("always_send_delegates"), "yes") == 0) {
+			if (parse_yesno(g_lpConfig->GetSetting("always_send_delegates"))) {
 				// pre 6.20 behaviour
 				bAllowDelegate = true;
 				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin, &~lpRepStore);
 				// ignore error if unable to open, just the copy of the mail might possibly not be done.
-			} else if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
+			} else if(parse_yesno(g_lpConfig->GetSetting("allow_delegate_meeting_request")) &&
 			    HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) == hrSuccess &&
 			    ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
 			    (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Canceled" ) == 0))) {
@@ -1750,7 +1750,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	cts = g_lpConfig->GetSetting("copy_delegate_mails");
-	if (lpRepStore != nullptr && (strcmp(cts, "yes") == 0 ||
+	if (lpRepStore != nullptr && (parse_yesno(cts) ||
 	    strcmp(cts, "move-to-rep") == 0))
 		// copy the original message with the actual sender data
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)

@@ -201,7 +201,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		goto exit;
 	}
 
-	if (strcmp(lpConfig->GetSetting("ssl_verify_client"), "yes") == 0)
+	if (parse_yesno(lpConfig->GetSetting("ssl_verify_client")))
 		SSL_CTX_set_verify(newctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
 	else
 		SSL_CTX_set_verify(newctx, SSL_VERIFY_NONE, 0);
