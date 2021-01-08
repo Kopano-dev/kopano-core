@@ -304,7 +304,10 @@ HRESULT create_pym_plugin(ECConfig *cfg, const char *ctxname, pym_plugin_intf **
 		return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
-	lib = "libkcpyplug.so.0";
+	if (parseBoolPositive(lib)) {
+		lib = "libkcpyplug.so.0";
+	}
+
 	/*
 	 * Handle for some reason has to stay open lest python will crash
 	 * during gc run. Hope your libdl does reference counting.
