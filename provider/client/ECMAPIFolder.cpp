@@ -307,11 +307,19 @@ HRESULT ECMAPIFolder::SaveChanges(ULONG ulFlags)
 }
 
 HRESULT ECMAPIFolder::SetSearchCriteria(const SRestriction *lpRestriction,
-    const ENTRYLIST *lpContainerList, ULONG ulSearchFlags)
+    const ENTRYLIST *fld, unsigned int flags)
 {
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;
-	return lpFolderOps->HrSetSearchCriteria(lpContainerList, lpRestriction, ulSearchFlags);
+	if (fld != nullptr)
+		for (unsigned int i = 0; i < fld->cValues; ++i) {
+			if (fld->lpbin[i].cb != 0)
+				continue;
+			ec_log_err("K-1571: SetSearchCriteria was called with a null/zero-length entryid "
+				"(container %u of %u)", i, fld->cValues);
+			return MAPI_E_INVALID_PARAMETER;
+		}
+	return lpFolderOps->HrSetSearchCriteria(fld, lpRestriction, flags);
 }
 
 HRESULT ECMAPIFolder::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState)

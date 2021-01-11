@@ -1662,10 +1662,11 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 	return lpDatabase->DoSelect(strQuery, NULL);
 }
 
-static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     const std::set<std::string> &setIds, unsigned int ulFlags, kd_trans &dtx,
     ECRESULT &dtxerr)
 {
+	ulTag = PROP_ID(ulTag);
     ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
@@ -1689,18 +1690,20 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 			continue;
 		}
 
-		EntryId eid(s);
-		try {
-			if (eid.type() == MAPI_FOLDER)
-				setFolders.emplace(ulId);
-			else if (eid.type() == MAPI_MESSAGE)
-				setMessages.emplace(ulId);
-			else
-				assert(false);
-		} catch (const std::runtime_error &e) {
-			ec_log_err("eid.type(): %s", e.what());
-			return MAPI_E_CORRUPT_DATA;
-		}
+		auto mtype = [](const std::string &s) -> uint16_t {
+			if (s.size() < sizeof(EID_V0))
+				return 0;
+			uint16_t mtype = 0;
+			/* deal with unaligned access */
+			memcpy(&mtype, &reinterpret_cast<const EID_V0 *>(s.data())->usType, sizeof(mtype));
+			return mtype;
+		}(s);
+		if (mtype == MAPI_FOLDER)
+			setFolders.emplace(ulId);
+		else if (mtype == MAPI_MESSAGE)
+			setMessages.emplace(ulId);
+		else
+			assert(false);
     }
 
     if(!setUncached.empty()) {
@@ -1757,67 +1760,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 	if (dtxerr != erSuccess)
 		return dtxerr;
     return LockFolders(lpDatabase, ulFlags & LOCK_SHARED, setFolders);
-}
-
-/**
- * Begin a new transaction and lock folders
- *
- * Sourcekey of folders should be passed in setFolders.
- *
- */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
-    const std::set<SOURCEKEY> &setFolders, unsigned int ulFlags,
-    kd_trans &dtx, ECRESULT &dtxerr)
-{
-    std::set<std::string> setIds;
-
-	std::transform(setFolders.cbegin(), setFolders.cend(), std::inserter(setIds, setIds.begin()),
-		[](const auto &s) { return static_cast<std::string>(s); });
-	return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds,
-	       ulFlags, dtx, dtxerr);
-}
-
-/**
- * Begin a new transaction and lock folders
- *
- * EntryID of messages and folders to lock can be passed in setEntryIds. In practice, only the folders
- * in which the messages reside are locked.
- */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
-    const std::set<EntryId> &setEntryIds, unsigned int ulFlags,
-    kd_trans &dtx, ECRESULT &dtxerr)
-{
-    std::set<std::string> setIds;
-
-    std::copy(setEntryIds.begin(), setEntryIds.end(), std::inserter(setIds, setIds.begin()));
-	return BeginLockFolders(lpDatabase, PROP_ID(PR_ENTRYID), setIds,
-	       ulFlags, dtx, dtxerr);
-}
-
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
-    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
-{
-    std::set<EntryId> set;
-
-    // No locking needed for stores
-	try {
-		if (entryid.type() == MAPI_STORE) {
-			dtx = lpDatabase->Begin(dtxerr);
-			return dtxerr;
-		}
-	} catch (const std::runtime_error &e) {
-		ec_log_err("entryid.type(): %s", e.what());
-		return KCERR_INVALID_PARAMETER;
-	}
-	set.emplace(entryid);
-    return BeginLockFolders(lpDatabase, set, ulFlags, dtx, dtxerr);
-}
-
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey,
-    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
-{
-	return BeginLockFolders(lpDatabase, std::set<SOURCEKEY>({sourcekey}),
-	       ulFlags, dtx, dtxerr);
 }
 
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be

@@ -2832,6 +2832,16 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	return er;
 }
 
+static inline bool usType_is_store(const entryId &e)
+{
+	/* can take either EID_V0 or EID - both have usType in the same spot */
+	if (e.__size < sizeof(EID_V0))
+		return false;
+	uint16_t mtype = 0;
+	memcpy(&mtype, &reinterpret_cast<EID_V0 *>(e.__ptr)->usType, sizeof(mtype));
+	return le16_to_cpu(mtype) == MAPI_STORE;
+}
+
 SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
     struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags,
     struct loadObjectResponse *lpsLoadObjectResponse)
@@ -2842,16 +2852,14 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 
 	struct saveObject sSavedObject;
 	kd_trans dtx;
-	EntryId entryid(sEntryId);
-	if (entryid.type() != MAPI_STORE) {
-		er = BeginLockFolders(lpDatabase, entryid, LOCK_SHARED, dtx, er);
+	if (!usType_is_store(sEntryId)) {
+		er = BeginLockFolders(lpDatabase, PR_ENTRYID,
+		     {std::string(reinterpret_cast<const char *>(sEntryId.__ptr), sEntryId.__size)},
+		     LOCK_SHARED, dtx, er);
 		if (er != erSuccess)
 			return er;
 	}
-	auto laters = make_scope_success([&]() {
-		if (entryid.type() != MAPI_STORE)
-			dtx.commit();
-	});
+	auto laters = make_scope_success([&]() { dtx.commit(); });
 	/*
 	 * 2 Reasons to send KCERR_UNABLE_TO_COMPLETE (and have the client try to open the store elsewhere):
 	 *  1. We can't find the object based on the entryid.
@@ -6166,12 +6174,19 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 SOAP_ENTRY_END()
 
 struct COPYITEM {
-	unsigned int ulId, ulType, ulParent, ulFlags;
-	unsigned int ulMessageFlags, ulOwner;
-	SOURCEKEY sSourceKey, sParentSourceKey, sNewSourceKey;
-	EntryId sOldEntryId, sNewEntryId;
-	bool		 bMoved;
+	~COPYITEM();
+	unsigned int ulId = 0, ulType = 0, ulParent = 0, ulFlags = 0;
+	unsigned int ulMessageFlags = 0, ulOwner = 0;
+	SOURCEKEY sSourceKey{}, sParentSourceKey{}, sNewSourceKey{};
+	entryId *sOldEntryId = nullptr, *sNewEntryId = nullptr;
+	bool bMoved = false;
 };
+
+COPYITEM::~COPYITEM()
+{
+	soap_del_PointerToentryId(&sOldEntryId);
+	soap_del_PointerToentryId(&sNewEntryId);
+}
 
 // Move one or more messages and/or moved a softdeleted message to a normal message
 // exception: This function does internal Begin + Commit/Rollback
@@ -6297,7 +6312,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		    (cop.ulFlags & MSGFLAG_DELETED) == 0)
 			continue;
 
-		er = gcache->GetEntryIdFromObject(cop.ulId, nullptr, 0, &lpsOldEntryId);
+		er = gcache->GetEntryIdFromObject(cop.ulId, nullptr, 0, &cop.sOldEntryId);
 		if(er != erSuccess) {
 			// FIXME isn't this an error?
 			er_lerrf(er, "Problem retrieving entry id of object %u", cop.ulId);
@@ -6306,21 +6321,15 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			// FIXME: Delete from list: cop
 			continue;
 		}
-		cop.sOldEntryId = EntryId(lpsOldEntryId);
-		soap_del_PointerToentryId(&lpsOldEntryId);
-		lpsOldEntryId = NULL;
 
-		er = CreateEntryId(guidStore, MAPI_MESSAGE, &lpsNewEntryId);
+		er = CreateEntryId(guidStore, MAPI_MESSAGE, &cop.sNewEntryId);
 		if (er != erSuccess)
 			return er_lerrf(er, "CreateEntryID for type MAPI_MESSAGE failed");
-		cop.sNewEntryId = EntryId(lpsNewEntryId);
-		soap_del_PointerToentryId(&lpsNewEntryId);
-		lpsNewEntryId = NULL;
 
 		// Update entryid (changes on move)
 		strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" +
 			stringify(cop.ulId) + ", 4095, " +
-			lpDatabase->EscapeBinary(cop.sNewEntryId) + ")";
+			lpDatabase->EscapeBinary(cop.sNewEntryId->__ptr, cop.sNewEntryId->__size) + ")";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
 			return er_lerrf(er, "Problem setting new entry id");
@@ -6467,7 +6476,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		gcache->SetObjectProp(PROP_ID(PR_SOURCE_KEY),
 			cop.sNewSourceKey.size(), cop.sNewSourceKey, cop.ulId);
 		gcache->SetObjectProp(PROP_ID(PR_ENTRYID),
-			cop.sNewEntryId.size(), cop.sNewEntryId, cop.ulId);
+			cop.sNewEntryId->__size, cop.sNewEntryId->__ptr, cop.ulId);
 	}
 
 	er = dtx.commit();
@@ -6983,26 +6992,26 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	bool			bPartialCompletion = false;
 	unsigned int ulGrandParent = 0, ulDestFolderId = 0;
 	ECListInt			lObjectIds;
-	std::set<EntryId> setEntryIds;
+	std::set<std::string> setEntryIds;
 	USE_DATABASE_NORESULT();
 
-	const EntryId dstEntryId(&sDestFolderId);
 	if(aMessages == NULL) {
 		ec_log_err("SOAP::copyObjects: list of messages (entryList) missing");
 		return KCERR_INVALID_PARAMETER;
 	}
 
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
-		setEntryIds.emplace(aMessages->__ptr[i]);
-	setEntryIds.emplace(sDestFolderId);
+		setEntryIds.emplace(std::string(reinterpret_cast<char *>(aMessages->__ptr[i].__ptr), aMessages->__ptr[i].__size));
+	setEntryIds.emplace(std::string(reinterpret_cast<char *>(sDestFolderId.__ptr), sDestFolderId.__size));
 	kd_trans dtx;
-	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
+	er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
 	if (er != erSuccess)
 		return er_lerrf(er, "Failed locking folders");
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "Failed obtaining object by entry id (%s)", static_cast<std::string>(dstEntryId).c_str());
+		return er_lerrf(er, "Failed obtaining object by entry id (%s)",
+		       bin2hex(sDestFolderId.__size, sDestFolderId.__ptr).c_str());
 
 	// Check permission, Destination folder
 	er = lpecSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreate);
@@ -7062,12 +7071,13 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	SOURCEKEY sParentSourceKey, sDestSourceKey; /* old + new parent */
 	std::string strSubQuery, name;
 	USE_DATABASE();
-	const EntryId srcEntryId(&sEntryId), dstEntryId(&sDestFolderId);
+	auto hex_srceid = bin2hex(sEntryId.__size, sEntryId.__ptr);
+	auto hex_dsteid = bin2hex(sEntryId.__size, sEntryId.__ptr);
 
 	// NOTE: lpszNewFolderName can be NULL
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "GetObjectFromEntryId failed for %s", static_cast<std::string>(srcEntryId).c_str());
+		return er_lerrf(er, "GetObjectFromEntryId failed for %s", hex_srceid.c_str());
 
 	// Get source store
 	auto gcache = g_lpSessionManager->GetCacheManager();
@@ -7076,7 +7086,7 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 		return er_lerrf(er, "GetStore failed for folder id %u", ulFolderId);
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess)
-		return er_lerrf(er, "GetObjectFromEntryId failed for %s", static_cast<std::string>(dstEntryId).c_str());
+		return er_lerrf(er, "GetObjectFromEntryId failed for %s", hex_dsteid.c_str());
 	// Get dest store
 	er = gcache->GetStore(ulDestFolderId, &ulDestStoreId, nullptr);
 	if (er != erSuccess)
@@ -7112,8 +7122,8 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	if (er != erSuccess)
 		return er_lerrf(er, "Cannot get type of destination folder (%u)", ulDestFolderId);
 	if (ulSourceType != MAPI_FOLDER || ulDestType != MAPI_FOLDER) {
-		const std::string srcEntryIdStr = srcEntryId, dstEntryIdStr = dstEntryId;
-		ec_log_err("SOAP::copyFolder source (%u) or destination (%u) is not a folder, invalid entry id (%s / %s)", ulSourceType, ulDestType, srcEntryIdStr.c_str(), dstEntryIdStr.c_str());
+		ec_log_err("SOAP::copyFolder source (%u) or destination (%u) is not a folder, invalid entry id (%s / %s)",
+			ulSourceType, ulDestType, hex_srceid.c_str(), hex_dsteid.c_str());
 		return KCERR_INVALID_ENTRYID;
 	}
 	// Check folder and dest folder are the same
@@ -8349,7 +8359,7 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 	USE_DATABASE_NORESULT();
 	kd_trans dtx;
 
-	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED, dtx, er);
+	er = BeginLockFolders(lpDatabase, PR_SOURCE_KEY, {std::string(SOURCEKEY(folderSourceKey))}, LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
 	auto cleanup = make_scope_success([&]() { dtx.commit(); });
@@ -8662,16 +8672,15 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	kd_trans dtx;
 
 	if(ulPropTag == PR_ENTRYID) {
-		std::set<EntryId>	setEntryIDs;
-
-	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setEntryIDs.emplace(sSourceKeyPairs.__ptr[i].sObjectKey);
-		er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED, dtx, er);
+		std::set<std::string> setEntryIDs;
+		for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
+			setEntryIDs.emplace(std::string(reinterpret_cast<const char *>(sSourceKeyPairs.__ptr[i].sObjectKey.__ptr), sSourceKeyPairs.__ptr[i].sObjectKey.__size));
+		er = BeginLockFolders(lpDatabase, PR_ENTRYID, setEntryIDs, LOCK_SHARED, dtx, er);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
-		std::set<SOURCEKEY> setParentSourcekeys;
+		std::set<std::string> setParentSourcekeys;
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
-			setParentSourcekeys.emplace(sSourceKeyPairs.__ptr[i].sParentKey);
-		er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED, dtx, er);
+			setParentSourcekeys.emplace(SOURCEKEY(sSourceKeyPairs.__ptr[i].sParentKey));
+		er = BeginLockFolders(lpDatabase, PR_SOURCE_KEY, setParentSourcekeys, LOCK_SHARED, dtx, er);
     } else
 		er = KCERR_INVALID_PARAMETER;
 
