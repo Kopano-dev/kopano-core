@@ -100,6 +100,12 @@ extern KC_EXPORT std::string str_storage(uint64_t bytes, bool unlimited = true);
 extern KC_EXPORT std::string GetServerNameFromPath(const char *);
 extern KC_EXPORT std::string GetServerPortFromPath(const char *);
 
+/**
+ * Parses a string as a boolean by checking for the "negative words" (no, false or 0).
+ * Anything that's not a "negative word" will be considered true.
+ *
+ * @note An empty string is considered true for historic reasons. This is used to maintain existing functionality.
+ */
 static inline bool parseBool(const char *s)
 {
 	/* Empty string was considered true (ZCP), same here (KC) */
@@ -107,12 +113,29 @@ static inline bool parseBool(const char *s)
 	       strcasecmp(s, "false") != 0 && strcasecmp(s, "no") != 0);
 }
 
+/**
+ * Parses a string as a boolean by checking for the "negative words" (no, false or 0).
+ * Anything that's not a "negative word" will be considered true.
+ *
+ * @note An empty string is considered false.
+ */
 static inline bool parse_yesno(const char *s)
 {
 	/* Empty string -> false */
 	return s != nullptr && *s != '\0' && parseBool(s);
 }
 
+/**
+ * Parses a string to a boolean by checking for the "positive words" (yes, true, 1).
+ *
+ * This function is useful when a string might contain more than the "yes/no pair".
+ * Since the normal parse function returns true for any string that does not contain one of the possible
+ * "negative words", the addition of this function is useful when knowing if the value is different than the
+ * "yes/no pair" is necessary.
+ * Anything that's not a "positive word" will be considered false.
+ *
+ * @note A null string is considered false.
+ */
 static inline bool parseBoolPositive(const char *s)
 {
 	return s != nullptr && *s != '\0' && (strcmp(s, "1") == 0 || strcasecmp(s, "true") == 0 ||
