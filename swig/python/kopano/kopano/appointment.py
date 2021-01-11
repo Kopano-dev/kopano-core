@@ -40,7 +40,8 @@ from .pidlid import (
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
     PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
     PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidAppointmentReplyName,
-    PidLidAppointmentReplyTime,
+    PidLidAppointmentReplyTime, PidLidAppointmentCounterProposal,
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole
 )
 
 try:
@@ -329,7 +330,23 @@ class Appointment(object):
     def replyname(self, value):
         self[PidLidAppointmentReplyName] = value
 
-    def accept(self, comment=None, tentative=False, respond=True, subject_prefix=None):
+    def accept(
+        self,
+        comment=None,
+        tentative=False,
+        respond=True,
+        subject_prefix=None,
+        proposed_new_time=None
+    ):
+        """Accept an appointment.
+
+        Args:
+            comment (str): accept with a comment. Default to None.
+            tentative (bool): is it tentatively accepted or not. Default to False.
+            respond (bool): respond needs to be sent to the organizer or not. Default to True.
+            subject_prefix (str): respond subject prefix. Default to None.
+            proposed_new_time (tuple): propose a new time. Default to None.
+        """
         if tentative:
             self.busystatus = 'tentative'
             self.response_status = 'TentativelyAccepted'
@@ -344,8 +361,13 @@ class Appointment(object):
             if tentative:
                 if not subject_prefix:
                     subject_prefix = 'Tentatively acccepted'
+
+                if proposed_new_time:
+                    self.proposed_new_time_start = proposed_new_time[0]
+                    self.proposed_new_time_end = proposed_new_time[1]
+
                 message_class = 'IPM.Schedule.Meeting.Resp.Tent'
-                self._respond(subject_prefix, message_class, comment)
+                self._respond(subject_prefix, message_class, comment, proposed_new_time)
             else:
                 if not subject_prefix:
                     subject_prefix = 'Accepted'
@@ -362,9 +384,13 @@ class Appointment(object):
             self._respond(subject_prefix, message_class, comment)
 
     # TODO merge with meetingrequest version
-    def _respond(self, subject_prefix, message_class, comment=None):
+    def _respond(self, subject_prefix, message_class, comment=None, proposed_new_time=None):
         response = self.copy(self.store.outbox)
         response.message_class = message_class
+
+        if proposed_new_time:
+            response.proposed_new_time_start = proposed_new_time[0]
+            response.proposed_new_time_end = proposed_new_time[1]
 
         response.subject = subject_prefix + ': ' + self.subject
         if comment:
@@ -382,6 +408,70 @@ class Appointment(object):
             response.to = self.from_.email
 
         response.send()
+
+    @property
+    def allow_new_time_proposals(self):
+        """PidLidAppointmentCounterProposal getter.
+
+        Returns:
+            bool: allow new proposals to be suggested.
+        """
+        return self.get(PidLidAppointmentCounterProposal, False)
+
+    @allow_new_time_proposals.setter
+    def allow_new_time_proposals(self, value):
+        """PidLidAppointmentCounterProposal setter.
+
+        Args:
+            value (bool): allow new proposals to be suggested.
+        """
+        self[PidLidAppointmentCounterProposal] = value
+
+    def has_proposed_new_time(self):
+        """Check the item has a proposed new time or not.
+
+        Returns:
+            bool: has proposed new time or not.
+        """
+        return self.proposed_new_time_start or self.proposed_new_time_end
+
+    @property
+    def proposed_new_time_start(self):
+        """PidLidAppointmentStartWhole getter.
+
+        Returns:
+            datetime: proposed start datetime.
+            None: if nothing set.
+        """
+        return self.get(PidLidAppointmentProposedStartWhole)
+
+    @proposed_new_time_start.setter
+    def proposed_new_time_start(self, new_datetime):
+        """PidLidAppointmentStartWhole setter.
+
+        Args:
+            new_datetime (datetime): new datetime
+        """
+        self[PidLidAppointmentProposedStartWhole] = new_datetime
+
+    @property
+    def proposed_new_time_end(self):
+        """PidLidAppointmentEndWhole getter.
+
+        Returns:
+            datetime: proposed end datetime.
+            None: if nothing set.
+        """
+        return self.get(PidLidAppointmentProposedEndWhole)
+
+    @proposed_new_time_end.setter
+    def proposed_new_time_end(self, new_datetime):
+        """PidLidAppointmentEndWhole setter.
+
+        Args:
+            new_datetime (datetime): new datetime
+        """
+        self[PidLidAppointmentProposedEndWhole] = new_datetime
 
     def cancel(self):
         self[PidLidAppointmentStateFlags] |= ASF_CANCELED
