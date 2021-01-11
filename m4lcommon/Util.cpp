@@ -2217,23 +2217,24 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
 	if (lpRtfInSync->ulPropTag != PR_RTF_IN_SYNC)
 		return PR_NULL;
 
-	if ((lpBody->ulPropTag == ulBodyTag || (PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_FOUND) &&
-		(PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_FOUND))
-		return ulBodyTag;
+	auto havetext = lpBody->ulPropTag == ulBodyTag;
+	havetext |= PROP_TYPE(lpBody->ulPropTag) == PT_ERROR &&
+	            lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY;
 
-	if ((lpHtml->ulPropTag == PR_HTML || (PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		(PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-	    !lpRtfInSync->Value.b)
-		return PR_HTML;
+	auto havehtml = lpHtml->ulPropTag == PR_HTML;
+	havehtml |= PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR &&
+	            lpHtml->Value.err == MAPI_E_NOT_ENOUGH_MEMORY;
 
-	if ((lpRtfCompressed->ulPropTag == PR_RTF_COMPRESSED || (PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR && lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) &&
-		(PROP_TYPE(lpBody->ulPropTag) == PT_ERROR && lpBody->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) &&
-		(PROP_TYPE(lpHtml->ulPropTag) == PT_ERROR && lpHtml->Value.err == MAPI_E_NOT_FOUND) &&
-	    lpRtfInSync->Value.b)
+	auto havertf = lpRtfCompressed->ulPropTag == PR_RTF_COMPRESSED;
+	havertf |= PROP_TYPE(lpRtfCompressed->ulPropTag) == PT_ERROR &&
+	           lpRtfCompressed->Value.err == MAPI_E_NOT_ENOUGH_MEMORY;
+
+	if (havertf && lpRtfInSync->Value.b)
 		return PR_RTF_COMPRESSED;
-
+	if (havehtml)
+		return PR_HTML;
+	if (havetext)
+		return ulBodyTag;
 	return PR_NULL;
 }
 
