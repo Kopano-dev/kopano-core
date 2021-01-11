@@ -222,6 +222,10 @@ void WORKITEM::run()
 				/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
 				// Reply processing is handled by the callee, totally ignore the rest of processing for this item
 				return;
+			} catch (const std::bad_alloc &e) {
+				ec_log_err("Caught a bad_alloc exception (usually out of memory) (%s)\n", e.what());
+			} catch (const std::exception &e) {
+				ec_log_err("Caught a (base type std::exception) exception: %s\n", e.what());
 			}
 		}
 
