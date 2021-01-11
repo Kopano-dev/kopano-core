@@ -78,6 +78,7 @@ struct delivery_options {
         /* SBinary *user_entryid; // If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties. */
 	char *ascii_upgrade;
 	bool header_strict_rfc;
+	bool charset_strict_rfc;
 
         %extend {
             delivery_options() {

@@ -169,6 +169,7 @@ stamp-h2
 /php-ext/test-short.log
 
 /libicalmapi/test.xml
+/inetmapi/test.xml
 
 /test/test-admin.log
 /test/test-admin.log.xml

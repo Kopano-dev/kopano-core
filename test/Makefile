@@ -18,8 +18,8 @@ export EXTRA_LOCAL_ADMIN_USER
 export KUSTOMERD_PRESEED_LICENSE
 export TEST_LICENSE_AVAILABLE
 
-test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin
-test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-admin-junit test-ectools-junit
+test: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-inetmapi test-admin
+test-ci: test-python-mapi test-python-kopano test-php test-gateway test-libicalmapi test-spooler test-spooler-plugins test-inetmapi test-admin-junit test-ectools-junit test-inetmapi
 test-short: test-short-python-mapi test-short-python-kopano test-short-php
 
 
@@ -49,6 +49,9 @@ test-libicalmapi:
 
 test-spooler:
 	make -f ../spooler/test.mk
+
+test-inetmapi:
+	make -f ../inetmapi/test.mk
 
 test-spooler-plugins:
 	make -C ../spooler/python test
