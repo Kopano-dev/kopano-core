@@ -840,7 +840,7 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 		if (er != erSuccess)
 			return er;
 	}
-	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
+	if (parse_yesno(cfg->GetSetting("server_pipe_enabled"))) {
 		list = tokenize(cfg->GetSetting("server_pipe_name"), ' ', true);
 		for (auto &e : list)
 			e.insert(0, "unix:");

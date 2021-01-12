@@ -225,7 +225,7 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	if (m_ulSessionTimeout < 300)
 		m_ulSessionTimeout = 300;
 
-	m_bCheckIP = strcmp(lpSessionManager->GetConfig()->GetSetting("session_ip_check"), "no") != 0;
+	m_bCheckIP = parseBool(lpSessionManager->GetConfig()->GetSetting("session_ip_check"));
 	// Offline implements its own versions of these objects
 	m_lpUserManagement.reset(new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig()));
 	m_lpEcSecurity.reset(new ECSecurity(this, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetAudit()));
@@ -648,18 +648,18 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char *lpszName,
 	char			*ptr = NULL;
 	std::unique_ptr<char[], cstdlib_deleter> localAdminUsers;
 
-    if (!lpszName)
-    {
+	if (!lpszName)
+	{
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserSocket()");
 		return KCERR_INVALID_PARAMETER;
-    }
+	}
 	if (impuser == nullptr) {
 		ec_log_err("Invalid argument \"impuser\" in call to ECAuthSession::ValidateUserSocket()");
 		return KCERR_INVALID_PARAMETER;
 	}
+
 	auto p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
-	if (p != nullptr && strcasecmp(p, "yes") == 0)
-		allowLocalUsers = true;
+	allowLocalUsers = parse_yesno(p);
 
 	// Authentication stage
 	localAdminUsers.reset(strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users")));

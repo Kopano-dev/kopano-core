@@ -212,7 +212,7 @@ std::string POP3::GetCapabilityString()
 		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
 			strCapabilities += "STLS\r\n";
 
-		if (!(!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0))
+		if (!(!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0))
 			strCapabilities += "USER\r\n";
 	}
 	strCapabilities += ".";
@@ -271,7 +271,7 @@ HRESULT POP3::HrCmdUser(const std::string &strUser)
 {
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
-	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0) {
 		auto hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		ec_log_err("Aborted login from [%s] with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUser.c_str());
@@ -299,7 +299,7 @@ HRESULT POP3::HrCmdPass(const std::string &strPass)
 {
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
-	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
+	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && parse_yesno(plain) && lpChannel->peer_is_local() <= 0) {
 		auto hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		if(szUser.empty())
 			ec_log_err("Aborted login from [%s] without username (tried to use disallowed "
