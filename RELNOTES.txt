@@ -1,3 +1,8 @@
+9.1.0 (2021-01-13)
+==================
+Fixes:
+* libserver: fix misreporting of usercount after addition/deletion [KC-1849]
+
 9.0.13 (2020-12-02)
 ===================
 Fixes:
