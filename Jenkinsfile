@@ -54,7 +54,7 @@ pipeline {
             }
             post {
                 success {
-                        stash includes: '**', name: 'workspace'
+                        stash includes: '**', excludes: '**/@/**', name: 'workspace'
                 }
             }
         }
