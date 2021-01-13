@@ -1,6 +1,35 @@
-10.0.x
-======
+10.0.7 (2020-01-13)
+===================
+Fixes:
+* libserver: disable PR_ACCESS shortcut for GetContentsTable entries [KC-1755]
+* server: cache can exceed desired size [KC-1764]
+* srvadm: only complain about config errors when -c is used [KC-1810]
+* libserver: repair user store table returning garbage error values [KC-1818]
+* dagent,spooler: fail startup if plugin system not loadable [KC-1823]
+* backup: fall back to guid when store.company is not available [KC-1835]
+* pyko: disable syslog log method support [KC-1858]
+* pyko: honor log_timestamp log setting [KC-1862]
+* pyko: check if basedate is not None when accepting meeting request [1871]
+* storeadm: Listing orphan stores produces segmentation fault [KC-1873]
+* common: Avoid looping available file pointers on startup [KC-1843]
+* spooler: pluginmanager uses deprecated python "imp" module [KC-1801]
+* common: cure crash when ec_socket calls freeaddrinfo [KC-1889]
+* client: read JSON license block for SSO/OIDC logons [KC-1892]
+* libserver: remove questionable rejection of different-term OR search
+  requests [KC-1385]
+* pyko: handle invalid PR_EXTENDED_FOLDER_FLAGS [KC-823]
 Enhancements:
+* build: replace libkcserver-ldapms.so generation [KC-850]
+* cli: add future warning for upcoming deprecation [KC-1778]
+* python-scripts: remove from .. import * pattern [KC-1799]
+* server: more direct invocation of userscripts [KC-1800]
+* server: print license information in log on startup [KC-1812]
+* server: speedup cached item expiry [KC-1817]
+* server: deliver boolean flag to MAPI clients based on libkustomer ensure
+  results [KC-1821]
+* ldap: reduce DN cache retrieval time [KC-1876]
+* build: make kopano-indexer complation optional [KC-1881]
+* libvserver: early-reject/-filter invalid searchfolder criteria [KC-1915]
 * cfgchecker: check for +x bits on scripts and programs
 * eidprint: decode ZCONTACTS's entryids
 Changes:
