@@ -35,9 +35,9 @@ from MAPI.Tags import (
     PR_GIVEN_NAME_W, PR_COMPANY_NAME_W, PR_SURNAME_W, PR_OFFICE_LOCATION_W,
     PR_MOBILE_TELEPHONE_NUMBER_W, PR_BUSINESS_TELEPHONE_NUMBER_W,
     PR_POSTAL_CODE_W, PR_BIRTHDAY, PR_PREFERRED_BY_NAME_W,
-    PR_RESPONSIBILITY, PR_USER_NAME
+    PR_RESPONSIBILITY, PR_USER_NAME, PR_FOLDER_CHILD_COUNT,
+    PR_CONTENT_COUNT, PR_PARENT_ENTRYID, PR_CONTENT_UNREAD
 )
-
 from MAPI.Struct import (
     SOrRestriction, SAndRestriction, SNotRestriction, SContentRestriction,
     SPropValue, SPropertyRestriction, SBitMaskRestriction, SSubRestriction,
@@ -113,16 +113,26 @@ USER_KEYWORD_PROP = {
     'responsibilities': PR_RESPONSIBILITY,
 }
 
+FOLDER_KEYWORD_PROP = {
+    'displayName': PR_DISPLAY_NAME_W,
+    'childFolderCount': PR_FOLDER_CHILD_COUNT,
+    'parentFolderId': PR_PARENT_ENTRYID,
+    'totalItemCount': PR_CONTENT_COUNT,
+    'unreadItemCount': PR_CONTENT_UNREAD,
+}
+
 TYPE_KEYWORD_PROPMAP = {
     'message': MESSAGE_KEYWORD_PROP,
     'contact': CONTACT_KEYWORD_PROP,
     'user': USER_KEYWORD_PROP,
+    'folder': FOLDER_KEYWORD_PROP,
 }
 
 DEFAULT_PROPTAGS = {
     'message': [PR_SUBJECT_W, PR_BODY_W, PR_SENT_REPRESENTING_NAME_W],
     'contact': [PR_DISPLAY_NAME_W, EMAIL1_NAME],
     'user': [PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W],
+    'folder': [PR_DISPLAY_NAME_W],
 }
 
 OP_RELOP = {

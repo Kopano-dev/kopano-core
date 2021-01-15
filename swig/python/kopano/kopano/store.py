@@ -629,10 +629,16 @@ class Store(Properties):
                         return
 
         # Find additional folders using a restrictions.
-        restriction = Restriction(SPropertyRestriction(
-            RELOP_EQ, PR_CONTAINER_CLASS_W,
-            SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Note')
-        ))
+        restriction = kwargs.pop(
+            "restriction",
+            Restriction(
+                SPropertyRestriction(
+                    RELOP_EQ,
+                    PR_CONTAINER_CLASS_W,
+                    SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Note')
+                )
+            )
+        )
 
         # update kwargs with new page start and limit values.
         copy_kwargs = kwargs.copy()
