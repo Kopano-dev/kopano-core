@@ -512,7 +512,7 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient, DeliveryArgs *lpAr
 
 	std::string strFileName = g_lpConfig->GetSetting("log_raw_message_path");
 	if (CreatePath(strFileName.c_str()) < 0)
-		ec_log_err("Could not mkdir \"%s\": %s\n", strFileName.c_str(), strerror(errno));
+		ec_log_err("Could not create 'log_raw_message_path' \"%s\": %s\n", strFileName.c_str(), strerror(errno));
 	auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
 	bool y = parseBool(rawmsg);
 	if (!y)
