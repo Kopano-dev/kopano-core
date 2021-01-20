@@ -214,7 +214,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	}
 
 	xsd__base64Binary lreq;
-	lreq.__ptr  = reinterpret_cast<unsigned char *>(req_enc.data());
+	lreq.__ptr  = reinterpret_cast<unsigned char*>(const_cast<char *>(req_enc.data()));
 	lreq.__size = req_enc.size();
 
 	if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_OIDC) {
