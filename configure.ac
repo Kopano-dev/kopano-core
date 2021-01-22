@@ -91,7 +91,7 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_INSTALL
 dnl Needed, at the very least, for `make dist` (hence outside enable_base)
-AC_PATH_PROG([SWIG_EXEC], [swig])
+AX_PKG_SWIG_MAX(3, [], [ AC_MSG_ERROR([SWIG 3 is required to build..]) ])
 
 # configure may rerun as part of git-checking out a different version,
 # so remove stale version
