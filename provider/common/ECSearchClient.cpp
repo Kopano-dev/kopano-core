@@ -116,6 +116,7 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  *
  * SCOPE <serverid> <storeid> <folder1> ... <folderN>
  * FIND <field1> ... <fieldN> : <term>
+ * SUGGEST
  * QUERY
  *
  * @param lpServerGuid[in] Server GUID to search in
@@ -125,7 +126,7 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  * @param lstMatches[out] Output of matching items
  * @return result
  */
- 
+
 ECRESULT ECSearchClient::Query(const GUID *lpServerGuid, const GUID *lpStoreGuid,
     const std::list<unsigned int> &lstFolders, const std::list<SIndexedTerm> &lstSearches,
     std::list<unsigned int> &lstMatches, std::string &suggestion)
