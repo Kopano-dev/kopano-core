@@ -99,6 +99,8 @@ stamp-h2
 /tests/rtfhtmltest
 
 /autoconf/
+!/autoconf/ax_pkg_swig_max.m4
+!/autoconf/php.m4
 /test-suite.log
 
 # /common/
