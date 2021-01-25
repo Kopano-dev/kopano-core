@@ -1,7 +1,12 @@
+8.7.18 (2021-01-25)
+===================
+Fixes:
+* build: prevent build with SWIG >= 4 [KC-1680]
+
 8.7.18 (2021-01-22)
 ===================
 Fixes:
-* libserver: fix misreporting of usercount after addition/deletion
+* libserver: fix misreporting of usercount after addition/deletion [KC-1849]
 
 8.7.17 (2020-11-25)
 ===================
