@@ -1186,7 +1186,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		kc_pwarn("SendOutOfOffice: spv_postload", hr);
 
 	// See if we're looping
-	char szTemp[256]{};
+	char szTemp[PATH_MAX]{};
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
 		if (dagent_avoid_autoreply(tokenize(lpMessageProps[0].Value.lpszA, "\n"))) {
 			ec_log_debug("Avoiding OOF reply to an automated message.");
