@@ -854,7 +854,7 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 			++nProblem;
 			continue;
 		}
-		auto hrT = HrDeleteRealProp(lpPropTagArray->aulPropTag[i],FALSE);
+		auto hrT = HrDeleteRealProp(lpPropTagArray->aulPropTag[i],UBool(0));
 		if (hrT == hrSuccess)
 			continue;
 		// Add the error
