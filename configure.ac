@@ -21,10 +21,6 @@ AC_ARG_WITH(quotatemplate-prefix,
 	[AS_HELP_STRING([--with-quotatemplate-prefix=PATH], [Path to install the quota warning templates in (default SYSCONFDIR/kopano/quotamail)])],
 	[QUOTATEMPLATEDIR="$withval"], [QUOTATEMPLATEDIR='${sysconfdir}/kopano/quotamail'])
 AC_SUBST([QUOTATEMPLATEDIR])
-AC_ARG_WITH(searchscripts-prefix,
-	[AS_HELP_STRING([--with-searchscripts-prefix=PATH], [path to install the search scripts in (default SYSCONFDIR/kopano/searchscripts)])],
-	[SEARCHSCRIPTSDIR="$withval"], [SEARCHSCRIPTSDIR='${sysconfdir}/kopano/searchscripts'])
-AC_SUBST([SEARCHSCRIPTSDIR])
 AC_ARG_WITH([systemunitdir],
 	[AS_HELP_STRING([--with-systemunitdir=PATH], [Path to systemd service unit directory])],
 	[systemunitdir="$withval"],
@@ -724,7 +720,6 @@ AC_CONFIG_FILES([Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
 		installer/quotamail/Makefile
-		installer/searchscripts/Makefile
 		po/Makefile
 		swig/Makefile
 		tests/Makefile
