@@ -580,11 +580,20 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig,
 		}
 
 		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
-		    (iterSettings->first.cs_flags & CONFIGSETTING_OBSOLETE))
-			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is recognized but obsolete, and will be removed in a future release.");
+			(iterSettings->first.cs_flags & CONFIGSETTING_DEPRECATED))
+		{
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is marked as deprecated, and will be removed in a future release.");
+		}
 		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
-		    (iterSettings->first.cs_flags & CONFIGSETTING_UNUSED))
+			(iterSettings->first.cs_flags & CONFIGSETTING_OBSOLETE))
+		{
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is recognized but obsolete, and will have no effect.");
+		}
+		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
+		    	(iterSettings->first.cs_flags & CONFIGSETTING_UNUSED))
+		{
 			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" has no effect anymore, and will be removed in a future release.");
+		}
 		s.cs_flags = iterSettings->first.cs_flags;
 
 		// If this is a commandline parameter, mark the setting as non-reloadable since you do not want to
