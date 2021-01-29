@@ -13,16 +13,17 @@ namespace KC {
 struct configsetting_t {
 	const char *szName, *szValue;
 	unsigned short cs_flags, ulGroup;
-#define CONFIGSETTING_ALIAS			0x0001
-#define CONFIGSETTING_RELOADABLE	0x0002
-#define CONFIGSETTING_UNUSED		0x0004
-#define CONFIGSETTING_NONEMPTY		0x0008
-#define CONFIGSETTING_EXACT			0x0010
-#define CONFIGSETTING_SIZE			0x0020
+#define CONFIGSETTING_ALIAS 0x0001
+#define CONFIGSETTING_RELOADABLE 0x0002
+#define CONFIGSETTING_UNUSED 0x0004
+#define CONFIGSETTING_NONEMPTY 0x0008
+#define CONFIGSETTING_EXACT 0x0010
+#define CONFIGSETTING_SIZE 0x0020
 #define CONFIGSETTING_OBSOLETE 0x0040
 /* value is still unchanged from hard-coded defaults (internal flag) */
 #define CONFIGSETTING_MARK_DEFAULT 0x0080
-#define CONFIGGROUP_PROPMAP			0x0001
+#define CONFIGSETTING_DEPRECATED 0x0100
+#define CONFIGGROUP_PROPMAP 0x0001
 };
 
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};

@@ -85,6 +85,7 @@ ldap_loginname_attribute = S(`uid',`sAMAccountName')
 # LDAP: userPassword
 ldap_password_attribute = S(`userPassword',`unicodePwd')
 
+# WARNING: The ldap_authentication_method has been marked as deprecated and will be removed in a future release.
 # If set to bind, users are authenticated by trying to bind to the
 # LDAP tree using their username + password.  Otherwise, the
 # ldap_password_attribute is requested and checked.
@@ -144,7 +145,7 @@ ldap_sendas_attribute = kopanoSendAsPrivilege
 # LDAP: text
 ldap_sendas_attribute_type = S(`text',`dn')
 
-# The attribute of the user and group which is listed in 
+# The attribute of the user and group which is listed in
 # the ldap_sendas_attribute
 # Empty default, using ldap_user_unique_attribute
 ldap_sendas_relation_attribute = S(`',`distinguishedName')
@@ -277,7 +278,7 @@ ldap_company_admin_attribute_type = S(`text',`dn')
 # The attribute of the company which is listed in the
 # ldap_company_admin_attribute
 # Empty default, using ldap_user_unique_attribute
-ldap_company_admin_relation_attribute = 
+ldap_company_admin_relation_attribute =
 
 # The attribute which indicates which user is the system administrator
 # for the specified company.
@@ -301,7 +302,7 @@ ldap_company_system_admin_relation_attribute =
 # Hint: Use the kopanoAccount attribute in the filter to differentiate
 # between non-kopano and kopano addresslists.
 # Optional, default = empty (match everything)
-ldap_addresslist_search_filter = 
+ldap_addresslist_search_filter =
 
 # This is the unique attribute of a addresslist which is never going
 # to change, unless the addresslist is removed from LDAP. When this
@@ -333,7 +334,7 @@ ldap_addresslist_name_attribute = cn
 # Hint: Use the kopanoAccount attribute in the filter to differentiate
 # between non-kopano and kopano dynamic groups.
 # Optional, default = empty (match everything)
-ldap_dynamicgroup_search_filter = 
+ldap_dynamicgroup_search_filter =
 
 # This is the unique attribute of a dynamicgroup which is never going
 # to change, unless the dynamicgroup is removed from LDAP. When this
@@ -409,7 +410,7 @@ ldap_quota_multiplier = S(`1',`1048576')
 # Misc. settings
 
 # Attribute which indicates if the user should be hidden from addressbook
-ldap_addressbook_hide_attribute = kopanoHidden 
+ldap_addressbook_hide_attribute = kopanoHidden
 
 # LDAP object search filter. %s in this filter will be replaced with
 # the object being searched.
@@ -475,7 +476,7 @@ ldap_server_proxy_path_attribute = kopanoProxyURL
 # For active directory, use:
 #   (objectCategory=Computer)
 # For LDAP with posix users, use:
-#   
+#
 ldap_server_search_filter = S(`',`(objectCategory=Computer)')
 
 # Unique user id to find the server
