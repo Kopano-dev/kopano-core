@@ -16,7 +16,7 @@ SUBDIRS += installer/linux
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup \
 	ECtools/search ECtools/spamd \
-	ECtools/utils installer/searchscripts spooler/python \
+	ECtools/utils spooler/python \
 	spooler/python/plugins swig/python/kopano
 endif
 BUILT_SOURCES =
