@@ -16,3 +16,8 @@ trim_trailing_whitespace = true
 [*.py]
 indent_style = space
 indent_size = 4
+
+# Jenkinsfile is groovy and uses 4 spaces for indentation
+[Jenkinsfile]
+indent_style = space
+indent_size = 4
