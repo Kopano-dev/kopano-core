@@ -101,4 +101,4 @@ test-backend-kopano-ci-logs:
 
 .PHONY: test-backend-kopano-ci-clean
 test-backend-kopano-ci-clean:
-	$(DOCKERCOMPOSE) down -v || true
+	$(DOCKERCOMPOSE) down -v --rmi local || true
