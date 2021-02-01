@@ -33,7 +33,7 @@ pipeline {
                         sh './bootstrap.sh'
                         sh './configure --enable-release --enable-pybind --enable-kcoidc --enable-kustomer TCMALLOC_CFLAGS=" " TCMALLOC_LIBS="-ltcmalloc_minimal" PYTHON="$(which python3)" PYTHON_CFLAGS="$(pkg-config python3 --cflags)" PYTHON_LIBS="$(pkg-config python3 --libs)"'
                         sh 'make -j $(nproc)'
-			recordIssues(tools: [gcc()])
+                        recordIssues(tools: [gcc()])
                     }
                 }
                 stage('Check') {
@@ -50,7 +50,7 @@ pipeline {
                         junit testResults: 'swig/python/kopano/test-short.xml'
                         junit testResults: 'swig/python/test-short.xml'
                     }
-		}
+                }
             }
             post {
                 success {
@@ -76,12 +76,12 @@ pipeline {
                     steps {
                         echo 'Testing..'
                         sh 'make -C test test-backend-kopano-ci-run EXTRA_LOCAL_ADMIN_USER=$(id -u) KUSTOMERD_PRESEED_LICENSE=${KUSTOMERD_PRESEED_LICENSE} TEST_LICENSE_AVAILABLE=$(test -z ${KUSTOMERD_PRESEED_LICENSE} || echo "1")  DOCKERCOMPOSE_EXEC_ARGS="-T -u $(id -u) -e HOME=/workspace" || true'
-			junit testResults: 'php-ext/test.log'
-			junit testResults: 'libicalmapi/test.xml'
-			junit testResults: 'gateway/test.xml'
-			junit testResults: 'inetmapi/test.xml'
-			junit testResults: 'spooler/test.xml'
-			junit testResults: 'spooler/python/test.xml'
+                        junit testResults: 'php-ext/test.log'
+                        junit testResults: 'libicalmapi/test.xml'
+                        junit testResults: 'gateway/test.xml'
+                        junit testResults: 'inetmapi/test.xml'
+                        junit testResults: 'spooler/test.xml'
+                        junit testResults: 'spooler/python/test.xml'
                         junit testResults: 'swig/python/test.xml'
                         junit testResults: 'swig/python/kopano/test.xml'
                         junit testResults: 'test/test-admin.log.xml'
