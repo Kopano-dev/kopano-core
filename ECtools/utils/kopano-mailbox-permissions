@@ -721,7 +721,7 @@ def printFolderACLSTable(store, showall):
     pt = MyTable()
     pt.addColumns([u"Folder", u"Permissions"])
 
-    printFolderACLs(pt, store, showall, 0)
+    printFolderACLs(pt, store, store, showall, 0)
     printFolderListACLs(pt, store, showall, None, 1)
 
     print('Folder permissions:')
@@ -731,7 +731,7 @@ def printFolderACLSTable(store, showall):
 def printFolderListACLs(printtable, store, showall, entryid, depth):
     folder = store.OpenEntry(entryid, None, 0)
 
-    printFolderACLs(printtable, folder, showall, depth)
+    printFolderACLs(printtable, store, folder, showall, depth)
     table = folder.GetHierarchyTable(0)
 
     table.SetColumns([PR_ENTRYID, PR_FOLDER_TYPE], TBL_BATCH)
@@ -747,10 +747,17 @@ def printFolderListACLs(printtable, store, showall, entryid, depth):
 
 
 # Print ACLS of one folder
-def printFolderACLs(printtable, folder, showall, depth):
+def printFolderACLs(printtable, store, folder, showall, depth):
     props = folder.GetProps([PR_DISPLAY_NAME_W], 0)
     if props[0].ulPropTag != PR_DISPLAY_NAME_W:
-        props[0].Value = u"<UNKNOWN>"
+        # Root folder has no PR_DISPLAY_NAME_W
+        root = store.OpenEntry(None, None, 0)
+        rootEid = root.GetProps([PR_ENTRYID], 0)[0].Value
+        folderEid = folder.GetProps([PR_ENTRYID], 0)[0].Value
+        if rootEid == folderEid:
+            props[0].Value = u"ROOT"
+        else:
+            props[0].Value = u"<UNKNOWN>"
 
     try:
         aclemt = folder.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
