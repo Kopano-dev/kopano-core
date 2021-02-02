@@ -144,6 +144,16 @@ HRESULT CreateSoapTransport(const sGlobalProfileProps &prof, KCmdProxy2 **lppCmd
 		SSL_CTX_set_verify(lpCmd->soap->ctx, SSL_VERIFY_PEER, lpCmd->soap->fsslverify);
 	}
 #endif
+	if (*lpCmd->soap_endpoint == '/')
+		/*
+		 * Based upon "a.com/b" being a common shorthand for
+		 * "http://a.com/b", gsoap treats "/b" as a shorthand for
+		 * "http://<zero-length-domain>/b". The zero-length domain
+		 * however is a (documented) way to emit HTTP requests on
+		 * (by default) stdout.
+		 */
+		return E_INVALIDARG;
+
 	if(strncmp("file:", lpCmd->soap_endpoint, 5) == 0) {
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
 		lpCmd->soap->fpost = http_post;
