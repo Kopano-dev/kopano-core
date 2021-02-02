@@ -959,14 +959,15 @@ store (unhook first?)" % user.name)
             store.views = root.create_folder('IPM_VIEWS')
             store.common_views = root.create_folder('IPM_COMMON_VIEWS')
 
-            root.create_folder('Freebusy Data')
+            freebusydata = root.create_folder('Freebusy Data')
             root.create_folder('Schedule')
             root.create_folder('Shortcut')
 
             # special folders
             subtree = store.subtree = root.folder('IPM_SUBTREE', create=True)
 
-            store.calendar = subtree.create_folder('Calendar')
+            calendar = subtree.create_folder('Calendar')
+            store.calendar = calendar
             store.contacts = subtree.create_folder('Contacts')
             # TODO Conversation Action Settings?
             store.wastebasket = subtree.create_folder('Deleted Items')
@@ -987,7 +988,18 @@ store (unhook first?)" % user.name)
                 subject='LocalFreebusy',
                 message_class='IPM.Microsoft.ScheduleData.FreeBusy'
             )
-            root[PR_FREEBUSY_ENTRYIDS] = [b'', _bdec(fbmsg.entryid), b'', b'']
+
+            calendar_fbmsg = calendar.create_item(
+                subject='LocalFreebusy',
+                message_class='IPM.Microsoft.ScheduleData.FreeBusy',
+                associated=True
+            )
+
+            # PR_FREEBUSY_ENTRYIDS[0] gives associated freebusy iten in calendar
+            # PR_FREEBUSY_ENTRYIDS[1] Localfreebusy (used for delegate properties) message
+            # PR_FREEBUSY_ENTRYIDS[2] global Freebusydata in public store (empty in Kopano)
+            # PR_FREEBUSY_ENTRYIDS[3] Freebusydata in IPM_SUBTREE
+            root[PR_FREEBUSY_ENTRYIDS] = [_bdec(calendar_fbmsg.entryid), _bdec(fbmsg.entryid), b'', _bdec(freebusydata.entryid)]
 
         else:
             store = user.create_store()
