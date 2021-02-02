@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
 		{"ssl_verify_file", "", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_path", "", CONFIGSETTING_RELOADABLE},
 		{"tls_min_proto", KC_DEFAULT_TLSMINPROTO, CONFIGSETTING_RELOADABLE},
-		{"ssl_protocols", "", CONFIGSETTING_UNUSED},
+		{"ssl_protocols", "", CONFIGSETTING_OBSOLETE},
 		{"ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},

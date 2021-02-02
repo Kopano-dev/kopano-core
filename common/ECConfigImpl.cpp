@@ -568,31 +568,31 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig,
 		// Check for permissions before overwriting
 		if (ls_flags & LOADSETTING_OVERWRITE_GROUP) {
 			if (iterSettings->first.ulGroup != lpsConfig.ulGroup) {
-				errors.emplace_back("option \"" + std::string(lpsConfig.szName) + "\" cannot be overridden (different group)!");
+				errors.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" cannot be overridden (different group)!");
 				return false;
 			}
 		} else if (ls_flags & LOADSETTING_OVERWRITE_RELOAD) {
 			if (!(iterSettings->first.cs_flags & CONFIGSETTING_RELOADABLE))
 				return false;
 		} else if (!(ls_flags & LOADSETTING_OVERWRITE)) {
-			errors.emplace_back("option \"" + std::string(lpsConfig.szName) + "\" cannot be overridden!");
+			errors.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" cannot be overridden!");
 			return false;
 		}
 
 		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
 			(iterSettings->first.cs_flags & CONFIGSETTING_DEPRECATED))
 		{
-			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is marked as deprecated, and will be removed in a future release.");
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is marked as deprecated and might be removed in a future release.");
 		}
 		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
 			(iterSettings->first.cs_flags & CONFIGSETTING_OBSOLETE))
 		{
-			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is recognized but obsolete, and will have no effect.");
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is recognized but has no effect because it has been removed.");
 		}
 		if (!(ls_flags & LOADSETTING_INITIALIZING) &&
-		    	(iterSettings->first.cs_flags & CONFIGSETTING_UNUSED))
+			(iterSettings->first.cs_flags & CONFIGSETTING_UNUSED))
 		{
-			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" has no effect anymore, and will be removed in a future release.");
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is unknown and thus will be ignored.");
 		}
 		s.cs_flags = iterSettings->first.cs_flags;
 
@@ -662,7 +662,7 @@ int ECConfigImpl::dump_config(FILE *fp)
 {
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	for (const auto &p : m_mapSettings) {
-		if (p.first.cs_flags & CONFIGSETTING_UNUSED)
+		if (p.first.cs_flags & CONFIGSETTING_OBSOLETE)
 			continue;
 		if (p.first.cs_flags & CONFIGSETTING_MARK_DEFAULT)
 			fprintf(fp, "# ");
