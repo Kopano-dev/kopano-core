@@ -123,7 +123,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(struct ec_socket &spec,
     const char *lpszKeyFile, const char *lpszKeyPass,
     const char *lpszCAFile, const char *lpszCAPath)
 {
-	std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
 	const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
 	const char *server_ssl_curves = m_lpConfig->GetSetting("server_ssl_curves");
 	auto pref_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
