@@ -54,7 +54,10 @@ pipeline {
             }
             post {
                 success {
-                        stash includes: '**', excludes: '**/@/**', name: 'workspace'
+                    stash includes: '**', excludes: '**/@/**', name: 'workspace'
+                }
+                cleanup {
+                    cleanWs()
                 }
             }
         }
@@ -93,6 +96,9 @@ pipeline {
                 always {
                     sh 'make -C test test-backend-kopano-ci-logs DOCKERCOMPOSE_LOGS_ARGS="--timestamps --no-color" || true'
                     sh 'make -C test test-backend-kopano-ci-clean'
+                }
+                cleanup {
+                    cleanWs()
                 }
             }
         }
