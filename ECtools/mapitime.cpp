@@ -487,6 +487,7 @@ static int mpt_main_pagetime(int argc, char **argv)
 		auto stop = clk::now();
 		mpt_stat_record(stop - start);
 	}
+	curl_easy_cleanup(curl);
 	return EXIT_SUCCESS;
 #endif
 }
