@@ -1,3 +1,20 @@
+11.0.1 (2020-02-08)
+===================
+Fixes:
+* swig: revert to tuples for multi-output functions [KC-1680]
+* provider: reject URLs with zero-length domain name
+* utils: display root folder as ROOT in mailbox-permissions
+* pyko: Set PR_FREEBUSY_ENTRYIDS correctly for a MSR store
+Enhancements:
+* Add necessary const_cast for compilation with C++14
+* Prevent build with SWIG >= 4
+* installer: remove obsolete searchscripts
+* swig: add PR_EC_SERVER_VERSION property tag
+* Make OBSOLETE and UNUSED settings clearly distinct
+* Deprecate ldap_authentication_method configuration
+* Remove unused server_ssl_protocols variable
+
+
 11.0.0 (2020-01-19)
 ===================
 All changes from the 10.x branch up to 10.0.7 are included.
