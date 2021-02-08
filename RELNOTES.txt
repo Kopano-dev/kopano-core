@@ -1,3 +1,12 @@
+10.0.8 (2020-02-08)
+===================
+Fixes:
+* swig: revert to tuples for multi-output functions [KC-1680]
+Enhancements:
+* grapi: Support $search query for mailFolders and childFolders [KC-1908]
+* grapi: Add tentativelyAccept endpoint in new route API [KC-1938]
+
+
 10.0.7 (2020-01-13)
 ===================
 Fixes:
