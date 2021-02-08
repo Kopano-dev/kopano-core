@@ -68,9 +68,9 @@ private:
 	std::list<std::string> m_lstUsers;
 };
 
-/** 
+/**
  * Create a class implementing the ICalToMapi "interface".
- * 
+ *
  * @param[in]  lpPropObj MAPI object used to find named properties
  * @param[in]  lpAdrBook MAPI Addressbook
  * @param[in]  bNoRecipients Skip recipients from ical. Used for DAgent, which uses the mail recipients
@@ -86,9 +86,9 @@ HRESULT CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoReci
 	return hrSuccess;
 }
 
-/** 
+/**
  * Init ICalToMapi class
- * 
+ *
  * @param[in] lpPropObj passed to super class
  * @param[in] lpAdrBook passed to super class
  * @param[in] bNoRecipients passed to super class
@@ -98,7 +98,7 @@ ICalToMapiImpl::ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool b
 	memset(&ttServerTZ, 0, sizeof(TIMEZONE_STRUCT));
 }
 
-/** 
+/**
  * Frees and resets all used memory of the ICalToMapi class. The class
  * can be reused for another conversion after this call. Named
  * properties are kept, since you cannot switch items from a store.
@@ -146,8 +146,9 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 	Clean();
 	if (m_lpNamedProps == NULL) {
 		auto hr = HrLookupNames(m_lpPropObj, &~m_lpNamedProps);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return hr;
+		}
 	}
 
 	icalerror_clear_errno();
@@ -155,39 +156,39 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 
 	if (lpicCalendar == NULL || icalerrno != ICAL_NO_ERROR) {
 		switch (icalerrno) {
-		case ICAL_BADARG_ERROR:
-		case ICAL_USAGE_ERROR:
-			return MAPI_E_INVALID_PARAMETER;
-		case ICAL_NEWFAILED_ERROR:
-		case ICAL_ALLOCATION_ERROR:
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		case ICAL_MALFORMEDDATA_ERROR:
-			return MAPI_E_CORRUPT_DATA;
-		case ICAL_FILE_ERROR:
-			return MAPI_E_DISK_ERROR;
-		case ICAL_UNIMPLEMENTED_ERROR:
-			return E_NOTIMPL;
-		case ICAL_UNKNOWN_ERROR:
-		case ICAL_PARSE_ERROR:
-		case ICAL_INTERNAL_ERROR:
-		case ICAL_NO_ERROR:
-		default:
-			return MAPI_E_CALL_FAILED;
+			case ICAL_BADARG_ERROR:
+			case ICAL_USAGE_ERROR:
+				return MAPI_E_INVALID_PARAMETER;
+			case ICAL_NEWFAILED_ERROR:
+			case ICAL_ALLOCATION_ERROR:
+				return MAPI_E_NOT_ENOUGH_MEMORY;
+			case ICAL_MALFORMEDDATA_ERROR:
+				return MAPI_E_CORRUPT_DATA;
+			case ICAL_FILE_ERROR:
+				return MAPI_E_DISK_ERROR;
+			case ICAL_UNIMPLEMENTED_ERROR:
+				return E_NOTIMPL;
+			case ICAL_UNKNOWN_ERROR:
+			case ICAL_PARSE_ERROR:
+			case ICAL_INTERNAL_ERROR:
+			case ICAL_NO_ERROR:
+			default:
+				return MAPI_E_CALL_FAILED;
 		}
 		return hrSuccess;
 	}
 
 	if (icalcomponent_isa(lpicCalendar.get()) != ICAL_VCALENDAR_COMPONENT &&
-	    icalcomponent_isa(lpicCalendar.get()) != ICAL_XROOT_COMPONENT)
+	    icalcomponent_isa(lpicCalendar.get()) != ICAL_XROOT_COMPONENT) {
 		return MAPI_E_INVALID_OBJECT;
+	}
 
 	m_numInvalidProperties = icalcomponent_count_errors(lpicCalendar.get());
 
 	/* Find all timezones, place in map. */
 	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
 	     lpicComponent != nullptr;
-	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT))
-	{
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT)) {
 		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
 		if (hr != hrSuccess) {
 			++m_numInvalidComponents;
@@ -208,39 +209,48 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 	// find all "messages" vevent, vtodo, vjournal, ...?
 	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
 	     lpicComponent != nullptr;
-	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT))
-	{
+	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT)) {
 		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
-		switch (type) {
-		case ICAL_VEVENT_COMPONENT:
-			static_assert(std::is_polymorphic<VEventConverter>::value, "VEventConverter needs to be polymorphic for unique_ptr to work");
-			lpVEC.reset(new VEventConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
-			break;
-		case ICAL_VTODO_COMPONENT:
-			static_assert(std::is_polymorphic<VTodoConverter>::value, "VTodoConverter needs to be polymorphic for unique_ptr to work");
-			lpVEC.reset(new VTodoConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
-			break;
-		case ICAL_VFREEBUSY_COMPONENT:
-			break;
-		case ICAL_VJOURNAL_COMPONENT:
-		default:
-			continue;
-		};
-
 		HRESULT hr = hrSuccess;
 		switch (type) {
-		case ICAL_VFREEBUSY_COMPONENT:
-			hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
-			if (hr == hrSuccess)
-				m_bHaveFreeBusy = true;
-			break;
-		case ICAL_VEVENT_COMPONENT:
-		case ICAL_VTODO_COMPONENT:
-			hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
-			break;
-		default:
-			break;
+			case ICAL_VEVENT_COMPONENT:
+				static_assert(std::is_polymorphic<VEventConverter>::value,
+					"VEventConverter needs to be polymorphic for unique_ptr to work");
+				lpVEC.reset(new VEventConverter(
+					m_lpAdrBook,
+					&tzMap,
+					m_lpNamedProps,
+					strCharset,
+					false,
+					m_bNoRecipients,
+					lpMailUser));
+
+				hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
+				break;
+			case ICAL_VTODO_COMPONENT:
+				static_assert(std::is_polymorphic<VTodoConverter>::value,
+					"VTodoConverter needs to be polymorphic for unique_ptr to work");
+				lpVEC.reset(new VTodoConverter(
+					m_lpAdrBook,
+					&tzMap,
+					m_lpNamedProps,
+					strCharset,
+					false,
+					m_bNoRecipients,
+					lpMailUser));
+
+				hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
+				break;
+			case ICAL_VFREEBUSY_COMPONENT:
+				hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
+				if (hr == hrSuccess) {
+					m_bHaveFreeBusy = true;
+				}
+				break;
+			case ICAL_VJOURNAL_COMPONENT:
+			default:
+				continue;
 		};
 
 		if (hr == hrSuccess && item != nullptr && previtem != item) {
@@ -259,9 +269,9 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Returns the number of items parsed
- * 
+ *
  * @return Max number +1 to pass in GetItem and GetItemInfo ulPosition parameter.
  */
 ULONG ICalToMapiImpl::GetItemCount()
@@ -269,14 +279,14 @@ ULONG ICalToMapiImpl::GetItemCount()
 	return m_vMessages.size();
 }
 
-/** 
+/**
  * Get some information about an ical item at a certain position.
- * 
+ *
  * @param[in]  ulPosition The position of the ical item (flat list)
  * @param[out] lpType Type of the object, VEVENT or VTODO. (VJOURNAL currently unsupported), nullptr if not interested
  * @param[out] lptLastModified Last modification timestamp of the object, nullptr if not interested
  * @param[out] lpUid UID of the object, nullptr if not interested
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_INVALID_PARAMETER ulPosition out of range, or all return values NULL
  */
@@ -295,14 +305,14 @@ HRESULT ICalToMapiImpl::GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t 
 	return hrSuccess;
 }
 
-/** 
+/**
  * Get information of the freebusy data in the parsed ical. All parameters are optional.
- * 
+ *
  * @param[out] lptstart The start time of the freebusy data
  * @param[out] lptend  The end time of the freebusy data
  * @param[out] lpstrUID The UID of the freebusy data
  * @param[out] lplstUsers A list of the email addresses of users in freebusy data, @note: internal data returned!
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ICalToMapiImpl::GetFreeBusyInfo(time_t *lptstart, time_t *lptend,
@@ -450,13 +460,13 @@ next:
 	return hr;
 }
 
-/** 
+/**
  * Helper function for GetItem. Saves all properties converted from
  * ICal to MAPI in the MAPI object. Does not call SaveChanges.
- * 
+ *
  * @param[in] lpPropList list of properties to save in lpMapiProp
  * @param[in] lpMapiProp The MAPI object to save properties in
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
@@ -484,10 +494,10 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
  * Helper function for GetItem. Converts recipient list to MAPI
  * recipients. Always replaces the complete recipient list in
  * lpMessage.
- * 
+ *
  * @param[in] lplstRecip List of parsed ical recipients from a certain item
  * @param[in] lpMessage MAPI message to modify recipient table for
- * 
+ *
  * @return MAPI error code
  */
 HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
@@ -549,7 +559,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 	}
 
 	// flag 0: remove old recipient table, and add the new list
-	return lpMessage->ModifyRecipients(0, lpRecipients);	
+	return lpMessage->ModifyRecipients(0, lpRecipients);
 }
 
 /**

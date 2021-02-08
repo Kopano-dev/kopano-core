@@ -5198,8 +5198,9 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrrsb",
 	    &resSession, &resStore, &resAddrBook, &resMessage, &szString,
-	    &cbString, &noRecipients) == FAILURE)
+	    &cbString, &noRecipients) == FAILURE) {
 		return;
+	}
 
 	DEFERRED_EPILOGUE;
 	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
@@ -5213,8 +5214,9 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	if (MAPI_G(hr) == hrSuccess) {
 		MAPI_G(hr) = lpMAPISession->OpenEntry(prop->Value.bin.cb, reinterpret_cast<ENTRYID *>(prop->Value.bin.lpb),
 		             &iid_of(mailuser), MAPI_BEST_ACCESS, nullptr, &~mailuser);
-		if (MAPI_G(hr) != hrSuccess)
+		if (MAPI_G(hr) != hrSuccess) {
 			return;
+		}
 	} else if (MAPI_G(hr) != MAPI_E_NOT_FOUND) {
 		return;
 	}
@@ -5222,13 +5224,15 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
 	MAPI_G(hr) = CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess) {
 		return;
+	}
 	// Set the default timezone to UTC if none is set, replicating the
 	// behaviour of VMIMEToMAPI.
 	MAPI_G(hr) = lpIcalToMapi->ParseICal2(szString, "utf-8", "UTC", mailuser, 0);
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess) {
 		return;
+	}
 
 	const int numInvalidProperties = lpIcalToMapi->GetNumInvalidProperties();
 	const int numInvalidComponents = lpIcalToMapi->GetNumInvalidComponents();
@@ -5255,8 +5259,9 @@ ZEND_FUNCTION(mapi_icaltomapi)
 		return;
 	}
 	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess) {
 		return;
+	}
 
 	RETVAL_TRUE;
 }
@@ -5299,8 +5304,9 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 		return;
 	/* Set the default timezone to UTC if none is set, replicating the behaviour of VMIMEToMAPI. */
 	MAPI_G(hr) = conv->ParseICal2(ics_data, "utf-8", "UTC", nullptr, 0);
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess) {
 		return;
+	}
 
 	const int numInvalidProperties = conv->GetNumInvalidProperties();
 	const int numInvalidComponents = conv->GetNumInvalidComponents();

@@ -88,13 +88,16 @@ static HRESULT vtm_import_calendar(IAddrBook *abk, IMAPIFolder *fld,
 	size_t items = 0;
 
 	auto ret = CreateICalToMapi(fld, abk, true, &unique_tie(conv));
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
 		return kc_perrorf("CreateIcalToMapi", ret);
-	if (conv == nullptr)
+	}
+	if (conv == nullptr) {
 		return kc_perrorf("CreateIcalToMapi", MAPI_E_NOT_ENOUGH_MEMORY);
+	}
 	ret = conv->ParseICal2(ics.c_str(), "UTF-8", "UTC", nullptr, 0);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
 		return kc_perrorf("ParseIcal", ret);
+	}
 
 	const int numInvalidProperties = conv->GetNumInvalidProperties();
 	const int numInvalidComponents = conv->GetNumInvalidComponents();
@@ -114,16 +117,19 @@ static HRESULT vtm_import_calendar(IAddrBook *abk, IMAPIFolder *fld,
 	for (size_t i = 0; i < conv->GetItemCount(); ++i) {
 		object_ptr<IMessage> msg;
 		ret = fld->CreateMessage(nullptr, MAPI_DEFERRED_ERRORS, &~msg);
-		if (ret != hrSuccess)
+		if (ret != hrSuccess) {
 			return kc_perror("create event", ret);
+		}
 		ret = conv->GetItem(i, 0, msg);
-		if (ret != hrSuccess)
+		if (ret != hrSuccess) {
 			return kc_perror("get_item", ret);
+		}
 		ret = msg->SaveChanges(0);
-		if (ret != hrSuccess)
+		if (ret != hrSuccess) {
 			kc_perror("SaveChanges(event)", ret);
-		else
+		} else {
 			++items;
+		}
 	}
 	printf("Processed %u blocks, imported %zu events.\n",
 	       conv->GetItemCount(), items);
