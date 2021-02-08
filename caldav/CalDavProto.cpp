@@ -905,8 +905,24 @@ HRESULT CalDAV::HrPut()
 		ec_log_debug("Error Parsing ical data: %s", strIcal.c_str());
 		goto exit;
 	}
-	if (lpICalToMapi->GetItemCount() == 0)
 	{
+		const int numInvalidProperties = lpICalToMapi->GetNumInvalidProperties();
+		const int numInvalidComponents = lpICalToMapi->GetNumInvalidComponents();
+		if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+				numInvalidProperties);
+		} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+			ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+				numInvalidComponents);
+		} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components "
+				"were found and skipped.",
+				numInvalidProperties,
+				numInvalidComponents);
+		}
+	}
+
+	if (lpICalToMapi->GetItemCount() == 0) {
 		hr = MAPI_E_INVALID_OBJECT;
 		kc_perror("No message in iCal data in PUT request", hr);
 		goto exit;
@@ -1368,8 +1384,26 @@ HRESULT CalDAV::HrHandlePost()
 	hr = lpIcalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to parse received iCal message", hr);
-	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)
+
+	const int numInvalidProperties = lpIcalToMapi->GetNumInvalidProperties();
+	const int numInvalidComponents = lpIcalToMapi->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
+	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess) {
 		return HrHandleFreebusy(lpIcalToMapi.get());
+	}
+
 	return HrHandleMeeting(lpIcalToMapi.get());
 }
 

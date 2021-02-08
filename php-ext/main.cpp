@@ -5229,6 +5229,22 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	MAPI_G(hr) = lpIcalToMapi->ParseICal2(szString, "utf-8", "UTC", mailuser, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
+
+	const int numInvalidProperties = lpIcalToMapi->GetNumInvalidProperties();
+	const int numInvalidComponents = lpIcalToMapi->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
 	if (lpIcalToMapi->GetItemCount() == 0) {
 		/*
 		 * Since there are 0 appointments in the message, GetItem(0)
@@ -5285,6 +5301,21 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 	MAPI_G(hr) = conv->ParseICal2(ics_data, "utf-8", "UTC", nullptr, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;
+
+	const int numInvalidProperties = conv->GetNumInvalidProperties();
+	const int numInvalidComponents = conv->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
 
 	array_init(return_value);
 	for (unsigned int i = 0; i < conv->GetItemCount(); ++i) {

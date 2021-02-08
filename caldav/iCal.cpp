@@ -134,6 +134,21 @@ HRESULT iCal::HrHandleIcalPost()
 		hr = lpICalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 		if (hr!=hrSuccess)
 			goto exit;
+
+		const int numInvalidProperties = lpICalToMapi->GetNumInvalidProperties();
+		const int numInvalidComponents = lpICalToMapi->GetNumInvalidComponents();
+		if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+				numInvalidProperties);
+		} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+			ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+				numInvalidComponents);
+		} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+				"found and skipped.",
+				numInvalidProperties,
+				numInvalidComponents);
+		}
 	}
 
 	ulItemCount = lpICalToMapi->GetItemCount();

@@ -96,6 +96,21 @@ static HRESULT vtm_import_calendar(IAddrBook *abk, IMAPIFolder *fld,
 	if (ret != hrSuccess)
 		return kc_perrorf("ParseIcal", ret);
 
+	const int numInvalidProperties = conv->GetNumInvalidProperties();
+	const int numInvalidComponents = conv->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
 	for (size_t i = 0; i < conv->GetItemCount(); ++i) {
 		object_ptr<IMessage> msg;
 		ret = fld->CreateMessage(nullptr, MAPI_DEFERRED_ERRORS, &~msg);

@@ -52,7 +52,6 @@ private:
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
 	memory_ptr<SPropTagArray> m_lpNamedProps;
-	ULONG m_ulErrorCount = 0;
 	TIMEZONE_STRUCT ttServerTZ;
 	std::string strServerTimeZone;
 
@@ -106,7 +105,8 @@ ICalToMapiImpl::ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool b
  */
 void ICalToMapiImpl::Clean()
 {
-	m_ulErrorCount = 0;
+	m_numInvalidProperties = 0;
+	m_numInvalidComponents = 0;
 	m_vMessages.clear();
 	m_bHaveFreeBusy = false;
 	m_lstUsers.clear();
@@ -115,18 +115,24 @@ void ICalToMapiImpl::Clean()
 	m_strUID.clear();
 }
 
-/** 
+/**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
  * GetItem().
- * 
+ *
+ * The function will attempt to parse as much of the ical string as possible. Any invalid components/properties will be skipped.
+ * Invalid properties will be logged to the m_numInvalidProperties member variable.
+ * Invalid components will be logged to the m_numInvalidComponents member variable.
+ * An invalid property that results in an invalid component will result in both variables being incremented.
+ *
  * @param[in] strIcal The ICal data to parse
  * @param[in] strCharset The charset of strIcal (usually UTF-8)
  * @param[in] strServerTZparam ID of default timezone to use if ICal data didn't specify
  * @param[in] lpMailUser IMailUser object of the current user (CalDav: the user logged in, DAgent: the user being delivered for)
  * @param[in] ulFlags Conversion flags - currently unused
- * 
- * @return MAPI error code
+ *
+ * @return A MAPI error code or success (0). A successful result could still contain some parsing erros if some of the
+ * components or properties failed to parse. An error is only returned if the ical string completely fails to parse.
  */
 HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
     const std::string &strCharset, const std::string &strServerTZparam,
@@ -165,6 +171,7 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 		case ICAL_PARSE_ERROR:
 		case ICAL_INTERNAL_ERROR:
 		case ICAL_NO_ERROR:
+		default:
 			return MAPI_E_CALL_FAILED;
 		}
 		return hrSuccess;
@@ -174,7 +181,7 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 	    icalcomponent_isa(lpicCalendar.get()) != ICAL_XROOT_COMPONENT)
 		return MAPI_E_INVALID_OBJECT;
 
-	m_ulErrorCount = icalcomponent_count_errors(lpicCalendar.get());
+	m_numInvalidProperties = icalcomponent_count_errors(lpicCalendar.get());
 
 	/* Find all timezones, place in map. */
 	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
@@ -182,10 +189,12 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT))
 	{
 		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
-		if (hr != hrSuccess)
-			/* log warning? */ ;
-		else
+		if (hr != hrSuccess) {
+			++m_numInvalidComponents;
+		}
+		else {
 			tzMap[strTZID] = ttTimeZone;
+		}
 	}
 
 	// ICal file did not send any timezone information
@@ -239,12 +248,14 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 			m_vMessages.emplace_back(item);
 			previtem = item;
 		}
+		else if (hr != hrSuccess) {
+			++m_numInvalidComponents;
+		}
 	}
 
 	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI
 	// seems this happens quite fast .. don't know what's wrong with exchange's ical
-// 	if (m_ulErrorCount != 0)
-// 		hr = MAPI_W_ERRORS_RETURNED;
+
 	return hrSuccess;
 }
 

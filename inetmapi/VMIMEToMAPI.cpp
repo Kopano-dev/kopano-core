@@ -1646,7 +1646,23 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		ec_log_err("K-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"unparsable_ical");
-	} else if (lpIcalMapi->GetItemCount() > 1) {
+	}
+	const int numInvalidProperties = lpIcalMapi->GetNumInvalidProperties();
+	const int numInvalidComponents = lpIcalMapi->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
+	if (lpIcalMapi->GetItemCount() > 1) {
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"multi_event_ical");
 	} else if (lpIcalMapi->GetItemCount() == 0) {
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"zero_event_ical");
