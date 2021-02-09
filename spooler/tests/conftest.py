@@ -16,7 +16,7 @@ from MAPI import (DEL_ASSOCIATED, DELETE_HARD_DELETE, MAPI_MODIFY, MAPIAdviseSin
 from MAPI.Util import OpenECSession, GetDefaultStore
 from MAPI.Struct import SPropertyRestriction, SPropValue, MAPIError
 from MAPI.Tags import (PR_RULES_TABLE, PR_IPM_WASTEBASKET_ENTRYID, PR_SUBJECT, PR_BODY, PR_ENTRYID,
-                       PR_ACCOUNT_W, PR_IPM_OUTBOX_ENTRYID,
+                       PR_ACCOUNT_W, PR_IPM_OUTBOX_ENTRYID, SHOW_SOFT_DELETES,
                        PR_STORE_ENTRYID, IID_IMAPIAdviseSink, IID_IExchangeModifyTable)
 
 
@@ -77,6 +77,10 @@ def inbox(store, inboxid):
     inbox = store.OpenEntry(inboxid, None, MAPI_MODIFY)
     yield inbox
     inbox.EmptyFolder(DELETE_HARD_DELETE | DEL_ASSOCIATED, None, 0)
+    table = inbox.GetContentsTable(SHOW_SOFT_DELETES)
+    table.SetColumns([PR_ENTRYID], 0)
+    rows = table.QueryRows(-1, 0)
+    inbox.DeleteMessages([row[0].Value for row in rows], 0, None, DELETE_HARD_DELETE)
 
 
 @pytest.fixture
@@ -89,14 +93,14 @@ def outbox(store):
     outboxid = store.GetProps([PR_IPM_OUTBOX_ENTRYID], 0)[0].Value
     outbox = store.OpenEntry(outboxid, None, MAPI_BEST_ACCESS)
     yield outbox
-    outbox.EmptyFolder(0, None, 0)
+    outbox.EmptyFolder(DELETE_HARD_DELETE | DEL_ASSOCIATED, None, 0)
 
 
 @pytest.fixture
 def waste(store, wasteid):
     waste = store.OpenEntry(wasteid, None, MAPI_BEST_ACCESS)
     yield waste
-    waste.EmptyFolder(0, None, 0)
+    waste.EmptyFolder(DELETE_HARD_DELETE | DEL_ASSOCIATED, None, 0)
 
 
 @pytest.fixture
@@ -166,4 +170,6 @@ def reply_template(inbox):
     msg = inbox.CreateMessage(None, MAPI_ASSOCIATED)
     msg.SetProps([SPropValue(PR_SUBJECT, b'reply template'), SPropValue(PR_BODY, b'body')])
     msg.SaveChanges(0)
-    return msg.GetProps([PR_ENTRYID], 0)[0].Value
+    eid = msg.GetProps([PR_ENTRYID], 0)[0].Value
+    yield eid
+    inbox.DeleteMessages([eid], 0, None, DELETE_HARD_DELETE)
