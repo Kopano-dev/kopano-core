@@ -56,10 +56,12 @@ def icaltomapi(store, ab):
 def mapitoical(ab):
     return icalmapi.CreateMapiToICal(ab, 'utf-8')
 
+def assert_item_count_from_ical(icaltomapi, ical, N):
+    icaltomapi.ParseICal(ical, 'utf-8', 'UTC', None, 0)
+    assert icaltomapi.GetItemCount() == N
 
 def assert_get_glob_from_ical(icaltomapi, message, ical, N):
-    icaltomapi.ParseICal(ical, 'utf-8', '', None, 0)
-    assert icaltomapi.GetItemCount() == N
+    assert_item_count_from_ical(icaltomapi, ical, N)
     icaltomapi.GetItem(0, 0, message)
     # static range named prop
     return message.GetProps([0x80160102], 0)[0].Value

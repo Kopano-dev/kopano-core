@@ -3,11 +3,37 @@ import os
 import icalmapi
 import RecurrenceState as RS
 
-from conftest import assert_get_glob_from_ical, getrecurrencestate
-
+from conftest import assert_get_glob_from_ical, assert_item_count_from_ical, getrecurrencestate
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+# Tests a valid component with an invalid property
+def test_invalid_property(icaltomapi, mapitoical, message):
+    ical = open(os.path.join(dir_path, 'issues/invalid_property.ics'), 'rb').read()
+    assert_get_glob_from_ical(icaltomapi, message, ical, 1)
+    assert icaltomapi.GetNumInvalidProperties() == 1
+    assert icaltomapi.GetNumInvalidComponents() == 0
+
+# Tests an invalid component
+def test_invalid_component(icaltomapi, mapitoical, message):
+    ical = open(os.path.join(dir_path, 'issues/invalid_event.ics'), 'rb').read()
+    assert_get_glob_from_ical(icaltomapi, message, ical, 1)
+    assert icaltomapi.GetNumInvalidProperties() == 0
+    assert icaltomapi.GetNumInvalidComponents() == 1
+
+# Tests an valid component due to a mandatory invalid property
+def test_invalid_component_and_property(icaltomapi, mapitoical, message):
+    ical = open(os.path.join(dir_path, 'issues/invalid_event_due_to_property.ics'), 'rb').read()
+    assert_item_count_from_ical(icaltomapi, ical, 0)
+    assert icaltomapi.GetNumInvalidProperties() == 1
+    assert icaltomapi.GetNumInvalidComponents() == 1
+
+# Tests an invalid timezone (different component logic)
+def test_invalid_timezone(icaltomapi, mapitoical, message):
+    ical = open(os.path.join(dir_path, 'issues/invalid_timezone.ics'), 'rb').read()
+    assert_get_glob_from_ical(icaltomapi, message, ical, 1)
+    assert icaltomapi.GetNumInvalidProperties() == 1
+    assert icaltomapi.GetNumInvalidComponents() == 1
 
 def test_double_occurencehit_1(icaltomapi, mapitoical, message):
     ical = open(os.path.join(dir_path, 'issues/ZCP9143.ics'), 'rb').read()
