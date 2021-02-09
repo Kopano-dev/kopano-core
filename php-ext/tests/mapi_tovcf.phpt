@@ -14,6 +14,8 @@ mapi_setprops($message, array(PR_SUBJECT => "Test"));
 mapi_message_savechanges($message);
 var_dump(mapi_mapitovcf(null, $ab, $message, array()));
 
+$props = mapi_getprops($message, array(PR_ENTRYID));
+mapi_folder_deletemessages($root, $props);
 /// TODO: add succesfull export
 --EXPECTF--
 bool(false)
