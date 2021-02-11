@@ -200,6 +200,32 @@ protected:
 #define KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS	"Global Address Lists"
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_LISTS	"All Address Lists"
 
-extern unsigned long long local_license_check(const LICENSEREQUEST * = nullptr, ECConfig * = nullptr);
+/**
+ * Will perferm a couple of license checks:
+ * - Checks if the "groupware" name is present in the license.
+ * - If the multiserver setting is set, checks if it is allowed in the license
+ * - If multitenant setting is set, checks if it is allowed in the license
+ * - Checks if connections to the server from kopano-archiver are allowed in the license.
+ * - Checks if the amount of users is under the allowed limit
+ *
+ * @param[in] lreq License request object. Currently this is used to check the archiver claim. If null, this will not
+ * be checked.
+ * @param[in] cfg The server configuration object. If null, multiserver and multitenant checks will not be performed.
+ * @param[in] activeUsersOffset This is an offet added to the number of the active users. It can be used, for example,
+ * before creating a new user, to check if doing so will make it go over the allowed limit. A negative value could be
+ * used to check for a smaller amount of active users.
+ * @return 0 if sucessful or non zero if an error occured.
+ * @see kustomer_errors.h for the possible errors.
+ */
+extern unsigned long long local_license_check(
+	const LICENSEREQUEST * = nullptr, ECConfig * = nullptr, int activeUsersOffset = 0);
+
+/**
+ * @overload unsigned long long local_license_check(
+ * const LICENSEREQUEST * = nullptr, ECConfig * = nullptr, int activeUsersOffset = 0)
+ *
+ * Does not perform multiserver, multitenant nor archiver checks.
+ */
+extern unsigned long long local_license_check(int activeUsersOffset);
 
 } /* namespace */

@@ -1198,7 +1198,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const signatures_t &lstSig
 }
 
 #ifdef HAVE_KUSTOMER
-unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg)
+unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg, int activeUsersOffset)
 {
 	usercount_t uc{};
 	g_lpSessionManager->get_user_count(&uc);
@@ -1232,13 +1232,24 @@ unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg
 			return err;
 	}
 	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
-	      uc[usercount_t::ucIndex::ucActiveUser], KUSTOMER_OPERATOR_GE);
+	      uc[usercount_t::ucIndex::ucActiveUser] + activeUsersOffset, KUSTOMER_OPERATOR_GE);
 	if (err != KUSTOMER_ERRSTATUSSUCCESS)
 		return err;
 	return 0;
 }
+
+unsigned long long local_license_check(int activeUsersOffset)
+{
+	return local_license_check(nullptr, nullptr, activeUsersOffset);
+}
+
 #else
-unsigned long long local_license_check(const LICENSEREQUEST *, ECConfig *)
+unsigned long long local_license_check(const LICENSEREQUEST *, ECConfig *, int)
+{
+	return 0;
+}
+
+unsigned long long local_license_check(int userOffset)
 {
 	return 0;
 }
@@ -2141,7 +2152,10 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 // ******************************************************************************************************
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
-	if (local_license_check() != 0)
+	// Since we are trying to create a new user we set the offset to 1 so the license checks the total active
+	// users + a potential new user.
+	constexpr int ACTIVE_USER_OFFSET = 1;
+	if (local_license_check(ACTIVE_USER_OFFSET) != 0)
 		return hr_lerrf(MAPI_E_NO_ACCESS, "License daemon rejected the request");
 
 	ECDatabase *lpDatabase = NULL;
