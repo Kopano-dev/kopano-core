@@ -15,7 +15,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Build args
 ARG DEPENDENCY_HASH=51c3a68
-ARG CA_CERTIFICATES_VERSION=20190110
 ARG CONFIGURE_ARGS=--enable-kcoidc
 ARG EXTRA_PACKAGES=
 
@@ -29,7 +28,7 @@ ENV LC_ALL C.UTF-8
 # Install curl before adding dependency-repository
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
-    ca-certificates=$CA_CERTIFICATES_VERSION \
+    ca-certificates \
     apt-utils \
     curl \
     gnupg2
