@@ -1204,37 +1204,44 @@ unsigned long long local_license_check(const LICENSEREQUEST *lreq, ECConfig *cfg
 	g_lpSessionManager->get_user_count(&uc);
 
 	auto ta = kustomer_begin_ensure();
-	if (ta.r0 != 0)
+	if (ta.r0 != 0) {
 		return ta.r0;
+	}
 	unsigned long long err = 0;
 	auto cleanup_ta = make_scope_exit([&]() {
 		auto ret = kustomer_end_ensure(ta.r1);
-		if (ret != KUSTOMER_ERRSTATUSSUCCESS && err == 0)
+		if (ret != KUSTOMER_ERRSTATUSSUCCESS && err == 0) {
 			err = ret;
+		}
 	});
 
 	err = kustomer_ensure_ok(ta.r1, strdup("groupware"));
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+	if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 		return err;
+	}
 	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_distributed_kopano"))) {
 		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multiserver"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 			return err;
+		}
 	}
 	if (cfg != nullptr && parseBool(cfg->GetSetting("enable_hosted_kopano"))) {
 		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("multitenant"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 			return err;
+		}
 	}
 	if (lreq != nullptr && lreq->service_id == SERVICE_TYPE_ARCHIVER) {
 		err = kustomer_ensure_ensure_bool(ta.r1, strdup("groupware"), strdup("archiver"), true);
-		if (err != KUSTOMER_ERRSTATUSSUCCESS)
+		if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 			return err;
+		}
 	}
 	err = kustomer_ensure_ensure_int64_op(ta.r1, strdup("groupware"), strdup("max-users"),
 	      uc[usercount_t::ucIndex::ucActiveUser] + activeUsersOffset, KUSTOMER_OPERATOR_GE);
-	if (err != KUSTOMER_ERRSTATUSSUCCESS)
+	if (err != KUSTOMER_ERRSTATUSSUCCESS) {
 		return err;
+	}
 	return 0;
 }
 
@@ -1249,7 +1256,7 @@ unsigned long long local_license_check(const LICENSEREQUEST *, ECConfig *, int)
 	return 0;
 }
 
-unsigned long long local_license_check(int userOffset)
+unsigned long long local_license_check(int activeUsersOffset)
 {
 	return 0;
 }
@@ -2155,8 +2162,9 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	// Since we are trying to create a new user we set the offset to 1 so the license checks the total active
 	// users + a potential new user.
 	constexpr int ACTIVE_USER_OFFSET = 1;
-	if (local_license_check(ACTIVE_USER_OFFSET) != 0)
+	if (local_license_check(ACTIVE_USER_OFFSET) != 0) {
 		return hr_lerrf(MAPI_E_NO_ACCESS, "License daemon rejected the request");
+	}
 
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
@@ -2167,11 +2175,13 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	bool bDistributed = m_lpSession->GetSessionManager()->IsDistributedSupported();
 
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
-	if(er != erSuccess)
+	if(er != erSuccess) {
 		return er;
+	}
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
-	if(er != erSuccess)
+	if(er != erSuccess) {
 		return er;
+	}
 
 	try {
 		details = lpPlugin->getObjectDetails(signature.id);
@@ -2188,8 +2198,9 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		}
 		// details is from externid, no need to check for SYSTEM or EVERYONE
 		er = UpdateUserDetailsToClient(&details);
-		if (er != erSuccess)
+		if (er != erSuccess) {
 			return er;
+		}
 	} catch (const objectnotfound &) {
 		return KCERR_NOT_FOUND;
 	} catch (const notsupported &) {
@@ -2238,12 +2249,14 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 			stringify(signature.id.objclass) + ", " +
 			lpDatabase->EscapeBinary(signature.signature) + ")";
 	er = lpDatabase->DoInsert(strQuery, &ulId);
-	if(er != erSuccess)
+	if(er != erSuccess) {
 		return er;
+	}
 
 	unsigned int ulCompanyId = 0;
-	if (signature.id.objclass != CONTAINER_COMPANY)
+	if (signature.id.objclass != CONTAINER_COMPANY) {
 		ulCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
+	}
 	if (ulCompanyId) {
 		strQuery =
 			"UPDATE users "
@@ -2255,48 +2268,54 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	}
 
 	switch(signature.id.objclass) {
-	case ACTIVE_USER:
-	case NONACTIVE_USER:
-	case NONACTIVE_ROOM:
-	case NONACTIVE_EQUIPMENT: {
-		auto script = m_lpConfig->GetSetting("createuser_script");
-		if (*script == '\0')
+		case ACTIVE_USER:
+		case NONACTIVE_USER:
+		case NONACTIVE_ROOM:
+		case NONACTIVE_EQUIPMENT: {
+			auto script = m_lpConfig->GetSetting("createuser_script");
+			if (*script == '\0') {
+				break;
+			}
+			strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
+			if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0) {
+				break;
+			}
+			execute_script(script, "createuser.d", "KOPANO_USER",
+				details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 			break;
-		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
+		}
+		case DISTLIST_GROUP:
+		case DISTLIST_SECURITY: {
+			auto script = m_lpConfig->GetSetting("creategroup_script");
+			if (*script == '\0') {
+				break;
+			}
+			execute_script(script, "creategroup.d", "KOPANO_GROUP",
+				details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
 			break;
-		execute_script(script, "createuser.d", "KOPANO_USER",
-			details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
-		break;
-	}
-	case DISTLIST_GROUP:
-	case DISTLIST_SECURITY: {
-		auto script = m_lpConfig->GetSetting("creategroup_script");
-		if (*script == '\0')
+		}
+		case CONTAINER_COMPANY: {
+			auto script = m_lpConfig->GetSetting("createcompany_script");
+			if (*script == '\0') {
+				break;
+			}
+			strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
+			if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0) {
+				break;
+			}
+			execute_script(script, "createcompany.d", "KOPANO_COMPANY",
+				details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
 			break;
-		execute_script(script, "creategroup.d", "KOPANO_GROUP",
-			details.GetPropString(OB_PROP_S_LOGIN).c_str(), nullptr);
-		break;
-	}
-	case CONTAINER_COMPANY: {
-		auto script = m_lpConfig->GetSetting("createcompany_script");
-		if (*script == '\0')
+		}
+		default:
 			break;
-		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (bDistributed && strcasecmp(strUserServer.c_str(), strThisServer.c_str()) != 0)
-			break;
-		execute_script(script, "createcompany.d", "KOPANO_COMPANY",
-			details.GetPropString(OB_PROP_S_FULLNAME).c_str(), nullptr);
-		break;
-	}
-	default:
-		break;
 	}
 
 	// Log the change to ICS
 	er = GetABSourceKeyV1(ulId, &sSourceKey);
-	if (er != erSuccess)
+	if (er != erSuccess) {
 		return er;
+	}
 	AddABChange(m_lpSession, ICS_AB_NEW, std::move(sSourceKey), SOURCEKEY(sizeof(abcont_1), reinterpret_cast<const char *>(&abcont_1)));
 	*lpulObjectId = ulId;
 	return erSuccess;
