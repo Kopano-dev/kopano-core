@@ -22,5 +22,5 @@ if not subtree:
 
 print('Result: FIXED - Setting PR_IPM_SUBTREE_ENTRYID to IPM_SUBTREE')
 print('PR_IPM_SUBTREE_ENTRYID current value: ' + user.store.prop(PR_IPM_SUBTREE_ENTRYID).strval)
-user.store.prop(PR_IPM_SUBTREE_ENTRYID).value = subtree.entryid.decode('hex')
+user.store.create_prop(PR_IPM_SUBTREE_ENTRYID, subtree.entryid.decode('hex'))
 print('PR_IPM_SUBTREE_ENTRYID set to: ' + subtree.entryid)
