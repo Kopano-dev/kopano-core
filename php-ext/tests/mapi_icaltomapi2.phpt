@@ -16,6 +16,8 @@ $invalid = "BEGIN:VCALENDAR
 NOPE:LOL
 END:VCALENDAR";
 var_dump(mapi_icaltomapi2($ab, $root, $invalid));
+var_dump(mapi_numinvalidicalproperties());
+var_dump(mapi_numinvalidicalcomponents());
 
 $valid = "BEGIN:VCALENDAR
 VERSION:2.0
@@ -31,11 +33,18 @@ GEO:48.85299;2.36885
 END:VEVENT
 END:VCALENDAR";
 var_dump(mapi_icaltomapi2($ab, $root, $valid));
+var_dump(mapi_numinvalidicalproperties());
+var_dump(mapi_numinvalidicalcomponents());
+
 --EXPECTF--
 bool(false)
 array(0) {
 }
+int(1)
+int(0)
 array(1) {
   [0]=>
   resource(%d) of type (MAPI Message)
 }
+int(0)
+int(0)
