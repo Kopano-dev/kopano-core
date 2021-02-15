@@ -369,6 +369,8 @@ zend_function_entry mapi_functions[] =
 
 	ZEND_FE(mapi_icaltomapi, nullptr)
 	ZEND_FE(mapi_icaltomapi2, nullptr)
+	ZEND_FE(mapi_numinvalidicalproperties, nullptr)
+	ZEND_FE(mapi_numinvalidicalcomponents, nullptr)
 	ZEND_FE(mapi_mapitoical, nullptr)
 
 	ZEND_FE(mapi_vcftomapi, nullptr)
@@ -577,6 +579,8 @@ PHP_RINIT_FUNCTION(mapi) {
 	MAPI_G(hr) = hrSuccess;
 	MAPI_G(exception_ce) = NULL;
 	MAPI_G(exceptions_enabled) = false;
+	MAPI_G(icalParseErrors.numInvalidProperties) = 0;
+	MAPI_G(icalParseErrors.numInvalidComponents) = 0;
 	return SUCCESS;
 }
 
@@ -5249,6 +5253,9 @@ ZEND_FUNCTION(mapi_icaltomapi)
 			numInvalidComponents);
 	}
 
+	MAPI_G(icalParseErrors.numInvalidProperties) = numInvalidProperties;
+	MAPI_G(icalParseErrors.numInvalidComponents) = numInvalidComponents;
+
 	if (lpIcalToMapi->GetItemCount() == 0) {
 		/*
 		 * Since there are 0 appointments in the message, GetItem(0)
@@ -5277,6 +5284,11 @@ ZEND_FUNCTION(mapi_icaltomapi)
  * of new IMessages placed in @folder. These messages are yet unsaved so that
  * the caller can further edit (or even discard) them before uploading to the
  * server.
+ *
+ * If the function finds invalid properties or components in the ical string it will log them in a global variable.
+ * This can happen even if the string is sucessfully parsed. The invalid properties/componenets will be ignored.
+ * These values can be retrieved with the mapi_numinvalidicalproperties and mapi_numinvalidicalcomponents respectively.
+ *
  */
 ZEND_FUNCTION(mapi_icaltomapi2)
 {
@@ -5289,8 +5301,9 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrs",
-	    &r_abk, &r_fld, &ics_data, &ics_size) == FAILURE)
+	    &r_abk, &r_fld, &ics_data, &ics_size) == FAILURE) {
 		return;
+	}
 
 	DEFERRED_EPILOGUE;
 	IAddrBook *abk = nullptr;
@@ -5300,8 +5313,9 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 
 	std::unique_ptr<ICalToMapi> conv;
 	MAPI_G(hr) = CreateICalToMapi(fld, abk, false, &unique_tie(conv));
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) != hrSuccess) {
 		return;
+	}
 	/* Set the default timezone to UTC if none is set, replicating the behaviour of VMIMEToMAPI. */
 	MAPI_G(hr) = conv->ParseICal2(ics_data, "utf-8", "UTC", nullptr, 0);
 	if (MAPI_G(hr) != hrSuccess) {
@@ -5323,19 +5337,44 @@ ZEND_FUNCTION(mapi_icaltomapi2)
 			numInvalidComponents);
 	}
 
+	MAPI_G(icalParseErrors.numInvalidProperties) = numInvalidProperties;
+	MAPI_G(icalParseErrors.numInvalidComponents) = numInvalidComponents;
+
 	array_init(return_value);
 	for (unsigned int i = 0; i < conv->GetItemCount(); ++i) {
 		object_ptr<IMessage> msg;
 		MAPI_G(hr) = fld->CreateMessage(nullptr, 0, &~msg);
-		if (FAILED(MAPI_G(hr)))
+		if (FAILED(MAPI_G(hr))) {
 			return;
+		}
 		MAPI_G(hr) = conv->GetItem(i, 0, msg);
-		if (MAPI_G(hr) != hrSuccess)
+		if (MAPI_G(hr) != hrSuccess) {
 			return;
+		}
 		zval mres;
 		ZEND_REGISTER_RESOURCE(&mres, msg.release(), le_mapi_message);
 		add_index_zval(return_value, i, &mres);
 	}
+}
+
+/**
+ * mapi_numinvalidicalproperties() : int;
+ *
+ * Returns the number of invalid properties that were found when parsing an ical string.
+ */
+ZEND_FUNCTION(mapi_numinvalidicalproperties)
+{
+	RETURN_LONG((LONG)MAPI_G(icalParseErrors.numInvalidProperties));
+}
+
+/**
+ * mapi_numinvalidicalcomponents() : int;
+ *
+ * Returns the number of invalid components that were found when parsing an ical string.
+ */
+ZEND_FUNCTION(mapi_numinvalidicalcomponents)
+{
+	RETURN_LONG((LONG)MAPI_G(icalParseErrors.numInvalidComponents));
 }
 
 /**
