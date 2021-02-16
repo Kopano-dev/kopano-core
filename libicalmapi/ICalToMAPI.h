@@ -34,10 +34,29 @@ public:
 	virtual HRESULT GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage) = 0;
 	virtual HRESULT GetFreeBusyInfo(time_t *start, time_t *end, std::string *uid, const std::list<std::string> **users) = 0;
 
+	int GetNumInvalidProperties() {
+		return m_numInvalidProperties;
+	}
+
+	int GetNumInvalidComponents() {
+		return m_numInvalidComponents;
+	}
+
 protected:
 	LPMAPIPROP m_lpPropObj;
 	LPADRBOOK m_lpAdrBook;
 	bool m_bNoRecipients;
+
+	/**
+	 * After parsing an ical string this will contain the amount of invalid properties that failed to parse and
+	 * were skipped.
+	 */
+	int m_numInvalidProperties = 0;
+	/**
+	 * After parsing an ical string this will contain the amount of invalid components that failed to parse and
+	 * were skipped
+	 */
+	int m_numInvalidComponents = 0;
 };
 
 extern KC_EXPORT HRESULT CreateICalToMapi(IMAPIProp *propobj, IAddrBook *, bool no_recipients, ICalToMapi **ret);

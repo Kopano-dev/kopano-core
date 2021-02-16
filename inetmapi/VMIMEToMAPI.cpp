@@ -1605,13 +1605,15 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	 * as mandated by RFC 5545 § 3.1.4.
 	 */
 	auto strCharset = vmBody->getCharset().getName();
-	if (strCharset == "us-ascii")
+	if (strCharset == "us-ascii") {
 		// We can safely upgrade from US-ASCII to UTF-8 since that is compatible
 		strCharset = "utf-8";
+	}
 	vmBody->getContents()->extract(os);
-	if (m_mailState.bodyLevel > BODY_NONE)
+	if (m_mailState.bodyLevel > BODY_NONE) {
 		/* Force attachment if we already have some text. */
 		bIsAttachment = true;
+	}
 
 	object_ptr<IMessage> ptrNewMessage;
 	object_ptr<IAttach> ptrAttach;
@@ -1620,11 +1622,13 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		SPropValue sAttProps[3];
 
 		auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~ptrAttach);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("dissect_ical-1790: Unable to create attachment for iCal data", hr);
+		}
 		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~ptrNewMessage);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("dissect_ical-1796: Unable to create message attachment for iCal data", hr);
+		}
 
 		sAttProps[0].ulPropTag = PR_ATTACH_METHOD;
 		sAttProps[0].Value.ul = ATTACH_EMBEDDED_MSG;
@@ -1633,20 +1637,39 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		sAttProps[2].ulPropTag = PR_ATTACH_FLAGS;
 		sAttProps[2].Value.ul = 0;
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("K-1811: Unable to create message attachment for iCal data", hr);
+		}
 		lpIcalMessage = ptrNewMessage.get();
 	}
 
 	auto hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &unique_tie(lpIcalMapi));
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_perror("K-1820: Unable to create iCal converter", hr);
+	}
 	hr = lpIcalMapi->ParseICal2(icaldata.c_str(), strCharset, "UTC" , nullptr, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("K-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"unparsable_ical");
-	} else if (lpIcalMapi->GetItemCount() > 1) {
+	}
+
+	const int numInvalidProperties = lpIcalMapi->GetNumInvalidProperties();
+	const int numInvalidComponents = lpIcalMapi->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
+	if (lpIcalMapi->GetItemCount() > 1) {
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"multi_event_ical");
 	} else if (lpIcalMapi->GetItemCount() == 0) {
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"zero_event_ical");
@@ -1655,44 +1678,52 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	if (lpIcalMessage != lpMessage) {
 		/* condition equivalent to bAttachment */
 		hr = lpIcalMapi->GetItem(0, 0, lpIcalMessage);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("K-1833: Error while converting iCal to MAPI", hr);
+		}
 		memory_ptr<SPropValue> pv;
 		hr = HrGetOneProp(lpIcalMessage, PR_MESSAGE_CLASS_W, &~pv);
 		if (hr == hrSuccess && wcscmp(pv->Value.lpszW, L"IPM.Schedule.Meeting.Request") == 0) {
 			hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY | IC2M_NO_BODY, lpMessage);
-			if (hr != hrSuccess)
+			if (hr != hrSuccess) {
 				return kc_perror("K-1834: Error while converting iCal to MAPI", hr);
+			}
 		}
 	} else {
 		hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY, lpMessage);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("K-1835: Error while converting iCal to MAPI", hr);
+		}
 	}
 
 	/* Evaluate whether vconverter gave us an initial body */
 	if (!bIsAttachment && m_mailState.bodyLevel < BODY_PLAIN &&
 	    (FPropExists(lpMessage, PR_BODY_A) ||
-	    FPropExists(lpMessage, PR_BODY_W)))
+	    FPropExists(lpMessage, PR_BODY_W))) {
 		m_mailState.bodyLevel = BODY_PLAIN;
-	if (!bIsAttachment)
+	}
+	if (!bIsAttachment) {
 		return hr;
+	}
 
 	// give attachment name of calendar item
 	memory_ptr<SPropValue> ptrSubject;
 	if (HrGetFullProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return hr;
+		}
 	}
 
 	hr = ptrNewMessage->SaveChanges(0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_perror("K-1851: Unable to save iCal message", hr);
+	}
 	hr = ptrAttach->SaveChanges(0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_perror("K-1856: Unable to save iCal message attachment", hr);
+	}
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
 	return hrSuccess;

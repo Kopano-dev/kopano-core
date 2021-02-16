@@ -129,11 +129,26 @@ HRESULT iCal::HrHandleIcalPost()
 		goto exit;
 	}
 	m_lpRequest.HrGetBody(&strIcal);
-	if(!strIcal.empty())
-	{
+	if(!strIcal.empty()) {
 		hr = lpICalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
-		if (hr!=hrSuccess)
+		if (hr != hrSuccess) {
 			goto exit;
+		}
+
+		const int numInvalidProperties = lpICalToMapi->GetNumInvalidProperties();
+		const int numInvalidComponents = lpICalToMapi->GetNumInvalidComponents();
+		if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+				numInvalidProperties);
+		} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+			ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+				numInvalidComponents);
+		} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+				"found and skipped.",
+				numInvalidProperties,
+				numInvalidComponents);
+		}
 	}
 
 	ulItemCount = lpICalToMapi->GetItemCount();
@@ -141,69 +156,78 @@ HRESULT iCal::HrHandleIcalPost()
 	//generate map for each entry's UID and Position.
 	for (ULONG i = 0; i < ulItemCount; ++i) {
 		hr = lpICalToMapi->GetItemInfo(i, &etype, &tLastMod, &sbEid);
-		if (hr != hrSuccess || etype != VEVENT)
+		if (hr != hrSuccess || etype != VEVENT) {
 			continue;
+		}
 		strUidString = bin2hex(sbEid);
 		mpIcalEntries[strUidString] = i;
 	}
 
-	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
+	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore)) {
 		blCensorPrivate = true;
+	}
 	hr = m_lpUsrFld->GetContentsTable(0, &~lpContTable);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
 		goto exit;
+	}
 	hr = lpContTable->SetColumns(proptags, 0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		goto exit;
+	}
 
 	//Map of server Entries.
 	//Generate map of UID : Modification time & UID : ENTRYID.
 	while (true) {
 		rowset_ptr lpRows;
 		hr = lpContTable->QueryRows(50, 0, &~lpRows);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			goto exit;
-		if (lpRows->cRows == 0)
+		}
+		if (lpRows->cRows == 0) {
 			break;
+		}
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
-			if (lpRows[i].lpProps[0].ulPropTag != PR_ENTRYID)
+			if (lpRows[i].lpProps[0].ulPropTag != PR_ENTRYID) {
 				continue;
-			if (lpRows[i].lpProps[2].ulPropTag == ulProptag)
+			}
+
+			if (lpRows[i].lpProps[2].ulPropTag == ulProptag) {
 				sbUid = lpRows[i].lpProps[2].Value.bin;
-			else
+			} else {
 				continue; // skip new entries
+			}
 			sbEid.cb = lpRows[i].lpProps[0].Value.bin.cb;
 			hr = KAllocCopy(lpRows[i].lpProps[0].Value.bin.lpb, sbEid.cb, reinterpret_cast<void **>(&sbEid.lpb));
-			if (hr != hrSuccess)
+			if (hr != hrSuccess) {
 				goto exit;
+			}
 			strUidString = bin2hex(sbUid);
 			mpSrvEntries[strUidString] = sbEid;
-			if (lpRows[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
+			if (lpRows[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME) {
 				mpSrvTimes[strUidString] = lpRows[i].lpProps[1].Value.ft;
+			}
 		}
 	}
 
 	mpIterI = mpIcalEntries.cbegin();
 	mpIterJ = mpSrvEntries.cbegin();
 	//Iterate through entries and perform ADD, DELETE, Modify.
-	while(1)
-	{
-		if (mpIterJ == mpSrvEntries.cend() && mpIterI == mpIcalEntries.cend())
+	while(1) {
+		if (mpIterJ == mpSrvEntries.cend() && mpIterI == mpIcalEntries.cend()) {
 			break;
+		}
 
 		if (mpIcalEntries.cend() == mpIterI && mpSrvEntries.cend() != mpIterJ) {
 			hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
-			if(hr != hrSuccess)
-			{
+			if(hr != hrSuccess) {
 				kc_perror("Unable to delete message", hr);
 				goto exit;
 			}
 			++mpIterJ;
 		} else if (mpIcalEntries.cend() != mpIterI && mpSrvEntries.cend() == mpIterJ) {
 			hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
-			if(hr != hrSuccess)
-			{
+			if(hr != hrSuccess) {
 				kc_perror("Unable to add new message", hr);
 				goto exit;
 			}
@@ -214,8 +238,7 @@ HRESULT iCal::HrHandleIcalPost()
 				lpICalToMapi->GetItemInfo(mpIterI->second, &etype, &tLastMod, &sbEid);
 				if (etype == VEVENT && FileTimeToUnixTime(mpSrvTimes[mpIterJ->first]) != tLastMod) {
 					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);
-					if(hr != hrSuccess)
-					{
+					if(hr != hrSuccess) {
 						kc_perror("Unable to modify message", hr);
 						goto exit;
 					}
@@ -224,16 +247,14 @@ HRESULT iCal::HrHandleIcalPost()
 				++mpIterJ;
 			} else if (cmp < 0) {
 				hr = HrAddMessage(lpICalToMapi.get(), mpIterI->second);
-				if(hr != hrSuccess)
-				{
+				if(hr != hrSuccess) {
 					kc_perror("Unable to add new message", hr);
 					goto exit;
 				}
 				++mpIterI;
 			} else if (cmp > 0) {
 				hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
-				if(hr != hrSuccess)
-				{
+				if(hr != hrSuccess) {
 					kc_perror("Unable to delete message", hr);
 					goto exit;
 				}
@@ -242,22 +263,26 @@ HRESULT iCal::HrHandleIcalPost()
 		}//else if
 	}//while
 
-	if(m_ulFolderFlag & DEFAULT_FOLDER)
+	if(m_ulFolderFlag & DEFAULT_FOLDER) {
 		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION);
+	}
 	if(hr != hrSuccess) {
 		hr = hrSuccess;
 		ec_log_err("Error publishing freebusy for user %ls", m_wstrUser.c_str());
 	}
 
 exit:
-	if(hr == hrSuccess || hr == MAPI_E_INVALID_OBJECT)
+	if(hr == hrSuccess || hr == MAPI_E_INVALID_OBJECT) {
 		m_lpRequest.HrResponseHeader(200,"OK");
-	else if (hr == MAPI_E_NO_ACCESS)
+	} else if (hr == MAPI_E_NO_ACCESS) {
 		m_lpRequest.HrResponseHeader(403,"Forbidden");
-	else
+	} else {
 		m_lpRequest.HrResponseHeader(500,"Internal Server Error");
-	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
+	}
+
+	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ) {
 		MAPIFreeBuffer(mpIterJ->second.lpb);
+	}
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();

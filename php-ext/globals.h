@@ -10,6 +10,12 @@ ZEND_BEGIN_MODULE_GLOBALS(mapi)
 // this is a reference to the MAPI exception class
 	zend_class_entry *exception_ce;
 	bool exceptions_enabled;
+
+	struct IcalParseErrors {
+		int numInvalidComponents;
+		int numInvalidProperties;
+	} icalParseErrors;
+
 ZEND_END_MODULE_GLOBALS(mapi)
 
 // the 'v' is probably from 'value' .. who knows

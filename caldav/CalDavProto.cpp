@@ -858,16 +858,14 @@ HRESULT CalDAV::HrPut()
 	auto strGuid = StripGuid(strUrl);
 	//Find the Entry with particular Guid
 	auto hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
-	if(hr == hrSuccess)
-	{
+	if(hr == hrSuccess) {
 		// check if entry can be modified by the user
 		// check if the user is accessing shared folder
 		// check if delegate permissions
 		// check if the entry is private
 		if ( m_ulFolderFlag & SHARED_FOLDER &&
 			!HasDelegatePerm(m_lpDefStore, m_lpActiveStore) &&
-			IsPrivate(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN)) )
-		{
+			IsPrivate(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN)) ) {
 			hr = MAPI_E_NO_ACCESS;
 			goto exit;
 		}
@@ -888,8 +886,9 @@ HRESULT CalDAV::HrPut()
 	}
 
 	bMatch = !m_lpRequest.CheckIfMatch(lpMessage);
-	if (bMatch)
+	if (bMatch) {
 		goto exit;
+	}
 
 	//save Ical data to mapi.
 	hr = CreateICalToMapi(lpMessage, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
@@ -899,20 +898,37 @@ HRESULT CalDAV::HrPut()
 	}
 	m_lpRequest.HrGetBody(&strIcal);
 	hr = lpICalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
-	if(hr!=hrSuccess)
-	{
+	if (hr != hrSuccess) {
 		kc_perror("Error parsing iCal data in PUT request", hr);
 		ec_log_debug("Error Parsing ical data: %s", strIcal.c_str());
 		goto exit;
 	}
-	if (lpICalToMapi->GetItemCount() == 0)
 	{
+		const int numInvalidProperties = lpICalToMapi->GetNumInvalidProperties();
+		const int numInvalidComponents = lpICalToMapi->GetNumInvalidComponents();
+		if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+				numInvalidProperties);
+		} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+			ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+				numInvalidComponents);
+		} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+			ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components "
+				"were found and skipped.",
+				numInvalidProperties,
+				numInvalidComponents);
+		}
+	}
+
+	if (lpICalToMapi->GetItemCount() == 0) {
 		hr = MAPI_E_INVALID_OBJECT;
 		kc_perror("No message in iCal data in PUT request", hr);
 		goto exit;
 	}
-	if (lpICalToMapi->GetItemCount() > 1)
+
+	if (lpICalToMapi->GetItemCount() > 1) {
 		ec_log_warn("More than one message found in PUT, trying to combine messages");
+	}
 	hr = HrGetOneProp(m_lpUsrFld, PR_CONTAINER_CLASS_A, &~lpsPropVal);
 	if (hr != hrSuccess) {
 		kc_pdebug("CalDAV::HrPut get property PR_CONTAINER_CLASS_A failed", hr);
@@ -927,15 +943,13 @@ HRESULT CalDAV::HrPut()
 
 	// FIXME: fix the check
 	if ((etype == VEVENT && strncmp(lpsPropVal->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
-		|| (etype == VTODO && strncmp(lpsPropVal->Value.lpszA, "IPF.Task", strlen("IPF.Task"))))
-	{
+		|| (etype == VTODO && strncmp(lpsPropVal->Value.lpszA, "IPF.Task", strlen("IPF.Task")))) {
 		kc_pdebug("CalDAV::HrPut no access(2)", hr);
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
 	}
 	hr = lpICalToMapi->GetItem(0, 0, lpMessage);
-	if(hr != hrSuccess)
-	{
+	if(hr != hrSuccess) {
 		kc_perror("Error converting iCal data in PUT request to MAPI message", hr);
 		goto exit;
 	}
@@ -967,8 +981,7 @@ HRESULT CalDAV::HrPut()
 		}
 		// merge in the same message, and hope for the best
 		hr = lpICalToMapi->GetItem(n, 0, lpMessage);
-		if(hr != hrSuccess)
-		{
+		if(hr != hrSuccess) {
 			kc_perror("Error converting iCal data in PUT request to MAPI message", hr);
 			goto exit;
 		}
@@ -981,26 +994,29 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// new modification time
-	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~ptrPropModTime) == hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~ptrPropModTime) == hrSuccess) {
 		m_lpRequest.HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
+	}
 	// Publish freebusy only for default Calendar
 	if (m_ulFolderFlag & DEFAULT_FOLDER &&
-	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess)
+	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess) {
 		// @todo already logged, since we pass the logger in the publish function?
 		kc_perror("Error publishing freebusy", hr);
+	}
 exit:
-	if (hr == hrSuccess && blNewEntry)
+	if (hr == hrSuccess && blNewEntry) {
 		m_lpRequest.HrResponseHeader(201, "Created");
-	else if (hr == hrSuccess && bMatch)
+	} else if (hr == hrSuccess && bMatch) {
 		m_lpRequest.HrResponseHeader(412, "Precondition failed");
-	else if (hr == hrSuccess)
+	} else if (hr == hrSuccess) {
 		m_lpRequest.HrResponseHeader(204, "No Content");
-	else if (hr == MAPI_E_NOT_FOUND)
+	} else if (hr == MAPI_E_NOT_FOUND) {
 		m_lpRequest.HrResponseHeader(404, "Not Found");
-	else if (hr == MAPI_E_NO_ACCESS)
+	} else if (hr == MAPI_E_NO_ACCESS) {
 		m_lpRequest.HrResponseHeader(403, "Forbidden");
-	else
+	} else {
 		m_lpRequest.HrResponseHeader(400, "Bad Request");
+	}
 	return hr;
 }
 
@@ -1360,16 +1376,39 @@ HRESULT CalDAV::HrHandlePost()
 	std::string strIcal;
 	std::unique_ptr<ICalToMapi> lpIcalToMapi;
 	auto hr = m_lpRequest.HrGetBody(&strIcal);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_pdebug("CalDAV::HrHandlePost HrGetBody failed", hr);
+	}
+
 	hr = CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &unique_tie(lpIcalToMapi));
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_perrorf("CreateICalToMapi", hr);
+	}
+
 	hr = lpIcalToMapi->ParseICal2(strIcal.c_str(), m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return kc_perror("Unable to parse received iCal message", hr);
-	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)
+	}
+
+	const int numInvalidProperties = lpIcalToMapi->GetNumInvalidProperties();
+	const int numInvalidComponents = lpIcalToMapi->GetNumInvalidComponents();
+	if (numInvalidProperties > 0 && numInvalidComponents == 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties were found and skipped.",
+			numInvalidProperties);
+	} else if (numInvalidComponents > 0 && numInvalidProperties == 0) {
+		ec_log_debug("ical information was parsed but %i invalid components were found and skipped.",
+			numInvalidComponents);
+	} else if (numInvalidProperties > 0 && numInvalidComponents > 0) {
+		ec_log_debug("ical information was parsed but %i invalid properties and %i invalid components were"
+			"found and skipped.",
+			numInvalidProperties,
+			numInvalidComponents);
+	}
+
+	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess) {
 		return HrHandleFreebusy(lpIcalToMapi.get());
+	}
+
 	return HrHandleMeeting(lpIcalToMapi.get());
 }
 
