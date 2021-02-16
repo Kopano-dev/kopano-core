@@ -147,6 +147,11 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 	auto ret = svcadm->OpenUserStoresTable(0, &~table);
 	if (ret != hrSuccess)
 		return kc_perror("OpenUserStoresTable", ret);
+	static constexpr SizedSPropTagArray(8, sp) =
+		{8, {PR_EC_STORETYPE, PR_EC_USERNAME_A, PR_EC_STOREGUID, PR_DISPLAY_NAME_A, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_SIZE_EXTENDED, PR_OBJECT_TYPE}};
+	ret = table->SetColumns(sp, TBL_BATCH);
+	if (ret != hrSuccess)
+		return ret;
 	ret = table->SortTable(sort_order, 0);
 	if (ret != hrSuccess)
 		return kc_perror("SortTable", ret);
