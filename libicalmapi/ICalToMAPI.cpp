@@ -51,6 +51,17 @@ private:
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, IMAPIProp *, unsigned int flags = 0);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
+	void ParseVCalendar(
+		const std::string &strCharset,
+		const std::string &serverTz,
+		IMailUser *mailUser,
+		icalcomponent *vcalenderComponent);
+	void ParseVCalendarComponents(
+		const std::string &strCharset,
+		timezone_map& timezoneMap,
+		IMailUser *mailUser,
+		icalcomponent *vcalendarComponent);
+
 	memory_ptr<SPropTagArray> m_lpNamedProps;
 	TIMEZONE_STRUCT ttServerTZ;
 	std::string strServerTimeZone;
@@ -116,33 +127,29 @@ void ICalToMapiImpl::Clean()
 }
 
 /**
- * Parses an ICal string (with a certain charset) and converts the
- * data in memory. The real MAPI object can be retrieved using
- * GetItem().
+ * Parses an ICal string (with a certain charset) and converts the data in memory. The real MAPI object can be
+ * retrieved using GetItem().
  *
- * The function will attempt to parse as much of the ical string as possible. Any invalid components/properties will be skipped.
+ * The function will attempt to parse as much of the ical string as possible. Any invalid components/properties will be
+ * skipped.
  * Invalid properties will be logged to the m_numInvalidProperties member variable.
  * Invalid components will be logged to the m_numInvalidComponents member variable.
  * An invalid property that results in an invalid component will result in both variables being incremented.
  *
  * @param[in] strIcal The ICal data to parse
  * @param[in] strCharset The charset of strIcal (usually UTF-8)
- * @param[in] strServerTZparam ID of default timezone to use if ICal data didn't specify
- * @param[in] lpMailUser IMailUser object of the current user (CalDav: the user logged in, DAgent: the user being delivered for)
+ * @param[in] strServerTzParam ID of default timezone to use if ICal data didn't specify
+ * @param[in] lpMailUser IMailUser object of the current user (CalDav: the user logged in, DAgent: the user being
+ * delivered for)
  * @param[in] ulFlags Conversion flags - currently unused
  *
  * @return A MAPI error code or success (0). A successful result could still contain some parsing erros if some of the
  * components or properties failed to parse. An error is only returned if the ical string completely fails to parse.
  */
 HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
-    const std::string &strCharset, const std::string &strServerTZparam,
+    const std::string &strCharset, const std::string &strServerTzParam,
     IMailUser *lpMailUser, unsigned int ulFlags)
 {
-	TIMEZONE_STRUCT ttTimeZone{};
-	timezone_map tzMap;
-	std::string strTZID;
-	icalitem *item = nullptr, *previtem = nullptr;
-
 	Clean();
 	if (m_lpNamedProps == NULL) {
 		auto hr = HrLookupNames(m_lpPropObj, &~m_lpNamedProps);
@@ -178,40 +185,110 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 		return hrSuccess;
 	}
 
-	if (icalcomponent_isa(lpicCalendar.get()) != ICAL_VCALENDAR_COMPONENT &&
-	    icalcomponent_isa(lpicCalendar.get()) != ICAL_XROOT_COMPONENT) {
+	const auto type = icalcomponent_isa(lpicCalendar.get());
+	if (type != ICAL_VCALENDAR_COMPONENT && type != ICAL_XROOT_COMPONENT) {
 		return MAPI_E_INVALID_OBJECT;
 	}
 
 	m_numInvalidProperties = icalcomponent_count_errors(lpicCalendar.get());
 
-	/* Find all timezones, place in map. */
-	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT);
-	     lpicComponent != nullptr;
-	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VTIMEZONE_COMPONENT)) {
-		auto hr = HrParseVTimeZone(lpicComponent, &strTZID, &ttTimeZone);
+	if (type == ICAL_XROOT_COMPONENT) {
+		for (auto c = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_VCALENDAR_COMPONENT);
+				c != nullptr;
+				c = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_VCALENDAR_COMPONENT)) {
+			ParseVCalendar(strCharset, strServerTzParam, lpMailUser, c);
+		}
+	} else {
+		ParseVCalendar(strCharset, strServerTzParam, lpMailUser, lpicCalendar.get());
+	}
+
+	return hrSuccess;
+
+	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for
+	// finding the same items in MAPI seems this happens quite fast .. don't know what's wrong with exchange's ical
+}
+
+/**
+ * Parses a VCALENDAR component incluing all its components and properties.
+ *
+ * Invalid properties will be logged to the m_numInvalidProperties member variable.
+ * Invalid components will be logged to the m_numInvalidComponents member variable.
+ * An invalid property that results in an invalid component will result in both variables being incremented.
+ *
+ * @param[in] strCharset The character set of the original ical string (usually UTF-8)
+ * @param[in] serverTz The timezone of the server, if any.
+ * @param[in] mailUser IMailUser object of the current user.
+ * @param[in] vcalenderComponent The VCALENDAR component to parse.
+ *
+ */
+void ICalToMapiImpl::ParseVCalendar(
+	const std::string &strCharset,
+	const std::string &serverTz,
+	IMailUser *mailUser,
+	icalcomponent *vcalenderComponent)
+{
+	timezone_map timezoneMap;
+	// Find all timezones, place in map.
+	for (auto icComponent = icalcomponent_get_first_component(vcalenderComponent, ICAL_VTIMEZONE_COMPONENT);
+	     		icComponent != nullptr;
+	     		icComponent = icalcomponent_get_next_component(vcalenderComponent, ICAL_VTIMEZONE_COMPONENT)) {
+		TIMEZONE_STRUCT timezone{};
+		std::string timezoneId;
+		auto hr = HrParseVTimeZone(icComponent, &timezoneId, &timezone);
 		if (hr != hrSuccess) {
 			++m_numInvalidComponents;
 		}
 		else {
-			tzMap[strTZID] = ttTimeZone;
+			timezoneMap[timezoneId] = timezone;
 		}
 	}
 
 	// ICal file did not send any timezone information
-	if (tzMap.empty() && strServerTimeZone.empty() &&
+	if (timezoneMap.empty() && strServerTimeZone.empty() &&
 	    // find timezone from given server timezone
-	    HrGetTzStruct(strServerTZparam, &ttServerTZ) == hrSuccess) {
-		strServerTimeZone = strServerTZparam;
-		tzMap[strServerTZparam] = ttServerTZ;
+	    HrGetTzStruct(serverTz, &ttServerTZ) == hrSuccess) {
+		strServerTimeZone = serverTz;
+		timezoneMap[serverTz] = ttServerTZ;
 	}
 
-	// find all "messages" vevent, vtodo, vjournal, ...?
-	for (auto lpicComponent = icalcomponent_get_first_component(lpicCalendar.get(), ICAL_ANY_COMPONENT);
-	     lpicComponent != nullptr;
-	     lpicComponent = icalcomponent_get_next_component(lpicCalendar.get(), ICAL_ANY_COMPONENT)) {
+	// Find all components.
+	ParseVCalendarComponents(strCharset, timezoneMap, mailUser, vcalenderComponent);
+}
+
+/**
+ * Parses all components and properties inside a VCALENDAR.
+ *
+ * The supported "outer components" are VEVENT, VTODO and VFREEBUSY. VJOURNAL is ignored.
+ * Components that show inside an "outer component" are still picked up. For example VALARM typically shows inside a
+ * VEVENT.
+ *
+ * Invalid properties will be logged to the m_numInvalidProperties member variable.
+ * Invalid components will be logged to the m_numInvalidComponents member variable.
+ * An invalid property that results in an invalid component will result in both variables being incremented.
+ *
+ * @param[in] strCharset The character set of the original ical string (usually UTF-8)
+ * @param[in] timezoneMap The timezone map, which contains all timzones present in the ical string we're parsing, if
+ * any.
+ * @param[in] mailUser IMailUser object of the current user.
+ * @param[in] vcalendarComponent The VCALENDAR component to parse containing the components and properties we want to
+ * parse.
+ *
+ */
+void ICalToMapiImpl::ParseVCalendarComponents(
+	const std::string &strCharset,
+	timezone_map& timezoneMap,
+	IMailUser *mailUser,
+	icalcomponent *vcalendarComponent)
+{
+	icalitem *item = nullptr;
+	icalitem *previtem = nullptr;
+
+	for (auto icComponent = icalcomponent_get_first_component(vcalendarComponent, ICAL_ANY_COMPONENT);
+	     icComponent != nullptr;
+	     icComponent = icalcomponent_get_next_component(vcalendarComponent, ICAL_ANY_COMPONENT)) {
+
 		std::unique_ptr<VConverter> lpVEC;
-		auto type = icalcomponent_isa(lpicComponent);
+		auto type = icalcomponent_isa(icComponent);
 		HRESULT hr = hrSuccess;
 		switch (type) {
 			case ICAL_VEVENT_COMPONENT:
@@ -219,31 +296,31 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 					"VEventConverter needs to be polymorphic for unique_ptr to work");
 				lpVEC.reset(new VEventConverter(
 					m_lpAdrBook,
-					&tzMap,
+					&timezoneMap,
 					m_lpNamedProps,
 					strCharset,
 					false,
 					m_bNoRecipients,
-					lpMailUser));
+					mailUser));
 
-				hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
+				hr = lpVEC->HrICal2MAPI(vcalendarComponent, icComponent, previtem, &item);
 				break;
 			case ICAL_VTODO_COMPONENT:
 				static_assert(std::is_polymorphic<VTodoConverter>::value,
 					"VTodoConverter needs to be polymorphic for unique_ptr to work");
 				lpVEC.reset(new VTodoConverter(
 					m_lpAdrBook,
-					&tzMap,
+					&timezoneMap,
 					m_lpNamedProps,
 					strCharset,
 					false,
 					m_bNoRecipients,
-					lpMailUser));
+					mailUser));
 
-				hr = lpVEC->HrICal2MAPI(lpicCalendar.get(), lpicComponent, previtem, &item);
+				hr = lpVEC->HrICal2MAPI(vcalendarComponent, icComponent, previtem, &item);
 				break;
 			case ICAL_VFREEBUSY_COMPONENT:
-				hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
+				hr = HrGetFbInfo(icComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
 				if (hr == hrSuccess) {
 					m_bHaveFreeBusy = true;
 				}
@@ -262,11 +339,6 @@ HRESULT ICalToMapiImpl::ParseICal2(const char *ical_data,
 			++m_numInvalidComponents;
 		}
 	}
-
-	// TODO: sort m_vMessages on sBinGuid in icalitem struct, so caldav server can use optimized algorithm for finding the same items in MAPI
-	// seems this happens quite fast .. don't know what's wrong with exchange's ical
-
-	return hrSuccess;
 }
 
 /**
