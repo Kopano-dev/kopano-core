@@ -228,10 +228,7 @@ Default for ADS:
 \fIsAMAccountName\fR
 .SS ldap_password_attribute
 .PP
-This value is the password of a user. When using
-\fBldap_authentication_method\fR
-=
-\fIpassword\fR, this value will be checked. The
+This value is the password of a user. The
 \fBldap_bind_user\fR
 should have enough access rights to read the password field.
 .PP
@@ -240,22 +237,6 @@ Default for OpenLDAP:
 .PP
 Default for ADS:
 \fIunicodePwd\fR
-.SS ldap_authentication_method
-.PP
-WARNING: The ldap_authentication_method has been marked as deprecated and will be removed in a future release.
-.PP
-This value can be
-\fIbind\fR
-or
-\fIpassword\fR. When set to bind, the plugin will authenticate by opening a new connection to the LDAP server as the user with the given password. When set to password, the plugin will read and match the password field from the LDAP server itself. When set to password, the
-\fBldap_bind_user\fR
-should have enough access rights to read the password field.
-.PP
-Default for OpenLDAP:
-\fIbind\fR
-.PP
-Default for ADS:
-\fIbind\fR
 .SS ldap_emailaddress_attribute
 .PP
 This value is the email address of a user. It will be used to set the From on outgoing messages.

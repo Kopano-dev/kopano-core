@@ -85,16 +85,6 @@ ldap_loginname_attribute = S(`uid',`sAMAccountName')
 # LDAP: userPassword
 ldap_password_attribute = S(`userPassword',`unicodePwd')
 
-# WARNING: The ldap_authentication_method has been marked as deprecated and will be removed in a future release.
-# If set to bind, users are authenticated by trying to bind to the
-# LDAP tree using their username + password.  Otherwise, the
-# ldap_password_attribute is requested and checked.
-# Optional, default = bind
-# Choices: bind, password
-# Active directory: bind
-# LDAP: bind
-ldap_authentication_method = bind
-
 # Optional, default = mail
 # Active directory: mail
 # LDAP: mail

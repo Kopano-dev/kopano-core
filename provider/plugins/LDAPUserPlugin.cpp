@@ -396,7 +396,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_company_system_admin_attribute","kopanoSystemAdmin", CONFIGSETTING_RELOADABLE },
 		{ "ldap_company_system_admin_attribute_type","text", CONFIGSETTING_RELOADABLE },
 		{ "ldap_company_system_admin_relation_attribute","", CONFIGSETTING_RELOADABLE },
-		{ "ldap_authentication_method","bind", CONFIGSETTING_RELOADABLE | CONFIGSETTING_DEPRECATED },
+		{ "ldap_authentication_method","", CONFIGSETTING_OBSOLETE },
 		{ "ldap_quotaoverride_attribute","kopanoQuotaOverride", CONFIGSETTING_RELOADABLE },
 		{ "ldap_warnquota_attribute","kopanoQuotaWarn", CONFIGSETTING_RELOADABLE },
 		{ "ldap_softquota_attribute","kopanoQuotaSoft", CONFIGSETTING_RELOADABLE },
@@ -1425,15 +1425,11 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass,
 objectsignature_t LDAPUserPlugin::authenticateUser(const std::string &username,
     const std::string &password, const objectid_t &company)
 {
-	const char *authmethod = m_config->GetSetting("ldap_authentication_method");
 	objectsignature_t id;
 	auto tstart = std::chrono::steady_clock::now();
 
 	try {
-		if (strcasecmp(authmethod, "password") == 0)
-			id = authenticateUserPassword(username, password, company);
-		else
-			id = authenticateUserBind(username, password, company);
+		id = authenticateUserBind(username, password, company);
 	} catch (...) {
 		m_lpStatsCollector->inc(SCN_LDAP_AUTH_DENIED);
 		throw;
@@ -1483,88 +1479,6 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const std::string &userna
 	if (rc == LDAP_SUCCESS)
 		return signature;
 	throw login_error(format("K-1587: LDAP auth for user \"%s\": %s", username.c_str(), ldap_err2string(rc)));
-}
-
-objectsignature_t LDAPUserPlugin::authenticateUserPassword(const std::string &username,
-    const std::string &password, const objectid_t &company)
-{
-	auto_free_ldap_message res;
-	objectdetails_t	d;
-	objectsignature_t signature;
-
-	auto request_attrs = std::make_unique<attrArray>(4);
-	CONFIG_TO_ATTR(request_attrs, loginname_attr, "ldap_loginname_attribute" );
-	CONFIG_TO_ATTR(request_attrs, password_attr, "ldap_password_attribute");
-	CONFIG_TO_ATTR(request_attrs, unique_attr, "ldap_user_unique_attribute");
-	CONFIG_TO_ATTR(request_attrs, nonactive_attr, "ldap_nonactive_attribute");
-	auto ldap_basedn = getSearchBase(company);
-	auto ldap_filter = getObjectSearchFilter(objectid_t(m_iconvrev->convert(username), ACTIVE_USER), loginname_attr);
-
-	/* LDAP filter does not exist, user does not exist, user cannot login */
-	if (ldap_filter.empty())
-		throw objectnotfound("LDAP filter is empty");
-	my_ldap_search_s(ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
-		ldap_filter.c_str(), request_attrs->get(), FETCH_ATTR_VALS, &~res);
-
-	switch(ldap_count_entries(m_ldap, res)) {
-	case 0:
-		throw login_error("Trying to authenticate failed: wrong username or password");
-	case 1:
-		break;
-	default:
-		throw login_error("Trying to authenticate failed: unknown error");
-	}
-
-	auto entry = ldap_first_entry(m_ldap, res);
-	if (entry == nullptr)
-		throw runtime_error("ldap_dn: broken.");
-
-	FOREACH_ATTR(entry) {
-		if (loginname_attr != nullptr && strcasecmp(att, loginname_attr) == 0)
-			d.SetPropString(OB_PROP_S_LOGIN, m_iconv->convert(getLDAPAttributeValue(att, entry)));
-		else if (password_attr != nullptr && strcasecmp(att, password_attr) == 0)
-			d.SetPropString(OB_PROP_S_PASSWORD, getLDAPAttributeValue(att, entry));
-
-		if (unique_attr && !strcasecmp(att, unique_attr)) {
-			signature.id.id = getLDAPAttributeValue(att, entry);
-			signature.id.objclass = ACTIVE_USER; // only users can authenticate
-		}
-		if (nonactive_attr != nullptr && strcasecmp(att, nonactive_attr) == 0 &&
-		    parseBool(getLDAPAttributeValue(att, entry).c_str()))
-			throw login_error("Cannot login as nonactive user");
-	}
-	END_FOREACH_ATTR
-
-	auto strCryptedpw = d.GetPropString(OB_PROP_S_PASSWORD);
-	auto strPasswordConverted = m_iconvrev->convert(password);
-	if (strCryptedpw.empty())
-		throw login_error("Trying to authenticate failed: password field is empty or unreadable");
-	if (signature.id.id.empty())
-		throw login_error("Trying to authenticate failed: uniqueid is empty or unreadable");
-
-	if (!strncasecmp("{CRYPT}", strCryptedpw.c_str(), 7)) {
-		if(checkPassword(PASSWORD_CRYPT, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[7])) != 0)
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strncasecmp("{MD5}", strCryptedpw.c_str(), 5)) {
-		if(checkPassword(PASSWORD_MD5, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[5])) != 0)
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strncasecmp("{SMD5}", strCryptedpw.c_str(), 6)) {
-		if(checkPassword(PASSWORD_SMD5, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[6])) != 0)
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strncasecmp("{SSHA}", strCryptedpw.c_str(), 6)) {
-		if(checkPassword(PASSWORD_SSHA, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[6])) != 0)
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strncasecmp("{SHA}", strCryptedpw.c_str(), 5)) {
-		if(checkPassword(PASSWORD_SHA, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[5])) != 0)
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if(!strncasecmp("{MD5CRYPT}", strCryptedpw.c_str(), 10)) {
-		throw login_error("Trying to authenticate failed: unsupported encryption scheme");
-	} else {
-		if (strcmp(strCryptedpw.c_str(), strPasswordConverted.c_str()) != 0) //Plain password
-			throw login_error("Trying to authenticate failed: wrong username or password");
-	}
-
-	return signature;
 }
 
 signatures_t LDAPUserPlugin::getAllObjects(const objectid_t &company,

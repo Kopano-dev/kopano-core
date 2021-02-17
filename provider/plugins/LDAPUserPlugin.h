@@ -25,7 +25,7 @@ using namespace KC;
 struct restrictTable;
 class LDAPCache;
 
-/** 
+/**
  * LDAP user plugin
  *
  * User management based on LDAP.
@@ -34,7 +34,7 @@ class LDAPCache;
  */
 class LDAPUserPlugin final : public UserPlugin {
 public:
-	/** 
+	/**
 	 * Create a connection to the LDAP server and do some
 	 * initialization.
 	 *
@@ -86,8 +86,7 @@ public:
 	/**
 	 * Authenticate user with username and password
 	 *
-	 * Depending on the authentication type this will call
-	 * LDAPUserPlugin::authenticateUserPassword() or LDAPUserPlugin::authenticateUserBind()
+	 * This will call LDAPUserPlugin::authenticateUserBind()
 	 *
 	 * @param[in]	username
 	 *					The username of the user to be authenticated. username should be in charset windows-1252
@@ -291,7 +290,7 @@ public:
 	 * @param[in]	bGetUserDefault
 	 *					Boolean to indicate if the userdefault quota must be requested.
 	 * @throw runtime_error When the LDAP query failed
-	 */	 
+	 */
 	virtual quotadetails_t getQuota(const objectid_t &, bool get_user_default) override;
 
     /**
@@ -400,22 +399,6 @@ private:
 	 * @throw login_error When the username and password are incorrect.
 	 */
 	objectsignature_t authenticateUserBind(const std::string &username, const std::string &password, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
-
-	/**
-	 * Authenticate by username and password
-	 *
-	 * @param[in]	username
-	 *					The username in charset windows-1252
-	 * @param[in]	password
-	 *					The password for the username in charset windows-1252
-	 * @param[in]	company
-	 *					The company to which the user belongs (optional argument)
-	 * @return The object signature of the authenticated user
-	 * @throw runtime_error When the LDAP query fails.
-	 * @throw objectnotfound When no user with the given name has been found.
-	 * @throw login_error When the username and password are incorrect.
-	 */
-	objectsignature_t authenticateUserPassword(const std::string &username, const std::string &password, const objectid_t &company = objectid_t(CONTAINER_COMPANY));
 
 	/**
 	 * Convert objectid to a DN
@@ -646,11 +629,11 @@ private:
 	 * - ldap_addresslist_unique_attribute
 	 * - ldap_dynamicgroup_unique_attribute
 	 *
-	 * This will determine the object ID by first determining the object type from the 
-	 * objectClass and possibly other attributes, and then get the object's unique ID 
-	 * from the attribute list. 
+	 * This will determine the object ID by first determining the object type from the
+	 * objectClass and possibly other attributes, and then get the object's unique ID
+	 * from the attribute list.
 	 *
-	 * @remarks The caller is responsible for making sure all required attributes are 
+	 * @remarks The caller is responsible for making sure all required attributes are
 	 *			available in the LDAP result entry.
 	 *
 	 * @param[in]	entry
