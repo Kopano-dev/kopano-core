@@ -22,6 +22,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/tie.hpp>
+#include <include/KopanoUtil.h>
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
@@ -195,6 +196,7 @@ static ECRESULT np_defrag(fancydb db)
 		return ret;
 	while ((row = result.fetch_row()) != nullptr) {
 		auto x = freemap.erase(strtoul(row[0], nullptr, 0));
+		KC_UNUSED(x);
 		assert(x == 1);
 	}
 
@@ -241,8 +243,9 @@ static ECRESULT np_defrag(fancydb db)
 		unsigned int newtag = 0x8501 + newid;
 		if (oldtag >= 0xFFFF || newtag >= 0xFFFF)
 			continue;
-		auto x0 = freemap.erase(newid);
-		assert(x0 == 1);
+		auto elemErased = freemap.erase(newid) == 1;
+		KC_UNUSED(elemErased);
+		assert(elemErased == 1);
 		for (const auto &tbl : our_proptables) {
 			ec_log_notice("defrag: moving %u -> %u [%s]", oldid, newid, tbl.c_str());
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
@@ -253,8 +256,9 @@ static ECRESULT np_defrag(fancydb db)
 		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
-		auto x = freemap.emplace(oldid);
-		assert(x.second);
+		auto insertedElem = freemap.emplace(oldid);
+		KC_UNUSED(insertedElem);
+		assert(insertedElem.second);
 		++tags_moved;
 		auto diff_ts = dur2dbl(decltype(start_ts)::clock::now() - start_ts);
 		ec_log_notice("defrag: %u left, est. %.0f minutes", tags_to_move - tags_moved,

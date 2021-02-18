@@ -10,6 +10,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
+#include <include/KopanoUtil.h>
 #include "kopano/mapiext.h"
 #include "tbi.hpp"
 
@@ -110,7 +111,9 @@ static void load_zc(IMAPISession *ses)
 {
 	object_ptr<IMsgServiceAdmin> sa;
 	auto ret = ses->AdminServices(0, &~sa);
+	KC_UNUSED(ret);
 	assert(ret == hrSuccess);
+
 	auto empty = reinterpret_cast<const TCHAR *>("");
 	ret = sa->CreateMsgService(reinterpret_cast<const TCHAR *>("ZCONTACTS"), empty, 0, 0);
 	assert(ret == hrSuccess);

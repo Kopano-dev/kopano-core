@@ -924,9 +924,10 @@ ECRESULT ECAuthSession::LogKRB5Error(const char* msg, OM_uint32 major, OM_uint32
 ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* name, const char* cl_ver, const char* cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary* input, struct xsd__base64Binary** output)
 {
 #ifdef HAVE_KCOIDC_H
-	auto input_str = std::string(reinterpret_cast<char *>(input->__ptr + 6), input->__size - 6);
+	std::string input_str(reinterpret_cast<char *>(input->__ptr + 6), input->__size - 6);
 #if defined(KCOIDC_VERSION) && KCOIDC_VERSION >= 10100
-	auto res = kcoidc_validate_token_and_require_scope_s(const_cast<char *>(input_str.c_str()), "kopano/gc");
+	std::string scope("kopano/gc");
+	auto res = kcoidc_validate_token_and_require_scope_s(const_cast<char *>(input_str.c_str()), const_cast<char *>(scope.c_str()));
 #else
 	auto res = kcoidc_validate_token_s(const_cast<char *>(input_str.c_str()));
 #endif
