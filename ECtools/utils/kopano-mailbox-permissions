@@ -5,7 +5,6 @@
 Set the delegate permissions of a Kopano mailbox
 
 Script prerequisites:
-        - kopano package installed
         - python-mapi package installed
 """
 
