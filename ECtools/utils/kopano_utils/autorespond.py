@@ -1,4 +1,4 @@
-#!@PYTHON@
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from contextlib import closing
@@ -22,6 +22,7 @@ CONFIG = {
 
 user_blacklist = ["mailer-daemon", "postmaster", "root"]
 
+
 def in_blacklist(log, from_, to):
     short_from = from_.split("@")[0]
     short_to = to.split("@")[0]
@@ -32,10 +33,12 @@ def in_blacklist(log, from_, to):
 
     return False
 
+
 def send_ooo(server, username, msg, copy_to_sentmail):
     outbox = server.user(username).outbox
     item = outbox.create_item(eml=msg)
     item.send(copy_to_sentmail=copy_to_sentmail)
+
 
 def check_time(senddb, timelimit, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
@@ -47,11 +50,13 @@ def check_time(senddb, timelimit, username, to):
                 return True
     return False
 
+
 def add_time(senddb, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
         key = username + ":" + to
         key = key.encode('utf-8')
         db[key] = str(int(time.time()))
+
 
 def main():
     parser = kopano.parser("CSKQ", usage="Usage: %prog [options] from to subject username msgfile")
@@ -86,23 +91,20 @@ def main():
            (config["autorespond_cc"] and cc_me) or to_me):
         log.debug("Response not send due to configuration")
     elif not(from_ and to and username and msg and msg_file):
-        log.info(
-            "One of the input arguments was empty (from: %s, to: %s, username: %s, msg: %s)",
-            from_, to, username, msg
-        )
+        log.info("One of the input arguments was empty (from: %s, to: %s, username: %s, msg: %s)",
+                 from_, to, username, msg)
     elif from_ == to:
         log.info("Loop detected, from == to (%s)", from_)
     elif in_blacklist(log, from_, to):
         log.info("From or to is in blacklist (from: %s, to: %s)", from_, to)
     elif check_time(config["senddb"], config["timelimit"], username, to):
-        log.info(
-            "Ignoring since we already sent OOO message within timelimit (username: %s, to: %s, timelimit: %d)",
-            username, to, config["timelimit"]
-        )
+        log.info("Ignoring since we already sent OOO message within timelimit (username: %s, to: %s, timelimit: %d)",
+                 username, to, config["timelimit"])
     else:
         add_time(config["senddb"], username, to)
         send_ooo(server, username, msg, config["copy_to_sentmail"])
         log.info("Sent OOO to %s (username %s)", to, username)
+
 
 if __name__ == '__main__':
     main()

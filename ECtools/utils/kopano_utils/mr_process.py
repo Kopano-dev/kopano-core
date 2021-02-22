@@ -1,4 +1,4 @@
-#!@PYTHON@
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from __future__ import print_function
@@ -24,12 +24,7 @@ def get_sender(item):
     return fromname
 
 
-def main():
-    username, config_file, entryid = sys.argv[1:]
-
-    config = kopano.Config(filename=config_file)
-    server = kopano.server(config=config)
-
+def process(username, server, entryid):
     user = server.user(username)
     item = user.item(entryid)
     mr = item.meetingrequest
@@ -52,5 +47,15 @@ def main():
     except kopano.errors.NotFoundError as e:
         server.log.error("Unable to publish freebusy information: %s", str(e))
 
-if __name__ == '__main__':
-    main() # pragma: no cover
+
+def main():
+    username, config_file, entryid = sys.argv[1:]
+
+    config = kopano.Config(filename=config_file)
+    server = kopano.server(config=config)
+
+    process(username, server, entryid)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()

@@ -1,7 +1,5 @@
 # -*- Makefile -*-
 
-dist_sbin_SCRIPTS = kopano-autorespond kopano-mr-accept kopano-mr-process
-
 EXTRA_DIST = setup.py \
 	setup.cfg \
 	kopano_utils/__init__.py \

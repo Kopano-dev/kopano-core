@@ -1,7 +1,5 @@
-#!@PYTHON@
+#!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-
-from __future__ import print_function
 
 import collections
 from datetime import datetime, timedelta
@@ -11,12 +9,13 @@ import kopano
 
 from MAPI.Tags import PR_DISPLAY_TYPE_EX, PR_EMS_AB_ROOM_CAPACITY
 
-RECURRENCE_AVAILABILITY_RANGE = 180 # days
+RECURRENCE_AVAILABILITY_RANGE = 180  # days
 DT_EQUIPMENT = 8
 
 # XXX ZCP-9901 still relevant without outlook?
 
-def capacity(user): # XXX pyko?
+
+def capacity(user):  # XXX pyko?
     """ equipment resources can be overbooked up to N times """
 
     capacity = os.getenv('KOPANO_TEST_CAPACITY')
@@ -31,9 +30,11 @@ def capacity(user): # XXX pyko?
     else:
         return 1
 
-class Marker(object): # XXX kill?
+
+class Marker(object):  # XXX kill?
     def __init__(self, occurrence):
         self.occurrence = occurrence
+
 
 def conflict_occurrences(user, item):
     """ item occurrences which overlap (too much) with calendar """
@@ -74,31 +75,26 @@ def conflict_occurrences(user, item):
 
     return [m.occurrence for m in conflict_markers]
 
+
 def conflict_message(occurrences):
-    lines  = ['The requested time slots are unavailable on the following dates:', '']
+    lines = ['The requested time slots are unavailable on the following dates:', '']
     for occ in occurrences:
         lines.append('%s - %s' % (occ.start, occ.end))
     return '\n'.join(lines)
 
-def main():
-    args = sys.argv[1:]
-    username, config_file = args[:2]
 
-    config = kopano.Config(filename=config_file)
-    server = kopano.server(config=config)
-
+def accept(username, server, entryid=None):
     user = server.user(username)
     autoaccept = user.autoaccept
 
-    if len(args) > 2:
-        items = [user.item(args[2])]
+    if entryid:
+        items = [user.item(entryid)]
     else:
         items = []
         for item in user.inbox:
             mr = item.meetingrequest
-            if((mr.is_request and mr.response_requested and not mr.processed) or \
-               (mr.is_cancellation and not mr.processed)):
-               items.append(item)
+            if (mr.is_request and mr.response_requested and not mr.processed) or (mr.is_cancellation and not mr.processed):
+                items.append(item)
 
     for item in items:
         mr = item.meetingrequest
@@ -128,5 +124,17 @@ def main():
     except kopano.errors.NotFoundError as e:
         print("Unable to publish freebusy information: " + str(e), file=sys.stderr)
 
-if __name__ == '__main__':
-    main() # pragma: no cover
+
+def main():
+    args = sys.argv[1:]
+    username, config_file = args[:2]
+
+    entryid = args[2] if len(args) > 2 else None
+    config = kopano.Config(filename=config_file)
+    server = kopano.server(config=config)
+
+    accept(username, server, entryid)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()

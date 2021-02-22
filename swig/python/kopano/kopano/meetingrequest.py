@@ -126,6 +126,7 @@ RECIP_PROPS = [
     PR_SEARCH_KEY,
 ]
 
+
 def _organizer_props(cal_item, item):
     has_organizer = False
 
@@ -133,8 +134,7 @@ def _organizer_props(cal_item, item):
         PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
     for row in table.QueryRows(2147483647, 0):
         recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
-        if (recipient_flags and \
-            recipient_flags.Value == (recipOrganizer | recipSendable)):
+        if recipient_flags and recipient_flags.Value == (recipOrganizer | recipSendable):
             has_organizer = True
             break
 
@@ -143,14 +143,14 @@ def _organizer_props(cal_item, item):
             SPropValue(PR_ENTRYID,
                 item.prop(PR_SENT_REPRESENTING_ENTRYID).value),
             SPropValue(PR_DISPLAY_NAME_W,
-                item.prop(PR_SENT_REPRESENTING_NAME_W).value),
+                       item.prop(PR_SENT_REPRESENTING_NAME_W).value),
             SPropValue(PR_EMAIL_ADDRESS_W,
-                item.prop(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W).value),
+                       item.prop(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W).value),
             SPropValue(PR_RECIPIENT_TYPE, MAPI_TO),
             SPropValue(PR_RECIPIENT_DISPLAY_NAME_W,
-                item.prop(PR_SENT_REPRESENTING_NAME_W).value),
+                       item.prop(PR_SENT_REPRESENTING_NAME_W).value),
             SPropValue(PR_ADDRTYPE_W,
-                item.prop(PR_SENT_REPRESENTING_ADDRTYPE_W).value), # TODO php
+                       item.prop(PR_SENT_REPRESENTING_ADDRTYPE_W).value),  # TODO php
             SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
             SPropValue(PR_RECIPIENT_FLAGS, (recipOrganizer | recipSendable)),
         ]
@@ -159,6 +159,7 @@ def _organizer_props(cal_item, item):
         if repr_search_key:
             orgprops.append(SPropValue(PR_SEARCH_KEY, repr_search_key))
         return orgprops
+
 
 def _copytags(mapiobj):
     copytags = [_prop._name_to_proptag(tag, mapiobj)[0] for tag in PROPTAGS]
@@ -173,9 +174,11 @@ def _copytags(mapiobj):
     ])
     return copytags
 
+
 # TODO: in MAPI.Time?
 def mapi_time(t):
     return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
+
 
 def _generate_goid():
     """
@@ -215,6 +218,7 @@ def _generate_goid():
     for _ in range(0, 16):
         goid += struct.pack('B', random.getrandbits(8))
     return goid
+
 
 def _create_meetingrequest(cal_item, item, basedate=None):
     # TODO Update the calendar item, for tracking status
@@ -293,6 +297,7 @@ def _create_meetingrequest(cal_item, item, basedate=None):
 
     return item2
 
+
 class MeetingRequest(object):
     """MeetingRequest class
 
@@ -347,7 +352,7 @@ class MeetingRequest(object):
         return self.item.get(PidLidAppointmentSequence)
 
     @property
-    def track_status(self): # TODO use strs
+    def track_status(self):  # TODO use strs
         return {
             'IPM.Schedule.Meeting.Resp.Tent': respTentative,
             'IPM.Schedule.Meeting.Resp.Pos': respAccepted,
@@ -397,9 +402,9 @@ class MeetingRequest(object):
         response.subject = subject_prefix + ': ' + self.item.subject
         if message:
             response.text = message
-        # TODO
+        # TODO: error handling when user is not found
         response.to = self.item.server.user(email=self.item.from_.email)
-        response.from_ = self.item.store.user # TODO slow?
+        response.from_ = self.item.store.user  # TODO slow?
 
         response.send()
 
@@ -425,13 +430,10 @@ class MeetingRequest(object):
             rows = table.QueryRows(2147483647, 0)
             # TODO php-compat: php checks 'move' flag, should we
             if tentative:
-                cal_item.mapiobj.ModifyRecipients(MODRECIP_REMOVE,
-                    rows)
-                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD,
-                    [organizer_props] + rows)
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props] + rows)
             else:
-                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD,
-                    [organizer_props])
+                cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
             _utils._save(cal_item.mapiobj)
 
     def accept(self, tentative=False, response=True, add_bcc=False, subject_prefix='Accepted'):
@@ -672,17 +674,12 @@ class MeetingRequest(object):
                 PpropFindProp(row, PR_ENTRYID).Value,
                 self.item.prop(PR_SENT_REPRESENTING_ENTRYID).value
             ):
-                trackstatus = PpropFindProp(row,
-                    PR_RECIPIENT_TRACKSTATUS)
-                trackstatus_time = PpropFindProp(row,
-                    PR_RECIPIENT_TRACKSTATUS_TIME)
+                trackstatus = PpropFindProp(row, PR_RECIPIENT_TRACKSTATUS)
+                trackstatus_time = PpropFindProp(row, PR_RECIPIENT_TRACKSTATUS_TIME)
 
-                attendee_crit_change = \
-                    self.item.get_prop(PidLidAttendeeCriticalChange)
-                if (trackstatus_time and \
-                    attendee_crit_change and \
-                    attendee_crit_change.mapiobj.Value <= \
-                       trackstatus_time.Value):
+                attendee_crit_change = self.item.get_prop(PidLidAttendeeCriticalChange)
+
+                if trackstatus_time and attendee_crit_change and attendee_crit_change.mapiobj.Value <= trackstatus_time.Value:
                     continue
 
                 if trackstatus_time:
@@ -701,12 +698,9 @@ class MeetingRequest(object):
                     start = self.item.prop(PidLidAppointmentProposedStartWhole)
                     end = self.item.prop(PidLidAppointmentProposedEndWhole)
                     row.extend([
-                        SPropValue(PR_PROPOSED_NEWTIME,
-                            True),
-                        SPropValue(PR_PROPOSED_NEWTIME_START,
-                            start.mapiobj.Value),
-                        SPropValue(PR_PROPOSED_NEWTIME_END,
-                            end.mapiobj.Value),
+                        SPropValue(PR_PROPOSED_NEWTIME, True),
+                        SPropValue(PR_PROPOSED_NEWTIME_START, start.mapiobj.Value),
+                        SPropValue(PR_PROPOSED_NEWTIME_END, end.mapiobj.Value),
                     ])
 
         message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
@@ -722,7 +716,7 @@ class MeetingRequest(object):
             _utils._save(attach)
             _utils._save(cal_item.mapiobj)
 
-    def _compare_ab_entryids(self, entryid1, entryid2): # TODO shorten?
+    def _compare_ab_entryids(self, entryid1, entryid2):  # TODO shorten?
         smtp1 = self._get_smtp_address(entryid1)
         smtp2 = self._get_smtp_address(entryid2)
         return smtp1 == smtp2
