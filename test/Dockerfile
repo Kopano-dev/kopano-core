@@ -54,5 +54,6 @@ RUN ln -svnf $WORKSPACE/.libs/kopano-ibrule /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-oof /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-fsck /usr/sbin/
 RUN ln -svnf $WORKSPACE/.libs/kopano-stats /usr/sbin/
+RUN ln -svnf $WORKSPACE/ECtools/utils/kopano-mailbox-permissions /usr/sbin/
 
 CMD [ "/bin/true" ]
