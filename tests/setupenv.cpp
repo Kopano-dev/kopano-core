@@ -31,6 +31,9 @@ static uint16_t next_free_port_2()
 		perror("nfp2: socket");
 		return 0;
 	}
+	KC::make_scope_exit([&]{
+		close(fd);
+	});
 	int y = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(y)) < 0) {
 		perror("nfp2: setsockopt");
@@ -48,7 +51,6 @@ static uint16_t next_free_port_2()
 		perror("nfp2: getsockname");
 		return 0;
 	}
-	close(fd);
 	/* It is not guaranteed to be free, but the chance is really high. */
 	return ntohs(sk.sin6_port);
 }
