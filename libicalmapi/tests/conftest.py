@@ -56,16 +56,37 @@ def icaltomapi(store, ab):
 def mapitoical(ab):
     return icalmapi.CreateMapiToICal(ab, 'utf-8')
 
-def assert_item_count_from_ical(icaltomapi, ical, N):
+# This function parses an ical string and asserts the number of expected messages
+def assert_item_count_from_ical(icaltomapi, ical, expected_num_messages):
     icaltomapi.ParseICal(ical, 'utf-8', 'UTC', None, 0)
-    assert icaltomapi.GetItemCount() == N
+    assert icaltomapi.GetItemCount() == expected_num_messages
 
-def assert_get_glob_from_ical(icaltomapi, message, ical, N):
-    assert_item_count_from_ical(icaltomapi, ical, N)
-    icaltomapi.GetItem(0, 0, message)
-    # static range named prop
-    return message.GetProps([0x80160102], 0)[0].Value
+# This function retrieves a parsed message from ical and returns a specific property from it
+def get_prop_from_ical(icaltomapi, message, prop, index_message):
+    icaltomapi.GetItem(index_message, 0, message)
+    return message.GetProps([prop], 0)[0].Value
 
+# This function retrieves the glob property from a parsed message from ical
+def assert_get_glob_from_ical(icaltomapi, message, ical, expected_num_messages):
+    assert_item_count_from_ical(icaltomapi, ical, expected_num_messages)
+    return get_prop_from_ical(icaltomapi, message, 0x80160102, 0)
+
+# This function asserts that the messages parsed from ical contain property with a certain value.
+# The values should be sent as a list in expected_prop_values
+# The function will assume the number of messages is equal to the number of property values in the list.
+def assert_property_value_from_ical(icaltomapi, message, prop, expected_prop_values):
+    for i in range(len(expected_prop_values)):
+        prop_value = get_prop_from_ical(icaltomapi, message, prop, i)
+        assert expected_prop_values[i] == prop_value
+
+# This function asserts that the messages parsed from ical contain a set of properties with a specific value.
+# The properties should be sent as a dicionary to expected_props_values_dic. The property is the key and the value is a
+# list of property values.
+# The function will assume the number of messages is equal to the number of property values in each list value in the
+# dictionary.
+def assert_properties_from_ical(icaltomapi, message, expected_props_values_dic):
+    for prop in expected_props_values_dic:
+        assert_property_value_from_ical(icaltomapi, message, prop, expected_props_values_dic[prop])
 
 def getrecurrencestate(blob):
     rs = RS.RecurrenceState()
