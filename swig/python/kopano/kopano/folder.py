@@ -39,7 +39,7 @@ from MAPI.Tags import (
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
     PR_EXCEPTION_ENDTIME, PR_RULE_ID, PR_RULE_STATE, ST_ENABLED,
     PR_RULE_PROVIDER_DATA, PR_RULE_SEQUENCE, PR_RULE_NAME_W,
-    PR_RULE_CONDITION, PT_LONG, PR_ATTR_HIDDEN,
+    PR_RULE_CONDITION, PT_LONG, PR_ATTR_HIDDEN, PR_PROVIDER_DISPLAY_W
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -61,14 +61,15 @@ from .table import Table
 from .property_ import Property
 from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
-    ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
+    ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER,
+    COLOR_NR, NR_COLOR,
 )
 from .errors import NotFoundError, ArgumentError, DuplicateError
 from .query import _query_to_restriction
-
 from .compat import (
     bdec as _bdec, benc as _benc
 )
+from .pidlid import PidLidAppointmentColor
 
 try:
     from . import log as _log
@@ -315,6 +316,24 @@ class Folder(Properties):
     def unread(self):
         """Unread item count."""
         return self._get_fast(PR_CONTENT_UNREAD)
+
+    @property
+    def default_online_meeting_provider(self):
+        """Return defaultOnlineMeetingProvider field.
+
+        Returns:
+            str: default online meeting provider.
+        """
+        return self._get_fast(PR_PROVIDER_DISPLAY_W, "unknown")
+
+    @default_online_meeting_provider.setter
+    def default_online_meeting_provider(self, value):
+        """Setter for defaultOnlineMeetingProvider field.
+
+        Args:
+            value (str): new default online meeting provider.
+        """
+        self[PR_PROVIDER_DISPLAY_W] = value
 
     def item(self, entryid=None, sourcekey=None):
         """ Return :class:`Item` with given entryid or sourcekey
@@ -927,6 +946,11 @@ class Folder(Properties):
         self.rules_loads(data['rules'])
         self.permissions_loads(data['permissions'])
 
+    @property
+    def changekey(self):
+        """Item changekey."""
+        return _benc(self._get_fast(PR_CHANGE_KEY, must_exist=True))
+
     def rules_dumps(self, stats=None):
         """Serialize folder rules."""
         server = self.server
@@ -1229,6 +1253,20 @@ class Folder(Properties):
         archive_store = self.server._store2(arch_storeid)
         return _store.Store(mapiobj=archive_store, server=self.server).folder(
             entryid=_benc(arch_folderid))
+
+    @property
+    def color(self): # property used by old clients
+        """Appointment color (old clients)."""
+        nr = self.get(PidLidAppointmentColor, 0)
+        if nr != 0:
+            return NR_COLOR[nr]
+
+    @color.setter
+    def color(self, value):
+        try:
+            self[PidLidAppointmentColor] = COLOR_NR[value]
+        except KeyError:
+            raise ArgumentError('invalid color: %r' % value)
 
     @property
     def primary_store(self):
