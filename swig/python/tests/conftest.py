@@ -40,6 +40,15 @@ def session():
 
 
 @pytest.fixture
+def session3():
+    user = os.getenv('KOPANO_TEST_USER3')
+    password = os.getenv('KOPANO_TEST_PASSWORD3')
+    socket = os.getenv('KOPANO_SOCKET')
+
+    return OpenECSession(user, password, socket)
+
+
+@pytest.fixture
 def notifysession():
     user = os.getenv('KOPANO_TEST_USER')
     password = os.getenv('KOPANO_TEST_PASSWORD')
