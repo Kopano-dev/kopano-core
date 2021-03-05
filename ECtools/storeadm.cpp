@@ -127,13 +127,10 @@ static inline std::string objclass_to_str(const SPropValue *p)
 }
 
 /**
- * List users without a store, and stores without a user.
+ * List stores without a user.
  *
- * Gets a list of users and stores. (The server only returns users/stores which
- * are home to the chosen server, thereby excluding archives located
- * elsewhere.) Because of the sorting chosen, stores without a user will be
- * printed first, until the first user without a store is found. Then those are
- * printed, until the first user with a store is found.
+ * Gets a list of stores without a user. (The server only returns stores which are home to the chosen server, thereby
+ * excluding archives located elsewhere.)
  */
 static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 {
@@ -145,16 +142,29 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 
 	object_ptr<IMAPITable> table;
 	auto ret = svcadm->OpenUserStoresTable(0, &~table);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
 		return kc_perror("OpenUserStoresTable", ret);
+	}
 	static constexpr SizedSPropTagArray(8, sp) =
 		{8, {PR_EC_STORETYPE, PR_EC_USERNAME_A, PR_EC_STOREGUID, PR_DISPLAY_NAME_A, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_SIZE_EXTENDED, PR_OBJECT_TYPE}};
 	ret = table->SetColumns(sp, TBL_BATCH);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
 		return ret;
+	}
 	ret = table->SortTable(sort_order, 0);
-	if (ret != hrSuccess)
+	if (ret != hrSuccess) {
 		return kc_perror("SortTable", ret);
+	}
+
+	LPSRestriction restriction = nullptr;
+	ECExistRestriction existsRestriction{PR_EC_STOREGUID};
+	// ECExistsRestriction does not use flags but since the function is generic we need to pass something there.
+	existsRestriction.CreateMAPIRestriction(&restriction, ECRestriction::Full);
+
+	ret = table->Restrict(restriction, TBL_BATCH);
+	if (ret != hrSuccess) {
+		return kc_perror("Restrict", ret);
+	}
 
 	ConsoleTable orp(50, 5);
 	orp.set_lead("");
@@ -164,7 +174,7 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 	orp.SetHeader(3, "Store size");
 	orp.SetHeader(4, "Store type");
 
-	printf("Stores without an owner, users without a private store, companies without a public store:\n");
+	printf("Stores without a user:\n");
 	while (true) {
 		rowset_ptr rowset;
 		ret = table->QueryRows(INT_MAX, 0, &~rowset);
@@ -178,9 +188,10 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
 			if (userp == nullptr) {
 				auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
-				if (guid == nullptr)
+				if (guid == nullptr) {
 					/* Special case - the Everyone group has no name (and it also has no private store) */
 					continue;
+				}
 				userp = rowset[i].cfind(PR_DISPLAY_NAME_A);
 				auto user = userp != nullptr ? userp->Value.lpszA : "<unknown>";
 				auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
@@ -191,31 +202,6 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 				orp.AddColumn(3, ssize != nullptr ? number_to_humansize(ssize->Value.li.QuadPart) : "<unknown>");
 				orp.AddColumn(4, stype != nullptr ? store_type_string(stype->Value.ul) : "<unknown>");
 				continue;
-			}
-			auto objcls = rowset[i].cfind(PR_OBJECT_TYPE);
-			if (objcls == nullptr)
-				continue;
-			auto guid = rowset[i].cfind(PR_EC_STOREGUID);
-			if (guid != nullptr)
-				continue;
-			auto user = rowset[i].cfind(PR_EC_USERNAME_A);
-			if (user == nullptr || user->Value.lpszA == nullptr)
-				continue;
-			if (OBJECTCLASS_CLASSTYPE(objcls->Value.ul) == OBJECTCLASS_USER &&
-			    stype->Value.ul == ECSTORE_TYPE_PRIVATE) {
-				orp.AddColumn(0, "<user without store>            ");
-				orp.AddColumn(1, user->Value.lpszA);
-				orp.AddColumn(2, "");
-				orp.AddColumn(3, "");
-				orp.AddColumn(4, "");
-			}
-			else if (objcls->Value.ul == CONTAINER_COMPANY &&
-			    stype->Value.ul == ECSTORE_TYPE_PUBLIC) {
-				orp.AddColumn(0, "<company without public store>  ");
-				orp.AddColumn(1, user->Value.lpszA);
-				orp.AddColumn(2, "");
-				orp.AddColumn(3, "");
-				orp.AddColumn(4, "");
 			}
 		}
 	}
