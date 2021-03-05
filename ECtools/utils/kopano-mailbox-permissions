@@ -45,30 +45,15 @@ from MAPI.Tags import (PR_AB_PROVIDER_ID, PR_ENTRYID, PR_DISPLAY_TYPE,
                        PR_RECIPIENT_TYPE, PR_DELEGATED_BY_RULE, PR_RULE_ID, PR_MEMBER_ENTRYID,
                        PR_MEMBER_ID, PR_FOLDER_TYPE, PR_MEMBER_NAME, PR_MEMBER_RIGHTS,
                        PR_ACL_TABLE, PR_EMAIL_ADDRESS, ACTTYPE,
-                       IID_IExchangeModifyTable, IID_IExchangeManageStore, IID_IMsgStore)
+                       IID_IExchangeModifyTable, IID_IExchangeManageStore, IID_IMsgStore,
+		       ecRightsNone, ecRightsReadAny, ecRightsCreate, ecRightsEditOwned,
+		       ecRightsDeleteOwned, ecRightsEditAny, ecRightsDeleteAny,
+		       ecRightsCreateSubfolder, ecRightsFolderAccess, ecRightsFolderVisible,
+		       ecRightsFullControl, ecRightsTemplateNoRights, ecRightsTemplateReadOnly,
+		       ecRightsTemplateSecretary, ecRightsTemplateOwner, EMS_AB_ADDRESS_LOOKUP)
 
 
 verbose = False
-
-ecRightsNone            = 0x00000000
-ecRightsReadAny         = 0x00000001
-ecRightsCreate          = 0x00000002
-ecRightsEditOwned       = 0x00000008
-ecRightsDeleteOwned     = 0x00000010
-ecRightsEditAny         = 0x00000020
-ecRightsDeleteAny       = 0x00000040
-ecRightsCreateSubfolder = 0x00000080
-ecRightsFolderAccess    = 0x00000100
-ecRightsFolderVisible   = 0x00000400
-
-ecRightsFullControl     = int(0x000004FB)
-
-ecRightsTemplateNoRights    = ecRightsFolderVisible
-ecRightsTemplateReadOnly    = ecRightsTemplateNoRights | ecRightsReadAny
-ecRightsTemplateSecretary   = ecRightsTemplateReadOnly | ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned | ecRightsEditAny | ecRightsDeleteAny
-ecRightsTemplateOwner       = ecRightsTemplateSecretary | ecRightsCreateSubfolder | ecRightsFolderAccess
-
-EMS_AB_ADDRESS_LOOKUP = 0x1
 
 ########################
 # Util functions
