@@ -147,22 +147,24 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 	auto ret = svcadm->OpenUserStoresTable(0, &~table);
 	if (ret != hrSuccess)
 		return kc_perror("OpenUserStoresTable", ret);
+	static constexpr SizedSPropTagArray(8, sp) =
+		{8, {PR_EC_STORETYPE, PR_EC_USERNAME_A, PR_EC_STOREGUID, PR_DISPLAY_NAME_A, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_SIZE_EXTENDED, PR_OBJECT_TYPE}};
+	ret = table->SetColumns(sp, TBL_BATCH);
+	if (ret != hrSuccess)
+		return ret;
 	ret = table->SortTable(sort_order, 0);
 	if (ret != hrSuccess)
 		return kc_perror("SortTable", ret);
 
-	ConsoleTable orp(50, 5), pvs(50, 1), pbs(50, 1);
+	ConsoleTable orp(50, 5);
 	orp.set_lead("");
 	orp.SetHeader(0, "Store GUID");
 	orp.SetHeader(1, "Guessed owner");
 	orp.SetHeader(2, "Last login");
 	orp.SetHeader(3, "Store size");
 	orp.SetHeader(4, "Store type");
-	pvs.set_lead("");
-	pvs.SetHeader(0, "Name");
-	pbs.set_lead("");
-	pbs.SetHeader(0, "Name");
 
+	printf("Stores without an owner, users without a private store, companies without a public store:\n");
 	while (true) {
 		rowset_ptr rowset;
 		ret = table->QueryRows(INT_MAX, 0, &~rowset);
@@ -200,20 +202,25 @@ static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
 			if (user == nullptr || user->Value.lpszA == nullptr)
 				continue;
 			if (OBJECTCLASS_CLASSTYPE(objcls->Value.ul) == OBJECTCLASS_USER &&
-			    stype->Value.ul == ECSTORE_TYPE_PRIVATE)
-				pvs.AddColumn(0, user->Value.lpszA);
+			    stype->Value.ul == ECSTORE_TYPE_PRIVATE) {
+				orp.AddColumn(0, "<user without store>            ");
+				orp.AddColumn(1, user->Value.lpszA);
+				orp.AddColumn(2, "");
+				orp.AddColumn(3, "");
+				orp.AddColumn(4, "");
+			}
 			else if (objcls->Value.ul == CONTAINER_COMPANY &&
-			    stype->Value.ul == ECSTORE_TYPE_PUBLIC)
-				pbs.AddColumn(0, user->Value.lpszA);
+			    stype->Value.ul == ECSTORE_TYPE_PUBLIC) {
+				orp.AddColumn(0, "<company without public store>  ");
+				orp.AddColumn(1, user->Value.lpszA);
+				orp.AddColumn(2, "");
+				orp.AddColumn(3, "");
+				orp.AddColumn(4, "");
+			}
 		}
 	}
-
-	printf("Stores without an owner:\n");
 	orp.PrintTable();
-	printf("\nUsers without a private store:\n");
-	pvs.PrintTable();
-	printf("\nCompanies without a public store:\n");
-	pbs.PrintTable();
+
 	return hrSuccess;
 }
 
