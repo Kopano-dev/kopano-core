@@ -31,6 +31,10 @@ from .errors import (
 UnitsPerMinute = 600000000
 
 def datetime_to_rtime(d):
+    '''Converts a datetime to relative time used by the IFreeBusyData interface
+    and is defined as the number of minutes since January 1, 1601, expressed in
+    UTC.
+    '''
     return datetime_to_filetime(d).filetime / UnitsPerMinute
 
 def rtime_to_datetime(r):
