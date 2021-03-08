@@ -42,12 +42,13 @@ from MAPI.Struct import (
     SPropValue, SPropertyRestriction, SBitMaskRestriction, SSubRestriction,
 )
 
-from MAPI.Time import datetime_to_filetime
 from MAPI.Defs import PROP_TYPE
 
 from .errors import ArgumentError
 from .restriction import Restriction
 from .defs import PSETID_Address, PS_PUBLIC_STRINGS
+# Backwards compatible import for older python-mapi versions without datetime_to_filetime available in MAPI.Time
+from . import utils as _utils
 
 from .parse import (
     ParserInput, Parser, Char, CharSet, ZeroOrMore, OneOrMore, Sequence,
@@ -144,8 +145,8 @@ OP_RELOP = {
 
 
 def _interval_restriction(proptag, start, end):
-    start = datetime_to_filetime(start)
-    end = datetime_to_filetime(end)
+    start = _utils.datetime_to_filetime(start)
+    end = _utils.datetime_to_filetime(end)
 
     return SAndRestriction([
         SPropertyRestriction(RELOP_GE, proptag, SPropValue(proptag, start)),
@@ -225,7 +226,7 @@ class Term(object):
         if self.op in ('<', '>', '>=', '<=', '<>'):
             if PROP_TYPE(proptag) == PT_SYSTIME:
                 d = dateutil.parser.parse(self.value)
-                d = datetime_to_filetime(d)
+                d = _utils.datetime_to_filetime(d)
                 restr = SPropertyRestriction(
                             OP_RELOP[self.op],
                             proptag,

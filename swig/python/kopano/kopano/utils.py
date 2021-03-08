@@ -7,6 +7,7 @@ Copyright 2016 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import binascii
+import datetime
 import os
 try:
     import cPickle as pickle
@@ -27,6 +28,9 @@ from MAPI.Tags import (
 )
 from MAPI.Tags import (
     IID_IStream, IID_IECMessageRaw, IID_IExchangeModifyTable
+)
+from MAPI.Time import (
+    FileTime, NANOSECS_BETWEEN_EPOCH,
 )
 from MAPI.Struct import (
     MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY,
@@ -223,3 +227,6 @@ def _save(mapiobj):
             else:
                 retry += 1
                 time.sleep(t)
+
+def datetime_to_filetime(d):
+    return FileTime(int(datetime.datetime.timestamp(d)) * 10000000 + NANOSECS_BETWEEN_EPOCH)

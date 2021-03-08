@@ -11,7 +11,6 @@ import libfreebusy
 
 from MAPI.Time import (
     FileTime,
-    datetime_to_filetime,
 )
 
 import MAPI.Struct
@@ -28,6 +27,9 @@ from .errors import (
     NotFoundError
 )
 
+# Backwards compatible import for older python-mapi versions without datetime_to_filetime available in MAPI.Time
+from . import utils as _utils
+
 UnitsPerMinute = 600000000
 
 def datetime_to_rtime(d):
@@ -35,7 +37,7 @@ def datetime_to_rtime(d):
     and is defined as the number of minutes since January 1, 1601, expressed in
     UTC.
     '''
-    return datetime_to_filetime(d).filetime / UnitsPerMinute
+    return _utils.datetime_to_filetime(d).filetime / UnitsPerMinute
 
 def rtime_to_datetime(r):
     return datetime.datetime.fromtimestamp(FileTime(r * UnitsPerMinute).unixtime)
@@ -79,11 +81,11 @@ class FreeBusy(object):
         """
         eid = _bdec(self.store.user.userid)
         if start:
-            ftstart = datetime_to_filetime(start)
+            ftstart = _utils.datetime_to_filetime(start)
         else:
             ftstart = FileTime(0)
         if end:
-            ftend = datetime_to_filetime(end)
+            ftend = _utils.datetime_to_filetime(end)
         else:
             ftend = FileTime(0xFFFFFFFFFFFFFFFF)
 
@@ -114,8 +116,8 @@ class FreeBusy(object):
         :param end: end of period
         """
         eid = _bdec(self.store.user.userid)  # TODO merge with blocks
-        ftstart = datetime_to_filetime(start)  # TODO tz?
-        ftend = datetime_to_filetime(end)  # TODO tz?
+        ftstart = _utils.datetime_to_filetime(start)  # TODO tz?
+        ftend = _utils.datetime_to_filetime(end)  # TODO tz?
 
         fb = libfreebusy.IFreeBusySupport()
         try:
