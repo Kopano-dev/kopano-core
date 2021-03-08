@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-import time
 import datetime
 
 # PT_SYSTIME properties store the number of 100-nanosecond units since 1601,1,1 ..
@@ -16,7 +15,7 @@ def _convert(s):
 
 
 def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
+    return FileTime(int(datetime.datetime.timestamp(d)) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 
 # class representing a PT_SYSTIME value. the 'unixtime' property can be used to convert to/from unixtime.
