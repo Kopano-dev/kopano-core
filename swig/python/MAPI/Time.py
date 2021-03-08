@@ -16,8 +16,7 @@ def _convert(s):
 
 
 def datetime_to_filetime(d):
-    return FileTime(
-        int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
+    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + NANOSECS_BETWEEN_EPOCH)
 
 
 # class representing a PT_SYSTIME value. the 'unixtime' property can be used to convert to/from unixtime.
