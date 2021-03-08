@@ -28,12 +28,13 @@ from .errors import (
     NotFoundError
 )
 
+UnitsPerMinute = 600000000
 
 def datetime_to_rtime(d):
-    return datetime_to_filetime(d).filetime / 600000000
+    return datetime_to_filetime(d).filetime / UnitsPerMinute
 
 def rtime_to_datetime(r):
-    return datetime.datetime.fromtimestamp(FileTime(r * 600000000).unixtime)
+    return datetime.datetime.fromtimestamp(FileTime(r * UnitsPerMinute).unixtime)
 
 
 class FreeBusyBlock(object):
