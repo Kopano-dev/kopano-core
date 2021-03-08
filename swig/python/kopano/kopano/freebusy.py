@@ -76,8 +76,8 @@ class FreeBusy(object):
         """Return all :class:`freebusy blocks <FreeBusyBlock>` for the
         given period.
 
-        :param start: start of period
-        :param end: end of period
+        :param start: start of period (must be localtime (naive) or non-naive datetime instance)
+        :param end: end of period (must be localtime (naive) or non-naive datetime instance)
         """
         eid = _bdec(self.store.user.userid)
         if start:
@@ -112,12 +112,12 @@ class FreeBusy(object):
     def publish(self, start=None, end=None):
         """Publish freebusy information for the given period.
 
-        :param start: start of period
-        :param end: end of period
+        :param start: start of period (must be localtime (naive) or non-naive datetime instance)
+        :param end: end of period (must be localtime (naive) or non-naive datetime instance)
         """
         eid = _bdec(self.store.user.userid)  # TODO merge with blocks
-        ftstart = _utils.datetime_to_filetime(start)  # TODO tz?
-        ftend = _utils.datetime_to_filetime(end)  # TODO tz?
+        ftstart = _utils.datetime_to_filetime(start)
+        ftend = _utils.datetime_to_filetime(end)
 
         fb = libfreebusy.IFreeBusySupport()
         try:
