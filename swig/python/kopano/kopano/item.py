@@ -65,7 +65,7 @@ from MAPI.Tags import (
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
-    PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
+    PR_REPLY_RECIPIENT_ENTRIES, PR_SENSITIVITY,
     PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME,
     PR_ROWID, respOrganized
 )
@@ -632,16 +632,6 @@ class Item(Properties, Contact, Appointment):
                 self.html, self.encoding or 'ascii', 'replace')
             # TODO set meta charset to utf-8!?
             return html.encode('utf-8')
-
-    @property
-    def filtered_html(self):
-        """Item filtered HTML representation."""
-        warnings.warn('item.filtered_html is deprecated',
-                      _DeprecationWarning)
-        try:
-            return self.prop(PR_EC_BODY_FILTERED).value
-        except NotFoundError:
-            pass
 
     @property
     def rtf(self):
