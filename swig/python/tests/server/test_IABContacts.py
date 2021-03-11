@@ -6,7 +6,8 @@ import pytest
 from MAPI import (MAPI_UNICODE, PT_ERROR, FOLDER_GENERIC, DEL_FOLDERS, DEL_MESSAGES, DELETE_HARD_DELETE, MAPI_BEST_ACCESS,
                   KEEP_OPEN_READWRITE, RELOP_EQ, MAPI_MAILUSER, CONVENIENT_DEPTH, ROW_ADD, ROWLIST_REPLACE, MAPI_MODIFY)
 from MAPI.Util import GetDefaultStore, GetPublicStore, PpropFindProp, SPropValue, SPropertyRestriction, OpenECSession
-from MAPI.Util.AddressBook import MUIDECSAB, PROP_TYPE
+from MAPI.Defs import PROP_TYPE
+from MAPI.Util.AddressBook import MUIDECSAB
 from MAPI.Struct import MAPIError, ROWENTRY
 from MAPI.Tags import (PR_AB_PROVIDER_ID, PR_ENTRYID, PR_IPM_CONTACT_ENTRYID,
                        PR_DISPLAY_NAME_W, PR_DEPTH, PR_IPM_PUBLIC_FOLDERS_ENTRYID,
