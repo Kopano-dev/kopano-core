@@ -464,6 +464,10 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	return erSuccess;
 }
 
+/**
+ * Checks if MySQL's thread_stack size is set to at least
+ * MYSQL_MIN_THREAD_STACK to support optimised queries using SQL procedures.
+ */
 static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 {
 	DB_RESULT lpResult;
@@ -1128,7 +1132,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "enable_gab",				"yes", CONFIGSETTING_RELOADABLE },			// whether the GAB is enabled
 		{"abtable_initially_empty", "no", CONFIGSETTING_RELOADABLE},
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
-        { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
+        { "enable_sql_procedures",  "yes" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
 
 		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE },
 		{ "search_socket",			"file:///var/run/kopano/search.sock", CONFIGSETTING_RELOADABLE },
