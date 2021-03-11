@@ -1,7 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-from MAPI.Defs import *
-from MAPI.Tags import *
-from MAPI.Struct import *
+from MAPI import (TBL_BATCH, MAPI_UNICODE, MAPI_DISTLIST, FL_FULLSTRING,
+                  FL_IGNORECASE, DT_REMOTE_MAILUSER, MAPI_MAILUSER, DT_GLOBAL,
+                  RELOP_EQ, RELOP_NE, BOOKMARK_BEGINNING)
+from MAPI.Defs import DEFINE_GUID
+from MAPI.Tags import (PR_ENTRYID, PR_EMS_AB_CONTAINERID, PR_DISPLAY_TYPE,
+                       PR_DISPLAY_NAME_W, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A,
+                       PR_EMAIL_ADDRESS_W, PR_OBJECT_TYPE)
+from MAPI.Struct import (SPropertyRestriction, SOrRestriction,
+                         SExistRestriction, SAndRestriction, SPropValue, SContentRestriction)
 
 MUIDECSAB = DEFINE_GUID(0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25)
 
@@ -40,7 +46,7 @@ def _GetAbObjectList(container, restriction, flags):
         columns = [PR_EMAIL_ADDRESS_A]
     users = []
     table = container.GetContentsTable(0)
-    table.SetColumns(columns, MAPI.TBL_BATCH)
+    table.SetColumns(columns, TBL_BATCH)
     if restriction:
         table.Restrict(restriction, TBL_BATCH)
     while True:
