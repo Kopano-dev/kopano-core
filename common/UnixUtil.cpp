@@ -437,6 +437,15 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(-pid));
 		return false;
 	}
+	int status = 0;
+	if (waitpid(pid, &status, 0) < 0) {
+		return false;
+	}
+	if (status == -1) {
+		ec_log_err("System call \"system\" failed: %s", strerror(errno));
+		return false;
+	}
+
 	close(fdin);
 	int newfd = ec_relocate_fd(fdout);
 	if (newfd >= 0)
@@ -456,13 +465,6 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	}
 
 	fclose(fp);
-	int status = 0;
-	if (waitpid(pid, &status, 0) < 0)
-		return false;
-	if (status == -1) {
-		ec_log_err(std::string("System call \"system\" failed: ") + strerror(errno));
-		return false;
-	}
 	bool rv = true;
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
