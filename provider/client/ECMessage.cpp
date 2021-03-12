@@ -1850,33 +1850,38 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 		lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
 		hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
+		}
 		memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
 		break;
 	case PROP_ID(PR_MESSAGE_SIZE):
 		lpsPropValue->ulPropTag = PR_MESSAGE_SIZE;
-		if(lpMessage->m_lpEntryId == NULL) //new message
+		if(lpMessage->m_lpEntryId == NULL) { // new message
 			lpsPropValue->Value.l = 1024;
-		else
+		} else {
 			hr = lpMessage->HrGetRealProp(PR_MESSAGE_SIZE, ulFlags, lpBase, lpsPropValue);
+		}
 		break;
 	case PROP_ID(PR_DISPLAY_TO):
 	case PROP_ID(PR_DISPLAY_CC):
 	case PROP_ID(PR_DISPLAY_BCC):
 		if ((!lpMessage->m_bRecipsDirty || lpMessage->SyncRecips() == erSuccess) &&
-		    lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == erSuccess)
+		    lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == erSuccess) {
 			break;
+		}
 		lpsPropValue->ulPropTag = ulPropTag;
-		if (PROP_TYPE(ulPropTag) == PT_UNICODE)
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			lpsPropValue->Value.lpszW = const_cast<wchar_t *>(L"");
-		else
+		} else {
 			lpsPropValue->Value.lpszA = const_cast<char *>("");
+		}
 		break;
 
 	case PROP_ID(PR_ACCESS):
-		if (lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+		if (lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess) {
 			break;
+		}
 		lpsPropValue->ulPropTag = PR_ACCESS;
 		lpsPropValue->Value.l = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 		break;
@@ -1892,10 +1897,12 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML): {
 		hr = lpMessage->GetSyncedBodyProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
-		if (ulPropTag != PR_BODY_HTML)
+		}
+		if (ulPropTag != PR_BODY_HTML) {
 			break;
+		}
 		// Workaround for support html in outlook 2000/xp
 		if (lpsPropValue->ulPropTag != PR_HTML) {
 			hr = MAPI_E_NOT_FOUND;
@@ -1906,12 +1913,14 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		unsigned int ulSize = lpsPropValue->Value.bin.cb;
 		lpData = lpsPropValue->Value.bin.lpb;
 		hr = MAPIAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
-		if (ulSize > 0 && lpData != nullptr)
+		}
+		if (ulSize > 0 && lpData != nullptr) {
 			memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
-		else
+		} else {
 			ulSize = 0;
+		}
 		lpsPropValue->Value.lpszA[ulSize] = 0;
 		break;
 	}
@@ -1923,8 +1932,9 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
 		GUID g;
 		hr = lpMessage->GetMsgStore()->get_store_guid(g);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("get_store_guid", hr);
+		}
 		strServerGUID.assign(reinterpret_cast<const char *>(&g), sizeof(GUID));
 		if (lpMessage->m_sMapiObject != nullptr) {
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
