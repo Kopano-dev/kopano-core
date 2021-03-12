@@ -384,8 +384,8 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	argv[argc] = nullptr;
 
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
-	int fdin = 0, fdout = 0;
-	auto pid = unix_popen_rw(argv.get(), &fdin, &fdout, nullptr, env);
+	int fdin = 0, fdout = 0, fderr = 0;
+	auto pid = unix_popen_rw(argv.get(), &fdin, &fdout, &fderr, env);
 	ec_log_debug("Running command: %s", cmdtxt.c_str());
 	if (pid < 0) {
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(-pid));
@@ -415,6 +415,25 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 			if (z > 0 && buffer[z-1] == '\n')
 				buffer[--z] = '\0';
 			ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer.get());
+		}
+
+		fclose(fp);
+	}
+
+	newfd = ec_relocate_fd(fderr);
+	if (newfd >= 0)
+		fderr = newfd;
+	fp = fdopen(fderr, "rb");
+	if (fp == nullptr) {
+		close(fderr);
+	} else {
+		static constexpr size_t BUFSIZE = 4096;
+		auto buffer = std::make_unique<char[]>(BUFSIZE);
+		while (fgets(buffer.get(), BUFSIZE, fp)) {
+			size_t z = strlen(buffer.get());
+			if (z > 0 && buffer[z-1] == '\n')
+				buffer[--z] = '\0';
+			ec_log_err("%s[%d]: %s", lpszLogName, pid, buffer.get());
 		}
 
 		fclose(fp);
