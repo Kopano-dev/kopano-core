@@ -407,19 +407,19 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	FILE *fp = fdopen(fdout, "rb");
 	if (fp == nullptr) {
 		close(fdout);
-		return false;
+	} else {
+		static constexpr size_t BUFSIZE = 4096;
+		auto buffer = std::make_unique<char[]>(BUFSIZE);
+		while (fgets(buffer.get(), BUFSIZE, fp)) {
+			size_t z = strlen(buffer.get());
+			if (z > 0 && buffer[z-1] == '\n')
+				buffer[--z] = '\0';
+			ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer.get());
+		}
+
+		fclose(fp);
 	}
 
-	static constexpr size_t BUFSIZE = 4096;
-	auto buffer = std::make_unique<char[]>(BUFSIZE);
-	while (fgets(buffer.get(), BUFSIZE, fp)) {
-		size_t z = strlen(buffer.get());
-		if (z > 0 && buffer[z-1] == '\n')
-			buffer[--z] = '\0';
-		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer.get());
-	}
-
-	fclose(fp);
 	bool rv = true;
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
