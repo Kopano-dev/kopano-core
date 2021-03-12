@@ -1807,36 +1807,39 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 			break;
 		}
 
-		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-			lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_W;
-
-			auto lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
-			if (lpszColon && (lpszColon - lpsPropValue->Value.lpszW) > 1 && (lpszColon - lpsPropValue->Value.lpszW) < 4) {
-				auto c = lpsPropValue->Value.lpszW;
-				while (c < lpszColon && iswdigit(*c))
-					++c; // test for all digits prefix
-				if (c != lpszColon) {
-					++lpszColon;
-					if (*lpszColon == ' ')
-						++lpszColon;
-					lpsPropValue->Value.lpszW = lpszColon; // set new subject string
-				}
-			}
+		SPropValue prefix{};
+		hr = lpMessage->HrGetRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PROP_TYPE(ulPropTag)), ulFlags, lpBase, &prefix);
+		if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+			lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_NORMALIZED_SUBJECT, PT_ERROR);
 			break;
 		}
-		lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_A;
-		char *lpszColon = strchr(lpsPropValue->Value.lpszA, ':');
-		if (lpszColon && (lpszColon - lpsPropValue->Value.lpszA) > 1 && (lpszColon - lpsPropValue->Value.lpszA) < 4) {
-			char *c = lpsPropValue->Value.lpszA;
-			while (c < lpszColon && isdigit(*c))
-				++c; // test for all digits prefix
-			if (c != lpszColon) {
-				++lpszColon;
-				if (*lpszColon == ' ')
-					++lpszColon;
-				lpsPropValue->Value.lpszA = lpszColon; // set new subject string
+
+		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_NORMALIZED_SUBJECT, PROP_TYPE(ulPropTag));
+
+		if(hr == hrSuccess) {
+			if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
+				const auto prefixLength = std::wcslen(prefix.Value.lpszW);
+				if (std::wcsncmp(lpsPropValue->Value.lpszW, prefix.Value.lpszW, prefixLength) == 0) {
+					lpsPropValue->Value.lpszW += prefixLength;
+				}
+			} else {
+				const auto prefixLength = std::strlen(prefix.Value.lpszA);
+				if (std::strncmp(lpsPropValue->Value.lpszA, prefix.Value.lpszA, prefixLength) == 0) {
+					lpsPropValue->Value.lpszA += prefixLength;
+				}
 			}
 		}
+
+		// The MAPI documentation states that if the prefix is not set (different than empty) or does not match
+		// what is on the subject we should try to compute it from the subject. However we are not doing that
+		// for 3 reasons:
+		// 1 - We have (for an unknown reason) decided to compute PR_NORMALIZED_SUBJECT on a get and thus we
+		// shouldn't perfom a save during a get.
+		// 2 - Since when setting the subject we always try to compute the prefix, it should always be present
+		// anyway. So, not doing it here, makes the code simpler and less prone to bugs.
+		// 3 - Setting the prefix manually is not supported by our clients. The API allows it so, if a client
+		// does that, it should then make sure it matches the subject as well.
+
 		break;
 	}
 	case PROP_ID(PR_PARENT_ENTRYID):
