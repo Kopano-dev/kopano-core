@@ -439,12 +439,12 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	close(fdin);
 
 	auto stdout_buffer = fd_contents_to_buffer(fdout);
-	if (stdout_buffer) {
+	if (stdout_buffer && stdout_buffer[0] != '\0') {
 		ec_log_debug("%s[%d]: %s", lpszLogName, pid, stdout_buffer.get());
 	}
 
 	auto stderr_buffer = fd_contents_to_buffer(fderr);
-	if (stderr_buffer) {
+	if (stderr_buffer && stderr_buffer[0] != '\0') {
 		ec_log_err("%s[%d]: %s", lpszLogName, pid, stderr_buffer.get());
 	}
 
