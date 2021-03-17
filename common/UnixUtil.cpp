@@ -30,6 +30,42 @@ using namespace std::string_literals;
 
 namespace KC {
 
+namespace {
+
+/**
+ * Reads a filedescriptor (usually stderr/stdout) into a buffer.
+ *
+ * @return Returns std::unique_ptr<char[]> or nullptr if buffer can't be read
+ */
+std::unique_ptr<char[]> fd_contents_to_buffer(int fd) {
+	int newfd = ec_relocate_fd(fd);
+
+	if (newfd >= 0) {
+		fd = newfd;
+	}
+	FILE *fp = fdopen(fd, "rb");
+	if (fp == nullptr) {
+		close(fd);
+	} else {
+		static constexpr size_t BUFSIZE = 4096;
+		auto buffer = std::make_unique<char[]>(BUFSIZE);
+		while (fgets(buffer.get(), BUFSIZE, fp)) {
+			size_t z = strlen(buffer.get());
+			if (z > 0 && buffer[z-1] == '\n') {
+				buffer[--z] = '\0';
+			}
+		}
+
+		fclose(fp);
+
+		return buffer;
+	}
+
+	return nullptr;
+}
+
+} // namespace
+
 static int unix_runpath()
 {
 	auto ret = chdir("/");
@@ -384,40 +420,34 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	argv[argc] = nullptr;
 
 	auto cmdtxt = "\"" + kc_join(cmd, "\" \"") + "\"";
-	int fdin = 0, fdout = 0;
-	auto pid = unix_popen_rw(argv.get(), &fdin, &fdout, nullptr, env);
+	int fdin = 0, fdout = 0, fderr = 0;
+	auto pid = unix_popen_rw(argv.get(), &fdin, &fdout, &fderr, env);
 	ec_log_debug("Running command: %s", cmdtxt.c_str());
 	if (pid < 0) {
 		ec_log_debug("popen(%s) failed: %s", cmdtxt.c_str(), strerror(-pid));
 		return false;
 	}
-	close(fdin);
-	int newfd = ec_relocate_fd(fdout);
-	if (newfd >= 0)
-		fdout = newfd;
-	FILE *fp = fdopen(fdout, "rb");
-	if (fp == nullptr) {
-		close(fdout);
-		return false;
-	}
-
-	static constexpr size_t BUFSIZE = 4096;
-	auto buffer = std::make_unique<char[]>(BUFSIZE);
-	while (fgets(buffer.get(), BUFSIZE, fp)) {
-		size_t z = strlen(buffer.get());
-		if (z > 0 && buffer[z-1] == '\n')
-			buffer[--z] = '\0';
-		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer.get());
-	}
-
-	fclose(fp);
 	int status = 0;
-	if (waitpid(pid, &status, 0) < 0)
+	if (waitpid(pid, &status, 0) < 0) {
 		return false;
+	}
 	if (status == -1) {
 		ec_log_err("System call \"system\" failed: %s", strerror(errno));
 		return false;
 	}
+
+	close(fdin);
+
+	auto stdout_buffer = fd_contents_to_buffer(fdout);
+	if (stdout_buffer && stdout_buffer[0] != '\0') {
+		ec_log_debug("%s[%d]: %s", lpszLogName, pid, stdout_buffer.get());
+	}
+
+	auto stderr_buffer = fd_contents_to_buffer(fderr);
+	if (stderr_buffer && stderr_buffer[0] != '\0') {
+		ec_log_err("%s[%d]: %s", lpszLogName, pid, stderr_buffer.get());
+	}
+
 	bool rv = true;
 #ifdef WEXITSTATUS
 	if (WIFEXITED(status)) { /* Child exited by itself */
