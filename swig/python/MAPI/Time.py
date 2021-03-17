@@ -13,6 +13,11 @@ def _convert(s):
     else:
         return s
 
+
+def datetime_to_filetime(d):
+    return FileTime(int(datetime.datetime.timestamp(d)) * 10000000 + NANOSECS_BETWEEN_EPOCH)
+
+
 # class representing a PT_SYSTIME value. the 'unixtime' property can be used to convert to/from unixtime.
 
 class FileTime(object):

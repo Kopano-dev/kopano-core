@@ -6,15 +6,8 @@ Copyright 2017 - 2019 Kopano and its licensors (see LICENSE file)
 """
 
 import datetime
-import time
-try:
-    import libfreebusy
-except ImportError: # pragma: no cover
-    pass
 
-from .defs import (
-    STATUS_FB,
-)
+import libfreebusy
 
 from MAPI.Time import (
     FileTime,
@@ -24,38 +17,38 @@ import MAPI.Struct
 
 from .compat import (
     bdec as _bdec
-    )
-
-from .errors import (
-        NotFoundError
 )
 
-# TODO to utils.py?
-NANOSECS_BETWEEN_EPOCH = 116444736000000000
-def datetime_to_filetime(d):
-    return FileTime(int(time.mktime(d.timetuple())) * 10000000 + \
-        NANOSECS_BETWEEN_EPOCH)
+from .defs import (
+    FB_STATUS, STATUS_FB,
+)
+
+from .errors import (
+    NotFoundError
+)
+
+# Backwards compatible import for older python-mapi versions without datetime_to_filetime available in MAPI.Time
+from . import utils as _utils
+
+UnitsPerMinute = 600000000
 
 def datetime_to_rtime(d):
-    return datetime_to_filetime(d).filetime / 600000000
+    '''Converts a datetime to relative time used by the IFreeBusyData interface
+    and is defined as the number of minutes since January 1, 1601, expressed in
+    UTC.
+    '''
+    return _utils.datetime_to_filetime(d).filetime / UnitsPerMinute
 
 def rtime_to_datetime(r):
-    return datetime.datetime.fromtimestamp(FileTime(r * 600000000).unixtime)
+    return datetime.datetime.fromtimestamp(FileTime(r * UnitsPerMinute).unixtime)
 
-
-CODE_STATUS = {
-    0: 'free',
-    1: 'tentative',
-    2: 'busy',
-    3: 'outofoffice',
-}
 
 class FreeBusyBlock(object):
     """FreeBusyBlock class"""
 
     def __init__(self, block):
         #: Freebusy block status (free, tentative, busy or outofoffice)
-        self.status = CODE_STATUS[block.status]
+        self.status = FB_STATUS[block.status]
         #: Freebusy block start
         self.start = rtime_to_datetime(block.start)
         #: Freebusy block end
@@ -66,6 +59,7 @@ class FreeBusyBlock(object):
 
     def __repr__(self):
         return self.__unicode__()
+
 
 class FreeBusy(object):
     """FreeBusy class
@@ -82,16 +76,16 @@ class FreeBusy(object):
         """Return all :class:`freebusy blocks <FreeBusyBlock>` for the
         given period.
 
-        :param start: start of period
-        :param end: end of period
+        :param start: start of period (must be localtime (naive) or non-naive datetime instance)
+        :param end: end of period (must be localtime (naive) or non-naive datetime instance)
         """
         eid = _bdec(self.store.user.userid)
         if start:
-            ftstart = datetime_to_filetime(start)
+            ftstart = _utils.datetime_to_filetime(start)
         else:
             ftstart = FileTime(0)
         if end:
-            ftend = datetime_to_filetime(end)
+            ftend = _utils.datetime_to_filetime(end)
         else:
             ftend = FileTime(0xFFFFFFFFFFFFFFFF)
 
@@ -101,7 +95,7 @@ class FreeBusy(object):
         except MAPI.Struct.MAPIErrorNotFound:
             raise NotFoundError("public store not found")
         fbdata = fb.LoadFreeBusyData([eid], None)
-        if fbdata in (0, 1): # TODO what?
+        if fbdata in (0, 1):  # TODO what?
             return
         data, status = fbdata
         fb.Close()
@@ -118,12 +112,12 @@ class FreeBusy(object):
     def publish(self, start=None, end=None):
         """Publish freebusy information for the given period.
 
-        :param start: start of period
-        :param end: end of period
+        :param start: start of period (must be localtime (naive) or non-naive datetime instance)
+        :param end: end of period (must be localtime (naive) or non-naive datetime instance)
         """
-        eid = _bdec(self.store.user.userid) # TODO merge with blocks
-        ftstart = datetime_to_filetime(start) # TODO tz?
-        ftend = datetime_to_filetime(end) # TODO tz?
+        eid = _bdec(self.store.user.userid)  # TODO merge with blocks
+        ftstart = _utils.datetime_to_filetime(start)
+        ftend = _utils.datetime_to_filetime(end)
 
         fb = libfreebusy.IFreeBusySupport()
         try:
@@ -137,8 +131,7 @@ class FreeBusy(object):
             start = datetime_to_rtime(occ.start)
             end = datetime_to_rtime(occ.end)
             # Fall back on busy, same as WebApp
-            blocks.append(MAPI.Struct.FreeBusyBlock(start, end,
-                STATUS_FB[occ.busystatus] if occ.busystatus else 2))
+            blocks.append(MAPI.Struct.FreeBusyBlock(start, end, STATUS_FB[occ.busystatus] if occ.busystatus else STATUS_FB['busy']))
 
         update.PublishFreeBusy(blocks)
         update.SaveChanges(ftstart, ftend)
