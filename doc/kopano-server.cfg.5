@@ -1046,7 +1046,7 @@ Default:
 SQL Procedures allow for some optimized queries when streaming with enhanced ICS. This is default disabled because you must set \fBthread_stack = 256k\fP in your MySQL server config under the [mysqld] tag and restart your MySQL server.
 .PP
 Default:
-\fIno\fR
+\fIyes\fR
 .SS folder_max_items
 .PP
 Limits the amount of items (messages or folders) in a single folder. This makes sure that the server will not attempt to load folders that are so large that it would require huge amounts of memory just to show the data. In practice, folders of over 1000000 items are usually created by runaway processes which are therefore useless anyway.
