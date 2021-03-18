@@ -325,132 +325,173 @@ def test_setprops_partialcomputed(message):
     assert props[0].ulPropTag == tag
     assert props[0].Value == b'test'
 
-
+# A few important things that are expected from the subject, prefix and normalized subject:
+# - The subject is equal to the prefix plus the normalized subject
+# - The normalized subject is equal to the subject minus the prefix.
+# - The prefix is calculated from the subject if:
+#   - The subject contains a maximum 3 non numberic character string followed by a colon. Note: The MAPI documentation
+#     states it needs a space afterwards but we also allow it without a space (I am not sure why we do this or if it's
+#     a good idea). If a space is present after the colon, it will be part of the prefix as well.
+# - The prefix can be set manually but, if it does not match the intial string of the subject, the normalized subject
+#   will be equal to the subject. The MAPI documentation states that if this is the case we should try to compute it
+#   from the subject. However we are not doing that. For a further explanation as to why please check the ECMessage.cpp
+#   code.
+# - If the prefix is set manually, we will no longer recalculate it when changing the subject, unless the message is
+#   reloaded.
+# The test_subject and test_subject_unicode tests attempt to tests these conditions.
 def test_subject(store, message):
+    # Normalized subject not found if no subject is present
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
     assert normalized == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_NORMALIZED_SUBJECT_A)), MAPI_E_NOT_FOUND)]
-    # set short prefix 'Re:', should clash with longer 'Re: ' prefix later
+
+    # Subject prefix is generated if it contains a maximum of 3 characters followed by a colon :
+    message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test')])
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
+    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
+    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_A, b'test')]
+
+    # Although the MAPI documentation states a space must be present after the colon (:) we allow that in our code:
+    # Set short prefix 'Re:', should clash with longer 'Re: ' prefix later
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Re:factor')])
     subjects = message.GetProps([PR_SUBJECT_PREFIX_A, PR_NORMALIZED_SUBJECT_A], 0)
     assert subjects == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re:'),SPropValue(PR_NORMALIZED_SUBJECT_A, b'factor')]
-    #subject prefix is synced, normalized is short
-    message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
-    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
-    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_A, b'test')]
-    #subject prefix is synced, normalized is same
+
+    # If prefix is larger than 3 characters it won't be calculated and the normalized property will be equal to the subject.
+    # If the prefix is manually set and equal to the beginning of the subject it will be removed from the normalized.
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Heelverhaal: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'')]
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'')]
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
     assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_A, b'Heelverhaal: test')]
-    #subject prefix is still synced
-    message.SetProps([SPropValue(PR_SUBJECT_A, b'Fw: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject, [SPropValue(PR_SUBJECT_PREFIX_A, b'Fw: ')]
-    #explicit is not synced anymore
-    message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test'), SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')])
+    message.SetProps([SPropValue(PR_SUBJECT_PREFIX_A, b'Heelverhaal: ')])
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
     assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_A, b'test')]
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
-    # once you've SetPropsed PR_SUBJECT_PREFIX_A, it's not touched anymore
+
+    # If the prefix is different than intial string of the subject, the normalized will be equal to the subject
+    message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test'), SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')])
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
+    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_A], 0)
+    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_A, b'Re: test')]
+
+    # After forcing the prefix to be different, it won't be recalculated anymore
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
-    # and after a reload?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
+
+    # After a reload we calculate the prefix again
     message.SaveChanges(KEEP_OPEN_READWRITE)
     entryid = message.GetProps([PR_ENTRYID], 0)
     m2 = store.OpenEntry(entryid[0].Value, None, MAPI_MODIFY)
     m2.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test')])
-    subject = m2.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
-    # and orig message after save changes?
+    prefix = m2.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
+
+    # And the original message after save changes will also recalculate the prefix
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
-    # what after deleting?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re: ')]
+
+    # If we delete the message the prefix should not be found anymore
     message.DeleteProps([PR_SUBJECT_A])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_SUBJECT_PREFIX_A)), MAPI_E_NOT_FOUND)]
-    # explicit is not synced anymore
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_SUBJECT_PREFIX_A)), MAPI_E_NOT_FOUND)]
+
+    # If we set it explicitly and then delete the subject, we'll keep the prefix
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Re: test'), SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
-    # what after deleting expliclit?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
     message.DeleteProps([PR_SUBJECT_A])
     subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
     assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Aap')]
-    # no spaces, delete explicit prefix to sync again
+
+    # If we delete the prefix and then set the subject it will be synced again.
     message.DeleteProps([PR_SUBJECT_A, PR_SUBJECT_PREFIX_A])
     message.SetProps([SPropValue(PR_SUBJECT_A, b'Re:factor')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re:')]
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_A], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_A, b'Re:')]
 
 
 def test_subject_unicode(store, message):
+    # Normalized subject not found if no subject is present
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
     assert normalized == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_NORMALIZED_SUBJECT_W)), MAPI_E_NOT_FOUND)]
-    # set short prefix 'Re:', should clash with longer 'Re: ' prefix later
+
+    # Subject prefix is generated if it contains a maximum of 3 characters followed by a colon :
+    message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test')])
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
+    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
+    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'test')]
+
+    # Prefix should be correctly calculated with characters that occupy more than 1 byte
+    message.SetProps([SPropValue(PR_SUBJECT_W, '回复: japanese subject')])
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, '回复: ')]
+    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
+    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'japanese subject')]
+
+    # Although the MAPI documentation states a space must be present after the colon (:) we allow that in our code:
+    # Set short prefix 'Re:', should clash with longer 'Re: ' prefix later
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Re:factor')])
     subjects = message.GetProps([PR_SUBJECT_PREFIX_W, PR_NORMALIZED_SUBJECT_W], 0)
     assert subjects == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re:'),SPropValue(PR_NORMALIZED_SUBJECT_W, 'factor')]
-    #subject prefix is synced, normalized is short
-    message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
-    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
-    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'test')]
-    #subject prefix is synced, normalized is same
+
+    # If prefix is larger than 3 characters it won't be calculated and the normalized property will be equal to the subject.
+    # If the prefix is manually set and equal to the beginning of the subject it will be removed from the normalized.
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Heelverhaal: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, '')]
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, '')]
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
     assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'Heelverhaal: test')]
-    #subject prefix is still synced
-    message.SetProps([SPropValue(PR_SUBJECT_W, 'Fw: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject, [SPropValue(PR_SUBJECT_PREFIX_W, 'Fw: ')]
-    #explicit is not synced anymore
-    message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test'), SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')])
+    message.SetProps([SPropValue(PR_SUBJECT_PREFIX_W, 'Heelverhaal: ')])
     normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
     assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'test')]
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
-    # once you've SetPropsed PR_SUBJECT_PREFIX_W, it's not touched anymore
+
+    # If the prefix is different than intial string of the subject, the normalized will be equal to the subject
+    message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test'), SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')])
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
+    normalized = message.GetProps([PR_NORMALIZED_SUBJECT_W], 0)
+    assert normalized == [SPropValue(PR_NORMALIZED_SUBJECT_W, 'Re: test')]
+
+    # After forcing the prefix to be different, it won't be recalculated anymore
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
-    # and after a reload?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
+
+    # After a reload we calculate the prefix again
     message.SaveChanges(KEEP_OPEN_READWRITE)
     entryid = message.GetProps([PR_ENTRYID], 0)
     m2 = store.OpenEntry(entryid[0].Value, None, MAPI_MODIFY)
     m2.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test')])
-    subject = m2.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
-    # and orig message after save changes?
+    prefix = m2.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
+
+    # And the original message after save changes will also recalculate the prefix
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
-    # what after deleting?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re: ')]
+
+    # If we delete the message the prefix should not be found anymore
     message.DeleteProps([PR_SUBJECT_W])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_SUBJECT_PREFIX_W)), MAPI_E_NOT_FOUND)]
-    # explicit is not synced anymore
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PROP_TAG(PT_ERROR, PROP_ID(PR_SUBJECT_PREFIX_W)), MAPI_E_NOT_FOUND)]
+
+    # If we set it explicitly and then delete the subject, we'll keep the prefix
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Re: test'), SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
-    # what after deleting expliclit?
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
     message.DeleteProps([PR_SUBJECT_W])
     subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
     assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Aap')]
-    # no spaces, delete explicit prefix to sync again
+
+    # If we delete the prefix and then set the subject it will be synced again.
     message.DeleteProps([PR_SUBJECT_W, PR_SUBJECT_PREFIX_W])
     message.SetProps([SPropValue(PR_SUBJECT_W, 'Re:factor')])
-    subject = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
-    assert subject == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re:')]
-
+    prefix = message.GetProps([PR_SUBJECT_PREFIX_W], 0)
+    assert prefix == [SPropValue(PR_SUBJECT_PREFIX_W, 'Re:')]
 
 def test_subject_nonalphaprefix(message):
     message.SetProps([SPropValue(PR_SUBJECT_A, b'D&D: Hallo')])
