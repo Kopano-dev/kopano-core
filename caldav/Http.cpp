@@ -114,13 +114,15 @@ HRESULT Http::HrReadHeaders()
 	do
 	{
 		hr = m_lpChannel->HrReadLine(strBuffer);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return hr;
-		if (strBuffer.empty())
+		}
+		if (strBuffer.empty()) {
 			break;
+		}
 
 		numOfBytesRead += strBuffer.size();
-		if(numOfBytesRead > MAX_HEADER_LENGTH) {
+		if (numOfBytesRead > MAX_HEADER_LENGTH) {
 			return MAPI_E_TOO_BIG;
 		}
 
@@ -131,11 +133,13 @@ HRESULT Http::HrReadHeaders()
 			size_t start = 0;
 
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
-				if (iHeader == mapHeaders.end())
+				if (iHeader == mapHeaders.end()) {
 					continue;
+				}
 				// continue header
-				while (strBuffer[start] == ' ' || strBuffer[start] == '\t')
+				while (strBuffer[start] == ' ' || strBuffer[start] == '\t') {
 					++start;
+				}
 				iHeader->second += strBuffer.substr(start);
 			} else {
 				// new header
@@ -144,16 +148,18 @@ HRESULT Http::HrReadHeaders()
 			}
 		}
 
-		if (strBuffer.find("Authorization") != std::string::npos)
+		if (strBuffer.find("Authorization") != std::string::npos) {
 			ec_log_debug("< Authorization: <value hidden>");
-		else
+		} else {
 			ec_log_debug("< "+strBuffer);
+		}
 		++n;
 	} while(hr == hrSuccess);
 
 	hr = HrParseHeaders();
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		hr_ldebug(hr, "parsing headers failed");
+	}
 	return hr;
 }
 
