@@ -1807,36 +1807,39 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 			break;
 		}
 
-		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-			lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_W;
-
-			auto lpszColon = wcschr(lpsPropValue->Value.lpszW, ':');
-			if (lpszColon && (lpszColon - lpsPropValue->Value.lpszW) > 1 && (lpszColon - lpsPropValue->Value.lpszW) < 4) {
-				auto c = lpsPropValue->Value.lpszW;
-				while (c < lpszColon && iswdigit(*c))
-					++c; // test for all digits prefix
-				if (c != lpszColon) {
-					++lpszColon;
-					if (*lpszColon == ' ')
-						++lpszColon;
-					lpsPropValue->Value.lpszW = lpszColon; // set new subject string
-				}
-			}
+		SPropValue prefix{};
+		hr = lpMessage->HrGetRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PROP_TYPE(ulPropTag)), ulFlags, lpBase, &prefix);
+		if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
+			lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_NORMALIZED_SUBJECT, PT_ERROR);
 			break;
 		}
-		lpsPropValue->ulPropTag = PR_NORMALIZED_SUBJECT_A;
-		char *lpszColon = strchr(lpsPropValue->Value.lpszA, ':');
-		if (lpszColon && (lpszColon - lpsPropValue->Value.lpszA) > 1 && (lpszColon - lpsPropValue->Value.lpszA) < 4) {
-			char *c = lpsPropValue->Value.lpszA;
-			while (c < lpszColon && isdigit(*c))
-				++c; // test for all digits prefix
-			if (c != lpszColon) {
-				++lpszColon;
-				if (*lpszColon == ' ')
-					++lpszColon;
-				lpsPropValue->Value.lpszA = lpszColon; // set new subject string
+
+		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_NORMALIZED_SUBJECT, PROP_TYPE(ulPropTag));
+
+		if(hr == hrSuccess) {
+			if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
+				const auto prefixLength = std::wcslen(prefix.Value.lpszW);
+				if (std::wcsncmp(lpsPropValue->Value.lpszW, prefix.Value.lpszW, prefixLength) == 0) {
+					lpsPropValue->Value.lpszW += prefixLength;
+				}
+			} else {
+				const auto prefixLength = std::strlen(prefix.Value.lpszA);
+				if (std::strncmp(lpsPropValue->Value.lpszA, prefix.Value.lpszA, prefixLength) == 0) {
+					lpsPropValue->Value.lpszA += prefixLength;
+				}
 			}
 		}
+
+		// The MAPI documentation states that if the prefix is not set (different than empty) or does not match
+		// what is on the subject we should try to compute it from the subject. However we are not doing that
+		// for 3 reasons:
+		// 1 - We have (for an unknown reason) decided to compute PR_NORMALIZED_SUBJECT on a get and thus we
+		// shouldn't perfom a save during a get.
+		// 2 - Since when setting the subject we always try to compute the prefix, it should always be present
+		// anyway. So, not doing it here, makes the code simpler and less prone to bugs.
+		// 3 - Setting the prefix manually is not supported by our clients. The API allows it so, if a client
+		// does that, it should then make sure it matches the subject as well.
+
 		break;
 	}
 	case PROP_ID(PR_PARENT_ENTRYID):
@@ -1847,33 +1850,38 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 		lpsPropValue->Value.bin.cb = lpMessage->m_cbParentID;
 		hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
+		}
 		memcpy(lpsPropValue->Value.bin.lpb, lpMessage->m_lpParentID, lpsPropValue->Value.bin.cb);
 		break;
 	case PROP_ID(PR_MESSAGE_SIZE):
 		lpsPropValue->ulPropTag = PR_MESSAGE_SIZE;
-		if(lpMessage->m_lpEntryId == NULL) //new message
+		if(lpMessage->m_lpEntryId == NULL) { // new message
 			lpsPropValue->Value.l = 1024;
-		else
+		} else {
 			hr = lpMessage->HrGetRealProp(PR_MESSAGE_SIZE, ulFlags, lpBase, lpsPropValue);
+		}
 		break;
 	case PROP_ID(PR_DISPLAY_TO):
 	case PROP_ID(PR_DISPLAY_CC):
 	case PROP_ID(PR_DISPLAY_BCC):
 		if ((!lpMessage->m_bRecipsDirty || lpMessage->SyncRecips() == erSuccess) &&
-		    lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == erSuccess)
+		    lpMessage->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == erSuccess) {
 			break;
+		}
 		lpsPropValue->ulPropTag = ulPropTag;
-		if (PROP_TYPE(ulPropTag) == PT_UNICODE)
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
 			lpsPropValue->Value.lpszW = const_cast<wchar_t *>(L"");
-		else
+		} else {
 			lpsPropValue->Value.lpszA = const_cast<char *>("");
+		}
 		break;
 
 	case PROP_ID(PR_ACCESS):
-		if (lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+		if (lpMessage->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess) {
 			break;
+		}
 		lpsPropValue->ulPropTag = PR_ACCESS;
 		lpsPropValue->Value.l = MAPI_ACCESS_READ | MAPI_ACCESS_MODIFY | MAPI_ACCESS_DELETE;
 		break;
@@ -1889,10 +1897,12 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML): {
 		hr = lpMessage->GetSyncedBodyProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
-		if (ulPropTag != PR_BODY_HTML)
+		}
+		if (ulPropTag != PR_BODY_HTML) {
 			break;
+		}
 		// Workaround for support html in outlook 2000/xp
 		if (lpsPropValue->ulPropTag != PR_HTML) {
 			hr = MAPI_E_NOT_FOUND;
@@ -1903,12 +1913,14 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		unsigned int ulSize = lpsPropValue->Value.bin.cb;
 		lpData = lpsPropValue->Value.bin.lpb;
 		hr = MAPIAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			break;
-		if (ulSize > 0 && lpData != nullptr)
+		}
+		if (ulSize > 0 && lpData != nullptr) {
 			memcpy(lpsPropValue->Value.lpszA, lpData, ulSize);
-		else
+		} else {
 			ulSize = 0;
+		}
 		lpsPropValue->Value.lpszA[ulSize] = 0;
 		break;
 	}
@@ -1920,8 +1932,9 @@ HRESULT ECMessage::GetPropHandler(unsigned int ulPropTag, void *lpProvider,
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
 		GUID g;
 		hr = lpMessage->GetMsgStore()->get_store_guid(g);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
 			return kc_perror("get_store_guid", hr);
+		}
 		strServerGUID.assign(reinterpret_cast<const char *>(&g), sizeof(GUID));
 		if (lpMessage->m_sMapiObject != nullptr) {
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
