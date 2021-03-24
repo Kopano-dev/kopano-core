@@ -1,4 +1,9 @@
-8.7.18 (2021-01-25)
+8.7.20 (2021-03-24)
+===================
+Fixes:
+* ical: HTTP headers don't have a length restriction [KC-1973]
+
+8.7.19 (2021-01-25)
 ===================
 Fixes:
 * build: prevent build with SWIG >= 4 [KC-1680]
