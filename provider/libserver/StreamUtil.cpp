@@ -814,14 +814,14 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId,
     GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
-	unsigned int	ulCount = 0;
-	struct soap		*soap = NULL;
+	unsigned int ulCount = 0;
+	struct soap *soap = NULL;
 	struct propVal sPropVal;
-	DB_ROW 			lpDBRow = NULL;
+	DB_ROW lpDBRow = NULL;
 	DB_RESULT lpDBResult;
 	object_ptr<ECMemStream> lpStream;
 	object_ptr<IStream> lpIStream;
-	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
+	bool bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 	std::list<struct propVal> sPropValList;
 
 	assert(lpStreamCaps != NULL);
@@ -923,12 +923,12 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
  */
 ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId, GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er = erSuccess;
 	unsigned int ulStreamVersion = STREAM_VERSION, ulCount = 0;
-	ChildPropsMap	mapChildProps;
+	ChildPropsMap mapChildProps;
 	NamedPropDefMap	mapNamedPropDefs;
 	DB_RESULT lpDBResult, lpDBResultAttachment;
-	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
+	bool bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	if (ulObjType != MAPI_MESSAGE) {
 		er = KCERR_NO_SUPPORT;

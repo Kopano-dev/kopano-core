@@ -318,11 +318,10 @@ ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 		return KCERR_CALL_FAILED;
 	}
 	filesv1_extract_fanout(config->GetSetting("attachment_storage"), &m_l1, &m_l2);
-	auto sync_files_par = config->GetSetting("attachment_files_fsync");
 	auto comp = config->GetSetting("attachment_compression");
 	m_dir = dir;
 	m_complvl = (comp == nullptr) ? 0 : strtoul(comp, nullptr, 0);
-	m_sync_files = sync_files_par == nullptr || strcasecmp(sync_files_par, "yes") == 0;
+	m_sync_files = parseBool(config->GetSetting("attachment_files_fsync"));
 	return erSuccess;
 }
 
