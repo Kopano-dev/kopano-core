@@ -550,6 +550,7 @@ class Service(kopano.Service):
                     stats['folders'] += 1
 
             else: # check all items for deletion
+                items_deleted = False
                 with closing(dbopen(fpath+'/items')) as db_items:
                     with closing(dbopen(fpath+'/index')) as db_index:
                         delete_items = []
@@ -559,12 +560,23 @@ class Service(kopano.Service):
                             if backup_deleted and (self.timestamp - backup_deleted).days >= self.options.purge:
                                 delete_items.append(item)
 
+                        if delete_items:
+                            items_deleted = True
+
                         for item in delete_items:
                             stats['items'] += 1
                             self.log.debug('purging item: %s', item)
                             del db_index[item]
                             if item in db_items:
                                 del db_items[item]
+                        if items_deleted:
+                            self.log.debug('compacting index database')
+                            freed_pages = db_index.db.compact(flags=bsddb.db.DB_FREE_SPACE)
+                            self.log.debug('returned %d pages to the underlying filesystem', freed_pages)
+                    if items_deleted:
+                        self.log.debug('compacting items database')
+                        freed_pages = db_items.db.compact(flags=bsddb.db.DB_FREE_SPACE)
+                        self.log.debug('returned %d pages to the underlying filesystem', freed_pages)
 
         self.log.info('purged %d folders and %d items', stats['folders'], stats['items'])
 
