@@ -244,7 +244,6 @@ class Appointment(object):
             'resource': 3
         }[type_]
 
-        table = self.table(PR_MESSAGE_RECIPIENTS)
         names = []
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(address)
