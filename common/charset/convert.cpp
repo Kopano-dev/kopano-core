@@ -97,7 +97,6 @@ iconv_context_base::iconv_context_base(const char *tocode, const char *fromorig)
 		std::string options = strto.substr(pos+2);
 		strto.erase(pos);
 		std::vector<std::string> vOptions = tokenize(options, ",");
-		std::vector<std::string> vOptionsFiltered;
 		std::vector<std::string>::const_iterator i;
 
 		i = vOptions.begin();
