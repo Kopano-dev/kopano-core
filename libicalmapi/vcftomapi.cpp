@@ -576,7 +576,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			if (hr != hrSuccess)
 				return hr;
 			ct.props.emplace_back(std::move(s));
-		} else if (strcmp(name, "BDAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+		} else if (strcmp(name, VCBirthDateProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
 			auto input = convert_to<std::string>(vObjectUStringZValue(v));
 			auto res = date_string_to_filetime(input, filetime);
