@@ -311,7 +311,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
  *
  */
 static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
-    unsigned int ulFlags, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
+    unsigned int ulFlags, const ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
 	for (const auto &di : lstDeleted)
 		// ICS update
@@ -715,7 +715,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
  * @param[in] ulFlags Bitmask of flags that controls how the objects will deleted.
  * @param[in] lstDeleted List with deleted objects.
  */
-ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted)
+ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, const ECListDeleteItems &lstDeleted)
 {
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
