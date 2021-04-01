@@ -70,3 +70,9 @@ def getrecurrencestate(blob):
     rs.ParseBlob(blob, 0)
     return rs
 
+
+def get_item_from_vcf(vcf, message):
+    vcm = icalmapi.create_vcftomapi(message)
+    vcm.parse_vcf(vcf)
+    vcm.get_item(message)
+    return message
