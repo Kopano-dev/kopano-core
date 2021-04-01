@@ -121,9 +121,19 @@ static bool date_string_to_filetime(const std::string &date_string, FILETIME &fi
 	if (s == nullptr || *s != '\0')
 		s = strptime(date_string.c_str(), "%Y%m%d", &t);
 	if (s == nullptr || *s != '\0')
+		s = strptime(date_string.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
+	if (s == nullptr || *s != '\0') {
 		return false;
+	}
 	filetime = UnixTimeToFileTime(timegm(&t));
 	return true;
+}
+
+static bool date_wchar_t_to_filetime(const wchar_t* date_string, FILETIME &filetime)
+{
+	char timefmt[64];
+	std::wcstombs(timefmt, date_string, sizeof(timefmt));
+	return date_string_to_filetime(timefmt, filetime);
 }
 
 HRESULT vcftomapi_impl::handle_N(VObject *v, contact &ct)
@@ -578,8 +588,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, VCBirthDateProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
-			auto input = convert_to<std::string>(vObjectUStringZValue(v));
-			auto res = date_string_to_filetime(input, filetime);
+			auto res = date_wchar_t_to_filetime(vObjectUStringZValue(v), filetime);
 			if (!res)
 				continue;
 			s.ulPropTag = PR_BIRTHDAY;
@@ -587,7 +596,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "X-ANNIVERSARY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
-			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
+			auto res = date_wchar_t_to_filetime(vObjectUStringZValue(v), filetime);
 			if (!res)
 				continue;
 			s.ulPropTag = PR_WEDDING_ANNIVERSARY;
