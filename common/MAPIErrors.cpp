@@ -200,6 +200,8 @@ HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 	case KCERR_UNKNOWN_FLAGS:	return MAPI_E_UNKNOWN_FLAGS;
 	case KCERR_SUBMITTED:		return MAPI_E_SUBMITTED;
 	case KCERR_PLUGIN_ERROR:	return MAPI_E_UNABLE_TO_COMPLETE;
+	case KCERR_UNCONFIGURED:        return MAPI_E_UNCONFIGURED;
+	case KCERR_BAD_CHARWIDTH:       return MAPI_E_BAD_CHARWIDTH;
 	default:			return hrDefault;
 	}
 }

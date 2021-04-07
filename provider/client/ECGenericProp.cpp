@@ -837,8 +837,8 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 	memory_ptr<SPropProblemArray> lpProblems;
 	int						nProblem = 0;
 	// over-allocate the problem array
-	auto er = MAPIAllocateBuffer(CbNewSPropProblemArray(lpPropTagArray->cValues), &~lpProblems);
-	if (er != erSuccess)
+	auto hr = MAPIAllocateBuffer(CbNewSPropProblemArray(lpPropTagArray->cValues), &~lpProblems);
+	if (hr != hrSuccess)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 
 	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {

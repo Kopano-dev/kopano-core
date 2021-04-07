@@ -641,7 +641,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	ECRESULT er;
 
 	if (!(clientCaps & KOPANO_CAP_UNICODE)) {
-		er = MAPI_E_BAD_CHARWIDTH;
+		er = KCERR_BAD_CHARWIDTH;
 		goto exit;
 	}
 
