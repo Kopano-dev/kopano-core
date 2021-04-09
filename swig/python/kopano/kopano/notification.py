@@ -29,7 +29,7 @@ fnevObjTypeFolder = 0x00020000
 fnevIgnoreCounters = 0x00040000
 
 OBJECT_TYPES = ['folder', 'item']
-FOLDER_TYPES = ['mail', 'contacts', 'calendar']
+FOLDER_TYPES = ['mail', 'contacts', 'calendar', 'tasks', 'notes']
 EVENT_TYPES = ['created', 'updated', 'deleted']
 
 TRACER = sys.gettrace()
