@@ -18,4 +18,4 @@ install-data-hook:
 .PHONY: test
 test:
 	MAPI_CONFIG_PATH=${MAPI_CONFIG_PATH} PYTHONPATH=${PYTHONPATH} PLUGIN_PATH=${PLUGIN_PATH} \
-		${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml ${top_srcdir}/spooler/python/tests
+		${PYTEST} ${PYTEST_OPTIONS} --junitxml=test.xml --junit-prefix=spooler_plugins ${top_srcdir}/spooler/python/tests
