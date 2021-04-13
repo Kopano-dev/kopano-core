@@ -6,6 +6,10 @@
 #define _STRINGUTIL_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
+
+#include <openssl/md5.h>
+
 #include <cstdarg>
 #include <iterator>
 #include <set>
@@ -15,8 +19,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cwctype>
-#include <kopano/platform.h>
-#include <openssl/md5.h>
 
 struct SBinary;
 struct option;
@@ -94,6 +96,12 @@ static inline bool parseBool(const char *s)
 
 extern _kc_export std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
 extern _kc_export std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
+/**
+ * Tokenizes a string using space as a delimiter, unless the space is inside
+ * quotes ("").
+ * The quotes are then trimmed.
+ */
+extern _kc_export std::vector<std::string> tokenizeBySpaceIgnoreQuotes(const std::string &input);
 extern _kc_export std::string trim(const std::string &input, const std::string &trim = " ");
 extern _kc_export unsigned char x2b(char);
 extern _kc_export std::string hex2bin(const std::string &);
@@ -118,19 +126,19 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
 {
 	std::vector<T> tokens;
 	// skip delimiters at beginning.
-   	typename T::size_type lastPos = str.find_first_not_of(delimiters, 0);
+	typename T::size_type lastPos = str.find_first_not_of(delimiters, 0);
 	// find first "non-delimiter".
-   	typename T::size_type pos = str.find_first_of(delimiters, lastPos);
+	typename T::size_type pos = str.find_first_of(delimiters, lastPos);
 
-   	while (std::string::npos != pos || std::string::npos != lastPos)
-   	{
-       	// found a token, add it to the std::vector.
+	while (std::string::npos != pos || std::string::npos != lastPos)
+	{
+		// found a token, add it to the std::vector.
 		tokens.emplace_back(str.substr(lastPos, pos - lastPos));
-       	// skip delimiters.  Note the "not_of"
-       	lastPos = str.find_first_not_of(delimiters, pos);
-       	// find next "non-delimiter"
-       	pos = str.find_first_of(delimiters, lastPos);
-   	}
+		// skip delimiters.  Note the "not_of"
+		lastPos = str.find_first_not_of(delimiters, pos);
+		// find next "non-delimiter"
+		pos = str.find_first_of(delimiters, lastPos);
+	}
 
 	return tokens;
 }

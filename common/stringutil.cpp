@@ -15,6 +15,7 @@
 #include <cctype>
 #include <cstring>
 #include <getopt.h>
+#include <regex>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECGetText.h>
@@ -274,6 +275,22 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep, b
 		begin = end+1;
 	}
 	return vct;
+}
+
+std::vector<std::string> tokenizeBySpaceIgnoreQuotes(const std::string &input) {
+	std::vector<std::string> output;
+	std::regex splitRegex("[^\\s\"]+|\"([^\"]*)\"+");
+
+	for (std::sregex_iterator i = std::sregex_iterator(input.begin(), input.end(), splitRegex); i != std::sregex_iterator(); ++i) {
+		auto matchedStr = i->str();
+		if(matchedStr.front() == '\"' && matchedStr.back() == '\"') {
+			matchedStr.erase(0, 1);
+			matchedStr.pop_back();
+		}
+		output.emplace_back(matchedStr);
+	}
+
+	return output;
 }
 
 std::string trim(const std::string &strInput, const std::string &strTrim)
