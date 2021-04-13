@@ -3,6 +3,12 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #pragma once
+
+#include <kopano/platform.h>
+#include <kopano/zcdefs.h>
+
+#include <openssl/md5.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -15,9 +21,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <kopano/platform.h>
-#include <kopano/zcdefs.h>
-#include <openssl/md5.h>
 
 struct SBinary;
 struct option;
@@ -143,6 +146,12 @@ static inline bool parseBoolPositive(const char *s)
 
 extern KC_EXPORT std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
 extern KC_EXPORT std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
+/**
+ * Tokenizes a string using space as a delimiter, unless the space is inside
+ * quotes ("").
+ * The quotes are then trimmed.
+ */
+extern KC_EXPORT std::vector<std::string> tokenizeBySpaceIgnoreQuotes(const std::string &input);
 extern KC_EXPORT std::string trim(const std::string &input, const std::string &trim = " ");
 extern KC_EXPORT unsigned char x2b(char);
 extern KC_EXPORT std::string hex2bin(const std::string &);
@@ -173,12 +182,12 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
 
    	while (std::string::npos != pos || std::string::npos != lastPos)
    	{
-       	// found a token, add it to the std::vector.
+       		// found a token, add it to the std::vector.
 		tokens.emplace_back(str.substr(lastPos, pos - lastPos));
-       	// skip delimiters.  Note the "not_of"
-       	lastPos = str.find_first_not_of(delimiters, pos);
-       	// find next "non-delimiter"
-       	pos = str.find_first_of(delimiters, lastPos);
+       		// skip delimiters.  Note the "not_of"
+       		lastPos = str.find_first_not_of(delimiters, pos);
+       		// find next "non-delimiter"
+		pos = str.find_first_of(delimiters, lastPos);
    	}
 
 	return tokens;
