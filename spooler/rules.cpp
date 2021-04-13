@@ -50,22 +50,6 @@ struct actresult {
 	HRESULT code;
 };
 
-class kc_icase_hash {
-	public:
-	size_t operator()(const std::string &i) const
-	{
-		return std::hash<std::string>()(strToLower(i));
-	}
-};
-
-class kc_icase_equal {
-	public:
-	bool operator()(const std::string &a, const std::string &b) const
-	{
-		return strcasecmp(a.c_str(), b.c_str()) == 0;
-	}
-};
-
 struct wlparam {
 	/* Because wildcards are possible, a search tree (map) does not help over vector. */
 	std::vector<std::string> domains;
@@ -73,74 +57,50 @@ struct wlparam {
 };
 
 /**
- * Exact-match header names that will inhibit forwarding of autoreplies.
+ * Determines from a list of headers if one of the patterns is present. The
+ * pattern can be either a header, a header + a value, or a prefix of a header.
+ * A prefix is indicated with a wildcard at the end. All comparisons ignore
+ * case.
  */
-using header_set = std::unordered_set<std::string, kc_icase_hash, kc_icase_equal>;
-static const header_set kc_stopfwd_hdr = {
-	"X-Kopano-Vacation",
-	"Auto-Submitted",
-};
-
-/**
- * Exact-match header names that will inhibit autoreplies to autoreplies.
- */
-static const header_set kc_stopreply_hdr = {
-	/* Kopano - Vacation header already present, do not send vacation reply. */
-	"X-Kopano-Vacation",
-	/* RFC 3834 - Precedence: list/bulk/junk, do not reply to these mails. */
-	"Auto-Submitted",
-	"Precedence",
-	/* RFC 2919 */
-	"List-Id",
-	/* RFC 2369 */
-	"List-Help",
-	"List-Subscribe",
-	"List-Unsubscribe",
-	"List-Post",
-	"List-Owner",
-	"List-Archive",
-};
-
-/* A list of prefix searches for entire header-value lines */
-static const header_set kc_stopreply_hdr2 = {
-	/* From the package "vacation" */
-	"X-Spam-Flag: YES",
-	/* From openSUSE's vacation package */
-	"X-Is-Junk: YES",
-	"X-AMAZON",
-	"X-LinkedIn",
-};
-
-static bool dagent_header_present(const std::vector<std::string> &hl,
-    const header_set &exact_patterns, const header_set &prefix_patterns)
+bool dagent_header_present(const std::vector<std::string> &headers, const std::vector<std::string> &patterns)
 {
-	for (const auto &line : hl) {
-		if (isspace(line[0]))
+	constexpr char HEADER_VALUE_SEP = ':';
+	constexpr char WILDCARD = '*';
+
+	for (const auto &headerLine : headers) {
+		if (isspace(headerLine[0])) {
 			continue;
-		size_t pos = line.find_first_of(':');
-		if (pos == std::string::npos || pos == 0)
+		}
+		const auto pos = headerLine.find_first_of(HEADER_VALUE_SEP);
+		if (pos == std::string::npos || pos == 0) {
 			continue;
-		if (exact_patterns.find(line.substr(0, pos)) != exact_patterns.cend())
-			return true;
-		for (const auto &elem : prefix_patterns)
-			if (prefix_patterns.find(line.substr(0, elem.size())) != prefix_patterns.cend())
+		}
+
+		const auto header = headerLine.substr(0, pos);
+		for (const auto &pattern : patterns) {
+			if (strcasecmp(pattern.c_str(), header.c_str()) == 0) {
 				return true;
+			}
+
+			// If it didn't match let's see if the pattern either
+			// has a value or has a wildcard at the end.
+			const auto patternPos = pattern.find_first_of(HEADER_VALUE_SEP);
+			if (patternPos == std::string::npos && pattern.back() != WILDCARD) {
+				continue;
+			}
+
+			// It either has a wildcard or contains a value, so
+			// let's check if it matches with the current header
+			// based only on the pattern's size. This'll guarantee
+			// that we either match the value as well, or that the
+			// pattern is a prefix of the header.
+			const auto maxSize = patternPos != std::string::npos ? pattern.size(): pattern.size() - 1;
+			if (strcasecmp(headerLine.substr(0, maxSize).c_str(), pattern.substr(0, maxSize).c_str()) == 0) {
+				return true;
+			}
+		}
 	}
 	return false;
-}
-
-static bool dagent_avoid_autofwd(const std::vector<std::string> &hl)
-{
-	return dagent_header_present(hl, kc_stopfwd_hdr, {});
-}
-
-/**
- * Determines from a set of lines from internet headers (can be wrapped or
- * not) whether to inhibit autoreplies.
- */
-bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
-{
-	return dagent_header_present(hl, kc_stopreply_hdr, kc_stopreply_hdr2);
 }
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
@@ -980,9 +940,12 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 	const auto &repl = action.actReply;
 	sc->inc(SCN_RULES_REPLY_AND_OOF);
 
+	const std::string inhibitAutoReplySetting(g_lpConfig->GetSetting("inhibit_auto_reply_headers"));
+	const auto inhibitAutoReplyHeaders = tokenizeBySpaceIgnoreQuotes(inhibitAutoReplySetting);
+
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
-	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+	    dagent_header_present(tokenize(pv->Value.lpszA, "\n"), inhibitAutoReplyHeaders)) {
 		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
 		return {ROP_NOOP};
 	}
@@ -1032,9 +995,12 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		ec_log_debug("Forwarding rule doesn't have recipients");
 		return {ROP_NOOP};
 	}
+	const std::string inhibitForwardSetting(g_lpConfig->GetSetting("inhibit_forward_headers"));
+	const auto inhibitForwardHeaders = tokenizeBySpaceIgnoreQuotes(inhibitForwardSetting);
+
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
-	    dagent_avoid_autofwd(tokenize(pv->Value.lpszA, "\n"))) {
+	    dagent_header_present(tokenize(pv->Value.lpszA, "\n"), inhibitForwardHeaders)) {
 		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
 		return {ROP_NOOP};
 	}
