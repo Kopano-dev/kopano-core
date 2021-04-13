@@ -127,19 +127,39 @@ HRESULT Http::HrReadHeaders()
 		if (n == 0) {
 			m_strAction = strBuffer;
 		} else {
-			auto pos = strBuffer.find(':');
-			size_t start = 0;
+			auto keyPos = strBuffer.find(':');
+			std::size_t start = 0;
 
+			// Multi-line header
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
-				if (iHeader == mapHeaders.end())
+				if (iHeader == mapHeaders.end()) {
 					continue;
-				// continue header
-				while (strBuffer[start] == ' ' || strBuffer[start] == '\t')
+				}
+
+				// Continue header
+				while (strBuffer[start] == ' ' || strBuffer[start] == '\t') {
 					++start;
+				}
 				iHeader->second += strBuffer.substr(start);
+			} else if (keyPos == std::string::npos) {
+				// If we were not in a multi-line header and
+				// didn't find a colon, ignore this header.
+				continue;
 			} else {
 				// new header
-				auto r = mapHeaders.emplace(strBuffer.substr(0, pos), strBuffer.substr(pos + 2));
+				// Skip initial spaces in value.
+				auto valuePos = keyPos;
+				++valuePos; // skip colon
+				while (valuePos < strBuffer.size() && strBuffer[valuePos] == ' ') {
+					++valuePos;
+				}
+
+				// If there's no valid value just ignore it and continue
+				if (valuePos >= strBuffer.size()) {
+					continue;
+				}
+
+				auto r = mapHeaders.emplace(strBuffer.substr(0, keyPos), strBuffer.substr(valuePos));
 				iHeader = r.first;
 			}
 		}
