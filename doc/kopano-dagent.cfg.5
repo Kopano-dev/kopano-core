@@ -239,6 +239,18 @@ Kopano\-dagent invokes the autoresponder to send out\-of\-office replies. You ca
 .PP
 Default:
 \fI/usr/sbin/kopano\-autorespond\fR
+.SS inhibit_forward_headers
+.PP
+A list of headers separated by space that, if present in a mail, will inhibit the forwading of the mail. If the header contains spaces (e.g. when matching with a specific value), it should be wrapped in double quotes (""). A * can be used at the end to indicate it is a prefix and should be matched as such. The values are case insensitive.
+.PP
+Default:
+\fIX-Kopano-Vacation Auto-Submitted
+.SS  inhibit_auto_reply_headers
+.PP
+A list of headers separated by space that, if present in the mail, will inhibit an auto reply to the mail. If the header contains spaces (e.g. when matching with a specific value), it should be wrapped in double quotes (""). A * can be used at the end of the header to indicate it is a prefix and should be matched as such. The values are case insensitive.
+.PP
+Default:
+\fIX-Kopano-Vacation Auto-Submitted Precedence List-Id List-Help List-Subscribe List-Unsubscribe List-Post List-Owner List-Archive "X-Spam-Flag: YES" "X-Is-Junk: YES" X-AMAZON* X-LinkedIn*
 .SS plugin_enabled
 .PP
 Enable or disable the dagent plugin framework.
