@@ -254,9 +254,9 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		namtags->aulPropTag[i] = CHANGE_PROP_TYPE(namtags->aulPropTag[i], PT_UNICODE);
 
 	auto root = newVObject(VCCardProp);
-	to_prop(root, "VERSION", L"4.0");
+	to_prop(root, VCVersionProp, L"4.0");
 	auto prodid = L"-//Kopano//libicalmapi " + convert_to<std::wstring>(PROJECT_VERSION) + L"//EN";
-	to_prop(root, "PRODID", prodid.c_str());
+	to_prop(root, VCProdIdProp, prodid.c_str());
 
 	if (!prop_is_empty(FIND(PR_DISPLAY_NAME_PREFIX)) ||
 	    !prop_is_empty(FIND(PR_GIVEN_NAME)) ||

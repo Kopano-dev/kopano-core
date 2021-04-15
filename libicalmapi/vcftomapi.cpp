@@ -118,12 +118,24 @@ static bool date_string_to_filetime(const std::string &date_string, FILETIME &fi
 	struct tm t;
 	memset(&t, 0, sizeof(struct tm));
 	auto s = strptime(date_string.c_str(), "%Y-%m-%d", &t);
-	if (s == nullptr || *s != '\0')
+	if (s == nullptr || *s != '\0') {
 		s = strptime(date_string.c_str(), "%Y%m%d", &t);
-	if (s == nullptr || *s != '\0')
+	}
+	if (s == nullptr || *s != '\0') {
+		s = strptime(date_string.c_str(), "%Y-%m-%dT%H:%M:%SZ", &t);
+	}
+	if (s == nullptr || *s != '\0') {
 		return false;
+	}
 	filetime = UnixTimeToFileTime(timegm(&t));
 	return true;
+}
+
+static bool date_wchar_t_to_filetime(const wchar_t* date_string, FILETIME &filetime)
+{
+	char timefmt[64];
+	std::wcstombs(timefmt, date_string, sizeof(timefmt));
+	return date_string_to_filetime(timefmt, filetime);
 }
 
 HRESULT vcftomapi_impl::handle_N(VObject *v, contact &ct)
@@ -410,20 +422,26 @@ HRESULT vcftomapi_impl::handle_ORG(VObject *v, contact &ct)
 	if (!moreIteration(&t))
 		return hrSuccess;
 
-	SPropValue s;
-	auto vv = nextVObject(&t);
-	auto name = vObjectName(vv);
-	if (strcmp(name, "ORGNAME") == 0) {
-		auto hr = vobject_to_prop(vv, s, PR_COMPANY_NAME);
-		if (hr != hrSuccess)
-			return hr;
-		ct.props.emplace_back(std::move(s));
-	}
-	if (strcmp(name, "OUN") == 0) {
-		auto hr = vobject_to_prop(vv, s, PR_DEPARTMENT_NAME);
-		if (hr != hrSuccess)
-			return hr;
-		ct.props.emplace_back(std::move(s));
+	while(moreIteration(&t)) {
+		SPropValue s;
+		auto innerObj = nextVObject(&t);
+		auto name = vObjectName(innerObj);
+
+		if (strcmp(name, VCOrgNameProp) == 0) {
+			auto hr = vobject_to_prop(innerObj, s, PR_COMPANY_NAME);
+			if (hr != hrSuccess) {
+				return hr;
+			}
+			ct.props.emplace_back(std::move(s));
+		}
+
+		if (strcmp(name, VCOrgUnitProp) == 0) {
+			auto hr = vobject_to_prop(innerObj, s, PR_DEPARTMENT_NAME);
+			if (hr != hrSuccess) {
+				return hr;
+			}
+			ct.props.emplace_back(std::move(s));
+		}
 	}
 	return hrSuccess;
 }
@@ -576,10 +594,9 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			if (hr != hrSuccess)
 				return hr;
 			ct.props.emplace_back(std::move(s));
-		} else if (strcmp(name, "BDAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+		} else if (strcmp(name, VCBirthDateProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
-			auto input = convert_to<std::string>(vObjectUStringZValue(v));
-			auto res = date_string_to_filetime(input, filetime);
+			auto res = date_wchar_t_to_filetime(vObjectUStringZValue(v), filetime);
 			if (!res)
 				continue;
 			s.ulPropTag = PR_BIRTHDAY;
@@ -587,7 +604,7 @@ HRESULT vcftomapi_impl::parse_vcard(VObject *vcard)
 			ct.props.emplace_back(std::move(s));
 		} else if (strcmp(name, "X-ANNIVERSARY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			FILETIME filetime;
-			auto res = date_string_to_filetime(convert_to<std::string>(vObjectUStringZValue(v)), filetime);
+			auto res = date_wchar_t_to_filetime(vObjectUStringZValue(v), filetime);
 			if (!res)
 				continue;
 			s.ulPropTag = PR_WEDDING_ANNIVERSARY;

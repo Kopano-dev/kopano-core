@@ -18,4 +18,4 @@ test:
 	  KOPANO_TEST_IMAP_HOST=${KOPANO_TEST_IMAP_HOST} KOPANO_TEST_IMAP_PORT=${KOPANO_TEST_IMAP_PORT} \
 	  KOPANO_TEST_POP3_HOST=${KOPANO_TEST_POP3_HOST} KOPANO_TEST_POP3_PORT=${KOPANO_TEST_POP3_PORT} \
 	  KOPANO_TEST_POP3_USER=${KOPANO_TEST_POP3_USER} KOPANO_TEST_POP3_PASSWORD=${KOPANO_TEST_POP3_PASSWORD} \
-	  $(PYTEST) ${srcdir}/tests/ --junitxml=test.xml -o junit_suite_name=gateway
+	  $(PYTEST) ${srcdir}/tests/ --junitxml=test.xml --junit-prefix=gateway -o junit_suite_name=gateway
