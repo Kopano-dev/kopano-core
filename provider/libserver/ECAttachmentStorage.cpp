@@ -140,7 +140,7 @@ class ECFileAttachmentConfig2 final : public ECFileAttachmentConfig {
 
 class ECFileAttachment2 final : public ECFileAttachment {
 	public:
-	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, unsigned int complvl, bool sync);
+	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, bool sync);
 
 	protected:
 	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) override;
@@ -2131,13 +2131,12 @@ ECFileAttachmentConfig2::ECFileAttachmentConfig2(const GUID &g) :
 
 ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
 {
-	return new(std::nothrow) ECFileAttachment2(*this, db, m_dir, m_complvl, m_sync_files);
+	return new(std::nothrow) ECFileAttachment2(*this, db, m_dir, m_sync_files);
 }
 
 ECFileAttachment2::ECFileAttachment2(ECFileAttachmentConfig2 &acf,
-    ECDatabase *db, const std::string &basepath, unsigned int complvl,
-    bool sync) :
-	ECFileAttachment(db, basepath, complvl, 0, 0, sync), m_config(acf)
+    ECDatabase *db, const std::string &basepath, bool sync) :
+	ECFileAttachment(db, basepath, 0, 0, 0, sync), m_config(acf)
 {}
 
 ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
