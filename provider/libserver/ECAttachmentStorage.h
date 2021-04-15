@@ -52,7 +52,6 @@ public:
 	ECRESULT SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, ULONG ulInstanceId, ULONG *lpulInstanceId);
 	ECRESULT CopyAttachment(ULONG ulObjId, ULONG ulNewObjId);
 	ECRESULT DeleteAttachments(const std::list<ULONG> &lstDeleteObjects);
-	ECRESULT DeleteAttachment(ULONG ulObjId, ULONG ulPropId);
 	ECRESULT GetSize(ULONG ulObjId, ULONG ulPropId, size_t *lpulSize);
 
 	/* Convert ObjectId (hierarchyid) into Instance Id */

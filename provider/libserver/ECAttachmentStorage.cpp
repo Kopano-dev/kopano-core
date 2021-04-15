@@ -798,19 +798,6 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 
 /**
  * Delete one single instance property of an object.
- * public interface version
- *
- * @param[in] ulObjId HierarchyID of object to delete single instance property from
- * @param[in] ulPropId Property of object to remove
- *
- * @return
- */
-ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
-	return DeleteAttachment(ulObjId, ulPropId, false);
-}
-
-/**
- * Delete one single instance property of an object.
  *
  * @param[in] ulObjId HierarchyID of object to delete single instance property from
  * @param[in] ulPropId Property of object to remove
