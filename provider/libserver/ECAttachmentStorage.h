@@ -77,7 +77,7 @@ private:
 	/* Count the number of times an attachment is referenced */
 	ECRESULT IsOrphanedSingleInstance(const ext_siid &, bool *orphan);
 	ECRESULT GetOrphanedSingleInstances(const std::list<ext_siid> &ins, std::list<ext_siid> *orps);
-	ECRESULT DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bool bReplace);
+	ECRESULT DeleteAttachment(ULONG ulObjId, ULONG ulPropId);
 
 protected:
 	ECDatabase *m_lpDatabase;
