@@ -1301,13 +1301,17 @@ class Folder(Properties):
 
     @property
     def type_(self):
-        """Folder type (mail, contacts, calendar or just folder)."""
+        """Folder type (mail, contacts, calendar, notes, tasks or just folder)."""
         if self.container_class in (None, 'IPF.Note'):
             return 'mail'
         elif self.container_class == 'IPF.Contact':
             return 'contacts'
         elif self.container_class == 'IPF.Appointment':
             return 'calendar'
+        elif self.container_class == 'IPF.StickyNote':
+            return 'notes'
+        elif self.container_class == 'IPF.Task':
+            return 'tasks'
         else:
             return 'folder'
 
