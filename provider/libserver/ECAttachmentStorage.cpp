@@ -17,7 +17,6 @@
 #include <mapidefs.h>
 #include <cerrno>
 #include <algorithm>
-#include <dirent.h>
 #include <fcntl.h>
 #include <zlib.h>
 #include <ECSerializer.h>
@@ -122,7 +121,6 @@ class ECFileAttachment : public ECAttachmentStorage {
 
 	int m_dirFd = -1;
 	unsigned int m_l1 = 0, m_l2 = 0;
-	DIR *m_dirp = nullptr;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
 };
@@ -1137,27 +1135,27 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 	ECAttachmentStorage(lpDatabase, ulCompressionLevel),
 	m_basepath(basepath), m_l1(l1), m_l2(l2)
 {
-	if (m_basepath.empty())
+	if (m_basepath.empty()) {
 		m_basepath = "/var/lib/kopano";
+	}
 	force_changes_to_disk = sync_to_disk;
 	if (sync_to_disk) {
-		m_dirp = opendir(m_basepath.c_str());
+		m_dirFd = open(m_basepath.c_str(), O_RDONLY | O_DIRECTORY);
 
-		if (m_dirp)
-			m_dirFd = dirfd(m_dirp);
-
-		if (m_dirFd == -1)
+		if (m_dirFd == -1) {
 			ec_log_warn("Problem opening directory file \"%s\": %s - attachment storage atomicity not guaranteed", m_basepath.c_str(), strerror(errno));
+		}
 	}
 	attachment_size_safety_limit = 512 * 1024 * 1024; // FIXME make configurable
 }
 
 ECFileAttachment::~ECFileAttachment()
 {
-	if (m_dirp != NULL)
-		closedir(m_dirp);
-	if (m_bTransaction)
-		assert(false);
+	if (m_dirFd != -1) {
+		close(m_dirFd);
+	}
+
+	assert(!m_bTransaction);
 }
 
 /**
