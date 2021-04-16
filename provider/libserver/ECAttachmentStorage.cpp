@@ -77,7 +77,7 @@ class ECFileAttachmentConfig : public ECAttachmentConfig {
 
 	protected:
 	std::string m_dir;
-	unsigned int m_complvl, m_l1 = 0, m_l2 = 0;
+	unsigned int m_complvl = 0, m_l1 = 0, m_l2 = 0;
 	bool m_sync_files;
 };
 
