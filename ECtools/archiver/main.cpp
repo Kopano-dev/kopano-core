@@ -175,8 +175,12 @@ static const struct option long_options[] = {
     { NULL, 			   no_argument, 		NULL, 0				       }
 };
 
-static inline LPTSTR toLPTST(const char* lpszString, convert_context& converter) { return lpszString ? converter.convert_to<LPTSTR>(lpszString) : NULL; }
-static inline const char *yesno(bool bValue) { return bValue ? "yes" : "no"; }
+static inline tstring toTString(const char* lpszString, convert_context& converter) {
+	return lpszString != nullptr ? converter.convert_to<LPTSTR>(lpszString) : tstring();
+}
+static inline const char *yesno(bool bValue) {
+	return bValue ? "yes" : "no";
+}
 
 } /* namespace */
 
@@ -431,31 +435,47 @@ int main(int argc, char **argv)
     ec_log_debug("Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {
     case MODE_ATTACH: {
-		std::unique_ptr<ArchiveManage> ptr;
+	std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
-        if (r != Success)
-            return 1;
+        if (r != Success) {
+        	return 1;
+	}
 
-		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive \"%s\" in server \"%s\" using folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
-        r = ptr->AttachTo(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter), ulAttachFlags);
+	filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive \"%s\" in server \"%s\" using folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
+
+	const auto convertedArchive = toTString(lpszArchive, converter);
+	const auto convertedFolder = toTString(lpszFolder, converter);
+	const auto convertedArchiveCStr = convertedArchive.empty() ? nullptr : convertedArchive.c_str();
+	const auto convertedFolderCStr = convertedFolder.empty() ? nullptr : convertedFolder.c_str();
+
+        r = ptr->AttachTo(
+		lpszArchiveServer, convertedArchiveCStr, convertedFolderCStr, ulAttachFlags);
 		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
     case MODE_DETACH_IDX:
     case MODE_DETACH: {
-		std::unique_ptr<ArchiveManage> ptr;
+	std::unique_ptr<ArchiveManage> ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
-        if (r != Success)
-            return 1;
+        if (r != Success) {
+        	return 1;
+	}
 
         if (mode == MODE_DETACH_IDX) {
-			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
-            r = ptr->DetachFrom(ulArchive);
-			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
+            	r = ptr->DetachFrom(ulArchive);
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
         } else {
-			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive \"%s\" on server \"%s\", folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
-            r = ptr->DetachFrom(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive \"%s\" on server \"%s\", folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
+
+		const auto convertedArchive = toTString(lpszArchive, converter);
+		const auto convertedFolder = toTString(lpszFolder, converter);
+		const auto convertedArchiveCStr = convertedArchive.empty() ? nullptr : convertedArchive.c_str();
+		const auto convertedFolderCStr = convertedFolder.empty() ? nullptr : convertedFolder.c_str();
+
+		r = ptr->DetachFrom(
+		    lpszArchiveServer, convertedArchiveCStr, convertedFolderCStr);
 			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
         }
     }

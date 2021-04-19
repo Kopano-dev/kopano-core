@@ -666,6 +666,7 @@ static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr
 		return ret;
 
 	mods->cEntries = 0;
+	std::vector<std::wstring> wstringBuffer;
 	for (size_t j = 0; j < fr.size(); ++j) {
 		const sFailedRecip &cur = fr.at(j);
 		ret = MAPIAllocateBuffer(sizeof(SPropValue) * 10, reinterpret_cast<void **>(&mods->aEntries[ent].rgPropVals));
@@ -683,10 +684,12 @@ static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr
 		pv[pos].ulPropTag = PR_ADDRTYPE_W;
 		pv[pos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		pv[pos].ulPropTag = PR_DISPLAY_NAME_W;
-		if (!cur.strRecipName.empty())
+		if (!cur.strRecipName.empty()) {
 			pv[pos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
-		else
-			pv[pos++].Value.lpszW = conv.convert_to<wchar_t *>(cur.strRecipEmail);
+		} else {
+			wstringBuffer.emplace_back(conv.convert_to<std::wstring>(cur.strRecipEmail));
+			pv[pos++].Value.lpszW = const_cast<wchar_t *>(wstringBuffer.back().c_str());
+		}
 
 		pv[pos].ulPropTag = PR_REPORT_TEXT_A;
 		pv[pos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
@@ -874,7 +877,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 				newbody.append(L"\t");
 				newbody.append(cur.strRecipName.c_str());
 				newbody.append(L" <");
-				newbody.append(converter.convert_to<wchar_t *>(cur.strRecipEmail));
+				newbody.append(converter.convert_to<std::wstring>(cur.strRecipEmail));
 				newbody.append(L">\n");
 			}
 		}
@@ -888,7 +891,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 				newbody.append(L"\t");
 				newbody.append(cur.strRecipName.c_str());
 				newbody.append(L" <");
-				newbody.append(converter.convert_to<wchar_t *>(cur.strRecipEmail));
+				newbody.append(converter.convert_to<std::wstring>(cur.strRecipEmail));
 				newbody.append(L">\n");
 			}
 		}
