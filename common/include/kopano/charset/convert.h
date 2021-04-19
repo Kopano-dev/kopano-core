@@ -422,23 +422,15 @@ private:
 	 * @brief Key for the context_map;
 	 */
 	struct context_key {
-		const char *totype;
-		const char *tocode;
-		const char *fromtype;
-		const char *fromcode;
+		std::string toType;
+		std::string toCode;
+		std::string fromType;
+		std::string fromCode;
 
-		bool operator<(const context_key &o) const noexcept
+		bool operator<(const context_key &lhs) const
 		{
-			auto r = strcmp(fromtype, o.fromtype);
-			if (r != 0)
-				return r < 0;
-			r = strcmp(totype, o.totype);
-			if (r != 0)
-				return r < 0;
-			r = strcmp(fromcode, o.fromcode);
-			if (r != 0)
-				return r < 0;
-			return strcmp(tocode, o.tocode) < 0;
+			return std::tie(fromType, toType, fromCode, toCode) <
+				std::tie(lhs.fromType, lhs.toType, lhs.fromCode, lhs.toCode);
 		}
 	};
 
@@ -472,11 +464,6 @@ private:
 	 * @brief Map containing contexts that can be reused.
 	 */
 	typedef std::map<context_key, iconv_context_base *> context_map;
-
-	/**
-	 * @brief Set containing dynamic allocated from- and to codes.
-	 */
-	typedef std::set<const char*> code_set;
 
 	/**
 	 * @brief Obtains an iconv_context object.
@@ -519,9 +506,6 @@ private:
 		if (iContext == m_contexts.cend()) {
 			auto lpContext = new iconv_context<To_Type, From_Type>(fromcode);
 
-			// Before we store it, we need to copy the fromcode as we don't know what the
-			// lifetime will be.
-			persist_code(key, pfFromCode);
 			iContext = m_contexts.emplace(key, lpContext).first;
 		}
 		return dynamic_cast<iconv_context<To_Type, From_Type> *>(iContext->second);
@@ -546,9 +530,6 @@ private:
 		if (iContext == m_contexts.cend()) {
 			auto lpContext = new iconv_context<To_Type, From_Type>(tocode, fromcode);
 
-			// Before we store it, we need to copy the fromcode as we don't know what the
-			// lifetime will be.
-			persist_code(key, pfToCode|pfFromCode);
 			iContext = m_contexts.emplace(key, lpContext).first;
 		}
 		return dynamic_cast<iconv_context<To_Type, From_Type> *>(iContext->second);
@@ -561,14 +542,6 @@ private:
 		pfToCode = 1,
 		pfFromCode = 2
 	};
-
-	/**
-	 * @brief	Persists the code for the fromcode when it's not certain it won't
-	 *			be destroyed while in use.
-	 *
-	 * @param[in,out]	key		The key for which the second field will be persisted.
-	 */
-	void persist_code(context_key &key, unsigned flags);
 
 	/**
 	 * Persist the string so a raw pointer to its content can be used.
@@ -592,7 +565,6 @@ private:
 	 */
 	wchar_t *persist_string(const std::wstring &wstrValue);
 
-	code_set	m_codes;
 	context_map	m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
