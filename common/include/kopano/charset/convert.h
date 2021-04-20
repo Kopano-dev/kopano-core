@@ -347,80 +347,6 @@ private:
 	};
 
 	/**
-	 * @brief	Helper class for converting from one charset to another.
-	 *
-	 * This specialization is used to convert to pointer types. In that case the
-	 * result needs to be stores to guarantee storage of the data. Without this
-	 * the caller will end up with a pointer to non-existing data.
-	 */
-	template<typename Type> class KC_HIDDEN helper<Type *> KC_FINAL {
-	public:
-		typedef std::basic_string<Type> string_type;
-
-		helper(convert_context &context)
-			: m_context(context)
-			, m_helper(context)
-		{}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset linked to Other_Type is converted to a
-		 * string with a charset linked to Type. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] _from		The string to be converted.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type> Type *convert(const Other_Type &from)
-		{
-			string_type s = m_helper.convert(from);
-			return m_context.persist_string(s);
-		}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset specified with fromcode is converted to a
-		 * string with a charset linked to Type. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] _from		The string to be converted.
-		 * @param[in] cbBytes	The size in bytes of the string to convert.
-		 * @param[in] fromcode	The source charset.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type>
-		Type *convert(const Other_Type &from, size_t cbBytes, const char *fromcode)
-		{
-			string_type s = m_helper.convert(from, cbBytes, fromcode);
-			return m_context.persist_string(s);
-		}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset specified with fromcode is converted to a
-		 * string with a charset specified with tocode. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] tocode	The destination charset.
-		 * @param[in] _from		The string to be converted.
-		 * @param[in] cbBytes	The size in bytes of the string to convert.
-		 * @param[in] fromcode	The source charset.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type>
-		Type *convert(const char *tocode, const Other_Type &_from,
-		    size_t cbBytes, const char *fromcode)
-		{
-			string_type s = m_helper.convert(tocode, _from, cbBytes, fromcode);
-			return m_context.persist_string(s);
-		}
-
-	private:
-		convert_context	&m_context;
-		helper<string_type> m_helper;
-	};
-
-	/**
 	 * @brief Key for the context_map;
 	 */
 	struct context_key {
@@ -539,28 +465,6 @@ private:
 		pfFromCode = 2
 	};
 
-	/**
-	 * Persist the string so a raw pointer to its content can be used.
-	 *
-	 * The pointer that can be used is returned by this function. Using the
-	 * pointer to the data of the original string will be a recipe to disaster.
-	 *
-	 * @param[in]	string		The string to persist.
-	 * @return		The raw pointer that can be used as long as the convert_context exists.
-	 */
-	char *persist_string(const std::string &);
-
-	/**
-	 * Persist the string so a raw pointer to its content can be used.
-	 *
-	 * The pointer that can be used is returned by this function. Using the
-	 * pointer to the data of the original string will be a recipe to disaster.
-	 *
-	 * @param[in]	string		The string to persist.
-	 * @return		The raw pointer that can be used as long as the convert_context exists.
-	 */
-	wchar_t *persist_string(const std::wstring &wstrValue);
-
 	std::map<context_key, std::unique_ptr<iconv_context_base>> m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
@@ -569,39 +473,6 @@ private:
 	convert_context(const convert_context &) = delete;
 	convert_context &operator=(const convert_context &) = delete;
 };
-
-
-
-/** Convert a string to UTF-8.
- *
- * @param[in]	_context
- *					The convert_context used for the conversion
- * @param[in]	_ptr
- *					Pointer to the string containing the data to be converted.
- * @param[in]	_flags
- *					If set to MAPI_UNICODE, the _ptr argument is interpreted as a wide character string. Otherwise
- *					the _ptr argument is interpreted as a single byte string encoded in the current locale.
- *
- * @return	The converted string.
- */
-#define TO_UTF8(context, ptr, flags) \
-	((ptr) ? \
-		(context).convert_to<char *>("UTF-8", (ptr), \
-		((flags) & MAPI_UNICODE) ? sizeof(wchar_t) * wcslen(reinterpret_cast<const wchar_t *>(ptr)) : strlen(reinterpret_cast<const char *>(ptr)), \
-		((flags) & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR) \
-	: NULL )
-
-/**
- * Convert a string to UTF-8 with default arguments.
- *
- * This version requeres the convert_context to be named 'converter' and the flags argument 'ulFlags'.
- *
- * @param[in]	_ptr
- *					Pointer to the string containing the data to be converted.
- *
- * @return	The converted string.
- */
-#define TO_UTF8_DEF(ptr) TO_UTF8(converter, (ptr), ulFlags)
 
 extern KC_EXPORT HRESULT HrFromException(const convert_exception &);
 

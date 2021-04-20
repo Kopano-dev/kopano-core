@@ -214,16 +214,4 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 		append(buf, sizeof(buf) - cbDst);
 }
 
-char* convert_context::persist_string(const std::string &strValue)
-{
-	m_lstStrings.emplace_back(strValue);
-	return const_cast<char*>(m_lstStrings.back().c_str());
-}
-
-wchar_t* convert_context::persist_string(const std::wstring &wstrValue)
-{
-	m_lstWstrings.emplace_back(wstrValue);
-	return const_cast<wchar_t*>(m_lstWstrings.back().c_str());
-}
-
 } /* namespace */
