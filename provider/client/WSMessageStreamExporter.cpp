@@ -44,7 +44,8 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t j = 0; j < streams.__ptr[i].sPropVals.__size; ++j) {
-			hr = CopySOAPPropValToMAPIPropVal(&lpsi->ptrPropVals[j], &streams.__ptr[i].sPropVals.__ptr[j], lpsi->ptrPropVals, &converter);
+			hr = CopySOAPPropValToMAPIPropVal(
+				&lpsi->ptrPropVals[j], &streams.__ptr[i].sPropVals.__ptr[j], lpsi->ptrPropVals);
 			if (hr != hrSuccess)
 				return hr;
 		}

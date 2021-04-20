@@ -82,7 +82,6 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ECRESULT er = hrSuccess;
 	std::unique_ptr<MAPIOBJECT> mo;
 	memory_ptr<SPropValue> lpProp;
-	convert_context	converter;
 	soap_lock_guard spg(*m_lpTransport);
 	struct readPropsResponse sResponse;
 
@@ -111,7 +110,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		/* can call AllocateMore on lpProp */
-		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
+		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp);
 		if (hr != hrSuccess)
 			return hr;
 		/*
@@ -285,7 +284,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 				if (/*lpsMapiObject->bChangedInstance &&*/ lpsMapiObject->lpInstanceID)
 					continue;
 
-			hr = CopyMAPIPropValToSOAPPropVal(&lpSaveObj->modProps.__ptr[i], &tmp, lpConverter);
+			hr = CopyMAPIPropValToSOAPPropVal(&lpSaveObj->modProps.__ptr[i], &tmp);
 			if(hr == hrSuccess)
 				++i;
 		}
@@ -363,7 +362,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			}
 
-			hr = CopyMAPIPropValToSOAPPropVal(&lpsSaveObj->modProps.__ptr[lpsSaveObj->modProps.__size], &sData, lpConverter);
+			hr = CopyMAPIPropValToSOAPPropVal(&lpsSaveObj->modProps.__ptr[lpsSaveObj->modProps.__size], &sData);
 			if(hr != hrSuccess)
 				return hr;
 			++lpsSaveObj->modProps.__size;
@@ -397,14 +396,12 @@ ECRESULT WSMAPIPropStorage::EcFillPropTags(const struct saveObject *lpsSaveObj,
 ECRESULT WSMAPIPropStorage::EcFillPropValues(const struct saveObject *lpsSaveObj,
      MAPIOBJECT *lpsMapiObj)
 {
-	convert_context	context;
-
 	for (gsoap_size_t i = 0; i < lpsSaveObj->modProps.__size; ++i) {
 		memory_ptr<SPropValue> lpsProp;
 		auto ec = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsProp);
 		if (ec != erSuccess)
 			return ec;
-		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
+		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp);
 		if (ec != erSuccess)
 			return ec;
 		lpsMapiObj->lstProperties.emplace_back(lpsProp);

@@ -633,8 +633,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, const ENTRYID *lpStoreID,
 	}
 	END_SOAP_CALL
 
-	return Utf8ToTString(sResponse.lpszStoreName, ulFlags, nullptr,
-	       nullptr, lppszStoreName);
+	return Utf8ToTString(sResponse.lpszStoreName, ulFlags, nullptr, lppszStoreName);
 }
 
 HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
@@ -2994,7 +2993,6 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 {
 	ECRESULT er = erSuccess;
 	struct propTagArray aPropTag;
-	convert_context	converter;
 
 	aPropTag.__ptr = (unsigned int *)&lpPropTagArray->aulPropTag; // just a reference
 	aPropTag.__size = lpPropTagArray->cValues;
@@ -3006,7 +3004,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 	struct rowSet* lpsRowSet = NULL;
 	auto cleanup = make_scope_exit([&]() { soap_del_PointerTorowSet(&lpsRowSet); });
 	auto hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(lpAdrList),
-	          &lpsRowSet, &converter);
+	          &lpsRowSet);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -3034,7 +3032,10 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 			     reinterpret_cast<void **>(&lpAdrList->aEntries[i].rgPropVals));
 			if (hr != hrSuccess)
 				return hr;
-			hr = CopySOAPRowToMAPIRow(&sResponse.sRowSet.__ptr[i], lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].rgPropVals, &converter);
+			hr = CopySOAPRowToMAPIRow(
+				&sResponse.sRowSet.__ptr[i],
+				lpAdrList->aEntries[i].rgPropVals,
+				lpAdrList->aEntries[i].rgPropVals);
 			if(hr != hrSuccess)
 				return hr;
 
