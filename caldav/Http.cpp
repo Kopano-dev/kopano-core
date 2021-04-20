@@ -720,7 +720,7 @@ HRESULT Http::HrFlushHeaders()
 HRESULT Http::X2W(const std::string &strIn, std::wstring *lpstrOut)
 {
 	const char *lpszCharset = (m_strCharSet.empty() ? "UTF-8" : m_strCharSet.c_str());
-	return TryConvert(m_converter, strIn, rawsize(strIn), lpszCharset, *lpstrOut);
+	return TryConvert(strIn, rawsize(strIn), lpszCharset, *lpstrOut);
 }
 
 HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strValue)

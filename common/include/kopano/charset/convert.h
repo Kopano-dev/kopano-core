@@ -670,51 +670,6 @@ HRESULT TryConvert(const From_Type &from, size_t cbBytes,
 	}
 }
 
-
-/**
- * @brief	Converts a string from one charset to another. Failure is indicated
- *			through the return code instead of an exception.
- *
- * @param[in]  context	A convert_context to perform the conversion on.
- * @param[in]  _from	The string to be converted.
- * @param[out] _to		The converted string.
- * @return				HRESULT.
- */
-template<typename To_Type, typename From_Type> HRESULT
-TryConvert(convert_context &context, const From_Type &from, To_Type &to)
-{
-	try {
-		to = context.convert_to<To_Type>(from);
-		return hrSuccess;
-	} catch (const convert_exception &ce) {
-		return HrFromException(ce);
-	}
-}
-
-
-/**
- * @brief	Converts a string from one charset to another. Failure is indicated
- *			through the return code instead of an exception.
- *
- * @param[in]  context	A convert_context to perform the conversion on.
- * @param[in]  _from	The string to be converted.
- * @param[in] cbBytes	The size in bytes of the string to convert.
- * @param[in]  fromcode The source charset.
- * @param[out] _to		The converted string.
- * @return				HRESULT.
- */
-template<typename To_Type, typename From_Type>
-HRESULT TryConvert(convert_context &context, const From_Type &from,
-    size_t cbBytes, const char *fromcode, To_Type &to)
-{
-	try {
-		to = context.convert_to<To_Type>(from, cbBytes, fromcode);
-		return hrSuccess;
-	} catch (const convert_exception &ce) {
-		return HrFromException(ce);
-	}
-}
-
 #endif // MAPIDEFS_H
 
 } /* namespace */
