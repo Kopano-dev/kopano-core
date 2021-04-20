@@ -119,7 +119,7 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 		MAPI_FREE(lpBase, lpBinaryArray);
 		return MAPI_G(hr);
 	}
-	
+
 	*lppBinaryArray = lpBinaryArray;
 	return MAPI_G(hr);
 }
@@ -211,7 +211,7 @@ HRESULT PHPArraytoPropTagArray(zval * prop_value_array, void *lpBase, LPSPropTag
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		lpPropTagArray->aulPropTag[n++] = zval_get_long(entry);
 	} ZEND_HASH_FOREACH_END();
-	
+
 	*lppPropTagArray = lpPropTagArray;
 	return MAPI_G(hr);
 }
@@ -646,7 +646,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	return MAPI_G(hr);
 }
 
-HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TSRMLS_DC) 
+HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TSRMLS_DC)
 {
 	ULONG			countProperties = 0;		// number of properties
 	ULONG			countRecipients = 0;		// number of actual recipients
@@ -1191,16 +1191,16 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 
 HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction *lppRes TSRMLS_DC) {
 	LPSRestriction lpRes = NULL;
-	
+
 	MAPI_G(hr) = MAPIAllocateMore(sizeof(SRestriction), lpBase, reinterpret_cast<void **>(&lpRes));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 	MAPI_G(hr) = PHPArraytoSRestriction(phpVal, lpBase ? lpBase : lpRes, lpRes TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-		
+
 	*lppRes = lpRes;
-		
+
 exit:
 	if (MAPI_G(hr) != hrSuccess && lpBase == NULL)
 		MAPIFreeBuffer(lpRes);
@@ -1270,7 +1270,7 @@ HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
 			return MAPI_G(hr);
 		my_array_init(&array);
 		sprintf(key, "%i", VALUE);
-		add_assoc_zval(&array, key, &props);		
+		add_assoc_zval(&array, key, &props);
 		sprintf(key, "%i", ULPROPTAG);
 		add_assoc_long(&array, key, PropTagToPHPTag(lpRes->res.resContent.ulPropTag));
 		sprintf(key, "%i", FUZZYLEVEL);
@@ -1389,7 +1389,7 @@ HRESULT PropTagArraytoPHPArray(ULONG cValues,
 	my_array_init(zvalRet);
 	for (unsigned int i = 0; i < cValues; ++i)
 		add_next_index_long(zvalRet, PropTagToPHPTag(lpPropTagArray->aulPropTag[i]));
-	
+
 	return MAPI_G(hr);
 }
 
@@ -1408,7 +1408,6 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 	zval zval_alist_value;	// adrlist in action convert
 	const SPropValue *pPropValue;
 	char ulKey[16];
-	convert_context converter;
 
 	MAPI_G(hr) = hrSuccess;
 	my_array_init(zval_prop_value);
@@ -1430,7 +1429,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 		case PT_NULL:
 			add_assoc_null(zval_prop_value, pulproptag);
 			break;
-			
+
 		case PT_LONG:
 			add_assoc_long(zval_prop_value, pulproptag, pPropValue->Value.l);
 			break;
@@ -1460,7 +1459,10 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			break;
 
 		case PT_UNICODE:
-			add_assoc_string(zval_prop_value, pulproptag, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.lpszW).c_str()));
+			add_assoc_string(
+				zval_prop_value,
+				pulproptag,
+				BEFORE_PHP7_2(convert_to<std::string>(pPropValue->Value.lpszW).c_str()));
 			break;
 
 		case PT_BINARY:
@@ -1565,7 +1567,10 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 			my_array_init(&zval_mvprop_value);
 			for (unsigned int j = 0; j < pPropValue->Value.MVszW.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
-				add_assoc_string(&zval_mvprop_value, ulKey, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.MVszW.lppszW[j]).c_str()));
+				add_assoc_string(
+					&zval_mvprop_value, ulKey,
+					BEFORE_PHP7_2(
+						convert_to<std::string>(pPropValue->Value.MVszW.lppszW[j]).c_str()));
 			}
 
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
@@ -1591,7 +1596,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 				add_assoc_long(&zval_action_value, "action", lpActions->lpAction[j].acttype);
 				add_assoc_long(&zval_action_value, "flags", lpActions->lpAction[j].ulFlags);
 				add_assoc_long(&zval_action_value, "flavor", lpActions->lpAction[j].ulActionFlavor);
-				
+
 				switch (lpActions->lpAction[j].acttype) {
 				case OP_MOVE:
 				case OP_COPY:
@@ -1661,7 +1666,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues,
 HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval *ret TSRMLS_DC)
 {
 	zval	zval_prop_value;
-	
+
 	MAPI_G(hr) = hrSuccess;
 	my_array_init(ret);
 
@@ -1670,7 +1675,7 @@ HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval *ret TSRMLS_DC)
 		PropValueArraytoPHPArray(lpRowSet->aRow[crow].cValues, lpRowSet->aRow[crow].lpProps, &zval_prop_value TSRMLS_CC);
 		zend_hash_next_index_insert_new(HASH_OF(ret), &zval_prop_value);
 	}
-	
+
 	return MAPI_G(hr);
 }
 
@@ -1682,23 +1687,23 @@ HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
 {
 	MAPI_G(hr) = hrSuccess;
 	my_array_init(pvalRet);
-	
+
 	for (unsigned int i = 0; i < cValues; ++i) {
 		zval pvalEntry;
 		my_array_init(&pvalEntry);
 		add_assoc_stringl(&pvalEntry, "sourcekey", reinterpret_cast<char *>(lpReadStates[i].pbSourceKey), lpReadStates[i].cbSourceKey);
 		add_assoc_long(&pvalEntry, "flags", lpReadStates[i].ulFlags);
-		
+
 		add_next_index_zval(pvalRet, &pvalEntry);
 	}
-	
+
 	return MAPI_G(hr);
 }
 
 /*
  * Convert from PHP to READSTATE array.
  */
- 
+
 HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcValues, LPREADSTATE *lppReadStates TSRMLS_DC)
 {
 	LPREADSTATE 	lpReadStates = NULL;
@@ -1715,10 +1720,10 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	
+
 	count = zend_hash_num_elements(Z_ARRVAL_P(zvalReadStates));
 	MAPI_G(hr) = MAPIAllocateMore(sizeof(READSTATE) * count, lpBase, reinterpret_cast<void **>(&lpReadStates));
-	if(MAPI_G(hr) != hrSuccess) 
+	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
 	ZEND_HASH_FOREACH_VAL(target_hash, pentry) {
@@ -1742,7 +1747,7 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 		}
 		lpReadStates[n++].ulFlags = zval_get_long(valueEntry);
 	} ZEND_HASH_FOREACH_END();
-	
+
 	*lppReadStates = lpReadStates;
 	*lpcValues = n;
 
@@ -1797,14 +1802,14 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
     zval *zvalRet TSRMLS_DC)
 {
 	zval zvalProps;
-	
+
 	MAPI_G(hr) = hrSuccess;
 	my_array_init(zvalRet);
-	
+
 	for (unsigned int i = 0; i < cNotifs; ++i) {
 		zval zvalNotif;
 		my_array_init(&zvalNotif);
-		
+
 		add_assoc_long(&zvalNotif, "eventtype", lpNotifs[i].ulEventType);
 		switch(lpNotifs[i].ulEventType) {
 		case fnevNewMail:
@@ -1839,7 +1844,7 @@ HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
 		default:
 			break;
 		}
-			
+
 		add_next_index_zval(zvalRet, &zvalNotif);
 	}
 	return MAPI_G(hr);

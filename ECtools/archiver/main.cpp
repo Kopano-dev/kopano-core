@@ -175,8 +175,8 @@ static const struct option long_options[] = {
     { NULL, 			   no_argument, 		NULL, 0				       }
 };
 
-static inline tstring toTString(const char* lpszString, convert_context& converter) {
-	return lpszString != nullptr ? converter.convert_to<LPTSTR>(lpszString) : tstring();
+static inline tstring toTString(const char* lpszString) {
+	return lpszString != nullptr ? convert_to<tstring>(lpszString) : tstring();
 }
 static inline const char *yesno(bool bValue) {
 	return bValue ? "yes" : "no";
@@ -194,7 +194,6 @@ int main(int argc, char **argv)
 	bool bLocalOnly = false, bAutoAttach = false, bForceCleanup = false;
 	unsigned int ulArchive = 0, ulAttachFlags = 0, ulFlags = 0;
 	std::unique_ptr<Archiver> ptrArchiver;
-    convert_context converter;
 
     const char *lpszConfig = Archiver::GetConfigPath();
 
@@ -212,7 +211,7 @@ int main(int argc, char **argv)
         switch (c) {
         case 'u':
         case OPT_USER:
-            strUser = converter.convert_to<tstring>(optarg);
+            strUser = convert_to<tstring>(optarg);
             break;
 
         case 'a':
@@ -443,8 +442,8 @@ int main(int argc, char **argv)
 
 	filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive \"%s\" in server \"%s\" using folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
 
-	const auto convertedArchive = toTString(lpszArchive, converter);
-	const auto convertedFolder = toTString(lpszFolder, converter);
+	const auto convertedArchive = toTString(lpszArchive);
+	const auto convertedFolder = toTString(lpszFolder);
 	const auto convertedArchiveCStr = convertedArchive.empty() ? nullptr : convertedArchive.c_str();
 	const auto convertedFolderCStr = convertedFolder.empty() ? nullptr : convertedFolder.c_str();
 
@@ -469,8 +468,8 @@ int main(int argc, char **argv)
         } else {
 		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive \"%s\" on server \"%s\", folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
 
-		const auto convertedArchive = toTString(lpszArchive, converter);
-		const auto convertedFolder = toTString(lpszFolder, converter);
+		const auto convertedArchive = toTString(lpszArchive);
+		const auto convertedFolder = toTString(lpszFolder);
 		const auto convertedArchiveCStr = convertedArchive.empty() ? nullptr : convertedArchive.c_str();
 		const auto convertedFolderCStr = convertedFolder.empty() ? nullptr : convertedFolder.c_str();
 

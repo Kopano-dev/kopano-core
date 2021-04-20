@@ -27,7 +27,7 @@
 
 using namespace KC;
 
-static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
+static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase)
 {
 	LPWSTR lpszResult = NULL;
 
@@ -45,11 +45,7 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 	}
 
 	// Now convert the windows-1252 string to proper UTF8.
-	std::wstring strConverted;
-	if (lpConverter)
-		strConverted = lpConverter->convert_to<std::wstring>(str1252, rawsize(str1252), "WINDOWS-1252");
-	else
-		strConverted = convert_to<std::wstring>(str1252, rawsize(str1252), "WINDOWS-1252");
+	const auto strConverted = convert_to<std::wstring>(str1252, rawsize(str1252), "WINDOWS-1252");
 
 	auto hr = MAPIAllocateMore((strConverted.size() + 1) * sizeof(*lpszResult), lpBase, reinterpret_cast<void **>(&lpszResult));
 	if (hr == hrSuccess)
@@ -453,7 +449,6 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	unsigned int cValues, ulHighestRuleID = 1;
 	SPropValue		sRowId;
 	auto xsoap = std::make_unique<soap>();
-	convert_context converter;
 
 	auto laters = make_scope_success([&]() {
 		soap_destroy(xsoap.get());
@@ -491,7 +486,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 			 */
 			if (PROP_TYPE(lpProps[n].ulPropTag) == PT_STRING8) {
 				lpProps[n].ulPropTag = CHANGE_PROP_TYPE(lpProps[n].ulPropTag, PT_UNICODE);
-				lpProps[n].Value.lpszW = WTF1252_to_WCHAR(lpProps[n].Value.lpszA, lpProps, &converter);
+				lpProps[n].Value.lpszW = WTF1252_to_WCHAR(lpProps[n].Value.lpszA, lpProps);
 			}
 		}
 

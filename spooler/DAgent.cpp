@@ -2175,7 +2175,6 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 static void RespondMessageExpired(recipients_t::const_iterator iter,
     recipients_t::const_iterator end)
 {
-	convert_context converter;
 	ec_log_warn("Message was expired, not delivering");
 	for (; iter != end; ++iter)
 		(*iter)->wstrDeliveryStatus = "250 2.4.7 %s Delivery time expired";
@@ -2213,7 +2212,6 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IMsgStore> lpStore;
 	object_ptr<IMessage> lpOrigMessage;
 	bool bFallbackDeliveryTmp = false;
-	convert_context converter;
 
 	lpArgs->sc->inc(SCN_DAGENT_TO_SERVER);
 	// if we already had a message, we can create a copy.
@@ -2543,7 +2541,6 @@ static void *HandlerLMTP(void *lpArg)
 	std::map<std::string, std::string> mapRecipientResults;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
-	convert_context converter;
 	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig.get());
 
 	/* For resolving addresses from Address Book */
@@ -2751,7 +2748,7 @@ static void *HandlerLMTP(void *lpArg)
 							mapRecipientResults.emplace(i, wbuffer.get());
 							if (save_all || save_error)
 								continue;
-							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
+							auto save_username = convert_to<std::string>(recip->wstrUsername);
 							SaveRawMessage(tmp, save_username.c_str(), lpArgs.get());
 						}
 					}

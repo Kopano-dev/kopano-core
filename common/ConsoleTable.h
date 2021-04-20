@@ -9,7 +9,6 @@
 #	include <string_view>
 #endif
 #include <vector>
-#include <kopano/charset/convert.h>
 
 namespace KC {
 
@@ -31,7 +30,6 @@ private:
 	std::vector<std::wstring> m_vHeader;
 	std::vector<std::vector<std::wstring> > m_vTable;
 	std::vector<size_t> m_vMaxLengths;
-	convert_context m_converter;
 	bool bHaveHeader = false;
 
 	KC_HIDDEN void PrintRow(const std::vector<std::wstring> &row);

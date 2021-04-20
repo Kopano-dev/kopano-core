@@ -9,7 +9,6 @@
 #include "vtimezone.h"
 #include "icalitem.h"
 #include <kopano/RecurrenceState.h>
-#include <kopano/charset/convert.h>
 #include <mapidefs.h>
 #include <libical/ical.h>
 
@@ -34,8 +33,6 @@ protected:
 	bool m_bNoRecipients;
 
 	ULONG m_ulUserStatus;
-
-	convert_context m_converter;
 
 	virtual HRESULT HrGetUID(icalcomponent *lpEvent, std::string *strUid);
 	virtual HRESULT HrResolveUser(void *base, std::list<icalrecip> *lplstIcalRecip);
@@ -84,7 +81,7 @@ protected:
 	HRESULT resolve_organizer(std::wstring &email, std::wstring &name, std::string &type, unsigned int &cb, ENTRYID **entryid, bool force_mailuser = false);
 };
 
-extern HRESULT HrCopyString(convert_context &, const std::string &charset, void *base, const char *src, wchar_t **dst);
+extern HRESULT HrCopyString(const std::string &charset, void *base, const char *src, wchar_t **dst);
 extern HRESULT HrCopyString(void *base, const wchar_t *src, wchar_t **dst);
 
 } /* namespace */

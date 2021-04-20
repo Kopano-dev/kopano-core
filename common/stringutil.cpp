@@ -86,7 +86,7 @@ class gtconv final {
 		scoped_lock l_cache(m_hCacheLock);
 		auto insResult = m_cache.emplace(lpsz, L"");
 		if (insResult.second) /* successful insert, so not found in cache */
-			insResult.first->second = m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8");
+			insResult.first->second = convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8");
 		return insResult.first->second.c_str();
 	}
 
@@ -94,7 +94,6 @@ class gtconv final {
 	static std::unique_ptr<gtconv> m_instance;
 	static std::mutex m_lock;
 
-	convert_context	m_converter;
 	std::map<const char *, std::wstring> m_cache;
 	std::mutex m_hCacheLock;
 };

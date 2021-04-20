@@ -10,7 +10,6 @@
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
 #include "WSTransport.h"
-#include <kopano/charset/convert.h>
 #include "WSUtil.h"
 
 using namespace KC;
@@ -30,7 +29,6 @@ using namespace KC;
  */
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
-	convert_context converter;
 	object_ptr<WSMessageStreamExporter> ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

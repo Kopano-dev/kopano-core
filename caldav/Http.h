@@ -18,7 +18,6 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/uri.h>
 #include <libxml/globals.h>
-#include <kopano/charset/convert.h>
 #include <kopano/stringutil.h>
 
 #define HTTP_CHUNK_SIZE 10000
@@ -81,7 +80,6 @@ private:
 	std::string m_strRespBody;
 	unsigned int m_ulRetCode = 0;
 	int m_ulKeepAlive = 0;
-	KC::convert_context m_converter;
 
 	HRESULT HrParseHeaders();
 	HRESULT HrFlushHeaders();

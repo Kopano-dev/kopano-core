@@ -15,10 +15,6 @@
 #include "ECABContainer.h"
 #include "WSTableView.h"
 
-namespace KC {
-class convert_context;
-}
-
 class WSABPropStorage KC_FINAL_OPG :
     public KC::ECUnknown, public IECPropStorage {
 	protected:
@@ -87,8 +83,8 @@ private:
 	/* very private */
 	virtual KC::ECRESULT EcFillPropTags(const struct saveObject *, MAPIOBJECT *);
 	virtual KC::ECRESULT EcFillPropValues(const struct saveObject *, MAPIOBJECT *);
-	virtual HRESULT HrMapiObjectToSoapObject(const MAPIOBJECT *, struct saveObject *, KC::convert_context *);
-	virtual HRESULT HrUpdateSoapObject(const MAPIOBJECT *, struct saveObject *, KC::convert_context *);
+	virtual HRESULT HrMapiObjectToSoapObject(const MAPIOBJECT *, struct saveObject *);
+	virtual HRESULT HrUpdateSoapObject(const MAPIOBJECT *, struct saveObject *);
 	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *, const struct saveObject *);
 	virtual KC::ECRESULT ECSoapObjectToMapiObject(const struct saveObject *, MAPIOBJECT *);
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);

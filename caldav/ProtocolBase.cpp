@@ -12,6 +12,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/charset/convert.h>
 #include "CalDavUtil.h"
 
 using namespace KC;
@@ -226,7 +227,7 @@ HRESULT ProtocolBase::HrInitializeClass()
  */
 std::string ProtocolBase::W2U(const std::wstring &strWideChar)
 {
-	return m_converter.convert_to<std::string>(m_strCharset.c_str(), strWideChar, rawsize(strWideChar), CHARSET_WCHAR);
+	return convert_to<std::string>(m_strCharset.c_str(), strWideChar, rawsize(strWideChar), CHARSET_WCHAR);
 }
 
 /**
@@ -236,7 +237,7 @@ std::string ProtocolBase::W2U(const std::wstring &strWideChar)
  */
 std::string ProtocolBase::W2U(const wchar_t *lpwWideChar)
 {
-	return m_converter.convert_to<std::string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
+	return convert_to<std::string>(m_strCharset.c_str(), lpwWideChar, rawsize(lpwWideChar), CHARSET_WCHAR);
 }
 
 /**
@@ -246,7 +247,7 @@ std::string ProtocolBase::W2U(const wchar_t *lpwWideChar)
  */
 std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
 {
-	return m_converter.convert_to<std::wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());
+	return convert_to<std::wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());
 }
 
 /**

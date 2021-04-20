@@ -471,7 +471,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
 	ULONG cNames = 0, ulLen = 0, ulMVProp = 0, ulCount = 0;
 	memory_ptr<MAPINAMEID *> lppNames;
-	convert_context converter;
 	std::u16string ucs2;
 
 	if(PROP_ID(lpProp->ulPropTag) >= 0x8000) {
@@ -508,7 +507,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			if(hr != hrSuccess)
 				return hr;
 
-			ucs2 = converter.convert_to<std::u16string>(lppNames[0]->Kind.lpwstrName);
+			ucs2 = convert_to<std::u16string>(lppNames[0]->Kind.lpwstrName);
 			ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 			hr = HrWriteDWord(lpStream, ulLen);
 			if(hr != hrSuccess)
@@ -695,14 +694,14 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		case PT_UNICODE:
 			// Make sure we write UCS-2, since that's the format of PT_UNICODE in Win32.
 			if(lpProp->ulPropTag & MV_FLAG) {
-				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
+				ucs2 = convert_to<std::u16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
 				hr = HrWriteData(lpStream, ucs2.c_str(), ulLen);
 			} else {
-				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.lpszW);
+				ucs2 = convert_to<std::u16string>(lpProp->Value.lpszW);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)

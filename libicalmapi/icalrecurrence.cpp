@@ -13,6 +13,7 @@
 #include <mapicode.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/charset/convert.h>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <cmath>
@@ -30,21 +31,21 @@ namespace KC {
 /**
  * Parses ical RRULE and convert it to mapi recurrence
  *
- * @param[in]	sTimeZone		Timezone structure	
+ * @param[in]	sTimeZone		Timezone structure
  * @param[in]	lpicRootEvent	Ical VCALENDAR component
  * @param[in]	lpicEvent		Ical VEVENT component containing the RRULE
  * @param[in]	bIsAllday		Allday status of the event
  * @param[in]	lpNamedProps	Named property tag array
  * @param[out]	lpIcalItem		Structure in which mapi properties are set
  * @return		MAPI error code
- * @retval		MAPI_E_NOT_FOUND	Start or end time not found in ical data 
+ * @retval		MAPI_E_NOT_FOUND	Start or end time not found in ical data
  */
 HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZone,
     icalcomponent *lpicRootEvent, icalcomponent *lpicEvent, bool bIsAllday,
     const SPropTagArray *lpNamedProps, icalitem *lpIcalItem)
 {
 	int i = 0;
-	ULONG ulWeekDays = 0;	
+	ULONG ulWeekDays = 0;
 	time_t dtUTCEnd = 0, dtUTCUntil = 0;
 	SPropValue sPropVal{};
 	struct tm tm{};
@@ -56,8 +57,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp == nullptr)
 		return MAPI_E_NOT_FOUND;
-	
-	// use localtime for calculating weekday as in UTC time 
+
+	// use localtime for calculating weekday as in UTC time
 	// the weekday can change to previous day for time 00:00 am
 	auto dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
 	gmtime_safe(dtLocalStart, &tm);
@@ -107,7 +108,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		sPropVal.Value.ul = 4;
 		lpRec->setFrequency(recurrence::YEARLY);
 		lpRec->setDayOfMonth(tm.tm_mday);
-		if (icRRule.by_month[0] != ICAL_RECURRENCE_ARRAY_MAX) 
+		if (icRRule.by_month[0] != ICAL_RECURRENCE_ARRAY_MAX)
 			lpRec->setMonth(icRRule.by_month[0]);
 		break;
 	default:
@@ -140,7 +141,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 				// Monthly every Nth [mo/to/we/th/fr/sa/su] day
 				lpRec->setWeekNumber(icRRule.by_set_pos[0]);
 			} else if (lpRec->getFrequency() == recurrence::MONTHLY) {
-				// A monthly every [mo/tu/we/th/fr/sa/su]day is not supported in outlook. but this is the same as 
+				// A monthly every [mo/tu/we/th/fr/sa/su]day is not supported in outlook. but this is the same as
 				// weekly x day so convert this item to weekly x day
 				lpRec->setFrequency(recurrence::WEEKLY);
 				// assume this weekly item is exactly on the start time day
@@ -166,7 +167,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		// do we need to create multiple items here ?? :(
 		lpRec->setDayOfMonth(icRRule.by_month_day[0]);
 	}else if (icRRule.freq == ICAL_MONTHLY_RECURRENCE || icRRule.freq == ICAL_YEARLY_RECURRENCE) {
-		// When RRULE:FREQ=MONTHLY;INTERVAL=1 is set then day of the month is set from the start date.		
+		// When RRULE:FREQ=MONTHLY;INTERVAL=1 is set then day of the month is set from the start date.
 		lpRec->setDayOfMonth(tm.tm_mday);
 	}
 
@@ -267,7 +268,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 }
 /**
  * Parses ical exception and sets Mapi propertis in icalitem::exception structure
- * 
+ *
  * @param[in]		lpEventRoot		ical VCALENDAR component
  * @param[in]		lpicEvent		ical VEVENT component
  * @param[in,out]	lpIcalItem		icalitem in which recurrence structure is set
@@ -290,7 +291,6 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	LONG ulRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	bool bReminderSet = false;
-	convert_context converter;
 	bool abOldPresent[8] = {false}, abNewPresent[8] = {false};
 	const SizedSPropTagArray(8, sptaCopy) = {8, {
 			PR_SUBJECT,
@@ -341,7 +341,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 	sPropVal.Value.ft  = UnixTimeToFileTime(ttStartUtcTime);
 	lpEx->lstMsgProps.emplace_back(sPropVal);
-	
+
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 
@@ -381,11 +381,11 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	sPropVal.ulPropTag = PR_ATTACHMENT_HIDDEN;
 	sPropVal.Value.b = true;
 	lpEx->lstAttachProps.emplace_back(sPropVal);
-	
+
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_HIDE_ATTACH], PT_BOOLEAN);;
 	sPropVal.Value.b = true;
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-	
+
 	sPropVal.ulPropTag = PR_ATTACHMENT_FLAGS;
 	sPropVal.Value.ul = 2;
 	lpEx->lstAttachProps.emplace_back(sPropVal);
@@ -418,7 +418,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			auto lpszProp = icalproperty_get_summary(lpicProp);
 			if (lpszProp == nullptr)
 				continue;
-			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+			auto strIcalProp = convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedSubject(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
 				return hr;
@@ -432,7 +432,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			auto lpszProp = icalproperty_get_location(lpicProp);
 			if (lpszProp == nullptr)
 				continue;
-			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+			auto strIcalProp = convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedLocation(ulId, strIcalProp.c_str());
 			if (hr != hrSuccess)
 				return hr;
@@ -493,7 +493,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 			auto lpszProp = icalproperty_get_description(lpicProp);
 			if (lpszProp == nullptr)
 				continue;
-			auto strIcalProp = converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
+			auto strIcalProp = convert_to<std::wstring>(lpszProp, rawsize(lpszProp), strCharset.c_str());
 			auto hr = lpIcalItem->lpRecurrence->setModifiedBody(ulId);
 			if (hr != hrSuccess)
 				return hr;
@@ -623,7 +623,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
  * @param[in]		lpNamedProps	Named property tag array
  * @param[in,out]	lpMessage		The mapi message in which the recurrence is stored
  * @return			MAPI error code
- * @retval			MAPI_E_CORRUPT_DATA		Invalid recurrence state	
+ * @retval			MAPI_E_CORRUPT_DATA		Invalid recurrence state
  */
 HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage)
 {
@@ -669,7 +669,7 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
  * Check if the exception is valid and according to outlook behaviour
  *
  * @param[in]	lpItem		structure containing mapi properties
- * @param[in]	lpEx		Structure containing mapi properties of exception 
+ * @param[in]	lpEx		Structure containing mapi properties of exception
  * @return		True if the occurrence is valid else false
  */
 bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception lpEx)
@@ -690,7 +690,7 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 /**
  * Sets recurrence in ical data and exdate for exceptions
  *
- * @param[in]		sTimezone		timezone structure 
+ * @param[in]		sTimezone		timezone structure
  * @param[in]		bIsAllDay		boolean to specify if event is allday or not
  * @param[in]		lpRecurrence	Mapi recurrence strucuture
  * @param[in,out]	lpicEvent		ical component to which recurrence and exdates are added
@@ -817,7 +817,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
 	switch (lpRecurrence->getEndType()) {
 	case recurrence::DATE:
 		/* From the RFC:
-		   
+
 		   The UNTIL rule part defines a date-time value which bounds the
 		   recurrence rule in an inclusive manner. If the value specified by
 		   UNTIL is synchronized with the specified recurrence, this date or
@@ -868,7 +868,7 @@ HRESULT ICalRecurrence::WeekDaysToICalArray(ULONG ulWeekDays, struct icalrecurre
  *
  * @param[in]	lpicEvent		The ical component
  * @param[out]	lppicException	The cloned component with some properties removed
- * @return		Always returns hrSuccess 
+ * @return		Always returns hrSuccess
  */
 HRESULT ICalRecurrence::HrMakeICalException(icalcomponent *lpicEvent, icalcomponent **lppicException)
 {

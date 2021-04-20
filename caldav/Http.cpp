@@ -2,18 +2,22 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/platform.h>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
+
 #include "Http.h"
+
+#include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/charset/convert.h>
+
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 using namespace KC;
 

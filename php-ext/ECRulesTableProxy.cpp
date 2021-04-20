@@ -13,8 +13,8 @@
 using namespace KC;
 
 /* conversion from unicode to string8 for rules table data */
-static HRESULT ConvertUnicodeToString8(SRestriction *, void *base, convert_context &);
-static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter);
+static HRESULT ConvertUnicodeToString8(SRestriction *, void *base);
+static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base);
 
 ECRulesTableProxy::ECRulesTableProxy(LPMAPITABLE lpTable)
 : m_lpTable(lpTable)
@@ -126,28 +126,27 @@ HRESULT ECRulesTableProxy::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
 	rowset_ptr ptrRows;
-	convert_context converter;
 	auto hr = m_lpTable->QueryRows(lRowCount, ulFlags, &~ptrRows);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	// table PR_RULE_ACTIONS and PR_RULE_CONDITION contain PT_UNICODE data, which we must convert to local charset PT_STRING8
 	// so we update the rows before we return them to the caller.
 	for (rowset_ptr::size_type i = 0; i < ptrRows.size(); ++i) {
 		auto lpRuleProp = ptrRows[i].cfind(PR_RULE_CONDITION);
 		if (lpRuleProp)
-			hr = ConvertUnicodeToString8(reinterpret_cast<SRestriction *>(lpRuleProp->Value.lpszA),
-			     ptrRows[i].lpProps, converter);
+			hr = ConvertUnicodeToString8(
+				reinterpret_cast<SRestriction *>(lpRuleProp->Value.lpszA), ptrRows[i].lpProps);
 		if (hr != hrSuccess)
 			return hr;
 		lpRuleProp = ptrRows[i].cfind(PR_RULE_ACTIONS);
 		if (lpRuleProp)
-			hr = ConvertUnicodeToString8(reinterpret_cast<ACTIONS *>(lpRuleProp->Value.lpszA),
-			     ptrRows[i].lpProps, converter);
+			hr = ConvertUnicodeToString8(
+				reinterpret_cast<ACTIONS *>(lpRuleProp->Value.lpszA), ptrRows[i].lpProps);
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
+
 	*lppRows = ptrRows.release();
 	return hrSuccess;
 }
@@ -182,9 +181,7 @@ HRESULT ECRulesTableProxy::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState
 	return m_lpTable->SetCollapseState(ulFlags, cbCollapseState, pbCollapseState, lpbkLocation);
 }
 
-static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
-    void *base, convert_context &converter)
-{
+static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA, void *base) {
 	std::string local;
 	char *lpszA = NULL;
 
@@ -199,43 +196,41 @@ static HRESULT ConvertUnicodeToString8(const wchar_t *lpszW, char **lppszA,
 	return hrSuccess;
 }
 
-static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
-    void *base, convert_context &converter)
-{
+static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction, void *base) {
 	if (lpRestriction == NULL)
 		return hrSuccess;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
 		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base, converter);
+			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_AND:
 		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base, converter);
+			auto hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_NOT: {
-		auto hr = ConvertUnicodeToString8(lpRestriction->res.resNot.lpRes, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resNot.lpRes, base);
 		if (hr != hrSuccess)
 			return hr;
 		break;
 	}
 	case RES_COMMENT:
 		if (lpRestriction->res.resComment.lpRes) {
-			auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpRes, base, converter);
+			auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpRes, base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		for (unsigned int i = 0; i < lpRestriction->res.resComment.cValues; ++i) {
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) != PT_UNICODE)
 				continue;
-			auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base, converter);
+			auto hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resComment.lpProp[i].ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag, PT_STRING8);
@@ -246,7 +241,7 @@ static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
 	case RES_CONTENT: {
 		if (PROP_TYPE(lpRestriction->res.resContent.ulPropTag) != PT_UNICODE)
 			break;
-		auto hr = ConvertUnicodeToString8(lpRestriction->res.resContent.lpProp->Value.lpszW, &lpRestriction->res.resContent.lpProp->Value.lpszA, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resContent.lpProp->Value.lpszW, &lpRestriction->res.resContent.lpProp->Value.lpszA, base);
 		if (hr != hrSuccess)
 			return hr;
 		lpRestriction->res.resContent.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.lpProp->ulPropTag, PT_STRING8);
@@ -256,7 +251,7 @@ static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
 	case RES_PROPERTY: {
 		if (PROP_TYPE(lpRestriction->res.resProperty.ulPropTag) != PT_UNICODE)
 			break;
-		auto hr = ConvertUnicodeToString8(lpRestriction->res.resProperty.lpProp->Value.lpszW, &lpRestriction->res.resProperty.lpProp->Value.lpszA, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resProperty.lpProp->Value.lpszW, &lpRestriction->res.resProperty.lpProp->Value.lpszA, base);
 		if (hr != hrSuccess)
 			return hr;
 		lpRestriction->res.resProperty.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.lpProp->ulPropTag, PT_STRING8);
@@ -264,7 +259,7 @@ static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
 		break;
 	}
 	case RES_SUBRESTRICTION: {
-		auto hr = ConvertUnicodeToString8(lpRestriction->res.resSub.lpRes, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRestriction->res.resSub.lpRes, base);
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -273,16 +268,13 @@ static HRESULT ConvertUnicodeToString8(SRestriction *lpRestriction,
 	return hrSuccess;
 }
 
-static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base,
-    convert_context &converter)
-{
+static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base) {
 	if (lpRow == NULL)
 		return hrSuccess;
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) != PT_UNICODE)
 			continue;
-		auto hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW,
-		          &lpRow->lpProps[c].Value.lpszA, base, converter);
+		auto hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW, &lpRow->lpProps[c].Value.lpszA, base);
 		if (hr != hrSuccess)
 			return hr;
 		lpRow->lpProps[c].ulPropTag = CHANGE_PROP_TYPE(lpRow->lpProps[c].ulPropTag, PT_STRING8);
@@ -290,31 +282,26 @@ static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base,
 	return hrSuccess;
 }
 
-static HRESULT ConvertUnicodeToString8(const ADRLIST *lpAdrList, void *base,
-    convert_context &converter)
-{
+static HRESULT ConvertUnicodeToString8(const ADRLIST *lpAdrList, void *base) {
 	if (lpAdrList == NULL)
 		return hrSuccess;
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		auto hr = ConvertUnicodeToString8(reinterpret_cast<const SRow *>(&lpAdrList->aEntries[c]),
-		          base, converter);
+		auto hr = ConvertUnicodeToString8(reinterpret_cast<const SRow *>(&lpAdrList->aEntries[c]), base);
 		if (hr != hrSuccess)
 			return hr;
 	}
 	return hrSuccess;
 }
 
-static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter)
-{
+static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base) {
 	if (lpActions == NULL)
 		return hrSuccess;
 	for (unsigned int c = 0; c < lpActions->cActions; ++c) {
 		if (lpActions->lpAction[c].acttype != OP_FORWARD &&
 		    lpActions->lpAction[c].acttype != OP_DELEGATE)
 			continue;
-		auto hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist,
-		          base, converter);
+		auto hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist, base);
 		if (hr != hrSuccess)
 			return hr;
 	}

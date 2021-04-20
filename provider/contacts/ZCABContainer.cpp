@@ -58,17 +58,17 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-/** 
+/**
  * Create a ZCABContainer as either the top level (lpFolders is set) or
  * as a subfolder (lpContacts is set).
- * 
+ *
  * @param[in] lpFolders Only the top container has the list to the wanted Kopano Contacts Folders, NULL otherwise.
- * @param[in] lpContacts Create this object as wrapper for the lpContacts folder, NULL if 
- * @param[in] lpMAPISup 
- * @param[in] lpProvider 
+ * @param[in] lpContacts Create this object as wrapper for the lpContacts folder, NULL if
+ * @param[in] lpMAPISup
+ * @param[in] lpProvider
  * @param[out] lppABContainer The newly created ZCABContainer class
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT ZCABContainer::Create(std::shared_ptr<std::vector<zcabFolderEntry>> lpFolders,
     IMAPIFolder *lpContacts, IMAPISupport *lpMAPISup, void *lpProvider,
@@ -108,7 +108,7 @@ HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, 
 	lpWrapped->ulObjType = ulObjType;
 	lpWrapped->ulOffset = ulOffset;
 	memcpy(lpWrapped->origEntryID, lpEntryID, cbEntryID);
-	
+
 
 	*lpcbEntryID = cbWrapped;
 	*lppEntryID = (LPENTRYID)lpWrapped;
@@ -424,7 +424,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 				return hr;
 		}
 	}
-		
+
 done:
 	AddChild(lpTable);
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
@@ -514,7 +514,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			if ((cType & 0x0F) == 3) {
 				ulObjType = MAPI_MAILUSER;
 				ulObjOffset = cType >> 4;
-			} else 
+			} else
 				ulObjType = MAPI_DISTLIST;
 
 			memory_ptr<ENTRYID> ptrEntryID;
@@ -549,13 +549,13 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	       reinterpret_cast<void **>(lppTable));
 }
 
-/** 
+/**
  * Returns an addressbook contents table of the IPM.Contacts folder in m_lpContactFolder.
- * 
+ *
  * @param[in] ulFlags MAPI_UNICODE for default unicode columns
  * @param[out] lppTable contents table of all items found in folder
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT ZCABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
@@ -564,15 +564,15 @@ HRESULT ZCABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	return GetFolderContentsTable(ulFlags, lppTable);
 }
 
-/** 
+/**
  * Can return 3 kinds of tables:
  * 1. Root Container, contains one entry: the provider container
  * 2. Provider Container, contains user folders
  * 3. CONVENIENT_DEPTH: 1 + 2
- * 
+ *
  * @param[in] ulFlags MAPI_UNICODE | CONVENIENT_DEPTH
  * @param[out] lppTable root container table
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
@@ -582,7 +582,6 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	SizedSPropTagArray(9, sptaCols) = {9, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
 	enum { XENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID, XTCOLS };
 	ULONG ulInstance = 0;
-	convert_context converter;
 
 	if ((ulFlags & MAPI_UNICODE) == 0)
 		sptaCols.aulPropTag[DISPLAY_NAME] = PR_DISPLAY_NAME_A;
@@ -623,7 +622,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			sProps[STORE_ENTRYID].Value.err = MAPI_E_NOT_FOUND;
 
 			if ((ulFlags & MAPI_UNICODE) == 0)
-				sProps.set(DISPLAY_NAME, PR_DISPLAY_NAME, converter.convert_to<std::string>(folder.strwDisplayName));
+				sProps.set(
+					DISPLAY_NAME, PR_DISPLAY_NAME,
+					convert_to<std::string>(folder.strwDisplayName));
 			else
 				sProps.set(DISPLAY_NAME, sptaCols.aulPropTag[DISPLAY_NAME], folder.strwDisplayName);
 
@@ -744,16 +745,16 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	       reinterpret_cast<void **>(lppTable));
 }
 
-/** 
+/**
  * Opens the contact from any given contact folder, and makes a ZCMAPIProp object for that contact.
- * 
+ *
  * @param[in] cbEntryID wrapped contact entryid bytes
- * @param[in] lpEntryID 
+ * @param[in] lpEntryID
  * @param[in] lpInterface requested interface
  * @param[in] ulFlags unicode flags
  * @param[out] lpulObjType returned object type
  * @param[out] lppUnk returned object
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
@@ -853,15 +854,15 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hr;
 }
 
-/** 
+/**
  * Resolve MAPI_UNRESOLVED items in lpAdrList and possibly add resolved
- * 
+ *
  * @param[in] lpPropTagArray properties to be included in lpAdrList
  * @param[in] ulFlags EMS_AB_ADDRESS_LOOKUP | MAPI_UNICODE
- * @param[in,out] lpAdrList 
+ * @param[in,out] lpAdrList
  * @param[in,out] lpFlagList MAPI_AMBIGUOUS | MAPI_RESOLVED | MAPI_UNRESOLVED
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)

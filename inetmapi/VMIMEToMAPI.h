@@ -9,7 +9,6 @@
 #include <mapix.h>
 #include <mapidefs.h>
 #include <inetmapi/options.h>
-#include <kopano/charset/convert.h>
 #include <kopano/memory.hpp>
 
 namespace KC {
@@ -54,7 +53,6 @@ public:
 	IAddrBook *m_lpAdrBook = nullptr;
 	object_ptr<IABContainer> m_lpDefaultDir;
 	sMailState m_mailState;
-	convert_context m_converter;
 
 	HRESULT fillMAPIMail(vmime::shared_ptr<vmime::message>, IMessage *lpMessage);
 	HRESULT dissect_body(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, unsigned int flags = 0);

@@ -4957,8 +4957,6 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  */
 HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
 {
-	convert_context converter;
-
 	output.clear();
 	output.reserve(input.size() * 2);
 	for (size_t i = 0; i < input.length(); ++i) {
@@ -4976,7 +4974,7 @@ HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
 				conv += input[++i];
 
 			try {
-				utf7 = converter.convert_to<std::string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
+				utf7 = convert_to<std::string>("UTF-7", conv, rawsize(conv), CHARSET_WCHAR);
 			} catch(...) {
 				return MAPI_E_BAD_CHARWIDTH;
 			}
@@ -5001,8 +4999,6 @@ HRESULT IMAP::MAPI2IMAPCharset(const std::wstring &input, std::string &output)
  */
 HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
 {
-	convert_context converter;
-
 	output.clear();
 	output.reserve(input.size());
 	for (size_t i = 0; i < input.length(); ++i) {
@@ -5032,7 +5028,7 @@ HRESULT IMAP::IMAP2MAPICharset(const std::string &input, std::wstring &output)
 			++i;
 		}
 		try {
-			output += converter.convert_to<std::wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
+			output += convert_to<std::wstring>(CHARSET_WCHAR, conv, rawsize(conv), "UTF-7");
 		} catch(...) {
 			return MAPI_E_BAD_CHARWIDTH;
 		}

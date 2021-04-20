@@ -135,7 +135,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	SBinary sbEid{};
 	IMAPIFolder *lpUsrFld = NULL;
 	unsigned int ulObjType = 0, cbEntryID = 0;
-	convert_context converter;
 	memory_ptr<SPropValue> folder;
 	static constexpr SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	auto wstrFldId = wstrFldIdOrig;

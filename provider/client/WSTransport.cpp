@@ -163,10 +163,9 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	KCmdProxy2 *lpCmd = nullptr;
 	auto bPipeConnection = strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0;
 	struct logonResponse sResponse;
-	convert_context	converter;
-	auto strUserName = converter.convert_to<utf8string>(sProfileProps.strUserName);
-	auto strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
-	auto strImpersonateUser = converter.convert_to<utf8string>(sProfileProps.strImpersonateUser);
+	auto strUserName = convert_to<utf8string>(sProfileProps.strUserName);
+	auto strPassword = convert_to<utf8string>(sProfileProps.strPassword);
+	auto strImpersonateUser = convert_to<utf8string>(sProfileProps.strImpersonateUser);
 	auto tracking_id = rand_mt();
 
 	LICENSEREQUEST req_bin;
@@ -1103,7 +1102,6 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 	HRESULT hr = hrSuccess;
 	struct namedPropArray sNamedProps;
 	auto cleanup = make_scope_exit([&]() { soap_del_namedPropArray(&sNamedProps); });
-	convert_context convertContext;
 
 	// Convert our data into a structure that the server can take
 	sNamedProps.__size = cNames;
@@ -1117,7 +1115,7 @@ HRESULT WSTransport::HrGetIDsFromNames(MAPINAMEID **lppPropNames,
 			break;
 		case MNID_STRING: {
 			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
-			auto strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
+			auto strNameUTF8 = convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
 			sNamedProps.__ptr[i].lpString = soap_strdup(nullptr, strNameUTF8.z_str());
 			break;
 		}
@@ -1162,7 +1160,6 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 	ECRESULT er = erSuccess;
 	struct propTagArray sPropTags;
 	memory_ptr<MAPINAMEID *> lppNames;
-	convert_context convertContext;
 
 	sPropTags.__size = lpsPropTags->cValues;
 	sPropTags.__ptr = (unsigned int *)&lpsPropTags->aulPropTag[0];
@@ -1198,7 +1195,10 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 			lppNames[i]->Kind.lID = *sResponse.lpsNames.__ptr[i].lpId;
 			lppNames[i]->ulKind = MNID_ID;
 		} else if(sResponse.lpsNames.__ptr[i].lpString) {
-			auto strNameW = convertContext.convert_to<std::wstring>(sResponse.lpsNames.__ptr[i].lpString, rawsize(sResponse.lpsNames.__ptr[i].lpString), "UTF-8");
+			auto strNameW = convert_to<std::wstring>(
+				sResponse.lpsNames.__ptr[i].lpString,
+				rawsize(sResponse.lpsNames.__ptr[i].lpString),
+				"UTF-8");
 			hr = MAPIAllocateMore((strNameW.size() + 1) * sizeof(wchar_t), lppNames,
 			     reinterpret_cast<void **>(&lppNames[i]->Kind.lpwstrName));
 			if (hr != hrSuccess)
@@ -1226,7 +1226,6 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	int			nLen = 0;
 	memory_ptr<ENTRYID> lpUnWrapStoreID;
 	std::wstring unicode;
-	convert_context converter;
 
 	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
@@ -1293,7 +1292,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 
 		if (ulFlags & MAPI_UNICODE) {
 			lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].ulPropTag = PR_MESSAGE_CLASS_W;
-			unicode = converter.convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
+			unicode = convert_to<std::wstring>(sReceiveFolders.sFolderArray.__ptr[i].lpszAExplicitClass);
 			hr = MAPIAllocateMore((unicode.length() + 1) * sizeof(wchar_t), lpsRowSet->aRow[i].lpProps, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps[RFT_MSG_CLASS].Value.lpszW));
 			if (hr != hrSuccess)
 				return hr;

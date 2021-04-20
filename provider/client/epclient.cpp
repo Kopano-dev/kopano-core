@@ -508,7 +508,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	memory_ptr<SPropValue> lpsPropValue;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
-	convert_context	converter;
 	SPropValue spv;
 
 	// Logon defaults

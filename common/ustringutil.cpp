@@ -120,7 +120,7 @@ exit:
 static inline UnicodeString StringToUnicode(const char *sz)
 {
 	// *tocode, const _From_Type &_from, size_t cbBytes, const char *fromcode
-	auto strUTF16 = convert_context().convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
+	auto strUTF16 = convert_to<std::string>("UTF-16LE", sz, rawsize(sz), "");
 	return UnicodeString(reinterpret_cast<const UChar *>(strUTF16.data()), strUTF16.length() / 2);
 }
 

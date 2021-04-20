@@ -397,8 +397,6 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		break;
 	}
 	case PT_MV_STRING8: {
-		convert_context converter;
-
 		if (lpsProp->Value.MVszA.lppszA == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
@@ -816,7 +814,6 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 				dwLastError = hr;
 				break;
 			}
-			convert_context converter;
 			for (ULONG i = 0; hr == hrSuccess && i < Value.MVszW.cValues; ++i) {
 				std::string strDst;
 				if (TryConvert(Value.MVszW.lppszW[i], strDst) != hrSuccess) {
