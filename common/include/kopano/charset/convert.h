@@ -235,7 +235,8 @@ public:
 	template<typename To_Type, typename From_Type>
 	KC_HIDDEN To_Type convert_to(const From_Type &from)
 	{
-		return helper<To_Type>(*this).convert(from);
+		static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
+		return get_context<To_Type, From_Type>().convert(from);
 	}
 
 	/**
@@ -253,7 +254,8 @@ public:
 	KC_HIDDEN To_Type convert_to(const From_Type &from, size_t cbBytes,
 	    const char *fromcode)
 	{
-		return helper<To_Type>(*this).convert(from, cbBytes, fromcode);
+		return get_context<To_Type, From_Type>(fromcode).convert(
+			iconv_charset<From_Type>::rawptr(from), cbBytes);
 	}
 
 	/**
@@ -271,85 +273,15 @@ public:
 	KC_HIDDEN To_Type convert_to(const char *tocode,
 	    const From_Type &from, size_t cbBytes, const char *fromcode)
 	{
-		return helper<To_Type>(*this).convert(tocode, from, cbBytes, fromcode);
+		return get_context<To_Type, From_Type>(tocode, fromcode).convert(
+			iconv_charset<From_Type>::rawptr(from), cbBytes);
 	}
 
 private:
 	/**
-	 * @brief	Helper class for converting from one charset to another.
-	 *
-	 * The convert_context::helper class detects when the to and from charsets are
-	 * identical. In that case the string is merely copied.
-	 */
-	template<typename Type> class KC_HIDDEN helper KC_FINAL {
-	public:
-		helper(convert_context &context)
-			: m_context(context)
-		{}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset linked to Other_Type is converted to a
-		 * string with a charset linked to Type. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] _from		The string to be converted.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type>
-		Type convert(const Other_Type &from)
-		{
-			static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
-			auto& context =  m_context.get_context<Type, Other_Type>();
-			return context.convert(from);
-		}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset specified with fromcode is converted to a
-		 * string with a charset linked to Type. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] _from		The string to be converted.
-		 * @param[in] cbBytes	The size in bytes of the string to convert.
-		 * @param[in] fromcode	The source charset.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type>
-		Type convert(const Other_Type &from, size_t cbBytes, const char *fromcode)
-		{
-			auto& context =  m_context.get_context<Type, Other_Type>(fromcode);
-			return context.convert(iconv_charset<Other_Type>::rawptr(from), cbBytes);
-		}
-
-		/**
-		 * @brief Converts a string to a string with a different charset.
-		 *
-		 * The string with a charset specified with fromcode is converted to a
-		 * string with a charset specified with tocode. The actual conversion is
-		 * delegated to a iconv_context obtained through get_context().
-		 * @param[in] tocode	The destination charset.
-		 * @param[in] _from		The string to be converted.
-		 * @param[in] cbBytes	The size in bytes of the string to convert.
-		 * @param[in] fromcode	The source charset.
-		 * @return				The converted string.
-		 */
-		template<typename Other_Type>
-		Type convert(const char *tocode, const Other_Type &from,
-		    size_t cbBytes, const char *fromcode)
-		{
-			auto& context =  m_context.get_context<Type, Other_Type>(tocode, fromcode);
-			return context.convert(iconv_charset<Other_Type>::rawptr(from), cbBytes);
-		}
-
-	private:
-		convert_context	&m_context;
-	};
-
-	/**
 	 * @brief Key for the context_map;
 	 */
-	struct context_key {
+	struct KC_EXPORT context_key {
 		std::string toType;
 		std::string toCode;
 		std::string fromType;
