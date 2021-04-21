@@ -7,7 +7,9 @@
 	#include <stdexcept>
 	#include "../../ECtools/archiver/Archiver.h"
 	#include <kopano/charset/convert.h>
-	#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
+	// Note: the lifetime of the return value only lasts until the end of
+	// the scope that TO_LPTST is used in */
+	#define TO_LPTST(s) ((s) ? converter.convert_to<tstring>(s).c_str() : NULL)
 	using namespace KC;
 
 	class KC_EXPORT_THROW ArchiverError : public std::runtime_error {

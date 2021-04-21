@@ -1570,39 +1570,46 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
     ULONG *lpcbUserId, LPENTRYID *lppUserId)
 {
-	if (lpECUser == nullptr || lpcbUserId == nullptr || lppUserId == nullptr)
+	if (lpECUser == nullptr || lpcbUserId == nullptr || lppUserId == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	struct user sUser;
-	convert_context converter;
 
-	sUser.lpszUsername    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszUsername));
-	sUser.lpszPassword    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszPassword));
-	sUser.lpszMailAddress = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszMailAddress));
-	sUser.ulUserId			= 0;
-	sUser.ulObjClass		= lpECUser->ulObjClass;
-	sUser.ulIsAdmin			= lpECUser->ulIsAdmin;
-	sUser.lpszFullName    = TO_UTF8_DEF(reinterpret_cast<const char *>(lpECUser->lpszFullName));
-	sUser.ulIsABHidden		= lpECUser->ulIsABHidden;
-	sUser.ulCapacity		= lpECUser->ulCapacity;
-	sUser.lpsPropmap		= NULL;
-	sUser.lpsMVPropmap		= NULL;
+	const auto utf8Username = tfstring_to_utf8(lpECUser->lpszUsername, ulFlags);
+	const auto utf8Password = tfstring_to_utf8(lpECUser->lpszPassword, ulFlags);
+	const auto utf8MailAddress = tfstring_to_utf8(lpECUser->lpszMailAddress, ulFlags);
+	const auto utf8FullName = tfstring_to_utf8(lpECUser->lpszFullName, ulFlags);
+
+	sUser.lpszUsername = const_cast<char *>(utf8Username.c_str());
+	sUser.lpszPassword = const_cast<char *>(utf8Password.c_str());
+	sUser.lpszMailAddress = const_cast<char *>(utf8MailAddress.c_str());
+	sUser.ulUserId = 0;
+	sUser.ulObjClass = lpECUser->ulObjClass;
+	sUser.ulIsAdmin = lpECUser->ulIsAdmin;
+	sUser.lpszFullName = const_cast<char *>(utf8FullName.c_str());
+	sUser.ulIsABHidden = lpECUser->ulIsABHidden;
+	sUser.ulCapacity = lpECUser->ulCapacity;
+	sUser.lpsPropmap = nullptr;
+	sUser.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	struct setUserResponse sResponse;
 	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECUser->sPropmap,
 	          &lpECUser->sMVPropmap, ulFlags, sUser.lpsPropmap,
 	          sUser.lpsMVPropmap);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return hr;
+	}
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->createUser(m_ecSessionId, &sUser, &sResponse) != SOAP_OK)
+		if (m_lpCmd->createUser(m_ecSessionId, &sUser, &sResponse) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
-		else
+		} else {
 			er = sResponse.er;
+		}
 	}
 	END_SOAP_CALL
 	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sUserId, lpcbUserId, lppUserId);
@@ -1620,34 +1627,39 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
     ULONG ulFlags, ECUSER **lppECUser)
 {
-	if (lppECUser == nullptr)
+	if (lppECUser == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	memory_ptr<ECUSER> lpECUser;
 	entryId	sUserId;
 	ULONG ulUserId = 0;
 
-	if (lpUserID)
+	if (lpUserID) {
 		ulUserId = ABEID_ID(lpUserID);
+	}
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbUserID, lpUserID, &sUserId, true);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
 		return hr;
+	}
 
 	soap_lock_guard spg(*this);
 	struct getUserResponse sResponse;
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->getUser(m_ecSessionId, ulUserId, sUserId, &sResponse) != SOAP_OK)
+		if (m_lpCmd->getUser(m_ecSessionId, ulUserId, sUserId, &sResponse) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
-		else
+		} else {
 			er = sResponse.er;
+		}
 	}
 	END_SOAP_CALL
 
 	hr = SoapUserToUser(sResponse.lpsUser, ulFlags, &~lpECUser);
-	if(hr != hrSuccess)
+	if(hr != hrSuccess) {
 		return hr;
+	}
 	*lppECUser = lpECUser.release();
 	return hrSuccess;
 }
@@ -1663,41 +1675,48 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
  */
 HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 {
-	if (lpECUser == nullptr)
+	if (lpECUser == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	struct user sUser;
 	unsigned int result = 0;
-	convert_context	converter;
 
-	sUser.lpszUsername		= TO_UTF8_DEF(lpECUser->lpszUsername);
-	sUser.lpszPassword		= TO_UTF8_DEF(lpECUser->lpszPassword);
-	sUser.lpszMailAddress	= TO_UTF8_DEF(lpECUser->lpszMailAddress);
-	sUser.ulUserId			= ABEID_ID(lpECUser->sUserId.lpb);
-	sUser.ulObjClass		= lpECUser->ulObjClass;
-	sUser.ulIsAdmin			= lpECUser->ulIsAdmin;
-	sUser.lpszFullName		= TO_UTF8_DEF(lpECUser->lpszFullName);
-	sUser.sUserId.__ptr		= lpECUser->sUserId.lpb;
-	sUser.sUserId.__size	= lpECUser->sUserId.cb;
-	sUser.ulIsABHidden		= lpECUser->ulIsABHidden;
-	sUser.ulCapacity		= lpECUser->ulCapacity;
-	sUser.lpsPropmap		= NULL;
-	sUser.lpsMVPropmap		= NULL;
+	const auto utf8Username = tfstring_to_utf8(lpECUser->lpszUsername, ulFlags);
+	const auto utf8Password = tfstring_to_utf8(lpECUser->lpszPassword, ulFlags);
+	const auto utf8MailAddress = tfstring_to_utf8(lpECUser->lpszMailAddress, ulFlags);
+	const auto utf8FullName = tfstring_to_utf8(lpECUser->lpszFullName, ulFlags);
+
+	sUser.lpszUsername = const_cast<char *>(utf8Username.c_str());
+	sUser.lpszPassword = const_cast<char *>(utf8Password.c_str());
+	sUser.lpszMailAddress = const_cast<char *>(utf8MailAddress.c_str());
+	sUser.ulUserId = ABEID_ID(lpECUser->sUserId.lpb);
+	sUser.ulObjClass = lpECUser->ulObjClass;
+	sUser.ulIsAdmin = lpECUser->ulIsAdmin;
+	sUser.lpszFullName = const_cast<char *>(utf8FullName.c_str());
+	sUser.sUserId.__ptr = lpECUser->sUserId.lpb;
+	sUser.sUserId.__size = lpECUser->sUserId.cb;
+	sUser.ulIsABHidden = lpECUser->ulIsABHidden;
+	sUser.ulCapacity = lpECUser->ulCapacity;
+	sUser.lpsPropmap = nullptr;
+	sUser.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECUser->sPropmap,
 	          &lpECUser->sMVPropmap, ulFlags, sUser.lpsPropmap,
 	          sUser.lpsMVPropmap);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return hr;
+	}
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->setUser(m_ecSessionId, &sUser, &result) != SOAP_OK)
+		if (m_lpCmd->setUser(m_ecSessionId, &sUser, &result) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
-		else
+		} else {
 			er = result;
+		}
 	}
 	END_SOAP_CALL
 	return hrSuccess;
@@ -1904,20 +1923,24 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
 HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
     ULONG *lpcbGroupId, LPENTRYID *lppGroupId)
 {
-	if (lpECGroup == nullptr || lpcbGroupId == nullptr || lppGroupId == nullptr)
+	if (lpECGroup == nullptr || lpcbGroupId == nullptr || lppGroupId == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	struct group sGroup;
-	convert_context converter;
+
+	const auto utf8GroupName = tfstring_to_utf8(lpECGroup->lpszGroupname, ulFlags);
+	const auto utf8FullName = tfstring_to_utf8(lpECGroup->lpszFullname, ulFlags);
+	const auto utf8FullEmail = tfstring_to_utf8(lpECGroup->lpszFullEmail, ulFlags);
 
 	sGroup.ulGroupId = 0;
-	sGroup.lpszGroupname = TO_UTF8_DEF(lpECGroup->lpszGroupname);
-	sGroup.lpszFullname = TO_UTF8_DEF(lpECGroup->lpszFullname);
-	sGroup.lpszFullEmail = TO_UTF8_DEF(lpECGroup->lpszFullEmail);
+	sGroup.lpszGroupname = const_cast<char *>(utf8GroupName.c_str());
+	sGroup.lpszFullname = const_cast<char *>(utf8FullName.c_str());
+	sGroup.lpszFullEmail = const_cast<char *>(utf8FullEmail.c_str());
 	sGroup.ulIsABHidden = lpECGroup->ulIsABHidden;
-	sGroup.lpsPropmap = NULL;
-	sGroup.lpsMVPropmap = NULL;
+	sGroup.lpsPropmap = nullptr;
+	sGroup.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	struct setGroupResponse sResponse;
@@ -1929,10 +1952,11 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->createGroup(m_ecSessionId, &sGroup, &sResponse) != SOAP_OK)
+		if (m_lpCmd->createGroup(m_ecSessionId, &sGroup, &sResponse) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
-		else
+		} else {
 			er = sResponse.er;
+		}
 	}
 	END_SOAP_CALL
 	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sGroupId, lpcbGroupId, lppGroupId);
@@ -1950,34 +1974,40 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 {
 	if (lpECGroup == nullptr || lpECGroup->lpszGroupname == nullptr ||
-	    lpECGroup->lpszFullname == nullptr)
+	    lpECGroup->lpszFullname == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
-	convert_context converter;
 	struct group sGroup;
 
-	sGroup.lpszFullname = TO_UTF8_DEF(lpECGroup->lpszFullname);
-	sGroup.lpszGroupname = TO_UTF8_DEF(lpECGroup->lpszGroupname);
-	sGroup.lpszFullEmail = TO_UTF8_DEF(lpECGroup->lpszFullEmail);
+	const auto utf8FullName = tfstring_to_utf8(lpECGroup->lpszFullname, ulFlags);
+	const auto utf8GroupName = tfstring_to_utf8(lpECGroup->lpszGroupname, ulFlags);
+	const auto utf8FullEmail = tfstring_to_utf8(lpECGroup->lpszFullEmail, ulFlags);
+
+	sGroup.lpszFullname = const_cast<char *>(utf8FullName.c_str());
+	sGroup.lpszGroupname = const_cast<char *>(utf8GroupName.c_str());
+	sGroup.lpszFullEmail = const_cast<char *>(utf8FullEmail.c_str());
 	sGroup.sGroupId.__size = lpECGroup->sGroupId.cb;
 	sGroup.sGroupId.__ptr = lpECGroup->sGroupId.lpb;
 	sGroup.ulGroupId = ABEID_ID(lpECGroup->sGroupId.lpb);
 	sGroup.ulIsABHidden = lpECGroup->ulIsABHidden;
-	sGroup.lpsPropmap = NULL;
-	sGroup.lpsMVPropmap = NULL;
+	sGroup.lpsPropmap = nullptr;
+	sGroup.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECGroup->sPropmap,
 	          &lpECGroup->sMVPropmap, ulFlags, sGroup.lpsPropmap,
 	          sGroup.lpsMVPropmap);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return hr;
+	}
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->setGroup(m_ecSessionId, &sGroup, &er) != SOAP_OK)
+		if (m_lpCmd->setGroup(m_ecSessionId, &sGroup, &er) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
+		}
 	}
 	END_SOAP_CALL
 	return hrSuccess;
@@ -2388,33 +2418,37 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId,
 HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
     ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId)
 {
-	if (lpECCompany == nullptr || lpcbCompanyId == nullptr || lppCompanyId == nullptr)
+	if (lpECCompany == nullptr || lpcbCompanyId == nullptr || lppCompanyId == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	struct company sCompany;
-	convert_context	converter;
+
+	const auto utf8CompanyName = tfstring_to_utf8(lpECCompany->lpszCompanyname, ulFlags);
 
 	sCompany.ulAdministrator = 0;
-	sCompany.lpszCompanyname = TO_UTF8_DEF(lpECCompany->lpszCompanyname);
+	sCompany.lpszCompanyname = const_cast<char *>(utf8CompanyName.c_str());
 	sCompany.ulIsABHidden = lpECCompany->ulIsABHidden;
-	sCompany.lpsPropmap = NULL;
-	sCompany.lpsMVPropmap = NULL;
+	sCompany.lpsPropmap = nullptr;
+	sCompany.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	struct setCompanyResponse sResponse;
 	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECCompany->sPropmap,
 	          &lpECCompany->sMVPropmap, ulFlags, sCompany.lpsPropmap,
 	          sCompany.lpsMVPropmap);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return hr;
+	}
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->createCompany(m_ecSessionId, &sCompany, &sResponse) != SOAP_OK)
+		if (m_lpCmd->createCompany(m_ecSessionId, &sCompany, &sResponse) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
-		else
+		} else {
 			er = sResponse.er;
+		}
 	}
 	END_SOAP_CALL
 	return CopySOAPEntryIdToMAPIEntryId(&sResponse.sCompanyId,
@@ -2454,14 +2488,16 @@ HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, const ENTRYID *lpCompany
  */
 HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 {
-	if (lpECCompany == nullptr || lpECCompany->lpszCompanyname == nullptr)
+	if (lpECCompany == nullptr || lpECCompany->lpszCompanyname == nullptr) {
 		return MAPI_E_INVALID_PARAMETER;
+	}
 
 	ECRESULT er = erSuccess;
 	struct company sCompany;
-	convert_context converter;
 
-	sCompany.lpszCompanyname = TO_UTF8_DEF(lpECCompany->lpszCompanyname);
+	const auto utf8CompanyName = tfstring_to_utf8(lpECCompany->lpszCompanyname, ulFlags);
+
+	sCompany.lpszCompanyname = const_cast<char *>(utf8CompanyName.c_str());
 
 	sCompany.ulCompanyId = ABEID_ID(lpECCompany->sCompanyId.lpb);
 	sCompany.sCompanyId.__size = lpECCompany->sCompanyId.cb;
@@ -2473,20 +2509,22 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 
 	sCompany.ulIsABHidden = lpECCompany->ulIsABHidden;
 
-	sCompany.lpsPropmap = NULL;
-	sCompany.lpsMVPropmap = NULL;
+	sCompany.lpsPropmap = nullptr;
+	sCompany.lpsMVPropmap = nullptr;
 
 	soap_lock_guard spg(*this);
 	auto hr = CopyABPropsToSoap(m_lpCmd->soap, &lpECCompany->sPropmap,
 	          &lpECCompany->sMVPropmap, ulFlags, sCompany.lpsPropmap,
 	          sCompany.lpsMVPropmap);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
 		return hr;
+	}
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->setCompany(m_ecSessionId, &sCompany, &er) != SOAP_OK)
+		if (m_lpCmd->setCompany(m_ecSessionId, &sCompany, &er) != SOAP_OK) {
 			er = KCERR_NETWORK_ERROR;
+		}
 	}
 	END_SOAP_CALL
 	return hrSuccess;

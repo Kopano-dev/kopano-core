@@ -1036,7 +1036,8 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			kc_perror("Unable to request groups for user", hr);
 
 		std::unique_ptr<ArchiveManage> ptrArchiveManage;
-		hr = ArchiveManage::Create(lpSession, NULL, converter.convert_to<LPTSTR>(lpszName), &ptrArchiveManage);
+		hr = ArchiveManage::Create(
+			lpSession, nullptr, converter.convert_to<tstring>(lpszName).c_str(), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
 				kc_perror("Error while obtaining archive details", hr);
@@ -1044,7 +1045,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		}
 
 		std::list<ArchiveEntry> lstArchives;
-		if (ptrArchiveManage.get() != NULL) {
+		if (ptrArchiveManage.get() != nullptr) {
 			hr = ptrArchiveManage->ListArchives(&lstArchives, "Root Folder");
 			if (hr != hrSuccess) {
 				kc_perror("Error while obtaining archive list", hr);
@@ -1067,8 +1068,9 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			if (hr != hrSuccess) {
 				kc_perror("Unable to show object quota information", hr);
 				hr = hrSuccess; /* Don't make error fatal */
-			} else
+			} else {
 				print_quota(lpsQuota, lpsQuotaStatus, ulClass == CONTAINER_COMPANY);
+			}
 		}
 	}
 
@@ -1077,8 +1079,9 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		if (hr != hrSuccess) {
 			kc_perror("Unable to get user default quota for company", hr);
 			hr = hrSuccess; /* not fatal */
-		} else
-			print_quota(lpsQuota, NULL, false);
+		} else {
+			print_quota(lpsQuota, nullptr, false);
+		}
 	}
 
 	if (cUsers) {
