@@ -146,7 +146,11 @@ iconv_context_base::~iconv_context_base()
 		iconv_close(m_cd);
 }
 
-void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
+void iconv_context_base::doconvert(
+	const char *lpFrom,
+	size_t cbFrom,
+	void *obj,
+	const std::function<void(void *, const char *, std::size_t)>& appendFunc)
 {
 	char buf[BUFSIZE];
 	const char *lpSrc = NULL;
@@ -163,7 +167,7 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 		auto err = iconv(m_cd, ICONV_HACK(&lpSrc), &cbSrc, &lpDst, &cbDst);
 		if (err != static_cast<size_t>(-1) || cbDst != sizeof(buf)) {
 			// buf now contains converted chars, append them to output
-			append(buf, sizeof(buf) - cbDst);
+			appendFunc(obj, buf, sizeof(buf) - cbDst);
 			continue;
 		}
 		if (m_bHTML) {
@@ -204,14 +208,15 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 			throw illegal_sequence_exception(strerror(errno));
 		}
 		// buf now contains converted chars, append them to output
-		append(buf, sizeof(buf) - cbDst);
+		appendFunc(obj, buf, sizeof(buf) - cbDst);
 	}
 
 	// Finalize (needed for stateful conversion)
 	lpDst = buf;
 	cbDst = sizeof(buf);
-	if (iconv(m_cd, nullptr, nullptr, &lpDst, &cbDst) != static_cast<size_t>(-1))
-		append(buf, sizeof(buf) - cbDst);
+	if (iconv(m_cd, nullptr, nullptr, &lpDst, &cbDst) != static_cast<size_t>(-1)) {
+		appendFunc(obj, buf, sizeof(buf) - cbDst);
+	}
 }
 
 } /* namespace */
