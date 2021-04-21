@@ -17,7 +17,6 @@
 #include <mapidefs.h>
 #include <cerrno>
 #include <algorithm>
-#include <dirent.h>
 #include <fcntl.h>
 #include <zlib.h>
 #include <ECSerializer.h>
@@ -78,7 +77,7 @@ class ECFileAttachmentConfig : public ECAttachmentConfig {
 
 	protected:
 	std::string m_dir;
-	unsigned int m_complvl, m_l1 = 0, m_l2 = 0;
+	unsigned int m_complvl = 0, m_l1 = 0, m_l2 = 0;
 	bool m_sync_files;
 };
 
@@ -122,7 +121,6 @@ class ECFileAttachment : public ECAttachmentStorage {
 
 	int m_dirFd = -1;
 	unsigned int m_l1 = 0, m_l2 = 0;
-	DIR *m_dirp = nullptr;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
 };
@@ -140,7 +138,7 @@ class ECFileAttachmentConfig2 final : public ECFileAttachmentConfig {
 
 class ECFileAttachment2 final : public ECFileAttachment {
 	public:
-	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, unsigned int complvl, bool sync);
+	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, bool sync);
 
 	protected:
 	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) override;
@@ -607,7 +605,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 * Call DeleteAttachment to decrease the refcount
 		 * and optionally delete the original attachment.
 		 */
-		auto er = DeleteAttachment(ulObjId, ulPropId, true);
+		auto er = DeleteAttachment(ulObjId, ulPropId);
 		if (er != erSuccess)
 			return er;
 	}
@@ -653,7 +651,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 * Call DeleteAttachment to decrease the refcount
 		 * and optionally delete the original attachment.
 		 */
-		auto er = DeleteAttachment(ulObjId, ulPropId, true);
+		auto er = DeleteAttachment(ulObjId, ulPropId);
 		if (er != erSuccess)
 			return er;
 	}
@@ -704,7 +702,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		    ulOldAttachId.siid == ulInstanceId)
 			// Nothing to do, we already have that instance ID
 			return erSuccess;
-		auto er = DeleteAttachment(ulObjId, ulPropId, true);
+		auto er = DeleteAttachment(ulObjId, ulPropId);
 		if (er != erSuccess)
 			return er;
 	}
@@ -800,19 +798,6 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 
 /**
  * Delete one single instance property of an object.
- * public interface version
- *
- * @param[in] ulObjId HierarchyID of object to delete single instance property from
- * @param[in] ulPropId Property of object to remove
- *
- * @return
- */
-ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
-	return DeleteAttachment(ulObjId, ulPropId, false);
-}
-
-/**
- * Delete one single instance property of an object.
  *
  * @param[in] ulObjId HierarchyID of object to delete single instance property from
  * @param[in] ulPropId Property of object to remove
@@ -820,7 +805,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
  *
  * @return Kopano error code
  */
-ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bool bReplace)
+ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId)
 {
 	ext_siid ulInstanceId;
 	bool bOrphan = false;
@@ -845,14 +830,17 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 		"AND `tag` = " + stringify(ulPropId);
 
 	er = m_lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess)
+	if (er != erSuccess) {
 		return ec_perror("ECAttachmentStorage::DeleteAttachment(): DoDelete failed", er);
+	}
 	/*
 	 * Check if the attachment can be permanently deleted.
 	 */
-	if (IsOrphanedSingleInstance(ulInstanceId, &bOrphan) != erSuccess || !bOrphan)
+	if (IsOrphanedSingleInstance(ulInstanceId, &bOrphan) != erSuccess || !bOrphan) {
 		return erSuccess;
-	return DeleteAttachmentInstance(ulInstanceId, bReplace);
+	}
+
+	return DeleteAttachmentInstance(ulInstanceId, true);
 }
 
 /**
@@ -1137,27 +1125,27 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 	ECAttachmentStorage(lpDatabase, ulCompressionLevel),
 	m_basepath(basepath), m_l1(l1), m_l2(l2)
 {
-	if (m_basepath.empty())
+	if (m_basepath.empty()) {
 		m_basepath = "/var/lib/kopano";
+	}
 	force_changes_to_disk = sync_to_disk;
 	if (sync_to_disk) {
-		m_dirp = opendir(m_basepath.c_str());
+		m_dirFd = open(m_basepath.c_str(), O_RDONLY | O_DIRECTORY);
 
-		if (m_dirp)
-			m_dirFd = dirfd(m_dirp);
-
-		if (m_dirFd == -1)
+		if (m_dirFd == -1) {
 			ec_log_warn("Problem opening directory file \"%s\": %s - attachment storage atomicity not guaranteed", m_basepath.c_str(), strerror(errno));
+		}
 	}
 	attachment_size_safety_limit = 512 * 1024 * 1024; // FIXME make configurable
 }
 
 ECFileAttachment::~ECFileAttachment()
 {
-	if (m_dirp != NULL)
-		closedir(m_dirp);
-	if (m_bTransaction)
-		assert(false);
+	if (m_dirFd != -1) {
+		close(m_dirFd);
+	}
+
+	assert(!m_bTransaction);
 }
 
 /**
@@ -2131,13 +2119,12 @@ ECFileAttachmentConfig2::ECFileAttachmentConfig2(const GUID &g) :
 
 ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
 {
-	return new(std::nothrow) ECFileAttachment2(*this, db, m_dir, m_complvl, m_sync_files);
+	return new(std::nothrow) ECFileAttachment2(*this, db, m_dir, m_sync_files);
 }
 
 ECFileAttachment2::ECFileAttachment2(ECFileAttachmentConfig2 &acf,
-    ECDatabase *db, const std::string &basepath, unsigned int complvl,
-    bool sync) :
-	ECFileAttachment(db, basepath, complvl, 0, 0, sync), m_config(acf)
+    ECDatabase *db, const std::string &basepath, bool sync) :
+	ECFileAttachment(db, basepath, 0, 0, 0, sync), m_config(acf)
 {}
 
 ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
