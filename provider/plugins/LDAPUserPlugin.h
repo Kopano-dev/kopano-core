@@ -315,21 +315,6 @@ public:
 	 */
 	virtual abprops_t getExtraAddressbookProperties() override;
 
-protected:
-	/**
-	 * Pointer to the LDAP state struct.
-	 * One for general searches, one for authentication.
-	 */
-	LDAP *m_ldap = nullptr, *m_ldap2 = nullptr;
-
-	/**
-	 * converter FROM ldap TO kopano-server and vice-versa
-	 */
-	std::unique_ptr<KC::iconv_context<std::string, std::string>> m_iconv, m_iconvrev;
-
-	static std::unique_ptr<LDAPCache> m_lpCache;
-	struct timeval m_timeout;
-
 private:
 	/**
 	 * Get the value of the given attribute from the search results.
@@ -665,6 +650,17 @@ private:
 	 */
 	void my_ldap_search_s(const char *base, int scope, const char *filter, const char *const *attrs, int attrsonly, LDAPMessage **lppres, LDAPControl **serverControls = nullptr);
 	std::string rst_to_filter(const restrictTable *);
+
+	/**
+	 * Pointer to the LDAP state struct.
+	 * One for general searches, one for authentication.
+	 */
+	LDAP *m_ldap = nullptr, *m_ldap2 = nullptr;
+
+	static std::unique_ptr<LDAPCache> m_lpCache;
+	struct timeval m_timeout;
+
+	std::string m_charset;
 
 	long unsigned int ldapServerIndex; // index of the last ldap server to which we could connect
 	std::vector<std::string> ldap_servers;

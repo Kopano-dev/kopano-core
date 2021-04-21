@@ -101,13 +101,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
 	DBPlugin::InitPlugin(std::move(sc));
-
-	// we only need unix_charset -> kopano charset
-	try {
-		m_iconv.reset(new decltype(m_iconv)::element_type("utf-8", m_config->GetSetting("fullname_charset")));
-	} catch (const convert_exception &) {
-		throw std::runtime_error("Cannot setup charset converter, check \"fullname_charset\" in cfg");
-	}
+	m_charset = m_config->GetSetting("fullname_charset");
 }
 
 void UnixUserPlugin::findUserID(const std::string &id, struct passwd *pwd, char *buffer)
@@ -124,7 +118,7 @@ void UnixUserPlugin::findUserID(const std::string &id, struct passwd *pwd, char 
 
 	if (pw->pw_uid < minuid || pw->pw_uid >= maxuid)
 		throw objectnotfound(id);
-			
+
 	for (unsigned int i = 0; i < exceptuids.size(); ++i)
 		if (pw->pw_uid == fromstring<const std::string, uid_t>(exceptuids[i]))
 			throw objectnotfound(id);
@@ -144,7 +138,7 @@ void UnixUserPlugin::findUser(const std::string &name, struct passwd *pwd, char 
 
 	if (pw->pw_uid < minuid || pw->pw_uid >= maxuid)
 		throw objectnotfound(name);
-			
+
 	for (unsigned int i = 0; i < exceptuids.size(); ++i)
 		if (pw->pw_uid == fromstring<const std::string, uid_t>(exceptuids[i]))
 			throw objectnotfound(name);
@@ -288,7 +282,7 @@ objectsignature_t UnixUserPlugin::authenticateUser(const std::string &username,
 
 	if (pw->pw_uid < minuid || pw->pw_uid >= maxuid)
 		throw objectnotfound(username);
-		
+
 	for (unsigned i = 0; i < exceptuids.size(); ++i)
 		if (pw->pw_uid == fromstring<const std::string, uid_t>(exceptuids[i]))
 			throw objectnotfound(username);
@@ -310,20 +304,24 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw,
 	bool matched = false;
 
 	// username or fullname
-	if (ulFlags & EMS_AB_ADDRESS_LOOKUP)
+	const auto utf8Gecos = convert_to<utf8string>(pw->pw_gecos, rawsize(pw->pw_gecos), m_charset.c_str());
+	if (ulFlags & EMS_AB_ADDRESS_LOOKUP) {
 		matched =
 			strcasecmp(pw->pw_name, match.c_str()) == 0 ||
-			strcasecmp(m_iconv->convert(pw->pw_gecos).c_str(), match.c_str()) == 0;
-	else
+			strcasecmp(utf8Gecos.z_str(), match.c_str()) == 0;
+	} else {
 		matched =
 			strncasecmp(pw->pw_name, match.c_str(), match.size()) == 0 ||
-			strncasecmp(m_iconv->convert(pw->pw_gecos).c_str(), match.c_str(), match.size()) == 0;
-	if (matched)
+			strncasecmp(utf8Gecos.z_str(), match.c_str(), match.size()) == 0;
+	}
+	if (matched) {
 		return matched;
+	}
 
 	auto email = std::string(pw->pw_name) + "@" + m_config->GetSetting("default_domain");
-	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
+	if(ulFlags & EMS_AB_ADDRESS_LOOKUP) {
 		return email == match;
+	}
 	return strncasecmp(email.c_str(), match.c_str(), match.size()) == 0;
 }
 
@@ -636,7 +634,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 		objectlist.emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
 	} catch (const std::exception &e) {
 		// Ignore error
-	}	
+	}
 
 	transform(exceptgids.begin(), exceptgids.end(), inserter(exceptgidset, exceptgidset.begin()), fromstring<const std::string,gid_t>);
 
@@ -813,7 +811,7 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			// ignore not found error
 		}
 	}
-    
+
     return mapdetails;
 }
 
@@ -827,14 +825,15 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 
 	ud.SetPropString(OB_PROP_S_LOGIN, pw->pw_name);
 	ud.SetClass(shell_to_class(m_config, pw->pw_shell));
-	auto gecos = m_iconv->convert(pw->pw_gecos);
+	const auto gecos = convert_to<std::string>("UTF-8", pw->pw_gecos, rawsize(pw->pw_gecos), m_charset.c_str());
 
 	// gecos may contain room/phone number etc. too
-	auto comma = gecos.find(",");
-	if (comma != gecos.npos)
+	const auto comma = gecos.find(",");
+	if (comma != gecos.npos) {
 		ud.SetPropString(OB_PROP_S_FULLNAME, gecos.substr(0, comma));
-	else
+	} else {
 		ud.SetPropString(OB_PROP_S_FULLNAME, gecos);
+	}
 
 	if (!strcmp(pw->pw_passwd, "x")) {
 		// shadow password entry
@@ -859,7 +858,7 @@ objectdetails_t UnixUserPlugin::objectdetailsFromPwent(const struct passwd *pw)
 	} else {
 		ud.SetPropString(OB_PROP_S_PASSWORD, pw->pw_passwd);
 	}
-	
+
 	// This may be overridden by settings in the database
 	ud.SetPropString(OB_PROP_S_EMAIL, std::string(pw->pw_name) + "@" + m_config->GetSetting("default_domain"));
 	return ud;
