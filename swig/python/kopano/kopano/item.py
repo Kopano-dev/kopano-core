@@ -14,7 +14,6 @@ import functools
 import os
 import sys
 import traceback
-import warnings
 
 import pickle
 
@@ -91,7 +90,7 @@ from .defs import (
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING,
 )
 from .errors import (
-    Error, NotFoundError, _DeprecationWarning
+    Error, NotFoundError
 )
 
 from .attachment import Attachment
