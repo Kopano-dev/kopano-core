@@ -165,54 +165,6 @@ class KC_EXPORT_DYCAST iconv_context KC_FINAL :
 };
 
 /**
- * @brief	Converts a string to a string with a different charset.
- *
- * convert_to comes in three forms:
- *
- * 1. convert_to<dsttype>(dstcharset, srcstring, srcsize, srccharset)
- * 2. convert_to<dsttype>(srcstring, srcsize, srccharset)
- *    autoderived: dstcharset (from dsttype)
- *    see iconv_charset<dsttype>::name() for the charset that will be assumed
- * 3. convert_to<dsttype>(srcstring)
- *    autoderived: dstcharset, srcsize, srccharset
- *
- * Derivation happens with iconv_charset<> where the defaults are set.
- *
- * This is the function to call when a one of conversion from one charset to
- * another is required.
- * @tparam	  To_Type		The type of the destination string.
- * @param[in] _from			The string that is to be converted to another charset.
- * @return					The converted string.
- *
- * @note	Since this method needs to create an iconv object internally
- *			it is better to use a convert_context when multiple conversions
- *			need to be performed.
- */
-template<typename To_Type, typename From_Type>
-inline To_Type convert_to(const From_Type &from)
-{
-	static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
-	iconv_context<To_Type, From_Type> context;
-	return context.convert(from);
-}
-
-template<typename To_Type, typename From_Type> inline To_Type
-convert_to(const From_Type &from, size_t cbBytes, const char *fromcode)
-{
-	iconv_context<To_Type, From_Type> context(fromcode);
-	return context.convert(iconv_charset<From_Type>::rawptr(from), cbBytes);
-}
-
-template<typename To_Type, typename From_Type>
-inline To_Type convert_to(const char *tocode, const From_Type &from,
-    size_t cbBytes, const char *fromcode)
-{
-	iconv_context<To_Type, From_Type> context(tocode, fromcode);
-	return context.convert(iconv_charset<From_Type>::rawptr(from), cbBytes);
-}
-
-
-/**
  * @brief	Allows multiple conversions within the same context.
  *
  * The convert_context class is used to perform multiple conversions within the
@@ -226,11 +178,26 @@ public:
 	/**
 	 * @brief	Converts a string to a string with a different charset.
 	 *
-	 * The to- and from charsets are implicitly determined by on one side the
-	 * passed To_Type and on the other side the _from argument.
+	 * convert_to comes in three forms:
+	 *
+	 * 1. convert_to<dsttype>(dstcharset, srcstring, srcsize, srccharset)
+	 * 2. convert_to<dsttype>(srcstring, srcsize, srccharset)
+	 *    autoderived: dstcharset (from dsttype)
+	 *    see iconv_charset<dsttype>::name() for the charset that will be assumed
+	 * 3. convert_to<dsttype>(srcstring)
+	 *    autoderived: dstcharset, srcsize, srccharset
+	 *
+	 * Derivation happens with iconv_charset<> where the defaults are set.
+	 *
+	 * This is the function to call when a one of conversion from one charset to
+	 * another is required.
 	 * @tparam	  To_Type		The type of the destination string.
 	 * @param[in] _from			The string that is to be converted to another charset.
 	 * @return					The converted string.
+	 *
+	 * @note	Since this method needs to create an iconv object internally
+	 *			it is better to use a convert_context when multiple conversions
+	 *			need to be performed.
 	 */
 	template<typename To_Type, typename From_Type>
 	KC_HIDDEN To_Type convert_to(const From_Type &from)
@@ -405,6 +372,27 @@ private:
 	convert_context(const convert_context &) = delete;
 	convert_context &operator=(const convert_context &) = delete;
 };
+
+template<typename To_Type, typename From_Type>
+inline To_Type convert_to(const From_Type &from)
+{
+	static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
+	return convert_context().convert_to<To_Type>(from);
+}
+
+template<typename To_Type, typename From_Type> inline To_Type
+convert_to(const From_Type &from, size_t cbBytes, const char *fromcode)
+{
+	return convert_context().convert_to<To_Type>(iconv_charset<From_Type>::rawptr(from), cbBytes, fromcode);
+}
+
+template<typename To_Type, typename From_Type>
+inline To_Type convert_to(const char *tocode, const From_Type &from,
+    size_t cbBytes, const char *fromcode)
+{
+	return convert_context().convert_to<To_Type>(
+		tocode, iconv_charset<From_Type>::rawptr(from), cbBytes, fromcode);
+}
 
 extern KC_EXPORT HRESULT HrFromException(const convert_exception &);
 
