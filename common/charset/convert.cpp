@@ -83,7 +83,7 @@ private:
  * @param tocode Destination charset
  * @param fromcode Source charset
  */
-iconv_context_base::iconv_context_base(const char *tocode, const char *fromorig)
+iconv_context::iconv_context(const char *tocode, const char *fromorig)
 {
 	std::string strfrom = fromorig;
 	auto pos = strfrom.find("//");
@@ -140,13 +140,21 @@ iconv_context_base::iconv_context_base(const char *tocode, const char *fromorig)
 		      ": " + strerror(errno));
 }
 
-iconv_context_base::~iconv_context_base()
+iconv_context::~iconv_context()
 {
-	if (m_cd != (iconv_t)(-1))
+	if (m_cd != (iconv_t)(-1)) {
 		iconv_close(m_cd);
+	}
 }
 
-void iconv_context_base::doconvert(
+iconv_context::iconv_context(iconv_context &&rhs) :
+	m_cd(rhs.m_cd), m_bForce(rhs.m_bForce), m_bHTML(rhs.m_bHTML),
+	m_translit_run(rhs.m_translit_run), m_translit_adv(rhs.m_translit_adv)
+{
+	rhs.m_cd = iconv_t(-1);
+}
+
+void iconv_context::doconvert(
 	const char *lpFrom,
 	size_t cbFrom,
 	void *obj,

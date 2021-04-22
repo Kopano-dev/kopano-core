@@ -58,18 +58,55 @@ class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
 };
 
 /**
- * @brief	Performs the generic iconv processing.
+ * @brief	Default converter from one charset to another with string types.
  */
-class KC_EXPORT iconv_context_base {
+class KC_EXPORT iconv_context KC_FINAL {
 	public:
-	virtual ~iconv_context_base();
-
-	protected:
 	/**
-	 * @param[in]  tocode		The destination charset.
-	 * @param[out] fromcode		The source charset.
+	 * Constructs a iconv_context with the tocode based on the To_Type
+	 * and the passed fromcode.
 	 */
-	iconv_context_base(const char* tocode, const char* fromcode);
+	iconv_context(const char *tocode, const char *fromcode);
+	~iconv_context();
+
+	iconv_context(const iconv_context &) = delete;
+	iconv_context(iconv_context &&);
+
+	iconv_context &operator=(const iconv_context &) = delete;
+
+	/**
+	 * @brief Performs the conversion.
+	 *
+	 * The actual conversion in delegated to doconvert.
+	 * @param[in] lpRaw		Raw pointer to the data to be converted.
+	 * @param[in] cbRaw		The size in bytes of the data to be converted.
+	 * @return				The converted string.
+	 */
+	template<typename To_Type>
+	To_Type convert(const char *lpRaw, size_t cbRaw)
+	{
+		To_Type toType;
+		doconvert(lpRaw, cbRaw, &toType, [](void *obj, const char *b, size_t z) {
+			static_cast<To_Type *>(obj)->append(
+				reinterpret_cast<typename To_Type::const_pointer>(b),
+				z / sizeof(typename To_Type::value_type));
+		});
+		return toType;
+	}
+
+	/**
+	 * @brief Performs the conversion.
+	 *
+	 * The actual conversion in delegated to doconvert.
+	 * @param[in] _from		The string to be converted.
+	 * @return				The converted string.
+	 */
+	template<typename To_Type, typename From_Type>
+	To_Type convert(const From_Type &from)
+	{
+		return convert<To_Type>(iconv_charset<From_Type>::rawptr(from),
+		       iconv_charset<From_Type>::rawsize(from));
+	}
 
 	/**
 	 * @brief Performs the actual conversion.
@@ -90,57 +127,6 @@ class KC_EXPORT iconv_context_base {
 	bool m_bForce = true; /* Ignore illegal sequences by default. */
 	bool m_bHTML = false, m_translit_run = false;
 	unsigned int m_translit_adv = 1;
-
-	iconv_context_base(const iconv_context_base &) = delete;
-	iconv_context_base &operator=(const iconv_context_base &) = delete;
-};
-
-/**
- * @brief	Default converter from one charset to another with string types.
- */
-class iconv_context KC_FINAL : public iconv_context_base {
-	public:
-	/**
-	 * Constructs a iconv_context_base with the tocode based on the To_Type
-	 * and the passed fromcode.
-	 */
-	iconv_context(const char *tocode, const char *fromcode)
-		: iconv_context_base(tocode, fromcode)
-	{}
-
-	/**
-	 * @brief Performs the conversion.
-	 *
-	 * The actual conversion in delegated to iconv_context_base.
-	 * @param[in] lpRaw		Raw pointer to the data to be converted.
-	 * @param[in] cbRaw		The size in bytes of the data to be converted.
-	 * @return				The converted string.
-	 */
-	template<typename To_Type>
-	To_Type convert(const char *lpRaw, size_t cbRaw)
-	{
-		To_Type toType;
-		doconvert(lpRaw, cbRaw, &toType, [](void *obj, const char *b, size_t z) {
-			static_cast<To_Type *>(obj)->append(
-				reinterpret_cast<typename To_Type::const_pointer>(b),
-				z / sizeof(typename To_Type::value_type));
-		});
-		return toType;
-	}
-
-	/**
-	 * @brief Performs the conversion.
-	 *
-	 * The actual conversion in delegated to iconv_context_base.
-	 * @param[in] _from		The string to be converted.
-	 * @return				The converted string.
-	 */
-	template<typename To_Type, typename From_Type>
-	To_Type convert(const From_Type &from)
-	{
-		return convert<To_Type>(iconv_charset<From_Type>::rawptr(from),
-		       iconv_charset<From_Type>::rawsize(from));
-	}
 };
 
 /**
@@ -289,9 +275,9 @@ private:
 		context_key key(create_key<To_Type, From_Type>(tocode, fromcode));
 		auto iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
-			iContext = m_contexts.emplace(key, std::make_unique<iconv_context>(tocode, fromcode)).first;
+			iContext = m_contexts.emplace(key, iconv_context(tocode, fromcode)).first;
 		}
-		return *iContext->second.get();
+		return iContext->second;
 	}
 
 	/**
@@ -302,7 +288,7 @@ private:
 		pfFromCode = 2
 	};
 
-	std::map<context_key, std::unique_ptr<iconv_context>> m_contexts;
+	std::map<context_key, iconv_context> m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
 
