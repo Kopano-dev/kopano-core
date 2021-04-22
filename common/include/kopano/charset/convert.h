@@ -297,24 +297,26 @@ private:
 	convert_context &operator=(const convert_context &) = delete;
 };
 
+extern KC_EXPORT thread_local convert_context global_convert_context;
+
 template<typename To_Type, typename From_Type>
 inline To_Type convert_to(const From_Type &from)
 {
 	static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
-	return convert_context().convert_to<To_Type>(from);
+	return global_convert_context.convert_to<To_Type>(from);
 }
 
 template<typename To_Type, typename From_Type> inline To_Type
 convert_to(const From_Type &from, size_t cbBytes, const char *fromcode)
 {
-	return convert_context().convert_to<To_Type>(iconv_charset<From_Type>::rawptr(from), cbBytes, fromcode);
+	return global_convert_context.convert_to<To_Type>(iconv_charset<From_Type>::rawptr(from), cbBytes, fromcode);
 }
 
 template<typename To_Type, typename From_Type>
 inline To_Type convert_to(const char *tocode, const From_Type &from,
     size_t cbBytes, const char *fromcode)
 {
-	return convert_context().convert_to<To_Type>(
+	return global_convert_context.convert_to<To_Type>(
 		tocode, iconv_charset<From_Type>::rawptr(from), cbBytes, fromcode);
 }
 

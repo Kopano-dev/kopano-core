@@ -18,6 +18,8 @@ using namespace std::string_literals;
 
 namespace KC {
 
+thread_local convert_context global_convert_context;
+
 convert_exception::convert_exception(enum exception_type type, const std::string &message)
 	: std::runtime_error(message)
 	, m_type(type)
