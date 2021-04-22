@@ -31,49 +31,48 @@ def capacity(user):  # XXX pyko?
         return 1
 
 
-class Marker(object):  # XXX kill?
-    def __init__(self, occurrence):
-        self.occurrence = occurrence
-
-
 def conflict_occurrences(user, item):
-    """ item occurrences which overlap (too much) with calendar """
+    """Item occurrences which overlap (too much) with calendar.
 
-    start = item.start
+    Args:
+        user (User): kopano user object.
+        item (Item): kopano item object.
+
+    Returns:
+        List[Item]: conflicts list.
+    """
+    start = item.start + timedelta(days=-1)
     end = start + timedelta(RECURRENCE_AVAILABILITY_RANGE)
 
-    # determine occurrences which might conflict
+    # Determine occurrences which might conflict.
     item_occs = list(item.occurrences(start, end))
-    cal_occs = list(user.calendar.occurrences(start, end))
     cal_item = item.meetingrequest.calendar_item
-    cal_occs = [occ for occ in cal_occs if occ.item != cal_item]
+    cal_occs = [
+        occ for occ in user.calendar.occurrences(start, end) if occ.item != cal_item
+    ]
+    user_capacity = capacity(user)
+    occs = cal_occs + item_occs
 
-    # create start/end markers for each occurrence
-    dt_markers = collections.defaultdict(list)
-    for o in item_occs + cal_occs:
-        marker = Marker(o)
-        if o.start <= o.end:
-            dt_markers[o.start].append(marker)
-            dt_markers[o.end].append(marker)
+    conflicts = []
 
-    # loop over sorted markers, maintaining running set
-    max_overlap = capacity(user)
-    conflict_markers = set()
-    running = set()
-    for day in sorted(dt_markers):
-        for marker in dt_markers[day]:
-            if marker in running:
-                running.remove(marker)
-            else:
-                running.add(marker)
+    # Check based on the datetime range.
+    for occ in occs:
+        if occ.item is item:
+            continue
 
-        # if too much overlap, check if item is involved
-        if len(running) > max_overlap:
-            for marker in running:
-                if marker.occurrence.item is item:
-                    conflict_markers.add(marker)
+        # Check time range.
+        if (item.start > occ.end and item.end > occ.end) or \
+           (item.start < occ.start and item.end < occ.start):
+            continue
+        conflicts.append(occ)
 
-    return [m.occurrence for m in conflict_markers]
+        # Check capacity threshold.
+        if len(conflicts) >= user_capacity:
+            break
+
+    if len(conflicts) >= user_capacity:
+        return [occ.item for occ in conflicts]
+    return []
 
 
 def conflict_message(occurrences):
