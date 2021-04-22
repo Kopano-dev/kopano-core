@@ -61,7 +61,7 @@ class KC_EXPORT_THROW illegal_sequence_exception KC_FINAL :
  * @brief	Default converter from one charset to another with string types.
  */
 class KC_EXPORT iconv_context KC_FINAL {
-	public:
+public:
 	/**
 	 * Constructs a iconv_context with the tocode based on the To_Type
 	 * and the passed fromcode.
@@ -122,7 +122,7 @@ class KC_EXPORT iconv_context KC_FINAL {
 		void *obj,
 		const std::function<void(void *, const char *, std::size_t)>& appendFunc);
 
-	private:
+private:
 	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
 	bool m_bForce = true; /* Ignore illegal sequences by default. */
 	bool m_bHTML = false, m_translit_run = false;
@@ -139,6 +139,9 @@ class KC_EXPORT iconv_context KC_FINAL {
 class KC_EXPORT convert_context KC_FINAL {
 public:
 	convert_context() = default;
+
+	convert_context(const convert_context &) = delete;
+	convert_context &operator=(const convert_context &) = delete;
 
 	/**
 	 * @brief	Converts a string to a string with a different charset.
@@ -213,6 +216,28 @@ public:
 	{
 		auto& context = get_context<To_Type, From_Type>(tocode, fromcode);
 		return context.template convert<To_Type>(iconv_charset<From_Type>::rawptr(from), cbBytes);
+	}
+
+	/**
+	 * Attempts to create a new context From_Type, To_Type for two charsets.
+	 * If the context already exists it does nothing and returns false.
+	 * @param[in] tocode The destination charset.
+	 * @param[in] fromcode The source charset.
+	 * @return True if it created a new context, false otherwise.
+	 * @throw KC::convert_exception if this fails to create the context for
+	 * another reason other than it already existing.
+	 */
+	template<typename To_Type, typename From_Type>
+	bool new_iconv_context_if_not_exists(const char *tocode, const char *fromcode)
+	{
+		context_key key(create_key<To_Type, From_Type>(tocode, fromcode));
+		auto iContext = m_contexts.find(key);
+		if (iContext == m_contexts.cend()) {
+			m_contexts.emplace(key, iconv_context(tocode, fromcode));
+			return true;
+		}
+
+		return false;
 	}
 
 private:
@@ -291,13 +316,33 @@ private:
 	std::map<context_key, iconv_context> m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
-
-// a convert_context is not supposed to be copyable.
-	convert_context(const convert_context &) = delete;
-	convert_context &operator=(const convert_context &) = delete;
 };
 
+/**
+ * --------------------------------------------
+ * -------------GLOBAL FUNCTIONS---------------
+ * --------------------------------------------
+ * The functions below are global per thread and use a thread_local
+ * convert_context. That means a copy of this convert_context exists per thread,
+ * making the use of these functions thread-safe.
+ */
+
 extern KC_EXPORT thread_local convert_context global_convert_context;
+
+/**
+ * Creates a new iconv_context in the global_convert_context map, if it does not
+ * exist already.
+ * @param[in] tocode The destination charset.
+ * @param[in] fromcode The source charset.
+ * @return True if it created a new context, false otherwise.
+ * @throw KC::convert_exception if this fails to create the context for
+ * another reason other than it already existing.
+ */
+template<typename To_Type, typename From_Type>
+extern KC_EXPORT bool new_iconv_context_if_not_exists(const char *tocode, const char *fromcode)
+{
+	return global_convert_context.new_iconv_context_if_not_exists<To_Type, From_Type>(tocode, fromcode);
+}
 
 template<typename To_Type, typename From_Type>
 inline To_Type convert_to(const From_Type &from)

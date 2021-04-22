@@ -101,7 +101,15 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
 	DBPlugin::InitPlugin(std::move(sc));
-	m_charset = m_config->GetSetting("fullname_charset");
+
+	const char* charset = m_config->GetSetting("fullname_charset");
+	try {
+		new_iconv_context_if_not_exists<std::string, std::string>("utf-8", charset);
+	} catch (const convert_exception &) {
+		throw std::runtime_error("Cannot setup charset converter, check \"fullname_charset\" in cfg");
+	}
+
+	m_charset = charset;
 }
 
 void UnixUserPlugin::findUserID(const std::string &id, struct passwd *pwd, char *buffer)

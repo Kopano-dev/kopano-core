@@ -473,7 +473,21 @@ void LDAPUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 
 	/* FIXME encode the user and password, now it depends on which charset the config is saved in */
 	m_ldap = ConnectLDAP(nullptr, nullptr);
-	m_charset = m_config->GetSetting("ldap_server_charset");
+
+	const char *ldap_server_charset = m_config->GetSetting("ldap_server_charset");
+	try {
+		new_iconv_context_if_not_exists<std::string, std::string>("UTF-8", ldap_server_charset);
+	} catch (const convert_exception &e) {
+		throw ldap_error(format("Cannot convert %s to UTF-8: %s", ldap_server_charset, e.what()));
+	}
+
+	try {
+		new_iconv_context_if_not_exists<std::string, std::string>(ldap_server_charset, "UTF-8");
+	} catch (const convert_exception &e) {
+		throw ldap_error(format("Cannot convert UTF-8 to %s: %s", ldap_server_charset, e.what()));
+	}
+
+	m_charset = ldap_server_charset;
 }
 
 int LDAPUserPlugin::setup_ldap(const char *server, bool tls, LDAP **ldp)
