@@ -225,10 +225,10 @@ private:
 		std::string fromType;
 		std::string fromCode;
 
-		bool operator<(const context_key &lhs) const
+		bool operator<(const context_key &rhs) const
 		{
 			return std::tie(fromType, toType, fromCode, toCode) <
-				std::tie(lhs.fromType, lhs.toType, lhs.fromCode, lhs.toCode);
+				std::tie(rhs.fromType, rhs.toType, rhs.fromCode, rhs.toCode);
 		}
 	};
 
