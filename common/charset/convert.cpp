@@ -227,4 +227,20 @@ void iconv_context::doconvert(
 	}
 }
 
+utf8string tfstring_to_utf8(const TCHAR *s, unsigned int fl)
+{
+	if (s == nullptr)
+		return utf8string(nullptr);
+	return (fl & MAPI_UNICODE) ? convert_to<utf8string>(reinterpret_cast<const wchar_t *>(s)) :
+	       convert_to<utf8string>(reinterpret_cast<const char *>(s));
+}
+
+std::string tfstring_to_lcl(const TCHAR *s, unsigned int fl)
+{
+	if (s == nullptr)
+		return {};
+	return (fl & MAPI_UNICODE) ? convert_to<std::string>(reinterpret_cast<const wchar_t *>(s)) :
+	       convert_to<std::string>(reinterpret_cast<const char *>(s));
+}
+
 } /* namespace */
