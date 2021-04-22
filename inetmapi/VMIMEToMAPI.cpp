@@ -515,7 +515,7 @@ HRESULT VMIMEToMAPI::hreplyto(vmime::shared_ptr<vmime::mailboxList> &&mblist,
 
 	for (size_t i = 0; i < mblist->getMailboxCount(); ++i) {
 		auto to = getWideFromVmimeText(mblist->getMailboxAt(i)->getName());
-		auto email = m_converter.convert_to<std::wstring>(mblist->getMailboxAt(i)->getEmail().toString());
+		auto email = convert_to<std::wstring>(mblist->getMailboxAt(i)->getEmail().toString());
 		if (to.empty())
 			to = email;
 		if (i > 0)
@@ -698,7 +698,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 					return hr;
 			} else {
 				if (wstrFromName.empty())
-					wstrFromName = m_converter.convert_to<std::wstring>(strFromEmail);
+					wstrFromName = convert_to<std::wstring>(strFromEmail);
 				msgProps.set(nProps++, PR_SENT_REPRESENTING_NAME_W, wstrFromName);
 				msgProps.set(nProps++, PR_SENT_REPRESENTING_EMAIL_ADDRESS, strFromEmail);
 				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
@@ -710,8 +710,11 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrFromName.c_str()),
 				     reinterpret_cast<const TCHAR *>(L"SMTP"),
-				     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strFromEmail).c_str()),
-				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &~lpFromEntryID);
+				     reinterpret_cast<const TCHAR *>(
+					     convert_to<std::wstring>(strFromEmail).c_str()),
+					     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO,
+					     &cbFromEntryID,
+					     &~lpFromEntryID);
 				if(hr != hrSuccess)
 					return hr;
 
@@ -734,7 +737,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			} else if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty()) {
 				wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
 			} else {
-				wstrSenderName = m_converter.convert_to<std::wstring>(strSenderEmail);
+				wstrSenderName = convert_to<std::wstring>(strSenderEmail);
 			}
 
 			auto hr = modifyFromAddressBook(&~lpRecipProps, &ulRecipProps,
@@ -756,8 +759,11 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrSenderName.c_str()),
 				     reinterpret_cast<const TCHAR *>(L"SMTP"),
-				     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strSenderEmail).c_str()),
-				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &~lpSenderEntryID);
+				     reinterpret_cast<const TCHAR *>(
+					     convert_to<std::wstring>(strSenderEmail).c_str()),
+					     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO,
+					     &cbSenderEntryID,
+					     &~lpSenderEntryID);
 				if(hr != hrSuccess)
 					return hr;
 
@@ -908,7 +914,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if (mbReadReceipt && !mbReadReceipt->isEmpty())
 			{
 				auto wstrRRName = getWideFromVmimeText(mbReadReceipt->getName());
-				auto wstrRREmail = m_converter.convert_to<std::wstring>(mbReadReceipt->getEmail().toString());
+				auto wstrRREmail = convert_to<std::wstring>(mbReadReceipt->getEmail().toString());
 				if (wstrRRName.empty())
 					wstrRRName = wstrRREmail;
 
@@ -1172,7 +1178,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		// use email address or fullname to find GAB entry, do not pass fullname to keep resolved addressbook fullname
 		auto strSearch = strEmail;
 		if (strSearch.empty())
-			strSearch = m_converter.convert_to<std::string>(wstrName);
+			strSearch = convert_to<std::string>(wstrName);
 
 		// @todo: maybe make strSearch a wide string and check if we need to use the fullname argument for modifyFromAddressBook
 		auto hr = modifyFromAddressBook(&recip.rgPropVals, &recip.cValues,
@@ -1185,7 +1191,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		// Fallback if the entry was not found (or errored) in the addressbook
 		const int iNumTags = 8;
 		if (wstrName.empty())
-			wstrName = m_converter.convert_to<std::wstring>(strEmail);
+			wstrName = convert_to<std::wstring>(strEmail);
 
 		// will be cleaned up by caller.
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, reinterpret_cast<void **>(&recip.rgPropVals));
@@ -1214,8 +1220,11 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		prop[3].ulPropTag = PR_ENTRYID;
 		hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(wstrName.c_str()),
 		     reinterpret_cast<const TCHAR *>(L"SMTP"),
-		     reinterpret_cast<const TCHAR *>(m_converter.convert_to<std::wstring>(strEmail).c_str()),
-		     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
+		     reinterpret_cast<const TCHAR *>(
+			     convert_to<std::wstring>(strEmail).c_str()),
+			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO,
+			     &cbEntryID,
+			     &~lpEntryID);
 		if (hr != hrSuccess)
 			return hr;
 		prop[3].Value.bin.cb = cbEntryID;
@@ -1981,9 +1990,7 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 	for (size_t i = 0; i < cs.size(); ++i) {
 		const char *name = cs[i].c_str();
 		try {
-			data = m_converter.convert_to<std::string>(
-			       (cs[i] + "//NOIGNORE").c_str(),
-			       data, rawsize(data), name);
+			data = convert_to<std::string>((cs[i] + "//NOIGNORE").c_str(), data, rawsize(data), name);
 			ec_log_debug("renovate_encoding: reading data using charset \"%s\" succeeded.", name);
 			return i;
 		} catch (const illegal_sequence_exception &ce) {
@@ -2010,8 +2017,7 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 	for (size_t i = 0; i < cs.size(); ++i) {
 		const char *name = cs[i].c_str();
 		try {
-			data = m_converter.convert_to<std::string>(
-			       (cs[i] + "//IGNORE").c_str(), data, rawsize(data), name);
+			data = convert_to<std::string>((cs[i] + "//IGNORE").c_str(), data, rawsize(data), name);
 		} catch (const unknown_charset_exception &) {
 			continue;
 		}
@@ -2109,7 +2115,8 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		 * unreviewed use in MAPIToVMIME.
 		 */
 		std::string strBuffOut = content_transfer_decode(vmBody);
-		auto strUnicodeText = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
+		auto strUnicodeText = convert_to<std::wstring>(
+			CHARSET_WCHAR "//IGNORE",strBuffOut, rawsize(strBuffOut), mime_charset.getName().c_str());
 		strUnicodeText.erase(std::remove(strUnicodeText.begin(), strUnicodeText.end(), L'\0'), strUnicodeText.end());
 
 		if (HrGetCPByCharset(mime_charset.getName().c_str(), &sCodepage.Value.ul) != hrSuccess)
@@ -2300,7 +2307,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (HrGetCPByCharset(cs_cand[cs_best].c_str(), &sCodepage.Value.ul) != hrSuccess) {
 			/* Win32 does not know the charset — change encoding to something it knows. */
 			sCodepage.Value.ul = 65001;
-			strHTML = m_converter.convert_to<utf8string>(strHTML, rawsize(strHTML), cs_cand[cs_best].c_str()).m_str;
+			strHTML = convert_to<utf8string>(strHTML, rawsize(strHTML), cs_cand[cs_best].c_str()).m_str;
 			ec_log_info("No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
 		}
 
@@ -2320,7 +2327,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 				hr = Util::ReadProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
-				strCurrentHTML = m_converter.convert_to<utf8string>(strCurrentHTML, rawsize(strCurrentHTML), lpszCharset).m_str;
+				strCurrentHTML = convert_to<utf8string>(
+					strCurrentHTML, rawsize(strCurrentHTML), lpszCharset).m_str;
 				hr = Util::WriteProperty(lpMessage, PR_HTML, strCurrentHTML);
 				if (hr != hrSuccess)
 					return hr;
@@ -2328,7 +2336,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 
 			if (sCodepage.Value.ul != 65001)
 				// Convert new body part to UTF-8
-				strHTML = m_converter.convert_to<utf8string>(strHTML, rawsize(strHTML), mime_charset.getName().c_str()).m_str;
+				strHTML = convert_to<utf8string>(
+					strHTML, rawsize(strHTML), mime_charset.getName().c_str()).m_str;
 			// Everything is UTF-8 now
 			sCodepage.Value.ul = 65001;
 			mime_charset = "utf-8";
@@ -2342,7 +2351,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue())->getSubType() ==
 		    vmime::mediaTypes::TEXT_PLAIN) {
 			// escape and wrap with <pre> tags
-			auto strwBody = m_converter.convert_to<std::wstring>(CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
+			auto strwBody = convert_to<std::wstring>(
+				CHARSET_WCHAR "//IGNORE", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
 			strHTML = "<pre>";
 			auto hr = Util::HrTextToHtml(strwBody.c_str(), strHTML, sCodepage.Value.ul);
 			if (hr != hrSuccess)
@@ -2506,7 +2516,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			auto ext = mime_type_to_ext(mime_type.c_str(), "bin");
 			strLongFilename = sugg_filename != nullptr ? sugg_filename : L"inline";
 			strLongFilename += L".";
-			strLongFilename += m_converter.convert_to<std::wstring>(ext);
+			strLongFilename += convert_to<std::wstring>(ext);
 		}
 
 		attProps.set(nProps++, PR_ATTACH_LONG_FILENAME, strLongFilename);
@@ -2748,7 +2758,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 		 *
 		 * (a) display input as-is, e.g. as =?utf-8?Q?VielSpa=C3=9F?=
 		 *     if (!ValidateCharset(..))
-		 *         ret += m_converter.convert_to<std::wstring>((*i)->generate(m_genctx));
+		 *         ret += convert_to<std::wstring>((*i)->generate(m_genctx));
 		 * (b) best effort conversion (which we pick) or
 		 * (c) substitute by a message that decoding failed.
 		 *

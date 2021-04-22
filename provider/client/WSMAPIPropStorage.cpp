@@ -14,7 +14,6 @@
 #include "WSUtil.h"
 #include <kopano/Util.h>
 #include "pcutil.hpp"
-#include <kopano/charset/convert.h>
 #include "IECPropStorage.h"
 
 /*
@@ -82,7 +81,6 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ECRESULT er = hrSuccess;
 	std::unique_ptr<MAPIOBJECT> mo;
 	memory_ptr<SPropValue> lpProp;
-	convert_context	converter;
 	soap_lock_guard spg(*m_lpTransport);
 	struct readPropsResponse sResponse;
 
@@ -111,7 +109,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		/* can call AllocateMore on lpProp */
-		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
+		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp);
 		if (hr != hrSuccess)
 			return hr;
 		/*
@@ -229,14 +227,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	return hr;
 }
 
-HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObject,
-    struct saveObject *lpSaveObj, convert_context *lpConverter)
-{
-	if (lpConverter == NULL) {
-		convert_context converter;
-		return HrMapiObjectToSoapObject(lpsMapiObject, lpSaveObj, &converter);
-	}
-
+HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObject, struct saveObject *lpSaveObj) {
 	HRESULT hr = hrSuccess;
 	ULONG ulPropId = 0;
 	GUID sServerGUID{}, sSIGUID{};
@@ -285,7 +276,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 				if (/*lpsMapiObject->bChangedInstance &&*/ lpsMapiObject->lpInstanceID)
 					continue;
 
-			hr = CopyMAPIPropValToSOAPPropVal(&lpSaveObj->modProps.__ptr[i], &tmp, lpConverter);
+			hr = CopyMAPIPropValToSOAPPropVal(&lpSaveObj->modProps.__ptr[i], &tmp);
 			if(hr == hrSuccess)
 				++i;
 		}
@@ -307,7 +298,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 				// - Modified AND NOT deleted
 				// - Deleted AND loaded from server (locally created/deleted items with no server ID needn't be sent)
 				if ((cld->bChanged && !cld->bDelete) || (cld->ulObjId && cld->bDelete)) {
-					hr = HrMapiObjectToSoapObject(cld, &lpSaveObj->__ptr[lpSaveObj->__size], lpConverter);
+					hr = HrMapiObjectToSoapObject(cld, &lpSaveObj->__ptr[lpSaveObj->__size]);
 					if (hr != hrSuccess)
 						return hr;
 					++lpSaveObj->__size;
@@ -323,16 +314,9 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	return hr;
 }
 
-HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
-    struct saveObject *lpsSaveObj, convert_context *lpConverter)
-{
+HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject, struct saveObject *lpsSaveObj) {
 	std::list<ECProperty>::const_iterator iterProps;
 	ULONG ulPropId = 0;
-
-	if (lpConverter == NULL) {
-		convert_context converter;
-		return HrUpdateSoapObject(lpsMapiObject, lpsSaveObj, &converter);
-	}
 
 	/* FIXME: Support Multiple Single Instances */
 	if (lpsSaveObj->lpInstanceIds && lpsSaveObj->lpInstanceIds->__size) {
@@ -363,7 +347,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			}
 
-			hr = CopyMAPIPropValToSOAPPropVal(&lpsSaveObj->modProps.__ptr[lpsSaveObj->modProps.__size], &sData, lpConverter);
+			hr = CopyMAPIPropValToSOAPPropVal(&lpsSaveObj->modProps.__ptr[lpsSaveObj->modProps.__size], &sData);
 			if(hr != hrSuccess)
 				return hr;
 			++lpsSaveObj->modProps.__size;
@@ -378,7 +362,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 		MAPIOBJECT find(lpsSaveObj->__ptr[i].ulObjType, lpsSaveObj->__ptr[i].ulClientId);
 		auto iter = lpsMapiObject->lstChildren.find(&find);
 		if (iter != lpsMapiObject->lstChildren.cend()) {
-			auto hr = HrUpdateSoapObject(*iter, &lpsSaveObj->__ptr[i], lpConverter);
+			auto hr = HrUpdateSoapObject(*iter, &lpsSaveObj->__ptr[i]);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -397,14 +381,12 @@ ECRESULT WSMAPIPropStorage::EcFillPropTags(const struct saveObject *lpsSaveObj,
 ECRESULT WSMAPIPropStorage::EcFillPropValues(const struct saveObject *lpsSaveObj,
      MAPIOBJECT *lpsMapiObj)
 {
-	convert_context	context;
-
 	for (gsoap_size_t i = 0; i < lpsSaveObj->modProps.__size; ++i) {
 		memory_ptr<SPropValue> lpsProp;
 		auto ec = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsProp);
 		if (ec != erSuccess)
 			return ec;
-		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp, &context);
+		ec = CopySOAPPropValToMAPIPropVal(lpsProp, &lpsSaveObj->modProps.__ptr[i], lpsProp);
 		if (ec != erSuccess)
 			return ec;
 		lpsMapiObj->lstProperties.emplace_back(lpsProp);
@@ -482,9 +464,8 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	ECRESULT	er = erSuccess;
 	struct saveObject sSaveObj;
 	auto cleanup = make_scope_exit([&]() { soap_del_saveObject(&sSaveObj); });
-	convert_context converter;
 
-	auto hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
+	auto hr = HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj);
 	if (hr != hrSuccess) {
 		soap_del_saveObject(&sSaveObj);
 		return hr;
@@ -505,7 +486,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 
 	if (er == KCERR_UNKNOWN_INSTANCE_ID) {
 		/* Instance ID was unknown, we should resend entire message again, but this time include the instance body */
-		hr = HrUpdateSoapObject(lpsMapiObject, &sSaveObj, &converter);
+		hr = HrUpdateSoapObject(lpsMapiObject, &sSaveObj);
 		if (hr != hrSuccess)
 			return hr;
 		goto retry;

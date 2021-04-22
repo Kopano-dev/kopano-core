@@ -17,6 +17,7 @@
 #include <kopano/memory.hpp>
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/charset/convert.h>
 
 using namespace KC;
 
@@ -41,21 +42,20 @@ ZCMAPIProp::~ZCMAPIProp()
 	} \
 }
 
-/** 
+/**
  * Add properties required to make an IMailUser. Properties are the
  * same list as Outlook Contacts Provider does.
- * 
+ *
  * @param[in] cValues number of props in lpProps
  * @param[in] lpProps properties of the original contact
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sValue, sSource;
 	std::string strSearchKey;
-	convert_context converter;
 
 	auto lpProp = PCpropFindProp(lpProps, cValues, PR_BODY);
 	if (lpProp) {
@@ -126,13 +126,13 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	if (lpNames) {
 		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
 		if (lpProp) {
-			strSearchKey += converter.convert_to<std::string>(lpProp->Value.lpszW) + ":";
+			strSearchKey += convert_to<std::string>(lpProp->Value.lpszW) + ":";
 		} else {
 			strSearchKey += "SMTP:";
 		}
 		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[2], PT_UNICODE));
 		if (lpProp)
-			strSearchKey += converter.convert_to<std::string>(lpProp->Value.lpszW);
+			strSearchKey += convert_to<std::string>(lpProp->Value.lpszW);
 
 		sSource.ulPropTag = PR_SEARCH_KEY;
 		sSource.Value.bin.cb = strSearchKey.size();
@@ -207,13 +207,13 @@ HRESULT ZCMAPIProp::ConvertDistList(ULONG cValues, LPSPropValue lpProps)
 	return hr;
 }
 
-/** 
+/**
  * Get Props from the contact and remembers them is this object.
- * 
- * @param[in] lpContact 
+ *
+ * @param[in] lpContact
  * @param[in] ulIndex index in named properties
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulIndex)
@@ -299,15 +299,16 @@ HRESULT ZCMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
-    const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp,
-    LPSPropValue lpBase)
-{
+HRESULT ZCMAPIProp::CopyOneProp(
+	ULONG ulFlags,
+	const std::map<short, SPropValue>::const_iterator &i,
+	LPSPropValue lpProp,
+	LPSPropValue lpBase) {
 	if ((ulFlags & MAPI_UNICODE) || PROP_TYPE(i->second.ulPropTag) != PT_UNICODE)
 		return Util::HrCopyProperty(lpProp, &i->second, lpBase);
 	// copy from unicode to string8
 	lpProp->ulPropTag = CHANGE_PROP_TYPE(i->second.ulPropTag, PT_STRING8);
-	auto strAnsi = converter.convert_to<std::string>(i->second.Value.lpszW);
+	auto strAnsi = convert_to<std::string>(i->second.Value.lpszW);
 	auto hr = MAPIAllocateMore(strAnsi.size() + 1, lpBase,
 	          reinterpret_cast<void **>(&lpProp->Value.lpszA));
 	if (hr != hrSuccess)
@@ -316,21 +317,20 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 	return hrSuccess;
 }
 
-/** 
+/**
  * return property data of this object
- * 
+ *
  * @param[in] lpPropTagArray requested properties or NULL for all
  * @param[in] ulFlags MAPI_UNICODE when lpPropTagArray is NULL
- * @param[out] lpcValues number of properties returned 
+ * @param[out] lpcValues number of properties returned
  * @param[out] lppPropArray properties
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
     ULONG *lpcValues, SPropValue **lppPropArray)
 {
 	memory_ptr<SPropValue> lpProps;
-	convert_context converter;
 
 	if ((lpPropTagArray != nullptr && lpPropTagArray->cValues == 0) ||
 	    !Util::ValidatePropTagArray(lpPropTagArray))
@@ -345,12 +345,12 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 		ULONG j = 0;
 		for (auto i = m_mapProperties.cbegin();
 		     i != m_mapProperties.cend(); ++i) {
-			hr = CopyOneProp(converter, ulFlags, i, &lpProps[j], lpProps);
+			hr = CopyOneProp(ulFlags, i, &lpProps[j], lpProps);
 			if (hr != hrSuccess)
 				return hr;
 			++j;
 		}
-		
+
 		*lpcValues = m_mapProperties.size();
 	} else {
 		// check lpPropTagArray->aulPropTag[x].ulPropTag for PT_UNICODE or PT_STRING8
@@ -366,7 +366,7 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 				continue;
 			}
 
-			hr = CopyOneProp(converter, ulFlags, i, &lpProps[j], lpProps);
+			hr = CopyOneProp(ulFlags, i, &lpProps[j], lpProps);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -377,12 +377,12 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Return a list of all properties on this object
- * 
+ *
  * @param[in] ulFlags 0 for PT_STRING8, MAPI_UNICODE for PT_UNICODE properties
  * @param[out] lppPropTagArray list of all existing properties
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ZCMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray * lppPropTagArray)

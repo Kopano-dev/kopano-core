@@ -943,7 +943,6 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 	bool auto_proc = false;
 	ULONG cbObjectId = 0;
 	memory_ptr<ENTRYID> lpObjectId;
-	convert_context converter;
 	HRESULT hr = hrSuccess;
 
 	switch (ulClass) {
@@ -1037,7 +1036,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 
 		std::unique_ptr<ArchiveManage> ptrArchiveManage;
 		hr = ArchiveManage::Create(
-			lpSession, nullptr, converter.convert_to<tstring>(lpszName).c_str(), &ptrArchiveManage);
+			lpSession, nullptr, convert_to<tstring>(lpszName).c_str(), &ptrArchiveManage);
 		if (hr != hrSuccess) {
 			if (hr != MAPI_E_NOT_FOUND)
 				kc_perror("Error while obtaining archive details", hr);

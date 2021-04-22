@@ -9,7 +9,6 @@
 #include <vmime/mailbox.hpp>
 #include <inetmapi/options.h>
 #include <mapidefs.h>
-#include <kopano/charset/convert.h>
 #include <kopano/memory.hpp>
 
 namespace KC {
@@ -36,7 +35,6 @@ private:
 	object_ptr<IAddrBook> m_lpAdrBook;
 	object_ptr<IMAPISession> m_lpSession;
 	std::wstring m_strError;
-	convert_context m_converter;
 	vmime::charset m_vmCharset;		//!< charset to use in email
 	std::string m_strCharset;		//!< charset to use in email + //TRANSLIT tag
 	std::string m_strHTMLCharset;	//!< HTML body charset in MAPI message (input)

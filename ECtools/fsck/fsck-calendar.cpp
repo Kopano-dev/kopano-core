@@ -403,7 +403,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	// Check the actual recurrence state
 	RecurrenceState r;
 	__UPV Value;
-	convert_context convertContext;
 
 	hr = r.ParseBlob(reinterpret_cast<char *>(lpPropertyArray[E_RECURRENCE_STATE].Value.bin.lpb), lpPropertyArray[E_RECURRENCE_STATE].Value.bin.cb, RECURRENCE_STATE_CALENDAR);
 	if (hr != hrSuccess && hr != MAPI_W_ERRORS_RETURNED) {
@@ -430,9 +429,9 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		ex.ulStartDateTime = iEx->ulStartDateTime;
 		ex.ulEndDateTime = iEx->ulEndDateTime;
 		ex.ulOriginalStartDate = iEx->ulOriginalStartDate;
-		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
+		TryConvert(iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
 		ex.strWideCharSubject = wstr;
-		TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
+		TryConvert(iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
 		ex.strWideCharLocation = wstr;
 		r.lstExtendedExceptions.emplace_back(std::move(ex));
 		++iEx;
@@ -450,9 +449,9 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		eex.strReservedBlock2.clear();
 		eex.ulChangeHighlightValue = 0;
 		eex.ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
-		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
+		TryConvert(iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
 		eex.strWideCharSubject = wstr;
-		TryConvert(convertContext, iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
+		TryConvert(iEx->strLocation, rawsize(iEx->strLocation), "windows-1252", wstr);
 		eex.strWideCharLocation = wstr;
 		++iEx;
 	}

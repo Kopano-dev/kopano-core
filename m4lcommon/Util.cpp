@@ -57,15 +57,15 @@ private:
 static HRESULT HrCopyActions(ACTIONS *, const ACTIONS *, void *);
 static HRESULT HrCopyAction(ACTION *, const ACTION *, void *);
 
-/** 
+/**
  * Add or replaces a prop value in a an SPropValue array
- * 
+ *
  * @param[in] lpSrc Array of properties
  * @param[in] cValues Number of properties in lpSrc
  * @param[in] lpToAdd Add or replace this property
  * @param[out] lppDest All properties returned
  * @param[out] cDestValues Number of properties in lppDest
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
@@ -115,16 +115,16 @@ static bool FHasHTML(IMAPIProp *lpProp)
 	return true;
 }
 
-/** 
+/**
  * Merges to proptag arrays, lpAdds properties may overwrite properties from lpSrc
- * 
+ *
  * @param[in] lpSrc Source property array
  * @param[in] cValues Number of properties in lpSrc
  * @param[in] lpAdds Properties to combine with lpSrc, adding or replacing values
  * @param[in] cAddValues Number of properties in lpAdds
  * @param[out] lppDest New array containing all properties
  * @param[out] cDestValues Number of properties in lppDest
- * 
+ *
  * @return MAPI error code
  */
 HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
@@ -155,17 +155,17 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copies a whole array of properties, but leaves the external data
  * where it is (i.e. binary, string data is not copied). PT_ERROR
  * properties can be filtered.
- * 
+ *
  * @param[in] lpSrc Array of properties
  * @param[in] cValues Number of values in lpSrc
  * @param[out] lppDest Duplicate array with data pointers into lpSrc values
  * @param[out] cDestValues Number of values in lppDest
  * @param[in] bExcludeErrors if true, copy even PT_ERROR properties
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
@@ -188,16 +188,16 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copies a whole array of properties, data of lpSrc will also be
  * copied into lppDest.  PT_ERROR properties can be filtered.
- * 
+ *
  * @param[in] lpSrc Array of properties
  * @param[in] cValues Number of values in lpSrc
  * @param[out] lppDest Duplicate array with data pointers into lpSrc values
  * @param[out] cDestValues Number of values in lppDest
  * @param[in] bExcludeErrors if true, copy even PT_ERROR properties
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
@@ -224,14 +224,14 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy array of properties in already allocated location.
- * 
+ *
  * @param[in] lpSrc Array of properties to copy
  * @param[in] cValues Number of properties in lpSrc
  * @param[out] lpDest Array of properties with enough space to contain cValues properties
  * @param[in] lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
@@ -245,15 +245,15 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy array of properties in already allocated location. but leaves the external data
  * where it is (i.e. binary, string data is not copied)
- * 
+ *
  * @param[in] lpSrc Array of properties to copy
  * @param[in] cValues Number of properties in lpSrc
  * @param[out] lpDest Array of properties with enough space to contain cValues properties
  * @param[in] lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
@@ -267,34 +267,34 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copies one property to somewhere else, but doesn't copy external data (i.e. binary or string data)
- * 
+ *
  * @param[out] lpDest Destination to copy property to
  * @param[in] lpSrc Source property to make copy of
- * 
+ *
  * @return always hrSuccess
  */
 HRESULT Util::HrCopyPropertyByRef(LPSPropValue lpDest, const SPropValue *lpSrc)
 {
     // Just a simple memcpy !
     memcpy(lpDest, lpSrc, sizeof(SPropValue));
-    
+
     return hrSuccess;
 }
 
-/** 
+/**
  * Copies one property to somewhere else, alloc'ing space if required
- * 
+ *
  * @param[out] lpDest Destination to copy property to
  * @param[in] lpSrc Source property to make copy of
  * @param[in] lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc, void *lpBase)
 {
-	switch(PROP_TYPE(lpSrc->ulPropTag)) {	
+	switch(PROP_TYPE(lpSrc->ulPropTag)) {
 	case PT_I2:
 		lpDest->Value.i = lpSrc->Value.i;
 		break;
@@ -350,7 +350,7 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc, void 
 				return hr;
 		}
 		lpDest->Value.bin.cb = lpSrc->Value.bin.cb;
-		
+
 		if(lpSrc->Value.bin.cb > 0)
 			memcpy(lpDest->Value.bin.lpb, lpSrc->Value.bin.lpb, lpSrc->Value.bin.cb);
 		else
@@ -531,12 +531,12 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc, void 
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of an SRestriction structure
- * 
+ *
  * @param[out] lppDest Copy of the restiction in lpSrc
  * @param[in] lpSrc restriction to make a copy of
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopySRestriction(LPSRestriction *lppDest,
@@ -553,13 +553,13 @@ HRESULT Util::HrCopySRestriction(LPSRestriction *lppDest,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of an SRestriction struction on a preallocated destination
- * 
+ *
  * @param[out] lppDest Copy of the restiction in lpSrc
  * @param[in] lpSrc restriction to make a copy of
  * @param[in] lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
@@ -689,13 +689,13 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of an ACTIONS structure (rules) on a preallocated destination
- * 
+ *
  * @param lpDest Copy of the actions in lpSrc
  * @param lpSrc actions to make a copy of
  * @param lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
@@ -717,13 +717,13 @@ static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of one ACTION structure (rules) on a preallocated destination
- * 
+ *
  * @param lpDest Copy of the action in lpSrc
  * @param lpSrc action to make a copy of
  * @param lpBase Base pointer to use with MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
@@ -796,13 +796,13 @@ static HRESULT HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of a complete rowset
- * 
+ *
  * @param[out] lpDest Preallocated SRowSet structure for destination. Should have enough place for lpSrc->cRows.
  * @param[in] lpSrc Make a copy of the rows in this set
  * @param[in] lpBase Use MAPIAllocateMore with this pointer
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
@@ -818,7 +818,7 @@ HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy one row of a rowset.
  *
  * @note According to MSDN, rows in an SRowSet should use separate
@@ -829,11 +829,11 @@ HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
  * However, when you have a rowset within a rowset (e.g. lpadrlist in
  * OP_FORWARD and OP_DELEGATE rules) these need to be allocated to the
  * original row, and not separate
- * 
+ *
  * @param[out] lpDest Preallocated destination base pointer of the new row
  * @param[in] lpSrc Row to make a copy of
  * @param[in] lpBase Optional base pointer to allocate memory for properties
- * 
+ *
  * @return MAPI error code
  */
 HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
@@ -880,17 +880,17 @@ void Util::proptag_change_unicode(ULONG flags, SPropTagArray &src)
 	}
 }
 
-/** 
+/**
  * Make a copy of a byte array using MAPIAllocate functions. This
  * function has a special case: when the input size is 0, the returned
  * pointer is not allocated and NULL is returned.
- * 
+ *
  * @param[in] ulSize number of bytes in lpSrc to copy
  * @param[in] lpSrc bytes to copy into lppDest
  * @param[out] lpulDestSize number of bytes copied from lpSrc
  * @param[out] lppDest copied buffer
  * @param[in] lpBase Optional base pointer for MAPIAllocateMore
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
@@ -914,17 +914,17 @@ HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a copy of an EntryID. Since this actually uses HrCopyBinary, this
  * function has a special case: when the input size is 0, the returned
  * pointer is not allocated and NULL is returned.
- * 
+ *
  * @param[in] ulSize size of the entryid
  * @param[in] lpSrc the entryid to make a copy of
  * @param[out] lpulDestSize output size of the entryid
  * @param[out] lppDest the copy of the entryid
  * @param[in] lpBase Optional pointer for MAPIAllocateMore
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT	Util::HrCopyEntryId(ULONG ulSize, const ENTRYID *lpSrc,
@@ -948,7 +948,7 @@ template<typename T> static int twcmp(T a, T b)
  * Compare two SBinary values.
  * A shorter binary value always compares less to a longer binary value. So only
  * when the two values are equal in size the actual data is compared.
- * 
+ *
  * @param[in]	left
  *					The left SBinary value that should be compared to right.
  * @param[in]	right
@@ -967,7 +967,7 @@ int Util::CompareSBinary(const SBinary &sbin1, const SBinary &sbin2)
 		return twcmp(sbin1.cb, sbin2.cb);
 }
 
-/** 
+/**
  * Compare two properties, optionally using an ECLocale object for
  * correct string compares. String compares are always done case
  * insensitive.
@@ -975,7 +975,7 @@ int Util::CompareSBinary(const SBinary &sbin1, const SBinary &sbin2)
  * The function cannot compare different typed properties.  The PR_ANR
  * property is a special case, where it checks for 'contains' rather
  * than 'is equal'.
- * 
+ *
  * @param[in] lpProp1 property to compare
  * @param[in] lpProp2 property to compare
  * @param[in] locale current locale object
@@ -983,7 +983,7 @@ int Util::CompareSBinary(const SBinary &sbin1, const SBinary &sbin2)
  *             0, the properties are equal
  *            <0, The left value is 'less than' the right value.
  *            >0, The left value is 'greater than' the right value.
- * 
+ *
  * @return MAPI Error code
  * @retval MAPI_E_INVALID_PARAMETER input parameters are NULL or property types are different
  * @retval MAPI_E_INVALID_TYPE the type of the properties is not a valid MAPI type
@@ -1050,7 +1050,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	case PT_CLSID:
 		nCompareResult = *lpProp1->Value.lpguid == *lpProp2->Value.lpguid;
 		break;
-		
+
 	case PT_MV_I2:
 		if (lpProp1->Value.MVi.cValues == lpProp2->Value.MVi.cValues) {
 			for (unsigned int i = 0; i < lpProp1->Value.MVi.cValues; ++i) {
@@ -1169,12 +1169,12 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Calculates the number of bytes the property uses of memory,
  * excluding the SPropValue struct itself, and any pointers required in this struct.
- * 
+ *
  * @param[in] lpProp The property to calculate the size of
- * 
+ *
  * @return size of the property
  */
 unsigned int Util::PropSize(const SPropValue *lpProp)
@@ -1229,7 +1229,7 @@ unsigned int Util::PropSize(const SPropValue *lpProp)
 		return ulSize;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		return 8 * lpProp->Value.MVcur.cValues;	
+		return 8 * lpProp->Value.MVcur.cValues;
 	case PT_MV_BINARY:
 		ulSize = 0;
 		for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i)
@@ -1278,7 +1278,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 	                              "<!-- Converted from text/plain format -->\n"
 	                              "\n"
 	                              "<P><FONT STYLE=\"font-family: courier\" SIZE=2>\n";
-					
+
 	static const char footer[] = "</FONT>\n"
 	                             "</P>\n"
 	                             "\n"
@@ -1378,15 +1378,15 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Convert a plain-text widestring text to html data in specific
  * codepage. No html headers or footers are set in the string like the
  * stream version does.
- * 
+ *
  * @param[in] text plaintext to convert to html
  * @param[out] strHTML append to this html string
  * @param[in] ulCodepage html will be in this codepage
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT Util::HrTextToHtml(const wchar_t *text, std::string &strHTML, ULONG ulCodepage)
@@ -1506,14 +1506,14 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Find a given property tag in an array of property tags.  Use
  * PT_UNSPECIFIED in the proptype to find the first matching property
  * id in the property array.
- * 
+ *
  * @param[in] lpPropTags The property tag array to search in
  * @param[in] ulPropTag The property tag to search for
- * 
+ *
  * @return index in the lpPropTags array
  */
 LONG Util::FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag)
@@ -1532,18 +1532,18 @@ LONG Util::FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag)
 	return (i != lpPropTags->cValues) ? i : -1;
 }
 
-/** 
+/**
  * Return a human readable string for a specified HRESULT code.  You
  * should only call this function if hr contains an error. If an error
  * code is not specified in this function, it will return 'access
  * denied' as default error string.
- * 
+ *
  * @param[in]	hr			return string version for the given value.
  * @param[out]	lppszError	Pointer to a character pointer that will contain the error
  * 							message on success. If no lpBase was provided, the result
  * 							must be freed with MAPIFreeBuffer.
  * @param[in]	lpBase		optional base pointer for use with MAPIAllocateMore.
- * 
+ *
  * @retval	hrSuccess on success.
  */
 HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
@@ -1616,13 +1616,13 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Checks for invalid data in a proptag array. NULL input is
  * considered valid. Any known property type is considered valid,
  * including PT_UNSPECIFIED, PT_NULL and PT_ERROR.
- * 
+ *
  * @param[in] lpPropTagArray property tag array to validate
- * 
+ *
  * @return true for valid, false for invalid
  */
 bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
@@ -1672,15 +1672,15 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 	return bResult;
 }
 
-/** 
+/**
  * Append the full contents of a stream into a std::string. It might use
  * the ECMemStream interface if available, otherwise it will do a
  * normal stream copy. The position of the stream on return is not
  * stable.
- * 
+ *
  * @param[in] sInput The stream to copy data from
  * @param[in] strOutput The string to place data in
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
@@ -1706,15 +1706,15 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	return hr;
 }
 
-/** 
+/**
  * Append the full contents of a stream into a std::string. It might use
  * the ECMemStream interface if available, otherwise it will do a
  * normal stream copy. The position of the stream on return is not
  * stable.
- * 
+ *
  * @param[in] sInput The stream to copy data from
  * @param[in] strOutput The string to place data in
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
@@ -1751,7 +1751,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput)
 {
 	const char *lpszCharset;
-	convert_context converter;
 	std::string data;
 	auto hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess)
@@ -1761,7 +1760,8 @@ static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::
 		return hr;
 
 	try {
-		wstrOutput->assign(converter.convert_to<std::wstring>(CHARSET_WCHAR"//IGNORE", data, rawsize(data), lpszCharset));
+		wstrOutput->assign(
+			convert_to<std::wstring>(CHARSET_WCHAR"//IGNORE", data, rawsize(data), lpszCharset));
 	} catch (const std::exception &) {
 		return MAPI_E_INVALID_PARAMETER;
 	}
@@ -1848,7 +1848,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
 	// \\uc1 is important, for characters that are not supported by the reader of this rtf.
 
 	stackTag.push(RTF_OUTHTML);
-    	
+
 	// We 'convert' from HTML to text by doing a rather simple stripping
 	// of tags, and conversion of some strings
 	while (lpwHTML[pos]) {
@@ -1857,7 +1857,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
 		// Remember if this tag should output a CRLF
 		if(lpwHTML[pos] == '<') {
             bPlainCRLF = false;
-            		
+
 			// Process important tags first
 			if(StrCaseCompare(lpwHTML, L"<HTML", pos)) {
 				type = RTF_TAG_TYPE_HTML;
@@ -1941,12 +1941,12 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
                     break;
             }
         }
-        
+
         // Process special tag input
         if(lpwHTML[pos] == '<' && !inTag) {
             if(StrCaseCompare(lpwHTML, L"<!--", pos))
                 ++ulCommentMode;
-            
+
             if(ulCommentMode == 0) {
                 if(StrCaseCompare(lpwHTML, L"<STYLE", pos))
                     ulStyleMode = 1;
@@ -1962,18 +1962,18 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
                     ulParMode = 0;
                 }
             }
-            
+
             if(ulCommentMode < 2 && ulStyleMode < 2) {
                 strRTF += "\r\n{\\*\\htmltag" + stringify((ulParMode == 2 ? RTF_FLAG_INPAR : 0) | tag | type | stackTag.top()) + " ";
                 inTag = true;
                 bFirstText = true;
-                
+
                 if(ulCommentMode)
                     // Inside comment now
                     ++ulCommentMode;
             }
         }
-        
+
         // Do actual output
         if(lpwHTML[pos] == '\r') {
             // Ignore \r
@@ -2003,7 +2003,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
                 strRTF += "&nbsp;";
             else
                 strRTF += "\r\n{\\*\\htmltag64}{\\*\\htmltag" + stringify((ulParMode == 2 ? RTF_FLAG_INPAR : 0) | RTF_TAG_TYPE_STARTP | stackTag.top()) + " &nbsp;}";
-                
+
             pos+=5;
 		} else if(!inTag && !ulCommentMode && !ulStyleMode && lpwHTML[pos] == '&' && CHtmlEntity::validateHtmlEntity(std::wstring(lpwHTML + pos, 10)) ) {
 			size_t semicolon = pos;
@@ -2044,10 +2044,10 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
         if(lpwHTML[pos] == '>' && (inTag || ulCommentMode)) {
             if(!ulCommentMode && ulStyleMode < 2)
                 strRTF += "}";
-                
+
             if(pos > 2 && StrCaseCompare(lpwHTML, L"-->", pos-2) && ulCommentMode) {
                 --ulCommentMode;
-                
+
                 if(ulCommentMode == 1) {
                     ulCommentMode = 0;
                     strRTF += "}";
@@ -2061,16 +2061,16 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
 
             if(ulStyleMode == 1)
                 ++ulStyleMode;
-                
+
             if(ulParMode == 1)
                 ++ulParMode;
-                
+
             if(ulStyleMode == 2) {
                 // Output the style content as a tag
                 ulStyleMode = 3;
                 strRTF += "\r\n{\\*\\htmltag" + stringify(RTF_TAG_TYPE_UNK | stackTag.top()) + " ";
-            } 
-            
+            }
+
             if (!ulStyleMode && !ulCommentMode)
                 // Normal text must have \*\htmltag64 to suppress <p> in the final html output
                 strRTF += "{\\*\\htmltag64}";
@@ -2079,8 +2079,8 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
                 // Add a plaintext newline if needed, but only for non-style and non-comment parts
                 strRTF += "\\htmlrtf \\line \\htmlrtf0 ";
         }
-        
-        
+
+
         // Next char
         ++pos;
 
@@ -2101,7 +2101,7 @@ HRESULT Util::HrHtmlToRtf(const wchar_t *lpwHTML, std::string &strRTF)
             }
         }
 	}
-	
+
 	strRTF +="}\r\n";
 	return hrSuccess;
 }
@@ -2130,10 +2130,10 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
 	return rtf->Write(strRTF.c_str(), strRTF.size(), NULL);
 }
 
-/** 
+/**
  * Converts a string containing hexadecimal numbers into binary
  * data. And it adds a 0 at the end of the data.
- * 
+ *
  * @todo, check usage of this function to see if the terminating 0 is
  * really useful. should really be removed.
  *
@@ -2142,7 +2142,7 @@ HRESULT	Util::HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage)
  * @param[out] outLength length of the output
  * @param[out] output binary version of the input
  * @param[in] parent optional pointer used for MAPIAllocateMore
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *output, void *parent)
@@ -2167,14 +2167,14 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 	return hr;
 }
 
-/** 
+/**
  * Converts a string containing hexadecimal numbers into binary
  * data.
- * 
+ *
  * @param[in] input string to convert
  * @param[in] len length of the input (must be a multiple of 2)
  * @param[out] output binary version of the input, must be able to receive len/2 bytes
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
@@ -2189,9 +2189,9 @@ HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Return the original body property tag of a message, or PR_NULL when unknown.
- * 
+ *
  * @param[in]	lpBody			Pointer to the SPropValue containing the PR_BODY property.
  * @param[in]	lpHtml			Pointer to the SPropValue containing the PR_HTML property.
  * @param[in]	lpRtfCompressed	Pointer to the SPropValue containing the PR_RTF_COMPRESSED property.
@@ -2199,8 +2199,8 @@ HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
  * @param[in]	ulFlags			If MAPI_UNICODE is specified, the PR_BODY proptag
  * 								will be the PT_UNICODE version. Otherwise the
  * 								PT_STRING8 version is returned.
- * 
- * @return 
+ *
+ * @return
  */
 ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
     const SPropValue *lpRtfCompressed, const SPropValue *lpRtfInSync,
@@ -2238,15 +2238,15 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
 	return PR_NULL;
 }
 
-/** 
+/**
  * Return the original body property tag of a message, or PR_NULL when unknown.
- * 
+ *
  * @param[in]	lpPropObj	The object to get the best body proptag from.
  * @param[in]	ulFlags		If MAPI_UNICODE is specified, the PR_BODY proptag
  * 							will be the PT_UNICODE version. Otherwise the
  * 							PT_STRING8 version is returned.
- * 
- * @return 
+ *
+ * @return
  */
 ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
@@ -2261,9 +2261,9 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 	return GetBestBody(&ptrBodies[0], &ptrBodies[1], &ptrBodies[2], &ptrBodies[3], ulFlags);
 }
 
-/** 
+/**
  * Return the original body property tag of a message, or PR_NULL when unknown.
- * 
+ *
  * @param[in]	lpPropArray	The array of properties on which to base the result.
  *                          This array must include PR_BODY, PR_HTML, PR_RTF_COMPRESSED
  *							and PR_RTF_IN_SYNC.
@@ -2271,8 +2271,8 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
  * @param[in]	ulFlags		If MAPI_UNICODE is specified, the PR_BODY proptag
  * 							will be the PT_UNICODE version. Otherwise the
  * 							PT_STRING8 version is returned.
- * 
- * @return 
+ *
+ * @return
  */
 ULONG Util::GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags)
 {
@@ -2312,13 +2312,13 @@ bool Util::IsBodyProp(ULONG ulPropTag)
 	}
 }
 
-/** 
+/**
  * Find an interface IID in an array of interface definitions.
- * 
+ *
  * @param[in] lpIID interface to find
  * @param[in] ulIIDs number of entries in lpIIDs
  * @param[in] lpIIDs array of interfaces
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND interface not found in array
  */
@@ -2332,12 +2332,12 @@ static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
 	return MAPI_E_NOT_FOUND;
 }
 
-/** 
+/**
  * Copy a complete stream to another.
- * 
+ *
  * @param[in] lpSrc Input stream to copy
  * @param[in] lpDest Stream to append data of lpSrc to
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
@@ -2355,12 +2355,12 @@ static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
 	return lpDest->Commit(0);
 }
 
-/** 
+/**
  * Copy all recipients from a source message to another message.
- * 
+ *
  * @param[in] lpSrc Message containing recipients to copy
  * @param[out] lpDest Message to add (append) all recipients to
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT CopyRecipients(IMessage *lpSrc, IMessage *lpDest)
@@ -2392,12 +2392,12 @@ static HRESULT CopyRecipients(IMessage *lpSrc, IMessage *lpDest)
 	       reinterpret_cast<ADRLIST *>(lpRows.get()));
 }
 
-/** 
+/**
  * Copy a single-instance id to another object, if possible.
- * 
+ *
  * @param lpSrc Source object (message or attachment)
  * @param lpDst Destination object to have the same contents as source
- * 
+ *
  * @return always hrSuccess
  */
 static HRESULT CopyInstanceIds(IMAPIProp *lpSrc, IMAPIProp *lpDst)
@@ -2406,7 +2406,7 @@ static HRESULT CopyInstanceIds(IMAPIProp *lpSrc, IMAPIProp *lpDst)
 	ULONG cbInstanceID = 0;
 	memory_ptr<ENTRYID> lpInstanceID;
 
-	/* 
+	/*
 	 * We are always going to return hrSuccess, if for some reason we can't copy the single instance,
 	 * we always have the real data as fallback.
 	 */
@@ -2429,14 +2429,14 @@ static HRESULT CopyInstanceIds(IMAPIProp *lpSrc, IMAPIProp *lpDst)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy all attachment properties from one attachment to another. The
  * exclude property tag array is optional.
- * 
+ *
  * @param[in] lpSrcAttach Attachment to copy data from
  * @param[out] lpDstAttach Attachment to copy data to
  * @param[in] lpExcludeProps Optional list of properties to not copy
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT CopyAttachmentProps(IAttach *lpSrcAttach, IAttach *lpDstAttach,
@@ -2446,14 +2446,14 @@ static HRESULT CopyAttachmentProps(IAttach *lpSrcAttach, IAttach *lpDstAttach,
 	       lpExcludeProps, 0, NULL, &IID_IAttachment, lpDstAttach, 0, NULL);
 }
 
-/** 
+/**
  * Copy all attachments from one message to another.
- * 
+ *
  * @param[in] lpSrc Source message to copy from
  * @param[in] lpDest Message to copy attachments to
  * @param[in] lpRestriction Optional restriction to apply before copying
  *                          the attachments.
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction lpRestriction) {
@@ -2615,16 +2615,16 @@ static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
 	return hr;
 }
 
-/** 
+/**
  * Copy all messages from a folder to another.
- * 
+ *
  * @param[in] ulWhat 0 for normal messages, MAPI_ASSOCIATED for associated messages
  * @param[in] lpSrc The source folder to copy messages from
  * @param[out] lpDest The destination folder to copy messages in
  * @param[in] ulFlags CopyTo flags, like MAPI_MOVE, or 0
  * @param[in] ulUIParam Unused parameter passed to CopyTo functions
  * @param[in] lpProgress Unused progress object
- * 
+ *
  * @return MAPI error code
  */
 #define MAX_ROWS 50
@@ -2700,11 +2700,11 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
 	return hr;
 }
 
-/** 
+/**
  * Call OpenProperty on a property of an object to get the streamed
  * version of that property. Will try to open with STGM_TRANSACTED,
  * and disable this flag if an error was received.
- * 
+ *
  * @param[in] ulPropType The type of the property to open.
  * @param ulSrcPropTag The source property tag to open on the source object
  * @param lpPropSrc The source object containing the property to open
@@ -2712,7 +2712,7 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
  * @param lpPropDest The destination object where the property should be copied to
  * @param lppSrcStream The source property as stream
  * @param lppDestStream The destination property as stream
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag,
@@ -2735,14 +2735,14 @@ static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Adds a SPropProblem structure to an SPropProblemArray. If the
  * problem array already contains data, it will first be copied to a
  * new array, and one problem will be appended.
- * 
+ *
  * @param[in] lpProblem The new problem to add to the array
  * @param[in,out] lppProblems *lppProblems is NULL for a new array, otherwise a copy plus the addition is returned
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT AddProblemToArray(const SPropProblem *lpProblem,
@@ -2788,10 +2788,10 @@ HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
 #undef R
 }
 
-/** 
+/**
  * Copies a MAPI object in-memory to a new MAPI object. Only
  * IID_IStream or IID_IMAPIProp compatible interfaces can be copied.
- * 
+ *
  * @param[in] lpSrcInterface The expected interface of lpSrcObj. Cannot be NULL.
  * @param[in] lpSrcObj The source object to copy. Cannot be NULL.
  * @param[in] ciidExclude Number of interfaces in rgiidExclude
@@ -2803,7 +2803,7 @@ HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
  * @param[out] lpDestObj The existing destination object. Cannot be NULL.
  * @param[in] ulFlags can contain CopyTo flags, like MAPI_MOVE or MAPI_NOREPLACE
  * @param[in] lppProblems Optional array containing problems encountered during the copy.
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
@@ -2924,7 +2924,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 				lpSPropTagArray->aulPropTag[i] = PR_NULL;
 		}
 	}
-	
+
 	// Force some extra properties
 	if (*lpSrcInterface == IID_IMessage) {
 		bool bAddAttach = false;
@@ -2941,7 +2941,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 		if (bAddAttach || bAddRecip) {
 			memory_ptr<SPropTagArray> lpTempSPropTagArray;
 			ULONG ulNewPropCount = lpSPropTagArray->cValues + (bAddAttach ? (bAddRecip ? 2 : 1) : 1);
-			
+
 			hr = MAPIAllocateBuffer(CbNewSPropTagArray(ulNewPropCount), &~lpTempSPropTagArray);
 			if (hr != hrSuccess)
 				goto exit;
@@ -2971,10 +2971,10 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Copy properties of one MAPI object to another. Only IID_IMAPIProp
  * compatible objects are supported.
- * 
+ *
  * @param[in] lpSrcInterface The expected interface of lpSrcObj. Cannot be NULL.
  * @param[in] lpSrcObj The source object to copy. Cannot be NULL.
  * @param[in] lpIncludeProps List of properties to copy, or NULL for all properties.
@@ -2984,7 +2984,7 @@ exit:
  * @param[out] lpDestObj The existing destination object. Cannot be NULL.
  * @param[in] ulFlags can contain CopyTo flags, like MAPI_MOVE or MAPI_NOREPLACE
  * @param[in] lppProblems Optional array containing problems encountered during the copy.
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
@@ -3322,13 +3322,13 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Copy the IMAP data properties if available, with single instance on
  * the IMAP Email.
- * 
+ *
  * @param[in] lpSrcMsg Copy IMAP data from this message
  * @param[in] lpDstMsg Copy IMAP data to this message
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
@@ -3370,13 +3370,13 @@ HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
 	return lpMsg->DeleteProps(sptaIMAP, NULL);
 }
 
-/** 
+/**
  * Get the quota status object for a store with given quota limits.
- * 
+ *
  * @param[in] lpMsgStore Store to get the quota for
  * @param[in] lpsQuota The (optional) quota limits to check
  * @param[out] lppsQuotaStatus Quota status struct
- * 
+ *
  * @return MAPI error code
  */
 HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
@@ -3386,19 +3386,19 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 	memory_ptr<SPropValue> lpProps;
 	static constexpr SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
     ULONG 			cValues = 0;
-	
+
 	if (lpMsgStore == nullptr || lppsQuotaStatus == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
-		return hr;		
+		return hr;
 	if (cValues != 1 || lpProps[0].ulPropTag != PR_MESSAGE_SIZE_EXTENDED)
 		return MAPI_E_NOT_FOUND;
 	hr = MAPIAllocateBuffer(sizeof *lpsQuotaStatus, &~lpsQuotaStatus);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpsQuotaStatus, 0, sizeof *lpsQuotaStatus);
-	
+
 	lpsQuotaStatus->llStoreSize = lpProps[0].Value.li.QuadPart;
 	lpsQuotaStatus->quotaStatus = QUOTA_OK;
 	if (lpsQuota && lpsQuotaStatus->llStoreSize > 0) {
@@ -3517,7 +3517,7 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 {
 	LPBYTE lpPos = lpPropBlob->Value.bin.lpb;
 	LPBYTE lpEnd = lpPropBlob->Value.bin.lpb + lpPropBlob->Value.bin.cb;
-		
+
 	while (true) {
 		if (lpPos + 8 > lpEnd)
 			return MAPI_E_NOT_FOUND;

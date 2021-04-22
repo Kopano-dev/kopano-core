@@ -9,7 +9,7 @@
 	#include <kopano/charset/convert.h>
 	// Note: the lifetime of the return value only lasts until the end of
 	// the scope that TO_LPTST is used in */
-	#define TO_LPTST(s) ((s) ? converter.convert_to<tstring>(s).c_str() : NULL)
+	#define TO_LPTST(s) ((s) ? convert_to<tstring>(s).c_str() : nullptr)
 	using namespace KC;
 
 	class KC_EXPORT_THROW ArchiverError : public std::runtime_error {
@@ -50,7 +50,6 @@ public:
 		}
 
 		void Archive(const char *lpszUser, bool bAutoAttach = false, unsigned int ulFlags = ArchiveManage::Writable) {
-			convert_context converter;
 			auto e = self->Archive(TO_LPTST(lpszUser), bAutoAttach, ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
@@ -63,7 +62,6 @@ public:
 		}
 
 		void Cleanup(const char *lpszUser) {
-			convert_context converter;
 			auto e = self->Cleanup(TO_LPTST(lpszUser));
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
@@ -101,14 +99,12 @@ public:
 
 	%extend {
 		void AttachTo(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder, unsigned int ulFlags) {
-			convert_context converter;
 			auto e = self->AttachTo(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder), ulFlags);
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
 		}
 
 		void DetachFrom(const char *lpszArchiveServer, const char *lpszArchive, const char *lpszFolder) {
-			convert_context converter;
 			auto e = self->DetachFrom(lpszArchiveServer, TO_LPTST(lpszArchive), TO_LPTST(lpszFolder));
 			if (e != Success)
 				throw ArchiverError(e, "Method returned an error!");
@@ -185,7 +181,6 @@ public:
 
 		ArchiveManage *GetManage(const char *lpszUser) {
 			std::unique_ptr<ArchiveManage> ptr;
-			convert_context converter;
 			auto r = self->GetManage(TO_LPTST(lpszUser), &ptr);
 			if (r != Success)
 				throw ArchiverError(r, "Failed to get object!");

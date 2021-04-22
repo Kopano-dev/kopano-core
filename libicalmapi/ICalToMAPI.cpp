@@ -578,7 +578,6 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 	adrlist_ptr lpRecipients;
 	std::string strSearch;
 	ULONG i = 0;
-	convert_context converter;
 
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(lplstRecip->size()), &~lpRecipients);
 	if (hr != hrSuccess)
@@ -612,7 +611,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 			return hr;
 		rg[4].ulPropTag = PR_ADDRTYPE_W;
 		rg[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-		strSearch = strToUpper("SMTP:" + converter.convert_to<std::string>(recip.strEmail));
+		strSearch = strToUpper("SMTP:" + convert_to<std::string>(recip.strEmail));
 		rg[5].ulPropTag = PR_SEARCH_KEY;
 		rg[5].Value.bin.cb = strSearch.size() + 1;
 		hr = KAllocCopy(strSearch.c_str(), strSearch.size() + 1, reinterpret_cast<void **>(&rg[5].Value.bin.lpb), rg);

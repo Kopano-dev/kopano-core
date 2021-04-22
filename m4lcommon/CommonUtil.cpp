@@ -769,7 +769,6 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
 	const SPropValue *lpEntryID = nullptr, *lpName = nullptr;
 	const SPropValue *lpType = nullptr, *lpAddress = nullptr;
 	std::wstring strSMTPAddress;
-	convert_context converter;
 
 	strName.clear();
 	strType.clear();
@@ -797,19 +796,19 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
 			if (PROP_TYPE(lpName->ulPropTag) == PT_UNICODE)
 				strName = lpName->Value.lpszW;
 			else
-				strName = converter.convert_to<std::wstring>(lpName->Value.lpszA);
+				strName = convert_to<std::wstring>(lpName->Value.lpszA);
 		}
         if (lpType) {
 			if (PROP_TYPE(lpType->ulPropTag) == PT_UNICODE)
 				strType = lpType->Value.lpszW;
 			else
-				strType = converter.convert_to<std::wstring>(lpType->Value.lpszA);
+				strType = convert_to<std::wstring>(lpType->Value.lpszA);
 		}
         if (lpAddress) {
 			if (PROP_TYPE(lpAddress->ulPropTag) == PT_UNICODE)
 				strEmailAddress = lpAddress->Value.lpszW;
 			else
-				strEmailAddress = converter.convert_to<std::wstring>(lpAddress->Value.lpszA);
+				strEmailAddress = convert_to<std::wstring>(lpAddress->Value.lpszA);
 		}
     }
 
@@ -962,7 +961,6 @@ public:
 	HRESULT GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) override
 	{
 		memory_ptr<SPropValue> lpProps;
-		convert_context converter;
 
 		auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, &~lpProps);
 		if (hr != hrSuccess)
@@ -975,14 +973,14 @@ public:
 				bError = true;
 			} else if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				const auto wstrTmp = converter.convert_to<std::wstring>(lpFind->Value.lpszA);
+				const auto wstrTmp = convert_to<std::wstring>(lpFind->Value.lpszA);
 				hr = MAPIAllocateMore((wstrTmp.length() + 1) * sizeof *lpProps[i].Value.lpszW, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszW));
 				if (hr != hrSuccess)
 					return hr;
 				wcscpy(lpProps[i].Value.lpszW, wstrTmp.c_str());
 			} else if (PROP_TYPE(lpFind->ulPropTag) ==  PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) == PT_STRING8) {
 				lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				const auto strTmp = converter.convert_to<std::string>(lpFind->Value.lpszW);
+				const auto strTmp = convert_to<std::string>(lpFind->Value.lpszW);
 				hr = MAPIAllocateMore(strTmp.length() + 1, lpProps, reinterpret_cast<void **>(&lpProps[i].Value.lpszA));
 				if (hr != hrSuccess)
 					return hr;

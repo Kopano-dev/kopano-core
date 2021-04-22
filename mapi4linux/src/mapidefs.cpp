@@ -55,7 +55,6 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 	ULONG c;
 	memory_ptr<SPropValue> props;
 	SPropValue sConvert;
-	convert_context converter;
 	std::wstring unicode;
 	std::string ansi;
 	LPSPropValue lpCopy = NULL;
@@ -70,12 +69,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			// perform unicode conversion if required
 			if ((ulFlags & MAPI_UNICODE) && PROP_TYPE((*i)->ulPropTag) == PT_STRING8) {
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
-				unicode = converter.convert_to<std::wstring>((*i)->Value.lpszA);
+				unicode = convert_to<std::wstring>((*i)->Value.lpszA);
 				sConvert.Value.lpszW = const_cast<wchar_t *>(unicode.c_str());
 				lpCopy = &sConvert;
 			} else if ((ulFlags & MAPI_UNICODE) == 0 && PROP_TYPE((*i)->ulPropTag) == PT_UNICODE) {
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
-				ansi = converter.convert_to<std::string>((*i)->Value.lpszW);
+				ansi = convert_to<std::string>((*i)->Value.lpszW);
 				sConvert.Value.lpszA = const_cast<char *>(ansi.c_str());
 
 				lpCopy = &sConvert;
@@ -106,7 +105,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			{
 				// string8 to unicode
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_UNICODE);
-				unicode = converter.convert_to<std::wstring>((*i)->Value.lpszA);
+				unicode = convert_to<std::wstring>((*i)->Value.lpszA);
 				sConvert.Value.lpszW = const_cast<wchar_t *>(unicode.c_str());
 				lpCopy = &sConvert;
 			}
@@ -116,7 +115,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			{
 				// unicode to string8
 				sConvert.ulPropTag = CHANGE_PROP_TYPE((*i)->ulPropTag, PT_STRING8);
-				ansi = converter.convert_to<std::string>((*i)->Value.lpszW);
+				ansi = convert_to<std::string>((*i)->Value.lpszW);
 				sConvert.Value.lpszA = const_cast<char *>(ansi.c_str());
 				lpCopy = &sConvert;
 			}
@@ -132,7 +131,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				if (hr != hrSuccess)
 					return hr;
 				for (ULONG d = 0; d < (*i)->Value.MVszA.cValues; ++d) {
-					unicode = converter.convert_to<std::wstring>((*i)->Value.MVszA.lppszA[d]);
+					unicode = convert_to<std::wstring>((*i)->Value.MVszA.lppszA[d]);
 					hr = MAPIAllocateMore(unicode.length() * sizeof(wchar_t) + sizeof(wchar_t), props, reinterpret_cast<void **>(&sConvert.Value.MVszW.lppszW[d]));
 					if (hr != hrSuccess)
 						return hr;
@@ -152,7 +151,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				if (hr != hrSuccess)
 					return hr;
 				for (ULONG d = 0; d < (*i)->Value.MVszW.cValues; ++d) {
-					ansi = converter.convert_to<std::string>((*i)->Value.MVszW.lppszW[d]);
+					ansi = convert_to<std::string>((*i)->Value.MVszW.lppszW[d]);
 					hr = MAPIAllocateMore(ansi.length() + 1, props, reinterpret_cast<void **>(&sConvert.Value.MVszA.lppszA[d]));
 					if (hr != hrSuccess)
 						return hr;
@@ -189,14 +188,14 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	if (lpPropArray == nullptr || cValues == 0)
 		return MAPI_E_INVALID_PARAMETER;
 
-		// TODO: return MAPI_E_INVALID_PARAMETER, if multivalued property in 
-		//       the array and its cValues member is set to zero.		
+		// TODO: return MAPI_E_INVALID_PARAMETER, if multivalued property in
+		//       the array and its cValues member is set to zero.
 
     // remove possible old properties
 	for (unsigned int c = 0; c < cValues; ++c) {
 		for (auto i = properties.begin(); i != properties.end(); ) {
-			if ( PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropArray[c].ulPropTag) && 
-				(*i)->ulPropTag != PR_NULL && 
+			if ( PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropArray[c].ulPropTag) &&
+				(*i)->ulPropTag != PR_NULL &&
 				PROP_TYPE((*i)->ulPropTag) != PT_ERROR)
 			{
 				auto del = i++;
@@ -212,7 +211,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     // set new properties
 	for (unsigned int c = 0; c < cValues; ++c) {
 		// Ignore PR_NULL property tag and all properties with a type of PT_ERROR
-		if(PROP_TYPE(lpPropArray[c].ulPropTag) == PT_ERROR || 
+		if(PROP_TYPE(lpPropArray[c].ulPropTag) == PT_ERROR ||
 			lpPropArray[c].ulPropTag == PR_NULL)
 			continue;
 		memory_ptr<SPropValue> pv;
@@ -307,7 +306,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	auto hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
-	
+
 	// Loop through all providers, add each to the table
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 	for (auto &prov : msa->providers) {
@@ -316,7 +315,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		if (szService != NULL &&
 		    strcmp(szService, prov->servicename.c_str()) != 0)
 			continue;
-		
+
 		hr = prov->profilesection->GetProps(sptaProviderCols, 0,
 		     &cValues, &~lpsProps);
 		if (FAILED(hr))
@@ -330,23 +329,23 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
+
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		return hr;
 	return lpTableView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
-/** 
+/**
  * Add a provider to a MAPI service
- * 
+ *
  * @param[in] lpszProvider name of the provider to add, must be known through mapisvc.inf
  * @param[in] cValues number of properties in lpProps
  * @param[in] lpProps properties to set on the provider context (properties from mapisvc.inf)
  * @param[in] ulUIParam Unused in linux
  * @param[in] ulFlags must be 0
  * @param[out] lpUID a uid which will identify this added provider in the service context
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
@@ -374,7 +373,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	entry->profilesection.reset(new(std::nothrow) M4LProfSect);
 	if (entry->profilesection == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	
+
 	// Set the default profilename
 	auto hr = HrGetOneProp(msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
 	if (hr != hrSuccess)
@@ -472,9 +471,9 @@ HRESULT M4LProviderAdmin::QueryInterface(const IID &refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-// 
+//
 // IMAPIAdviseSink
-// 
+//
 ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) {
 	return lpFn(lpContext, cNotif, lpNotifications);
 }
@@ -489,13 +488,13 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(const IID &refiid, void **lppInterface
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
 }
 
-/** 
+/**
  * Merges all HierarchyTables from the providers passed in the constructor.
- * 
+ *
  * @param[in] ulFlags MAPI_UNICODE
  * @param[out] lppTable ECMemTable with combined contents from all providers
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	object_ptr<ECMemTable> lpTable;

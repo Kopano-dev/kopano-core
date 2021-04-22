@@ -13,11 +13,12 @@
 #include "nameids.h"
 #include "icaluid.h"
 #include <kopano/stringutil.h>
+#include <kopano/charset/convert.h>
 #include "icalmem.hpp"
 
 namespace KC {
 
-/** 
+/**
  * VEvent constructor, implements VConverter
  */
 VEventConverter::VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropTagArray lpNamedProps, const std::string& strCharset, bool blCensor, bool bNoRecipients, IMailUser *lpMailUser)
@@ -25,14 +26,14 @@ VEventConverter::VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones
 {
 }
 
-/** 
+/**
  * Entrypoint to convert an ical object to MAPI object.
- * 
+ *
  * @param[in]  lpEventRoot The root component (VCALENDAR top object)
  * @param[in]  lpEvent The VEVENT object to convert
  * @param[in]  lpPrevItem Optional previous (top) item to use when lpEvent describes an exception
  * @param[out] lppRet The icalitem struct to finalize into a MAPI object
- * 
+ *
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
@@ -45,7 +46,7 @@ HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *
 	return hrSuccess;
 }
 
-/** 
+/**
  * The properties set here are all required base properties for
  * different calendar items and meeting requests.
  *
@@ -61,12 +62,12 @@ HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *
  * requests in emails) and PUBLISH for iCal/CalDAV (that is, pure
  * calendar items). Meeting requests through the PUBLISH method (as
  * also described in the Microsoft documentations) is not supported.
- * 
+ *
  * @param[in]  icMethod Method of the ical event
  * @param[in]  lpicEvent The ical VEVENT to convert
  * @param[in]  base Used for the 'base' pointer for memory allocations
  * @param[in]  bisException Whether we are handling an exception or not
- * @param[in,out] lstMsgProps 
+ * @param[in,out] lstMsgProps
  * @return MAPI error code
  */
 HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bisException, std::list<SPropValue> *lstMsgProps)
@@ -78,7 +79,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	auto icProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	auto lpszProp = icProp != nullptr ? icalproperty_get_organizer(icProp) : nullptr;
 	if (lpszProp != nullptr) {
-		strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
+		strEmail = convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 			strEmail.erase(0, 7);
 		if (bIsUserLoggedIn(strEmail))
@@ -156,7 +157,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG);
 		sPropVal.Value.ul = m_ulUserStatus != 0 ? m_ulUserStatus : bMeetingOrganised;
 		lstMsgProps->emplace_back(sPropVal);
-		
+
 		// time(NULL) returns UTC time as libical sets application to UTC time.
 		auto tNow = time(nullptr);
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTREPLYTIME], PT_SYSTIME);
@@ -191,18 +192,18 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 
 	if (icMethod == ICAL_METHOD_CANCEL || icMethod == ICAL_METHOD_REQUEST)
 	{
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN);
 		sPropVal.Value.b = true;
 		lstMsgProps->emplace_back(sPropVal);
 	} else if (icMethod == ICAL_METHOD_REPLY || icMethod == ICAL_METHOD_COUNTER) {
 		// This is only because outlook and the examples say so in [MS-OXCICAL].pdf
 		// Otherwise, it's completely contradictionary to what the documentation describes.
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN);
 		sPropVal.Value.b = false;
 		lstMsgProps->emplace_back(sPropVal);
 	} else {
 		// PUBLISH method, depends on if we're the owner of the object
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN); 
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REQUESTSENT], PT_BOOLEAN);
 		sPropVal.Value.b = bMeetingOrganised;
 		lstMsgProps->emplace_back(sPropVal);
 	}
@@ -356,7 +357,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTEndLocal : timeDTEndUTC);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-	
+
 	// Set 0x8517 / CommonEnd
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -386,10 +387,10 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	return hrSuccess;
 }
 
-/** 
+/**
  * Create a new ical VEVENT component and set all ical properties in
  * the returned object.
- * 
+ *
  * @param[in]  lpMessage The message to convert
  * @param[out] lpicMethod The ical method of the top VCALENDAR object (hint, can differ when mixed methods are present in one VCALENDAR)
  * @param[out] lppicTZinfo ical timezone struct, describes all times used in this ical component
@@ -409,10 +410,10 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
 	return hrSuccess;
 }
 
-/** 
+/**
  * Extends the VConverter version to set 'appt start whole' and 'appt end whole' named properties.
  * This also adds the counter proposal times on a propose new time meeting request.
- * 
+ *
  * @param[in]  lpMsgProps All (required) properties from the message to convert time properties
  * @param[in]  ulMsgProps number of properties in lpMsgProps
  * @param[in]  lpicTZinfo ical timezone object to set times in
@@ -440,7 +441,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 			ulEndIndex = PROP_PROPOSEDEND;
 		}
 	}
- 	
+
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 	auto bIsAllDay = lpPropVal != nullptr && lpPropVal->Value.b;
 	// @note If bIsAllDay == true, the item is an allday event "in the timezone it was created in" (and the user selected the allday event option)
@@ -466,7 +467,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
-	// @note we never set the DURATION property: MAPI objects always should have the end property 
+	// @note we never set the DURATION property: MAPI objects always should have the end property
 	if (!bCounterProposal)
 		return hrSuccess;
 

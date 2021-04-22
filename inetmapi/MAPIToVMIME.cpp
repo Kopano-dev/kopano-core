@@ -44,6 +44,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/codepage.h>
 #include <kopano/ecversion.h>
+#include <kopano/charset/convert.h>
 #include "ECVMIMEUtils.h"
 #include "MAPIToICal.h"
 
@@ -443,7 +444,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 				               vmMIMEType, strContentId,
-				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
+				               vmime::word(convert_to<std::string>(
+						       m_strCharset.c_str(),
+						       szFilename,
+						       rawsize(szFilename),
+						       CHARSET_WCHAR),
+						       m_vmCharset));
 
 				// add to message (copies pointer, not data)
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
@@ -451,7 +457,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::stringContentHandler>(absent_note),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 				               note_type, strContentId,
-				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
+				               vmime::word(convert_to<std::string>(
+							       m_strCharset.c_str(),
+							       szFilename,
+							       rawsize(szFilename),
+							       CHARSET_WCHAR),
+							       m_vmCharset));
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
 			}
 		} catch (const vmime::exception &e) {
@@ -493,7 +504,7 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 {
 	// to lowercase
 	transform(strFilename.begin(), strFilename.end(), strFilename.begin(), ::towlower);
-	auto strExt = m_converter.convert_to<std::string>(m_strCharset.c_str(), strFilename, rawsize(strFilename), CHARSET_WCHAR);
+	auto strExt = convert_to<std::string>(m_strCharset.c_str(), strFilename, rawsize(strFilename), CHARSET_WCHAR);
 	strExt.erase(0, strExt.find_last_of(".")+1);
 	auto strMedType = ext_to_mime_type(strExt.c_str());
 	*lpMT = vmime::mediaType(strMedType);
@@ -681,7 +692,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 
 vmime::mailbox MAPIToVMIME::make_mailbox(const std::wstring &name, const std::wstring &email)
 {
-	auto e2 = m_converter.convert_to<std::string>(email);
+	auto e2 = convert_to<std::string>(email);
 	if (name.empty() || name == email)
 		return vmime::mailbox(std::move(e2));
 	return vmime::mailbox(getVmimeTextFromWide(name), std::move(e2));
@@ -786,7 +797,8 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			hr = Util::HrStreamToString(lpBodyStream, strBuffer);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to read MDN message body", hr);
-			strMDNText = m_converter.convert_to<std::string>(m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
+			strMDNText = convert_to<std::string>(
+				m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
 		}
 
 		// Store owner, actual sender
@@ -796,7 +808,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		// Ignore errors here and let strRep* untouched
 		HrGetAddress(m_lpAdrBook, lpMessage, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strRepName, strRepType, strRepEmailAdd);
 
-		expeditor.setEmail(m_converter.convert_to<std::string>(strEmailAdd));
+		expeditor.setEmail(convert_to<std::string>(strEmailAdd));
 		if(!strName.empty())
 			expeditor.setName(getVmimeTextFromWide(strName));
 		else
@@ -1102,11 +1114,12 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 	auto pPropObjectType = lpRow->cfind(PR_OBJECT_TYPE);
 	if (strName.empty() && !strEmail.empty()) {
 		// email address only
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(m_converter.convert_to<std::string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(convert_to<std::string>(strEmail));
 		return hrSuccess;
 	} else if (strEmail.find('@') != strEmail.npos) {
 		// email with fullname
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(
+			getVmimeTextFromWide(strName), convert_to<std::string>(strEmail));
 		return hrSuccess;
 	} else if (pPropObjectType && pPropObjectType->Value.ul == MAPI_DISTLIST) {
 		// if mailing to a group without email address
@@ -1114,7 +1127,8 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		return hrSuccess;
 	} else if (sopt.no_recipients_workaround) {
 		// gateway must always return a mailbox object
-		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<std::string>(strEmail));
+		vmMailboxNew = vmime::make_shared<vmime::mailbox>(
+			getVmimeTextFromWide(strName), convert_to<std::string>(strEmail));
 		return hrSuccess;
 	}
 	if (strEmail.empty()) {
@@ -1210,7 +1224,8 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		}
 
 		// Convert body to correct charset
-		strBodyConverted = m_converter.convert_to<std::string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR);
+		strBodyConverted = convert_to<std::string>(
+			m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR);
 
 		// always use our textpart class
 		lpVMMessageBuilder->constructTextPart(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
@@ -1219,7 +1234,11 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		if (!strHTMLOut.empty()) {
 			if (m_vmCharset.getName() != m_strHTMLCharset)
 				// convert from HTML charset to vmime output charset
-				strHTMLOut = m_converter.convert_to<std::string>(m_vmCharset.getName().c_str(), strHTMLOut, rawsize(strHTMLOut), m_strHTMLCharset.c_str());
+				strHTMLOut = convert_to<std::string>(
+					m_vmCharset.getName().c_str(),
+					strHTMLOut,
+					rawsize(strHTMLOut),
+					m_strHTMLCharset.c_str());
 			auto textPart = vmime::dynamicCast<mapiTextPart>(lpVMMessageBuilder->getTextPart());
 			textPart->setText(vmime::make_shared<vmime::stringContentHandler>(strHTMLOut));
 			textPart->setCharset(m_vmCharset);
@@ -1990,7 +2009,7 @@ void MAPIToVMIME::removeEnters(wchar_t *s)
 
 /**
  * Shortcut for common conversion used in this file.
- * Note: Uses class members m_converter, m_vmCharset and m_strCharset.
+ * Note: Uses class members m_vmCharset and m_strCharset.
  *
  * @param[in]	lpszwInput	input string in WCHAR
  * @return	the converted text from WCHAR to vmime::text with specified charset
@@ -1999,17 +2018,25 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
 {
 	try {
 		/* Try keeping words unencoded if so representable (KC-1430) */
-		return vmime::text(vmime::word(m_converter.convert_to<std::string>("US-ASCII//NOIGNORE",
-		       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), vmime::charsets::US_ASCII));
+		return vmime::text(vmime::word(convert_to<std::string>(
+			"US-ASCII//NOIGNORE",
+			lpszwInput,
+			rawsize(lpszwInput),
+			CHARSET_WCHAR),
+			vmime::charsets::US_ASCII));
 	} catch (const convert_exception &) {
 	}
-	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       lpszwInput, rawsize(lpszwInput), CHARSET_WCHAR), m_vmCharset));
+	return vmime::text(vmime::word(convert_to<std::string>(
+		m_strCharset.c_str(),
+		lpszwInput,
+		rawsize(lpszwInput),
+		CHARSET_WCHAR),
+		m_vmCharset));
 }
 
 /**
  * Shortcut for common conversion used in this file.
- * Note: Uses class members m_converter, m_vmCharset and m_strCharset.
+ * Note: Uses class members m_vmCharset and m_strCharset.
  *
  * @param[in]	lpszwInput	input string in std::wstring
  * @return	the converted text from WCHAR to vmime::text with specified charset
@@ -2017,12 +2044,20 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const wchar_t *lpszwInput)
 vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring &strwInput)
 {
 	try {
-		return vmime::text(vmime::word(m_converter.convert_to<std::string>("US-ASCII//NOIGNORE",
-		       strwInput, rawsize(strwInput), CHARSET_WCHAR), vmime::charsets::US_ASCII));
+		return vmime::text(vmime::word(convert_to<std::string>(
+			"US-ASCII//NOIGNORE",
+			strwInput,
+			rawsize(strwInput),
+			CHARSET_WCHAR),
+			vmime::charsets::US_ASCII));
 	} catch (const convert_exception &) {
 	}
-	return vmime::text(vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(),
-	       strwInput, rawsize(strwInput), CHARSET_WCHAR), m_vmCharset));
+	return vmime::text(vmime::word(convert_to<std::string>(
+		m_strCharset.c_str(),
+		strwInput,
+		rawsize(strwInput),
+		CHARSET_WCHAR),
+		m_vmCharset));
 }
 
 void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,

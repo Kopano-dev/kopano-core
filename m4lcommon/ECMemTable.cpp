@@ -209,7 +209,7 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
 /*
  * This is not as easy as it seems. This is how we handle updates:
  *
- * There are really only two operations, ADD and DELETE, in which ADD can either add a 
+ * There are really only two operations, ADD and DELETE, in which ADD can either add a
  * row or modify an existing row, and DELETE can delete a row. We basically handle TABLE_ROW_ADD
  * and TABLE_ROW_MODIFY exactly the same:
  *
@@ -274,7 +274,7 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
 
 		entry.fDeleted = false;
 		entry.fDirty = entry.fNew = true;
-		
+
 		if(lpsID) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~entry.lpsID);
 			if(hr != hrSuccess)
@@ -459,7 +459,7 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		tmp4 = cpu_to_le32(lpsRowItem->ulOrderId);
 		memcpy(bin.lpb + sizeof(tmp4), &tmp4, sizeof(tmp4));
 	}
-	
+
 	switch(ulTableEvent) {
 	case TABLE_ROW_ADDED:
 	case TABLE_ROW_MODIFIED:
@@ -513,7 +513,7 @@ HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagA
 	if(ulFlags & TBL_ALL_COLUMNS) {
 		FixStringType fix(m_ulFlags);
 
-		// All columns is an aggregate of .. 1. Our column list of columns that we always support and 2. 
+		// All columns is an aggregate of .. 1. Our column list of columns that we always support and 2.
 		// any other columns in our data set that we can find
 
 		// Our standard set
@@ -610,9 +610,9 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 	if (lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	if(	lpRestriction->rt == RES_PROPERTY && 
+	if(	lpRestriction->rt == RES_PROPERTY &&
 		lpRestriction->res.resProperty.lpProp->ulPropTag == lpMemTable->ulRowPropTag &&
-		bkOrigin == BOOKMARK_BEGINNING) 
+		bkOrigin == BOOKMARK_BEGINNING)
 	{
 		sRowItem.ulObjId = lpRestriction->res.resContent.lpProp->Value.ul;
 		sRowItem.ulOrderId = 0; // FIXME:mvprops ?
@@ -635,7 +635,7 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 			return hr;
 		if (sRowList.empty())
 			return MAPI_E_NOT_FOUND;
-		if(TestRestriction(lpRestriction, 
+		if(TestRestriction(lpRestriction,
 		    lpMemTable->mapRows[sRowList.front().ulObjId].cValues,
 		    lpMemTable->mapRows[sRowList.front().ulObjId].lpsPropVal,
 		    m_locale) == hrSuccess) {
@@ -730,7 +730,7 @@ HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal, ECSortCol
 		sc.key.append(R(&tmp), sizeof(tmp));
 		break;
 	}
-	case PT_STRING8: 
+	case PT_STRING8:
 	case PT_UNICODE:
 		if (!lpsPropVal->Value.lpszA) {	// Checks both lpszA and lpszW
 			sc.key.clear();
@@ -860,7 +860,6 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
     SRowSet **lppRows)
 {
 	rowset_ptr lpRows;
-	convert_context converter;
 
 	if (lpsRowList == NULL || lppRows == NULL) {
 		assert(false);
@@ -926,7 +925,7 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 			if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_UNICODE && PROP_TYPE(lpsProp->ulPropTag) == PT_STRING8) {
 				// PT_UNICODE requested, and PT_STRING8 provided. Do conversion.
 				prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_UNICODE);
-				const auto strTmp = converter.convert_to<std::wstring>(lpsProp->Value.lpszA);
+				const auto strTmp = convert_to<std::wstring>(lpsProp->Value.lpszA);
 				hr = KAllocCopy(strTmp.c_str(), (strTmp.size() + 1) * sizeof(std::wstring::value_type), reinterpret_cast<void **>(&prop.Value.lpszW), lpRows[i].lpProps);
 				if (hr != hrSuccess)
 					return hr;
@@ -934,7 +933,7 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 			} else if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_STRING8 && PROP_TYPE(lpsProp->ulPropTag) == PT_UNICODE) {
 				// PT_STRING8 requested, and PT_UNICODE provided. Do conversion.
 				prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_STRING8);
-				const auto strTmp = converter.convert_to<std::string>(lpsProp->Value.lpszW);
+				const auto strTmp = convert_to<std::string>(lpsProp->Value.lpszW);
 				hr = KAllocCopy(strTmp.c_str(), strTmp.size() + 1, reinterpret_cast<void **>(&prop.Value.lpszA), lpRows[i].lpProps);
 				if (hr != hrSuccess)
 					return hr;

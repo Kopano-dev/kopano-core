@@ -128,14 +128,12 @@ static void InitRTFState(RTFSTATE *sState)
 	sState->ulSkipChars = 0;
 }
 
-static std::wstring RTFFlushStateOutput(convert_context &convertContext,
-    std::unique_ptr<RTFSTATE[]> &sState, ULONG ulState)
-{
+static std::wstring RTFFlushStateOutput(std::unique_ptr<RTFSTATE[]> &sState, ULONG ulState) {
 	std::wstring wstrUnicode;
 
 	if (sState[ulState].output.empty())
 		return wstrUnicode;
-	TryConvert(convertContext, sState[ulState].output, rawsize(sState[ulState].output), sState[ulState].szCharset, wstrUnicode);
+	TryConvert(sState[ulState].output, rawsize(sState[ulState].output), sState[ulState].szCharset, wstrUnicode);
 	sState[ulState].output.clear();
 	return wstrUnicode;
 }
@@ -162,7 +160,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 	int ulState = 0;
 	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
 	fontmap_t mapFontToCharset;
-	convert_context convertContext;
 
 	// Find \\htmltag, if there is none we can't extract HTML
 	if (strstr(szInput, "{\\*\\htmltag") == NULL)
@@ -248,7 +245,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 						if (i == mapFontToCharset.cend())
 							continue;
 						// Output any data before this point
-						strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+						strOutput += RTFFlushStateOutput(sState, ulState);
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -260,7 +257,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 				}
 				else if (strcmp(szCommand,"u") == 0) {
 					// unicode character, in signed short WCHAR
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					if (!sState[ulState].bRTFOnly)
 						strOutput.append(1, (unsigned short)lArg); // add as literal character
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
@@ -321,7 +318,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 		} // Non-command
 		else if(*szInput == '{') {
 			// Dump output data
-			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+			strOutput += RTFFlushStateOutput(sState, ulState);
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -330,7 +327,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 			++szInput;
 		} else if(*szInput == '}') {
 			// Dump output data
-			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+			strOutput += RTFFlushStateOutput(sState, ulState);
 
 			if(ulState > 0)
 				--ulState;
@@ -346,9 +343,10 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 		}
 	}
 
-	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+	strOutput += RTFFlushStateOutput(sState, ulState);
 	try {
-		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convert_to<std::string>(
+			strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = HrFromException(ce);
 	}
@@ -381,7 +379,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	int nLineChar=0;
 	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
 	fontmap_t mapFontToCharset;
-	convert_context convertContext;
 
 	// select output charset
 	auto hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
@@ -403,7 +400,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	       "<!-- Converted from text/plain format -->\r\n"
 	       "\r\n"; //FIXME create title on the fly ?
 
-	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
+	TryConvert(tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
 	InitRTFState(&sState[0]);
 
@@ -483,7 +480,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 						if (i == mapFontToCharset.cend())
 							continue;
 						// Output any data before this point
-						strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+						strOutput += RTFFlushStateOutput(sState, ulState);
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -499,7 +496,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 						bPar = true;
 					}
 					// unicode character, in signed short WCHAR
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					if (!sState[ulState].bRTFOnly)
 						strOutput.append(1, (unsigned short)lArg); // add as literal character
 					sState[ulState].ulSkipChars += sState[ulState].ulUnicodeSkip;
@@ -535,7 +532,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 				}
 				// Dump output data until now, if we're switching charsets
 				if (szANSICharset == nullptr || strcmp(sState[ulState].szCharset, szANSICharset) != 0)
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 
 				while(*szInput == '\'')
 				{
@@ -565,7 +562,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 
 				// Dump escaped data in charset 0 (ansicpg), if we had to switch charsets
 				if (szANSICharset == nullptr || strcmp(sState[ulState].szCharset, szANSICharset) != 0)
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 			} else {
 				++szInput; // skip single character after '\'
 			}
@@ -573,7 +570,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		else if(*szInput == '{') {
 			// Dump output data
 			if (!sState[ulState].output.empty())
-				strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+				strOutput += RTFFlushStateOutput(sState, ulState);
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -581,7 +578,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			++szInput;
 		} else if(*szInput == '}') {
 			// Dump output data
-			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+			strOutput += RTFFlushStateOutput(sState, ulState);
 			if(ulState > 0)
 				--ulState;
 			++szInput;
@@ -617,14 +614,15 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		}
 	}
 
-	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+	strOutput += RTFFlushStateOutput(sState, ulState);
 	if (bPar)
 		strOutput += L"</p>\r\n";
 	strOutput += L"\r\n"
 	             L"</BODY>\r\n"
 	             L"</HTML>\r\n";
 	try {
-		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convert_to<std::string>(
+			strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = HrFromException(ce);
 	}
@@ -655,7 +653,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	std::wstring strOutput;
 	int ulState = 0;
 	auto sState = std::make_unique<RTFSTATE[]>(RTF_MAXSTATE);
-	convert_context convertContext;
 	fontmap_t mapFontToCharset;
 	bool bPar = false;
 
@@ -679,7 +676,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	       "<!-- Converted from text/rtf format -->\r\n"
 	       "\r\n"; //FIXME create title on the fly ?
 
-	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
+	TryConvert(tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
 	InitRTFState(&sState[0]);
 
@@ -767,7 +764,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 							continue;
 						// Output any data before this point
 						if (!sState[ulState].output.empty())
-							strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+							strOutput += RTFFlushStateOutput(sState, ulState);
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -783,7 +780,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						bPar = true;
 					}
 					// unicode character, in signed short WCHAR
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {
 						std::wstring entity;
 
@@ -827,31 +824,31 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						++szInput;
 					sState[ulState].bInSkipTbl = true;
 				} else if (strcmp(szCommand, "endash") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x96, unicode 0x2013
 					strOutput += 0x2013;
 				} else if (strcmp(szCommand, "emdash") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x97, unicode 0x2014
 					strOutput += 0x2014;
 				} else if (strcmp(szCommand, "lquote") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x91, unicode 0x2018
 					strOutput += 0x2018;
 				} else if (strcmp(szCommand, "rquote") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x92, unicode 0x2019
 					strOutput += 0x2019;
 				} else if (strcmp(szCommand, "ldblquote") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x93, unicode 0x201C
 					strOutput += 0x201C;
 				} else if (strcmp(szCommand, "rdblquote") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x94, unicode 0x201D
 					strOutput += 0x201D;
 				} else if (strcmp(szCommand, "bullet") == 0) {
-					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+					strOutput += RTFFlushStateOutput(sState, ulState);
 					// windows-1252: 0x95, unicode 0x2022
 					strOutput += 0x2022;
 				} else if(isRTFIgnoreCommand(szCommand)) {
@@ -912,7 +909,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		} // Non-command
 		else if(*szInput == '{') {
 			// Dump output data
-			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+			strOutput += RTFFlushStateOutput(sState, ulState);
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -920,7 +917,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 			++szInput;
 		} else if(*szInput == '}') {
 			// Dump output data
-			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+			strOutput += RTFFlushStateOutput(sState, ulState);
 			if(ulState > 0)
 				--ulState;
 			++szInput;
@@ -947,14 +944,15 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		}
 	}
 
-	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
+	strOutput += RTFFlushStateOutput(sState, ulState);
 	if (bPar)
 		strOutput += L"</p>\r\n";
 	strOutput += L"\r\n"
 	             L"</BODY>\r\n"
 	             L"</HTML>\r\n";
 	try {
-		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
+		lpStrHTMLOut = convert_to<std::string>(
+			strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
 		hr = HrFromException(ce);
 	}

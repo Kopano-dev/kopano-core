@@ -6,7 +6,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <mapidefs.h>
-#include <kopano/charset/convert.h>
 #include <map>
 
 class ZCMAPIProp _no_final : public KC::ECUnknown, public IMailUser {
@@ -19,7 +18,8 @@ protected:
 	HRESULT ConvertProps(IMAPIProp *contact, ULONG eid_size, const ENTRYID *eid, ULONG index);
 
 	/* getprops helper */
-	HRESULT CopyOneProp(KC::convert_context &, ULONG flags, const std::map<short, SPropValue>::const_iterator &, SPropValue *prop, SPropValue *base);
+	HRESULT CopyOneProp(
+		ULONG flags, const std::map<short, SPropValue>::const_iterator &, SPropValue *prop, SPropValue *base);
 
 public:
 	static HRESULT Create(IMAPIProp *lpContact, ULONG eid_size, const ENTRYID *eid, ZCMAPIProp **);

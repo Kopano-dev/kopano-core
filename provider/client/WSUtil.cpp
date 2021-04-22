@@ -27,11 +27,7 @@
 
 using namespace KC;
 
-#define CONVERT_TO(ctx, cset, ...) ((ctx) ? (ctx)->convert_to<cset>(__VA_ARGS__) : convert_to<cset>(__VA_ARGS__))
-
-HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
-    convert_context *lpConverter)
-{
+HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp) {
 	dp->ulPropTag = sp->ulPropTag;
 	dp->Value = propValData();
 
@@ -79,11 +75,11 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		break;
 	case PT_STRING8:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszA).z_str());
+		dp->Value.lpszA = soap_strdup(nullptr, convert_to<utf8string>(sp->Value.lpszA).z_str());
 		break;
 	case PT_UNICODE:
 		dp->__union = SOAP_UNION_propValData_lpszA;
-		dp->Value.lpszA = soap_strdup(nullptr, CONVERT_TO(lpConverter, utf8string, sp->Value.lpszW).z_str());
+		dp->Value.lpszA = soap_strdup(nullptr, convert_to<utf8string>(sp->Value.lpszW).z_str());
 		break;
 	case PT_SYSTIME:
 		dp->__union = SOAP_UNION_propValData_hilo;
@@ -175,28 +171,20 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		}
 		break;
 	case PT_MV_STRING8:
-		if (lpConverter == NULL) {
-			convert_context converter;
-			CopyMAPIPropValToSOAPPropVal(dp, sp, &converter);
-			break;
-		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
 		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
-			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).z_str());
+			dp->Value.mvszA.__ptr[i] = soap_strdup(
+				nullptr, convert_to<utf8string>(sp->Value.MVszA.lppszA[i]).z_str());
 		break;
 	case PT_MV_UNICODE:
-		if (lpConverter == NULL) {
-			convert_context converter;
-			CopyMAPIPropValToSOAPPropVal(dp, sp, &converter);
-			break;
-		}
 		dp->__union = SOAP_UNION_propValData_mvszA;
 		dp->Value.mvszA.__size = sp->Value.MVszA.cValues;
 		dp->Value.mvszA.__ptr  = soap_new_string(nullptr, dp->Value.mvszA.__size);
 		for (gsoap_size_t i = 0; i < dp->Value.mvszA.__size; ++i)
-			dp->Value.mvszA.__ptr[i] = soap_strdup(nullptr, lpConverter->convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).z_str());
+			dp->Value.mvszA.__ptr[i] = soap_strdup(
+				nullptr, convert_to<utf8string>(sp->Value.MVszW.lppszW[i]).z_str());
 		break;
 	case PT_MV_CLSID:
 		dp->__union = SOAP_UNION_propValData_mvbin;
@@ -219,7 +207,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 		dp->__union = SOAP_UNION_propValData_res;
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
 		return CopyMAPIRestrictionToSOAPRestriction(&dp->Value.res,
-		       reinterpret_cast<const SRestriction *>(sp->Value.lpszA), lpConverter);
+		       reinterpret_cast<const SRestriction *>(sp->Value.lpszA));
 	case PT_ACTIONS: {
 		// NOTE: we placed the object pointer in lpszA to make sure it is on the same offset as Value.x on 32-bit and 64-bit machines
 		auto lpSrcActions = reinterpret_cast<const ACTIONS *>(sp->Value.lpszA);
@@ -275,8 +263,8 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 					break;
 				}
 				da->__union = SOAP_UNION__act_adrlist;
-				auto hr = CopyMAPIRowSetToSOAPRowSet(reinterpret_cast<const SRowSet *>(sa->lpadrlist),
-				          &da->act.adrlist, lpConverter);
+				auto hr = CopyMAPIRowSetToSOAPRowSet(
+					reinterpret_cast<const SRowSet *>(sa->lpadrlist), &da->act.adrlist);
 				if(hr != hrSuccess)
 					return hr;
 				break;
@@ -284,7 +272,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 			case OP_TAG: {
 				da->__union = SOAP_UNION__act_prop;
 				da->act.prop = soap_new_propVal(nullptr);
-				auto hr = CopyMAPIPropValToSOAPPropVal(da->act.prop, &sa->propTag, lpConverter);
+				auto hr = CopyMAPIPropValToSOAPPropVal(da->act.prop, &sa->propTag);
 				if (hr != hrSuccess)
 					return hr;
 				break;
@@ -305,8 +293,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 }
 
 HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
-    void *lpBase, convert_context *lpConverter)
-{
+    void *lpBase) {
 	dp->ulPropTag = sp->ulPropTag;
 	dp->dwAlignPad = 0;
 
@@ -354,7 +341,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		auto s = CONVERT_TO(lpConverter, std::string, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
+		auto s = convert_to<std::string>(sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
 		auto hr = MAPIAllocateMore(s.length() + 1, lpBase, reinterpret_cast<void **>(&dp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
@@ -367,7 +354,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		auto ws = CONVERT_TO(lpConverter, std::wstring, sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
+		auto ws = convert_to<std::wstring>(sp->Value.lpszA, rawsize(sp->Value.lpszA), "UTF-8");
 		auto hr = MAPIAllocateMore(sizeof(wchar_t) * (ws.length() + 1),
 		          lpBase, reinterpret_cast<void **>(&dp->Value.lpszW));
 		if (hr != hrSuccess)
@@ -551,18 +538,14 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		if (lpConverter == NULL) {
-			convert_context converter;
-			CopySOAPPropValToMAPIPropVal(dp, sp, lpBase, &converter);
-			break;
-		}
 		dp->Value.MVszA.cValues = sp->Value.mvszA.__size;
 		auto hr = MAPIAllocateMore(sizeof(char *) * dp->Value.MVszA.cValues,
 		          lpBase, reinterpret_cast<void **>(&dp->Value.MVszA.lppszA));
 
 		for (unsigned int i = 0; i < dp->Value.MVszA.cValues; ++i) {
 			if (sp->Value.mvszA.__ptr[i] != NULL) {
-				auto s = lpConverter->convert_to<std::string>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
+				auto s = convert_to<std::string>(
+					sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
 				hr = MAPIAllocateMore(s.size() + 1, lpBase, reinterpret_cast<void **>(&dp->Value.MVszA.lppszA[i]));
 				if (hr != hrSuccess)
 					return hr;
@@ -582,11 +565,6 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 			dp->Value.err = MAPI_E_NOT_FOUND;
 			break;
 		}
-		if (lpConverter == NULL) {
-			convert_context converter;
-			CopySOAPPropValToMAPIPropVal(dp, sp, lpBase, &converter);
-			break;
-		}
 		dp->Value.MVszW.cValues = sp->Value.mvszA.__size;
 		auto hr = MAPIAllocateMore(sizeof(wchar_t *) * dp->Value.MVszW.cValues,
 		          lpBase, reinterpret_cast<void **>(&dp->Value.MVszW.lppszW));
@@ -601,7 +579,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 				dp->Value.MVszW.lppszW[i][0] = '\0';
 				continue;
 			}
-			auto ws = lpConverter->convert_to<std::wstring>(sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
+			auto ws = convert_to<std::wstring>(
+				sp->Value.mvszA.__ptr[i], rawsize(sp->Value.mvszA.__ptr[i]), "UTF-8");
 			hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (ws.length() + 1), lpBase,
 			     reinterpret_cast<void **>(&dp->Value.MVszW.lppszW[i]));
 			if (hr != hrSuccess)
@@ -651,8 +630,8 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 		          reinterpret_cast<void **>(&dp->Value.lpszA));
 		if (hr != hrSuccess)
 			return hr;
-		return CopySOAPRestrictionToMAPIRestriction(reinterpret_cast<SRestriction *>(dp->Value.lpszA),
-		       sp->Value.res, lpBase, lpConverter);
+		return CopySOAPRestrictionToMAPIRestriction(
+			reinterpret_cast<SRestriction *>(dp->Value.lpszA), sp->Value.res, lpBase);
 	}
 	case PT_ACTIONS: {
 		if (sp->__union != SOAP_UNION_propValData_actions || sp->Value.actions == nullptr) {
@@ -736,14 +715,17 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 					if (hr != hrSuccess)
 						return hr;
 					++da->lpadrlist->cEntries;
-					hr = CopySOAPRowToMAPIRow(&sa->act.adrlist->__ptr[j], da->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
+					hr = CopySOAPRowToMAPIRow(
+						&sa->act.adrlist->__ptr[j],
+						da->lpadrlist->aEntries[j].rgPropVals,
+						lpBase);
 					if (hr != hrSuccess)
 						return hr;
 				}
 				// FIXME rowset is not coupled to action -> leaks!
 				break;
 			case OP_TAG:
-				hr = CopySOAPPropValToMAPIPropVal(&da->propTag, sa->act.prop, lpBase, lpConverter);
+				hr = CopySOAPPropValToMAPIPropVal(&da->propTag, sa->act.prop, lpBase);
 				if (hr != hrSuccess)
 					return hr;
 				break;
@@ -761,14 +743,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 
 HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
     const struct propValArray *lpsRowSrc, LPSPropValue lpsRowDst,
-    void **lpBase, ULONG ulType, convert_context *lpConverter)
-{
-	if (lpConverter == NULL && lpsRowSrc->__size > 1) {
-		// Try again with a converter to reuse the iconv instances
-		convert_context converter;
-		return CopySOAPRowToMAPIRow(lpProvider, lpsRowSrc, lpsRowDst, lpBase, ulType, &converter);
-	}
-
+    void **lpBase, ULONG ulType) {
 	for (gsoap_size_t j = 0; j < lpsRowSrc->__size; ++j) {
 		// First, try the default TableRowGetProp from ECMAPIProp
 		if((ulType == MAPI_STORE || ulType == MAPI_FOLDER || ulType == MAPI_MESSAGE || ulType == MAPI_ATTACH) &&
@@ -810,14 +785,13 @@ HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
 			continue;
 
 		// If all fails, get the actual data from the server
-		CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase, lpConverter);
+		CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase);
 	}
 	return hrSuccess;
 }
 
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
-    const ENTRYID *lpEntryIdSrc, entryId **lppDest)
-{
+    const ENTRYID *lpEntryIdSrc, entryId **lppDest) {
 	auto lpDest = soap_new_entryId(nullptr);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryIdSrc, lpEntryIdSrc, lpDest, false);
 	if (hr != hrSuccess) {
@@ -829,8 +803,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 }
 
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
-    const ENTRYID *lpEntryIdSrc, entryId *lpDest, bool bCheapCopy)
-{
+    const ENTRYID *lpEntryIdSrc, entryId *lpDest, bool bCheapCopy) {
 	if ((cbEntryIdSrc > 0 && lpEntryIdSrc == NULL) || lpDest == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -851,8 +824,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 }
 
 HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc,
-    unsigned int *lpcbDest, ENTRYID **lppEntryIdDest, void *lpBase)
-{
+    unsigned int *lpcbDest, ENTRYID **lppEntryIdDest, void *lpBase) {
 	if (lpSrc == nullptr || lpcbDest == nullptr || lppEntryIdDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (static_cast<unsigned int>(lpSrc->__size) < CbNewABEID("") ||
@@ -872,8 +844,7 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc,
 }
 
 HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
-    struct entryList *lpsEntryList)
-{
+    struct entryList *lpsEntryList) {
 	if (lpMsgList == nullptr || lpsEntryList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgList->cValues == 0 || lpMsgList->lpbin == nullptr) {
@@ -896,8 +867,7 @@ HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList,
 }
 
 HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
-    LPENTRYLIST *lppMsgList)
-{
+    LPENTRYLIST *lppMsgList) {
 	if (lpsEntryList == nullptr || lppMsgList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -932,37 +902,23 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 	return hrSuccess;
 }
 
-HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc,
-    LPSPropValue lpsRowDst, void *lpBase, convert_context *lpConverter)
-{
-	if (lpConverter == NULL && lpsRowSrc->__size > 1) {
-		convert_context converter;
-		return CopySOAPRowToMAPIRow(lpsRowSrc, lpsRowDst, lpBase, &converter);
-	}
-
+HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc, LPSPropValue lpsRowDst, void *lpBase) {
 	for (gsoap_size_t j = 0; j < lpsRowSrc->__size; ++j) {
 		// If all fails, get the actual data from the server
-		auto hr = CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase, lpConverter);
+		auto hr = CopySOAPPropValToMAPIPropVal(&lpsRowDst[j], &lpsRowSrc->__ptr[j], lpBase);
 		if(hr != hrSuccess)
 			return hr;
 	}
 	return hrSuccess;
 }
 
-HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
-    struct propValArray *lpsRowDst, convert_context *lpConverter)
-{
-	if (lpConverter == NULL && lpRowSrc->cValues > 1) {
-		convert_context converter;
-		return CopyMAPIRowToSOAPRow(lpRowSrc, lpsRowDst, &converter);
-	}
-
+HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc, struct propValArray *lpsRowDst) {
 	auto lpPropVal = soap_new_propVal(nullptr, lpRowSrc->cValues);
 	lpsRowDst->__ptr = lpPropVal;
 	lpsRowDst->__size = 0;
 
 	for (unsigned int i = 0; i < lpRowSrc->cValues; ++i) {
-		auto hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i], lpConverter);
+		auto hr = CopyMAPIPropValToSOAPPropVal(&lpPropVal[i], &lpRowSrc->lpProps[i]);
 		if (hr != hrSuccess) {
 			soap_del_propValArray(lpsRowDst);
 			lpsRowDst->__ptr = nullptr;
@@ -973,22 +929,16 @@ HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc,
 	return hrSuccess;
 }
 
-HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
-    struct rowSet **lppsRowSetDst, convert_context *lpConverter)
-{
-	if (lpConverter == NULL && lpRowSetSrc->cRows > 1) {
-		convert_context converter;
-		return CopyMAPIRowSetToSOAPRowSet(lpRowSetSrc, lppsRowSetDst, &converter);
-	}
+HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc, struct rowSet **lppsRowSetDst) {
 	auto lpsRowSetDst = soap_new_rowSet(nullptr);
-	lpsRowSetDst->__ptr = NULL;
+	lpsRowSetDst->__ptr = nullptr;
 	lpsRowSetDst->__size = 0;
 	if (lpRowSetSrc->cRows > 0) {
 		lpsRowSetDst->__ptr  = soap_new_propValArray(nullptr, lpRowSetSrc->cRows);
 		lpsRowSetDst->__size = 0;
 
 		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
-			auto hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
+			auto hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i]);
 			if (hr != hrSuccess) {
 				soap_del_PointerTorowSet(&lpsRowSetDst);
 				return hr;
@@ -1002,12 +952,10 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 }
 
 // Copies a row set, filling in client-side generated values on the fly
-HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
-    const struct rowSet *lpsRowSetSrc, LPSRowSet *lppRowSetDst, ULONG ulType)
-{
+HRESULT CopySOAPRowSetToMAPIRowSet(
+	void *lpProvider, const struct rowSet *lpsRowSetSrc, LPSRowSet *lppRowSetDst, ULONG ulType) {
 	ULONG ulRows = 0;
 	rowset_ptr lpRowSet;
-	convert_context converter;
 
 	ulRows = lpsRowSetSrc->__size;
 
@@ -1026,24 +974,21 @@ HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpsRowSetSrc->__ptr[i].__size, reinterpret_cast<void **>(&lpRowSet->aRow[i].lpProps));
 		if (hr != hrSuccess)
 			return hr;
-		CopySOAPRowToMAPIRow(lpProvider, &lpsRowSetSrc->__ptr[i], lpRowSet->aRow[i].lpProps, reinterpret_cast<void **>(lpRowSet->aRow[i].lpProps), ulType, &converter);
+		CopySOAPRowToMAPIRow(
+			lpProvider,
+			&lpsRowSetSrc->__ptr[i],
+			lpRowSet->aRow[i].lpProps,
+			reinterpret_cast<void **>(lpRowSet->aRow[i].lpProps),
+			ulType);
 	}
 
 	*lppRowSetDst = lpRowSet.release();
 	return hrSuccess;
 }
 
-HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
-    const struct restrictTable *lpSrc, void *lpBase,
-    convert_context *lpConverter)
-{
+HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst, const struct restrictTable *lpSrc, void *lpBase) {
 	if (lpSrc == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	if (lpConverter == nullptr) {
-		convert_context converter;
-		CopySOAPRestrictionToMAPIRestriction(lpDst, lpSrc, lpBase, &converter);
-		return hrSuccess;
-	}
 
 	memset(lpDst, 0, sizeof(SRestriction));
 	lpDst->rt = lpSrc->ulType;
@@ -1058,7 +1003,8 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t i = 0; i < lpSrc->lpOr->__size; ++i) {
-			hr = CopySOAPRestrictionToMAPIRestriction(&lpDst->res.resOr.lpRes[i], lpSrc->lpOr->__ptr[i], lpBase, lpConverter);
+			hr = CopySOAPRestrictionToMAPIRestriction(
+				&lpDst->res.resOr.lpRes[i], lpSrc->lpOr->__ptr[i], lpBase);
 
 			if(hr != hrSuccess)
 				return hr;
@@ -1074,7 +1020,8 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t i = 0; i < lpSrc->lpAnd->__size; ++i) {
-			hr = CopySOAPRestrictionToMAPIRestriction(&lpDst->res.resAnd.lpRes[i], lpSrc->lpAnd->__ptr[i], lpBase, lpConverter);
+			hr = CopySOAPRestrictionToMAPIRestriction(
+				&lpDst->res.resAnd.lpRes[i], lpSrc->lpAnd->__ptr[i], lpBase);
 
 			if(hr != hrSuccess)
 				return hr;
@@ -1097,7 +1044,8 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		          reinterpret_cast<void **>(&lpDst->res.resComment.lpRes));
 		if (hr != hrSuccess)
 			return hr;
-		hr = CopySOAPRestrictionToMAPIRestriction(lpDst->res.resComment.lpRes, lpSrc->lpComment->lpResTable, lpBase, lpConverter);
+		hr = CopySOAPRestrictionToMAPIRestriction(
+			lpDst->res.resComment.lpRes, lpSrc->lpComment->lpResTable, lpBase);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1106,7 +1054,8 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t i = 0; i < lpSrc->lpComment->sProps.__size; ++i) {
-			hr = CopySOAPPropValToMAPIPropVal(&lpDst->res.resComment.lpProp[i], &lpSrc->lpComment->sProps.__ptr[i], lpBase, lpConverter);
+			hr = CopySOAPPropValToMAPIPropVal(
+				&lpDst->res.resComment.lpProp[i], &lpSrc->lpComment->sProps.__ptr[i], lpBase);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1130,8 +1079,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		          reinterpret_cast<void **>(&lpDst->res.resContent.lpProp));
 		if(hr != hrSuccess)
 			return hr;
-		return CopySOAPPropValToMAPIPropVal(lpDst->res.resContent.lpProp,
-		       lpSrc->lpContent->lpProp, lpBase, lpConverter);
+		return CopySOAPPropValToMAPIPropVal(lpDst->res.resContent.lpProp, lpSrc->lpContent->lpProp, lpBase);
 	}
 	case RES_EXIST:
 		if (lpSrc->lpExist == NULL)
@@ -1146,8 +1094,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		          reinterpret_cast<void **>(&lpDst->res.resNot.lpRes));
 		if (hr != hrSuccess)
 			return hr;
-		return CopySOAPRestrictionToMAPIRestriction(lpDst->res.resNot.lpRes,
-		       lpSrc->lpNot->lpNot, lpBase, lpConverter);
+		return CopySOAPRestrictionToMAPIRestriction(lpDst->res.resNot.lpRes, lpSrc->lpNot->lpNot, lpBase);
 	}
 	case RES_PROPERTY: {
 		if (lpSrc->lpProp == NULL || lpSrc->lpProp->lpProp == NULL)
@@ -1158,8 +1105,7 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 			return hr;
 		lpDst->res.resProperty.relop = lpSrc->lpProp->ulType;
 		lpDst->res.resProperty.ulPropTag = lpSrc->lpProp->ulPropTag;
-		return CopySOAPPropValToMAPIPropVal(lpDst->res.resProperty.lpProp,
-		       lpSrc->lpProp->lpProp, lpBase, lpConverter);
+		return CopySOAPPropValToMAPIPropVal(lpDst->res.resProperty.lpProp, lpSrc->lpProp->lpProp, lpBase);
 	}
 	case RES_SIZE:
 		if (lpSrc->lpSize == NULL)
@@ -1177,8 +1123,8 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 		          reinterpret_cast<void **>(&lpDst->res.resSub.lpRes));
 		if (hr != hrSuccess)
 			return hr;
-		return CopySOAPRestrictionToMAPIRestriction(lpDst->res.resSub.lpRes,
-		       lpSrc->lpSub->lpSubObject, lpBase, lpConverter);
+		return CopySOAPRestrictionToMAPIRestriction(
+			lpDst->res.resSub.lpRes, lpSrc->lpSub->lpSubObject, lpBase);
 	}
 	default:
 		return MAPI_E_INVALID_PARAMETER;
@@ -1186,20 +1132,13 @@ HRESULT CopySOAPRestrictionToMAPIRestriction(LPSRestriction lpDst,
 	return hrSuccess;
 }
 
-HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
-    const SRestriction *lpSrc, convert_context *lpConverter)
-{
+HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst, const SRestriction *lpSrc) {
 	HRESULT hr = hrSuccess;
 	struct restrictTable *lpDst = NULL;
 	auto laters = make_scope_success([&]() {
 		if (hr != hrSuccess)
 			soap_del_PointerTorestrictTable(&lpDst);
 	});
-
-	if (lpConverter == NULL) {
-		convert_context converter;
-		return CopyMAPIRestrictionToSOAPRestriction(lppDst, lpSrc, &converter);
-	}
 
 	lpDst = soap_new_restrictTable(nullptr);
 	lpDst->ulType = lpSrc->rt;
@@ -1210,7 +1149,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpOr->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(nullptr, sizeof(restrictTable *) * lpSrc->res.resOr.cRes));
 		lpDst->lpOr->__size = lpSrc->res.resOr.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resOr.cRes; ++i) {
-			hr = CopyMAPIRestrictionToSOAPRestriction(&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i], lpConverter);
+			hr = CopyMAPIRestrictionToSOAPRestriction(
+				&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i]);
 
 			if(hr != hrSuccess)
 				return hr;
@@ -1222,7 +1162,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpAnd->__ptr  = reinterpret_cast<restrictTable **>(soap_malloc(nullptr, sizeof(restrictTable *) * lpSrc->res.resAnd.cRes));
 		lpDst->lpAnd->__size = lpSrc->res.resAnd.cRes;
 		for (unsigned int i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
-			hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i], lpConverter);
+			hr = CopyMAPIRestrictionToSOAPRestriction(
+				&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i]);
 
 			if(hr != hrSuccess)
 				return hr;
@@ -1241,12 +1182,13 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpComment->sProps.__ptr  = soap_new_propVal(nullptr, lpSrc->res.resComment.cValues);
 		lpDst->lpComment->sProps.__size = lpSrc->res.resComment.cValues;
 		for (unsigned int i = 0; i < lpSrc->res.resComment.cValues; ++i) {
-			hr = CopyMAPIPropValToSOAPPropVal(&lpDst->lpComment->sProps.__ptr[i], &lpSrc->res.resComment.lpProp[i], lpConverter);
+			hr = CopyMAPIPropValToSOAPPropVal(
+				&lpDst->lpComment->sProps.__ptr[i], &lpSrc->res.resComment.lpProp[i]);
 			if(hr != hrSuccess)
 				return hr;
 		}
 
-		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpComment->lpResTable, lpSrc->res.resComment.lpRes, lpConverter);
+		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpComment->lpResTable, lpSrc->res.resComment.lpRes);
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -1266,15 +1208,15 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_MV_STRING8 &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_UNICODE &&
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_MV_UNICODE) ||
-			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_BINARY && lpSrc->res.resContent.lpProp->Value.bin.cb >0 && lpSrc->res.resContent.lpProp->Value.bin.lpb == NULL) ||
-			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_STRING8 && lpSrc->res.resContent.lpProp->Value.lpszA == NULL) ||
-			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_UNICODE && lpSrc->res.resContent.lpProp->Value.lpszW == NULL))
+			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_BINARY && lpSrc->res.resContent.lpProp->Value.bin.cb >0 && lpSrc->res.resContent.lpProp->Value.bin.lpb == nullptr) ||
+			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_STRING8 && lpSrc->res.resContent.lpProp->Value.lpszA == nullptr) ||
+			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_UNICODE && lpSrc->res.resContent.lpProp->Value.lpszW == nullptr))
 			return MAPI_E_INVALID_PARAMETER;
 
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
 		lpDst->lpContent->lpProp = soap_new_propVal(nullptr);
-		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp, lpConverter);
+		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp);
 		if(hr != hrSuccess)
 			return hr;
 		break;
@@ -1286,7 +1228,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 	case RES_NOT:
 		lpDst->lpNot = soap_new_restrictNot(nullptr);
-		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpNot->lpNot, lpSrc->res.resNot.lpRes, lpConverter);
+		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpNot->lpNot, lpSrc->res.resNot.lpRes);
 		if(hr != hrSuccess)
 			return hr;
 		break;
@@ -1297,7 +1239,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpProp->lpProp = soap_new_propVal(nullptr);
 		lpDst->lpProp->ulPropTag = lpSrc->res.resProperty.ulPropTag;
 
-		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpProp->lpProp, lpSrc->res.resProperty.lpProp, lpConverter);
+		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpProp->lpProp, lpSrc->res.resProperty.lpProp);
 		if(hr != hrSuccess)
 			return hr;
 		break;
@@ -1312,7 +1254,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 	case RES_SUBRESTRICTION:
 		lpDst->lpSub = soap_new_restrictSub(nullptr);
 		lpDst->lpSub->ulSubObject = lpSrc->res.resSub.ulSubObject;
-		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpSub->lpSubObject, lpSrc->res.resSub.lpRes, lpConverter);
+		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpSub->lpSubObject, lpSrc->res.resSub.lpRes);
 		if(hr != hrSuccess)
 			return hr;
 		break;
@@ -1327,9 +1269,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 }
 
 static HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
-    const struct propTagArray *lpsPropTagArray,
-    LPSPropTagArray *lppPropTagArray, void *lpBase)
-{
+	const struct propTagArray *lpsPropTagArray, LPSPropTagArray *lppPropTagArray, void *lpBase) {
 	if (lpsPropTagArray == nullptr || lppPropTagArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -1347,12 +1287,12 @@ static HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
 	return hr;
 }
 
-HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_context *lpConverter, LPTSTR *lppszTString)
-{
+HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, LPTSTR *lppszTString) {
 	if (lpszUtf8 == nullptr || lppszTString == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	std::string strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
+	std::string strDest = convert_to<std::string>(
+		((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
 	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(wchar_t) : sizeof(CHAR));
 	auto hr = MAPIAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszTString));
 	if (hr != hrSuccess)
@@ -1363,35 +1303,39 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 	return hrSuccess;
 }
 
-static HRESULT TStringToUtf8(struct soap *alloc, const TCHAR *lpszTstring,
-    unsigned int ulFlags, convert_context *lpConverter, char **lppszUtf8)
-{
+static HRESULT TStringToUtf8(struct soap *alloc, const TCHAR *lpszTstring, unsigned int ulFlags, char **lppszUtf8) {
 	if (lpszTstring == nullptr || lppszUtf8 == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::string strDest;
 
 	if (ulFlags & MAPI_UNICODE)
-		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8",
-		          reinterpret_cast<const wchar_t *>(lpszTstring),
-		          rawsize(reinterpret_cast<const wchar_t *>(lpszTstring)), CHARSET_WCHAR);
+		strDest = convert_to<std::string>(
+			"UTF-8",
+			reinterpret_cast<const wchar_t *>(lpszTstring),
+			rawsize(reinterpret_cast<const wchar_t *>(lpszTstring)),
+			CHARSET_WCHAR);
 	else
-		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8",
-		          reinterpret_cast<const char *>(lpszTstring),
-		          rawsize(reinterpret_cast<const char *>(lpszTstring)), CHARSET_CHAR);
+		strDest = convert_to<std::string>(
+			"UTF-8",
+			reinterpret_cast<const char *>(lpszTstring),
+			rawsize(reinterpret_cast<const char *>(lpszTstring)),
+			CHARSET_CHAR);
 
 	*lppszUtf8 = soap_strdup(alloc, strDest.c_str());
 	return *lppszUtf8 != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
-HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
-    const struct propmapMVPairArray *lpsoapMVPropmap, SPROPMAP *lpPropmap,
-    MVPROPMAP *lpMVPropmap, void *lpBase, ULONG ulFlags)
-{
-	convert_context converter;
+HRESULT CopyABPropsFromSoap(
+	const struct propmapPairArray *lpsoapPropmap,
+	const struct propmapMVPairArray *lpsoapMVPropmap,
+	SPROPMAP *lpPropmap,
+	MVPROPMAP *lpMVPropmap,
+	void *lpBase,
+	ULONG ulFlags) {
 	ULONG ulConvFlags;
 
-	if (lpsoapPropmap != NULL) {
+	if (lpsoapPropmap != nullptr) {
 		lpPropmap->cEntries = lpsoapPropmap->__size;
 		unsigned int nLen = sizeof(*lpPropmap->lpEntries) * lpPropmap->cEntries;
 		auto hr = MAPIAllocateMore(nLen, lpBase, reinterpret_cast<void **>(&lpPropmap->lpEntries));
@@ -1407,13 +1351,17 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 				ulConvFlags = 0;
 			}
 
-			hr = Utf8ToTString(lpsoapPropmap->__ptr[i].lpszValue, ulConvFlags, lpBase, &converter, &lpPropmap->lpEntries[i].lpszValue);
+			hr = Utf8ToTString(
+				lpsoapPropmap->__ptr[i].lpszValue,
+				ulConvFlags,
+				lpBase,
+				&lpPropmap->lpEntries[i].lpszValue);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
 
-	if (lpsoapMVPropmap != NULL) {
+	if (lpsoapMVPropmap != nullptr) {
 		lpMVPropmap->cEntries = lpsoapMVPropmap->__size;
 		auto hr = MAPIAllocateMore(sizeof(*lpMVPropmap->lpEntries) * lpMVPropmap->cEntries,
 		          lpBase, reinterpret_cast<void **>(&lpMVPropmap->lpEntries));
@@ -1436,7 +1384,11 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 				return hr;
 
 			for (gsoap_size_t j = 0; j < lpsoapMVPropmap->__ptr[i].sValues.__size; ++j) {
-				hr = Utf8ToTString(lpsoapMVPropmap->__ptr[i].sValues.__ptr[j], ulConvFlags, lpBase, &converter, &lpMVPropmap->lpEntries[i].lpszValues[j]);
+				hr = Utf8ToTString(
+					lpsoapMVPropmap->__ptr[i].sValues.__ptr[j],
+					ulConvFlags,
+					lpBase,
+					&lpMVPropmap->lpEntries[i].lpszValues[j]);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1445,12 +1397,13 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 	return hrSuccess;
 }
 
-HRESULT CopyABPropsToSoap(struct soap *alloc, const SPROPMAP *lpPropmap,
-    const MVPROPMAP *lpMVPropmap, ULONG ulFlags,
-    struct propmapPairArray *&soapPropmap,
-    struct propmapMVPairArray *&soapMVPropmap)
-{
-	convert_context	converter;
+HRESULT CopyABPropsToSoap(
+	struct soap *alloc,
+	const SPROPMAP *lpPropmap,
+	const MVPROPMAP *lpMVPropmap,
+	ULONG ulFlags,
+	struct propmapPairArray *&soapPropmap,
+	struct propmapMVPairArray *&soapMVPropmap) {
 	ULONG ulConvFlags;
 
 	if (lpPropmap && lpPropmap->cEntries) {
@@ -1470,8 +1423,11 @@ HRESULT CopyABPropsToSoap(struct soap *alloc, const SPROPMAP *lpPropmap,
 				soapPropmap->__ptr[i].ulPropId = lpPropmap->lpEntries[i].ulPropId;
 				ulConvFlags = 0;
 			}
-			auto hr = TStringToUtf8(alloc, lpPropmap->lpEntries[i].lpszValue,
-			          ulConvFlags, &converter, &soapPropmap->__ptr[i].lpszValue);
+			auto hr = TStringToUtf8(
+				alloc,
+				lpPropmap->lpEntries[i].lpszValue,
+				ulConvFlags,
+				&soapPropmap->__ptr[i].lpszValue);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1501,8 +1457,11 @@ HRESULT CopyABPropsToSoap(struct soap *alloc, const SPROPMAP *lpPropmap,
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 
 			for (gsoap_size_t j = 0; j < soapMVPropmap->__ptr[i].sValues.__size; ++j) {
-				auto hr = TStringToUtf8(alloc, lpMVPropmap->lpEntries[i].lpszValues[j],
-				          ulConvFlags, &converter, &soapMVPropmap->__ptr[i].sValues.__ptr[j]);
+				auto hr = TStringToUtf8(
+					alloc,
+					lpMVPropmap->lpEntries[i].lpszValues[j],
+					ulConvFlags,
+					&soapMVPropmap->__ptr[i].sValues.__ptr[j]);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1512,24 +1471,22 @@ HRESULT CopyABPropsToSoap(struct soap *alloc, const SPROPMAP *lpPropmap,
 	return hrSuccess;
 }
 
-static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
-    ULONG ulFlags, void *lpBase, convert_context &converter)
-{
+static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser, ULONG ulFlags, void *lpBase) {
 	if (lpUser == NULL || lpsUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
 		lpBase = lpsUser;
 
 	memset(lpsUser, 0, sizeof(*lpsUser));
-	auto hr = Utf8ToTString(lpUser->lpszUsername, ulFlags, lpBase, &converter, &lpsUser->lpszUsername);
+	auto hr = Utf8ToTString(lpUser->lpszUsername, ulFlags, lpBase, &lpsUser->lpszUsername);
 	if (hr == hrSuccess && lpUser->lpszFullName != NULL)
-		hr = Utf8ToTString(lpUser->lpszFullName, ulFlags, lpBase, &converter, &lpsUser->lpszFullName);
+		hr = Utf8ToTString(lpUser->lpszFullName, ulFlags, lpBase, &lpsUser->lpszFullName);
 
 	if (hr == hrSuccess && lpUser->lpszMailAddress != NULL)
-		hr = Utf8ToTString(lpUser->lpszMailAddress, ulFlags, lpBase, &converter, &lpsUser->lpszMailAddress);
+		hr = Utf8ToTString(lpUser->lpszMailAddress, ulFlags, lpBase, &lpsUser->lpszMailAddress);
 
 	if (hr == hrSuccess && lpUser->lpszServername != NULL)
-		hr = Utf8ToTString(lpUser->lpszServername, ulFlags, lpBase, &converter, &lpsUser->lpszServername);
+		hr = Utf8ToTString(lpUser->lpszServername, ulFlags, lpBase, &lpsUser->lpszServername);
 
 	if (hr != hrSuccess)
 		return hr;
@@ -1551,22 +1508,20 @@ static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
 	return hrSuccess;
 }
 
-HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
-    ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
-{
+HRESULT SoapUserArrayToUserArray(
+	const struct userArray *lpUserArray, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) {
 	if (lpUserArray == nullptr || lpcUsers == nullptr ||
 	    lppsUsers == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECUSER> lpECUsers;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(ECUSER) * lpUserArray->__size, &~lpECUsers);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECUsers, 0, sizeof(ECUSER) * lpUserArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpUserArray->__size; ++i) {
-		hr = SoapUserToUser(lpUserArray->__ptr + i, lpECUsers + i, ulFlags, lpECUsers, converter);
+		hr = SoapUserToUser(lpUserArray->__ptr + i, lpECUsers + i, ulFlags, lpECUsers);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -1576,27 +1531,22 @@ HRESULT SoapUserArrayToUserArray(const struct userArray *lpUserArray,
 	return hrSuccess;
 }
 
-HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags,
-    ECUSER **lppsUser)
-{
+HRESULT SoapUserToUser(const struct user *lpUser, ULONG ulFlags, ECUSER **lppsUser) {
 	if (lpUser == nullptr || lppsUser == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECUSER> lpsUser;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof *lpsUser, &~lpsUser);
 	if (hr != hrSuccess)
 		return hr;
-	hr = SoapUserToUser(lpUser, lpsUser, ulFlags, NULL, converter);
+	hr = SoapUserToUser(lpUser, lpsUser, ulFlags, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	*lppsUser = lpsUser.release();
 	return hrSuccess;
 }
 
-static HRESULT SoapGroupToGroup(const struct group *lpGroup,
-    ECGROUP *lpsGroup, ULONG ulFlags, void *lpBase, convert_context &converter)
-{
+static HRESULT SoapGroupToGroup(const struct group *lpGroup, ECGROUP *lpsGroup, ULONG ulFlags, void *lpBase) {
 	if (lpGroup == NULL || lpsGroup == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpGroup->lpszGroupname == nullptr)
@@ -1607,12 +1557,12 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 
 	memset(lpsGroup, 0, sizeof(*lpsGroup));
 
-	auto hr = Utf8ToTString(lpGroup->lpszGroupname, ulFlags, lpBase, &converter, &lpsGroup->lpszGroupname);
+	auto hr = Utf8ToTString(lpGroup->lpszGroupname, ulFlags, lpBase, &lpsGroup->lpszGroupname);
 	if (hr == hrSuccess && lpGroup->lpszFullname)
-		hr = Utf8ToTString(lpGroup->lpszFullname, ulFlags, lpBase, &converter, &lpsGroup->lpszFullname);
+		hr = Utf8ToTString(lpGroup->lpszFullname, ulFlags, lpBase, &lpsGroup->lpszFullname);
 
 	if (hr == hrSuccess && lpGroup->lpszFullEmail)
-		hr = Utf8ToTString(lpGroup->lpszFullEmail, ulFlags, lpBase, &converter, &lpsGroup->lpszFullEmail);
+		hr = Utf8ToTString(lpGroup->lpszFullEmail, ulFlags, lpBase, &lpsGroup->lpszFullEmail);
 
 	if (hr != hrSuccess)
 		return hr;
@@ -1632,22 +1582,20 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 	return hrSuccess;
 }
 
-HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
-    ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
-{
+HRESULT SoapGroupArrayToGroupArray(
+	const struct groupArray *lpGroupArray, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups) {
 	if (lpGroupArray == nullptr || lpcGroups == nullptr ||
 	    lppsGroups == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECGROUP> lpECGroups;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(ECGROUP) * lpGroupArray->__size, &~lpECGroups);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECGroups, 0, sizeof(ECGROUP) * lpGroupArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpGroupArray->__size; ++i) {
-		hr = SoapGroupToGroup(lpGroupArray->__ptr + i, lpECGroups + i, ulFlags, lpECGroups, converter);
+		hr = SoapGroupToGroup(lpGroupArray->__ptr + i, lpECGroups + i, ulFlags, lpECGroups);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -1657,28 +1605,23 @@ HRESULT SoapGroupArrayToGroupArray(const struct groupArray *lpGroupArray,
 	return hrSuccess;
 }
 
-HRESULT SoapGroupToGroup(const struct group *lpGroup, ULONG ulFlags,
-    ECGROUP **lppsGroup)
-{
+HRESULT SoapGroupToGroup(const struct group *lpGroup, ULONG ulFlags, ECGROUP **lppsGroup) {
 	if (lpGroup == nullptr || lppsGroup == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECGROUP> lpsGroup;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(*lpsGroup), &~lpsGroup);
 	if (hr != hrSuccess)
 		return hr;
-	hr = SoapGroupToGroup(lpGroup, lpsGroup, ulFlags, NULL, converter);
+	hr = SoapGroupToGroup(lpGroup, lpsGroup, ulFlags, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	*lppsGroup = lpsGroup.release();
 	return hrSuccess;
 }
 
-static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
-    ECCOMPANY *lpsCompany, ULONG ulFlags, void *lpBase,
-    convert_context &converter)
-{
+static HRESULT SoapCompanyToCompany(
+	const struct company *lpCompany, ECCOMPANY *lpsCompany, ULONG ulFlags, void *lpBase) {
 	if (lpCompany == NULL || lpsCompany == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -1687,9 +1630,9 @@ static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
 
 	memset(lpsCompany, 0, sizeof(*lpsCompany));
 
-	auto hr = Utf8ToTString(lpCompany->lpszCompanyname, ulFlags, lpBase, &converter, &lpsCompany->lpszCompanyname);
+	auto hr = Utf8ToTString(lpCompany->lpszCompanyname, ulFlags, lpBase, &lpsCompany->lpszCompanyname);
 	if (hr == hrSuccess && lpCompany->lpszServername != NULL)
-		hr = Utf8ToTString(lpCompany->lpszServername, ulFlags, lpBase, &converter, &lpsCompany->lpszServername);
+		hr = Utf8ToTString(lpCompany->lpszServername, ulFlags, lpBase, &lpsCompany->lpszServername);
 
 	if (hr != hrSuccess)
 		return hr;
@@ -1714,22 +1657,19 @@ static HRESULT SoapCompanyToCompany(const struct company *lpCompany,
 }
 
 HRESULT SoapCompanyArrayToCompanyArray(
-    const struct companyArray *lpCompanyArray, ULONG ulFlags,
-    ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
-{
+	const struct companyArray *lpCompanyArray, ULONG ulFlags,ULONG *lpcCompanies, ECCOMPANY **lppsCompanies) {
 	if (lpCompanyArray == nullptr || lpcCompanies == nullptr ||
 	    lppsCompanies == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECCOMPANY> lpECCompanies;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(ECCOMPANY) * lpCompanyArray->__size, &~lpECCompanies);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpECCompanies, 0, sizeof(ECCOMPANY) * lpCompanyArray->__size);
 
 	for (gsoap_size_t i = 0; i < lpCompanyArray->__size; ++i) {
-		hr = SoapCompanyToCompany(&lpCompanyArray->__ptr[i], lpECCompanies + i, ulFlags, lpECCompanies, converter);
+		hr = SoapCompanyToCompany(&lpCompanyArray->__ptr[i], lpECCompanies + i, ulFlags, lpECCompanies);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -1739,32 +1679,26 @@ HRESULT SoapCompanyArrayToCompanyArray(
 	return hrSuccess;
 }
 
-HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags,
-    ECCOMPANY **lppsCompany)
-{
+HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFlags, ECCOMPANY **lppsCompany) {
 	if (lpCompany == nullptr || lppsCompany == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECCOMPANY> lpsCompany;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(*lpsCompany), &~lpsCompany);
 	if (hr != hrSuccess)
 		return hr;
-	hr = SoapCompanyToCompany(lpCompany, lpsCompany, ulFlags, NULL, converter);
+	hr = SoapCompanyToCompany(lpCompany, lpsCompany, ulFlags, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	*lppsCompany = lpsCompany.release();
 	return hrSuccess;
 }
 
-HRESULT SvrNameListToSoapMvString8(struct soap *alloc,
-    ECSVRNAMELIST *lpSvrNameList, unsigned int ulFlags,
-    struct mv_string8 *&lpsSvrNameList)
-{
+HRESULT SvrNameListToSoapMvString8(
+	struct soap *alloc, ECSVRNAMELIST *lpSvrNameList, unsigned int ulFlags, struct mv_string8 *&lpsSvrNameList) {
 	if (lpSvrNameList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	convert_context		converter;
 	lpsSvrNameList = soap_new_mv_string8(alloc);
 	if (lpsSvrNameList == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -1776,8 +1710,8 @@ HRESULT SvrNameListToSoapMvString8(struct soap *alloc,
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 
 		for (unsigned i = 0; i < lpSvrNameList->cServers; ++i) {
-			auto hr = TStringToUtf8(alloc, lpSvrNameList->lpszaServer[i],
-			          ulFlags, &converter, &lpsSvrNameList->__ptr[i]);
+			auto hr = TStringToUtf8(
+				alloc, lpSvrNameList->lpszaServer[i], ulFlags, &lpsSvrNameList->__ptr[i]);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1786,14 +1720,12 @@ HRESULT SvrNameListToSoapMvString8(struct soap *alloc,
 	return hrSuccess;
 }
 
-HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
-    ULONG ulFLags, ECSERVERLIST **lppServerList)
-{
+HRESULT SoapServerListToServerList(
+	const struct serverList *lpsServerList, ULONG ulFLags, ECSERVERLIST **lppServerList) {
 	if (lpsServerList == nullptr || lppServerList == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	memory_ptr<ECSERVERLIST> lpServerList;
-	convert_context	converter;
 	auto hr = MAPIAllocateBuffer(sizeof(*lpServerList), &~lpServerList);
 	if (hr != hrSuccess)
 		return hr;
@@ -1814,35 +1746,50 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 
 		// Name
 		if (lpsServerList->__ptr[i].lpszName != NULL) {
-			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszName, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszName);
+			hr = Utf8ToTString(
+				lpsServerList->__ptr[i].lpszName,
+				ulFLags,
+				lpServerList,
+				&lpServerList->lpsaServer[i].lpszName);
 			if (hr != hrSuccess)
 				return hr;
 		}
 
 		// FilePath
 		if (lpsServerList->__ptr[i].lpszFilePath != NULL) {
-			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszFilePath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszFilePath);
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszFilePath, ulFLags, lpServerList, &lpServerList->lpsaServer[i].lpszFilePath);
 			if (hr != hrSuccess)
 				return hr;
 		}
 
 		// HttpPath
 		if (lpsServerList->__ptr[i].lpszHttpPath != NULL) {
-			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszHttpPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszHttpPath);
+			hr = Utf8ToTString(
+				lpsServerList->__ptr[i].lpszHttpPath,
+				ulFLags,
+				lpServerList,
+				&lpServerList->lpsaServer[i].lpszHttpPath);
 			if (hr != hrSuccess)
 				return hr;
 		}
 
 		// SslPath
 		if (lpsServerList->__ptr[i].lpszSslPath != NULL) {
-			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszSslPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszSslPath);
+			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszSslPath,
+				ulFLags,
+				lpServerList,
+				&lpServerList->lpsaServer[i].lpszSslPath);
 			if (hr != hrSuccess)
 				return hr;
 		}
 
 		// PreferedPath
 		if (lpsServerList->__ptr[i].lpszPreferedPath != NULL) {
-			hr = Utf8ToTString(lpsServerList->__ptr[i].lpszPreferedPath, ulFLags, lpServerList, &converter, &lpServerList->lpsaServer[i].lpszPreferedPath);
+			hr = Utf8ToTString(
+				lpsServerList->__ptr[i].lpszPreferedPath,
+				ulFLags,
+				lpServerList,
+				&lpServerList->lpsaServer[i].lpszPreferedPath);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1852,9 +1799,8 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 }
 
 // Wrap the server store entryid to client store entry. (Add a servername)
-HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
-    const entryId *lpsStoreId, ULONG *lpcbStoreID, ENTRYID **lppStoreID)
-{
+HRESULT WrapServerClientStoreEntry(
+	const char *lpszServerName, const entryId *lpsStoreId, ULONG *lpcbStoreID, ENTRYID **lppStoreID) {
 	if (lpsStoreId == nullptr || lpszServerName == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpsStoreId->__size < 4) {
@@ -1882,10 +1828,8 @@ HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
 }
 
 // Un wrap the client store entryid to server store entry. (remove a servername)
-HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
-    const ENTRYID *lpWrapStoreID, ULONG *lpcbUnWrapStoreID,
-    ENTRYID **lppUnWrapStoreID)
-{
+HRESULT UnWrapServerClientStoreEntry(
+	ULONG cbWrapStoreID, const ENTRYID *lpWrapStoreID, ULONG *lpcbUnWrapStoreID, ENTRYID **lppUnWrapStoreID) {
 	if (lpWrapStoreID == nullptr || lppUnWrapStoreID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -1916,9 +1860,8 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID,
 	return hrSuccess;
 }
 
-HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
-    ULONG *lpcbUnWrapABID, ENTRYID **lppUnWrapABID)
-{
+HRESULT UnWrapServerClientABEntry(
+	ULONG cbWrapABID, const ENTRYID *lpWrapABID, ULONG *lpcbUnWrapABID, ENTRYID **lppUnWrapABID) {
 	if (lpWrapABID == nullptr || lppUnWrapABID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	auto ret = KAllocCopy(lpWrapABID, cbWrapABID, reinterpret_cast<void **>(lppUnWrapABID));
@@ -1928,10 +1871,8 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, const ENTRYID *lpWrapABID,
 	return hrSuccess;
 }
 
-HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
-    const struct notification *lpSrc, NOTIFICATION **lppDst,
-    convert_context *lpConverter)
-{
+HRESULT CopySOAPNotificationToMAPINotification(
+	void *lpProvider, const struct notification *lpSrc, NOTIFICATION **lppDst) {
 	memory_ptr<NOTIFICATION> lpNotification;
 	auto hr = MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if (hr != hrSuccess)
@@ -2026,7 +1967,7 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
 			break;
 		CopySOAPRowToMAPIRow(lpProvider, lpSrc->tab->pRow, dst.row.lpProps,
 			reinterpret_cast<void **>(lpNotification.get()),
-			lpSrc->tab->ulObjType, lpConverter);
+			lpSrc->tab->ulObjType);
 		break;
 	}
 	case fnevStatusObjectModified: // STATUS_OBJECT_NOTIFICATION
@@ -2047,9 +1988,7 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
 	return hrSuccess;
 }
 
-HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
-    SBinary **lppDst, void *lpBase)
-{
+HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc, SBinary **lppDst, void *lpBase) {
 	if (lpSrc->ulEventType != fnevKopanoIcsChange)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -2072,9 +2011,8 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	return hr;
 }
 
-static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
-    struct xsd__base64Binary *lpsSoapSourceKey)
-{
+static HRESULT CopyMAPISourceKeyToSoapSourceKey(
+	const SBinary *lpsMAPISourceKey, struct xsd__base64Binary *lpsSoapSourceKey) {
 	if (lpsMAPISourceKey == nullptr || lpsSoapSourceKey == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	lpsSoapSourceKey->__ptr  = soap_new_unsignedByte(nullptr, lpsSoapSourceKey->__size);
@@ -2083,9 +2021,7 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
 	return hrSuccess;
 }
 
-HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
-    const ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
-{
+HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, const ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA) {
 	if (lpsChanges == nullptr || lppsSKPA == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -2106,9 +2042,7 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const char *lpszA, wchar_t **lppszW,
-    void *base, convert_context &converter)
-{
+static HRESULT ConvertString8ToUnicode(const char *lpszA, wchar_t **lppszW, void *base) {
 	if (lpszA == nullptr || lppszW == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -2124,43 +2058,44 @@ static HRESULT ConvertString8ToUnicode(const char *lpszA, wchar_t **lppszW,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
-    void *base, convert_context &converter)
-{
+static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction, void *base) {
 	if (lpRestriction == NULL)
 		return hrSuccess;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
 		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resOr.lpRes[i], base, converter);
+			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resOr.lpRes[i], base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_AND:
 		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resAnd.lpRes[i], base, converter);
+			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resAnd.lpRes[i], base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_NOT: {
-		auto hr = ConvertString8ToUnicode(lpRestriction->res.resNot.lpRes, base, converter);
+		auto hr = ConvertString8ToUnicode(lpRestriction->res.resNot.lpRes, base);
 		if (hr != hrSuccess)
 			return hr;
 		break;
 	}
 	case RES_COMMENT:
 		if (lpRestriction->res.resComment.lpRes) {
-			auto hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpRes, base, converter);
+			auto hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpRes, base);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		for (unsigned int i = 0; i < lpRestriction->res.resComment.cValues; ++i) {
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) != PT_STRING8)
 				continue;
-			auto hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpProp[i].Value.lpszA, &lpRestriction->res.resComment.lpProp[i].Value.lpszW, base, converter);
+			auto hr = ConvertString8ToUnicode(
+				lpRestriction->res.resComment.lpProp[i].Value.lpszA,
+				&lpRestriction->res.resComment.lpProp[i].Value.lpszW,
+				base);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resComment.lpProp[i].ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag, PT_UNICODE);
@@ -2171,7 +2106,10 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 	case RES_CONTENT: {
 		if (PROP_TYPE(lpRestriction->res.resContent.ulPropTag) != PT_STRING8)
 			break;
-		auto hr = ConvertString8ToUnicode(lpRestriction->res.resContent.lpProp->Value.lpszA, &lpRestriction->res.resContent.lpProp->Value.lpszW, base, converter);
+		auto hr = ConvertString8ToUnicode(
+			lpRestriction->res.resContent.lpProp->Value.lpszA,
+			&lpRestriction->res.resContent.lpProp->Value.lpszW,
+			base);
 		if (hr != hrSuccess)
 			return hr;
 		lpRestriction->res.resContent.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.lpProp->ulPropTag, PT_UNICODE);
@@ -2181,7 +2119,10 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 	case RES_PROPERTY: {
 		if (PROP_TYPE(lpRestriction->res.resProperty.ulPropTag) != PT_STRING8)
 			break;
-		auto hr = ConvertString8ToUnicode(lpRestriction->res.resProperty.lpProp->Value.lpszA, &lpRestriction->res.resProperty.lpProp->Value.lpszW, base, converter);
+		auto hr = ConvertString8ToUnicode(
+			lpRestriction->res.resProperty.lpProp->Value.lpszA,
+			&lpRestriction->res.resProperty.lpProp->Value.lpszW,
+			base);
 		if (hr != hrSuccess)
 			return hr;
 		lpRestriction->res.resProperty.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.lpProp->ulPropTag, PT_UNICODE);
@@ -2189,7 +2130,7 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 		break;
 	}
 	case RES_SUBRESTRICTION: {
-		auto hr = ConvertString8ToUnicode(lpRestriction->res.resSub.lpRes, base, converter);
+		auto hr = ConvertString8ToUnicode(lpRestriction->res.resSub.lpRes, base);
 		if (hr != hrSuccess)
 			return hr;
 		break;
@@ -2198,24 +2139,20 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(ADRLIST *lpAdrList, void *base,
-    convert_context &converter)
-{
+static HRESULT ConvertString8ToUnicode(ADRLIST *lpAdrList, void *base) {
 	if (lpAdrList == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		auto hr = ConvertString8ToUnicode(reinterpret_cast<SRow *>(&lpAdrList->aEntries[c]), base, converter);
+		auto hr = ConvertString8ToUnicode(reinterpret_cast<SRow *>(&lpAdrList->aEntries[c]), base);
 		if (hr != hrSuccess)
 			return hr;
 	}
 	return hrSuccess;
 }
 
-static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base,
-    convert_context &converter)
-{
+static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base) {
 	if (lpActions == NULL)
 		return hrSuccess;
 
@@ -2223,29 +2160,31 @@ static HRESULT ConvertString8ToUnicode(const ACTIONS *lpActions, void *base,
 		if (lpActions->lpAction[c].acttype != OP_FORWARD &&
 		    lpActions->lpAction[c].acttype != OP_DELEGATE)
 			continue;
-		auto hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base, converter);
+		auto hr = ConvertString8ToUnicode(lpActions->lpAction[c].lpadrlist, base);
 		if (hr != hrSuccess)
 			return hr;
 	}
 	return hrSuccess;
 }
 
-HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &converter)
-{
+HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base) {
 	if (lpRow == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		HRESULT hr = hrSuccess;
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_SRESTRICTION) {
-			hr = ConvertString8ToUnicode(reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
-			     base != nullptr ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(
+				reinterpret_cast<SRestriction *>(lpRow->lpProps[c].Value.lpszA),
+				base != nullptr ? base : lpRow->lpProps);
 		} else if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_ACTIONS) {
-			hr = ConvertString8ToUnicode(reinterpret_cast<ACTIONS *>(lpRow->lpProps[c].Value.lpszA),
-			     base != nullptr ? base : lpRow->lpProps, converter);
+			hr = ConvertString8ToUnicode(
+				reinterpret_cast<ACTIONS *>(lpRow->lpProps[c].Value.lpszA),
+				base != nullptr ? base : lpRow->lpProps);
 		} else if (base && PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_STRING8) {
 			// only for "base" items: e.g. the lpadrlist data, not the PR_RULE_NAME from the top-level
-			hr = ConvertString8ToUnicode(lpRow->lpProps[c].Value.lpszA, &lpRow->lpProps[c].Value.lpszW, base, converter);
+			hr = ConvertString8ToUnicode(
+				lpRow->lpProps[c].Value.lpszA, &lpRow->lpProps[c].Value.lpszW, base);
 			if (hr != hrSuccess)
 				return hr;
 			lpRow->lpProps[c].ulPropTag = CHANGE_PROP_TYPE(lpRow->lpProps[c].ulPropTag, PT_UNICODE);
@@ -2264,24 +2203,20 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
  *
  * @return MAPI Error code
  */
-HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet)
-{
-	convert_context converter;
-
+HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet) {
 	if (lpRowSet == NULL)
 		return hrSuccess;
 
 	for (ULONG c = 0; c < lpRowSet->cRows; ++c) {
-		auto hr = ConvertString8ToUnicode(&lpRowSet->aRow[c], NULL, converter);
+		auto hr = ConvertString8ToUnicode(&lpRowSet->aRow[c], NULL);
 		if (hr != hrSuccess)
 			return hr;
 	}
 	return hrSuccess;
 }
 
-HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFolder> &source,
-    std::vector<new_folder> &destination)
-{
+HRESULT convert_wsfolder_to_soapfolder(
+	const std::vector<WSMAPIFolderOps::WSFolder> &source, std::vector<new_folder> &destination) {
 	const auto count = source.size();
 	destination.resize(count);
 	for (unsigned int i = 0; i < count; ++i) {
@@ -2310,9 +2245,8 @@ HRESULT convert_wsfolder_to_soapfolder(const std::vector<WSMAPIFolderOps::WSFold
 	return hrSuccess;
 }
 
-HRESULT convert_soapfolders_to_wsfolder(const struct create_folders_response &source,
-    std::vector<WSMAPIFolderOps::WSFolder> &destination)
-{
+HRESULT convert_soapfolders_to_wsfolder(
+	const struct create_folders_response &source, std::vector<WSMAPIFolderOps::WSFolder> &destination) {
 	const auto count = source.entryids->__size;
 	destination.resize(count);
 	for (unsigned int i = 0; i < count; ++i) {

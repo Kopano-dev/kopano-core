@@ -704,8 +704,6 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
     std::string *szNsPrefix)
 {
-	convert_context converter;
-
 	auto strNs = sWebVal.sPropName.strNS;
 	if(strNs.empty())
 	{

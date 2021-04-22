@@ -2,18 +2,22 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-#include <kopano/platform.h>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
+
 #include "Http.h"
+
+#include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/timeutil.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/charset/convert.h>
+
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 using namespace KC;
 
@@ -738,7 +742,7 @@ HRESULT Http::HrFlushHeaders()
 HRESULT Http::X2W(const std::string &strIn, std::wstring *lpstrOut)
 {
 	const char *lpszCharset = (m_strCharSet.empty() ? "UTF-8" : m_strCharSet.c_str());
-	return TryConvert(m_converter, strIn, rawsize(strIn), lpszCharset, *lpstrOut);
+	return TryConvert(strIn, rawsize(strIn), lpszCharset, *lpstrOut);
 }
 
 HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strValue)

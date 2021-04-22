@@ -656,9 +656,7 @@ static void mdnprop_populate(SPropValue *p, unsigned int &n,
 	}
 }
 
-static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr,
-    const FILETIME &ft, convert_context &conv)
-{
+static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr, const FILETIME &ft) {
 	unsigned int ent = 0;
 	adrlist_ptr mods;
 	auto ret = MAPIAllocateBuffer(CbNewADRLIST(fr.size()), &~mods);
@@ -687,7 +685,7 @@ static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr
 		if (!cur.strRecipName.empty()) {
 			pv[pos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
 		} else {
-			wstringBuffer.emplace_back(conv.convert_to<std::wstring>(cur.strRecipEmail));
+			wstringBuffer.emplace_back(convert_to<std::wstring>(cur.strRecipEmail));
 			pv[pos++].Value.lpszW = const_cast<wchar_t *>(wstringBuffer.back().c_str());
 		}
 
@@ -864,7 +862,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	}
 	else if (ulRows > 0)
 	{
-		convert_context converter;
 		newbody = L"Unfortunately, kopano-spooler was unable to deliver your mail to the/some of the recipient(s).\n";
 		newbody.append(L"You may need to contact your e-mail administrator to solve this problem.\n");
 
@@ -877,7 +874,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 				newbody.append(L"\t");
 				newbody.append(cur.strRecipName.c_str());
 				newbody.append(L" <");
-				newbody.append(converter.convert_to<std::wstring>(cur.strRecipEmail));
+				newbody.append(convert_to<std::wstring>(cur.strRecipEmail));
 				newbody.append(L">\n");
 			}
 		}
@@ -891,7 +888,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 				newbody.append(L"\t");
 				newbody.append(cur.strRecipName.c_str());
 				newbody.append(L" <");
-				newbody.append(converter.convert_to<std::wstring>(cur.strRecipEmail));
+				newbody.append(convert_to<std::wstring>(cur.strRecipEmail));
 				newbody.append(L">\n");
 			}
 		}
@@ -902,7 +899,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
 		// recipient list of the MDN message.
-		hr = mdn_error_rcpt(lpErrorMsg, temporaryFailedRecipients, ft, converter);
+		hr = mdn_error_rcpt(lpErrorMsg, temporaryFailedRecipients, ft);
 		if (hr != hrSuccess)
 			return hr;
 	}

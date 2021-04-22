@@ -22,7 +22,6 @@
 #include "ECMemStream.h"
 #include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
-#include <kopano/charset/convert.h>
 #include <ECFifoBuffer.h>
 #include <ECSerializer.h>
 #include <kopano/stringutil.h>
@@ -368,7 +367,6 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 	unsigned int type = 0, ulPropTag = 0;
 	std::string strData;
 	auto loc = newlocale(LC_NUMERIC_MASK, "C", nullptr);
-	convert_context converter;
 	hiloLong hilo;
 
 	auto er = GetValidatedPropType(lpRow, &type);
@@ -636,7 +634,6 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
     const NamedPropDefMap *lpNamedPropDefs)
 {
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag), ulPropTag = sPropVal.ulPropTag;
-	convert_context converter;
 	NamedPropDefMap::const_iterator iNamedPropDef;
 
 	// We always stream PT_STRING8
@@ -1093,7 +1090,6 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	unsigned char	b;
 	GUID guid{};
 	std::string		strNameString;
-	convert_context	converter;
 
 	auto lpsPropval = soap_new_propVal(soap);
 	auto er = lpSource->Read(&lpsPropval->ulPropTag, sizeof(lpsPropval->ulPropTag), 1);

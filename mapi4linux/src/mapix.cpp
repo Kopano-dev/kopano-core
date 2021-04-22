@@ -133,7 +133,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 		sptaProfileCols.aulPropTag[1] = CHANGE_PROP_TYPE(PR_DISPLAY_NAME_W, PT_UNICODE);
 	else
 		sptaProfileCols.aulPropTag[1] = CHANGE_PROP_TYPE(PR_DISPLAY_NAME_A, PT_STRING8);
-		
+
 	auto hr = ECMemTable::Create(sptaProfileCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
@@ -181,7 +181,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 	object_ptr<M4LProfSect> profilesection;
 	SPropValue sPropValue;
 	ulock_rec l_prof(m_mutexProfiles);
-    
+
     if(lpszProfileName == NULL) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
@@ -229,7 +229,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 HRESULT M4LProfAdmin::DeleteProfile(const TCHAR *lpszProfileName, ULONG ulFlags)
 {
 	scoped_rlock l_prof(m_mutexProfiles);
-    
+
 	auto i = findProfile(lpszProfileName);
 	if (i != profiles.cend())
 		profiles.erase(i);
@@ -349,7 +349,6 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	KPropbuffer<4> sProps;
 	int n = 0;
 	std::wstring wServiceName, wDisplayName;
-	convert_context converter;
 	SizedSPropTagArray(3, sptaProviderCols) =
 		{3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W}};
 
@@ -357,7 +356,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	auto hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("failed to create memtable", hr);
-	
+
 	// Loop through all providers, add each to the table
 	ulock_rec l_srv(m_mutexserviceadmin);
 	for (auto &serv : services) {
@@ -365,8 +364,8 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
 		sProps[0].Value.bin.cb = sizeof(GUID);
 		if (ulFlags & MAPI_UNICODE) {
-			sProps.set(1, PR_SERVICE_NAME, converter.convert_to<std::wstring>(serv->servicename));
-			sProps.set(2, PR_DISPLAY_NAME, converter.convert_to<std::wstring>(serv->displayname));
+			sProps.set(1, PR_SERVICE_NAME, convert_to<std::wstring>(serv->servicename));
+			sProps.set(2, PR_DISPLAY_NAME, convert_to<std::wstring>(serv->displayname));
 		} else {
 			sProps.set(1, PR_SERVICE_NAME, serv->servicename);
 			sProps.set(2, PR_DISPLAY_NAME, serv->displayname);
@@ -377,7 +376,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
+
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("failed to create memtable view", hr);
@@ -480,7 +479,7 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(const MAPIUID *lpUID)
 		ec_log_err("M4LMsgServiceAdmin::DeleteMsgService(): GUID not found");
 		return MAPI_E_NOT_FOUND;
 	}
-    
+
 	auto p = providers.begin();
     while (p != providers.end()) {
 		if ((*p)->servicename != (*i)->servicename) {
@@ -656,10 +655,10 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &~lpsProps);
 		if (FAILED(hr))
 			return kc_perrorf("GetProps failed", hr);
-		
+
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
-		
+
 		hr = Util::HrAddToPropertyArray(lpsProps, cValues, &sPropID, &~lpDest, &cValuesDest);
 		if (hr != hrSuccess)
 			return kc_perrorf("Util::HrAddToPropertyArray failed", hr);
@@ -667,7 +666,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		if (hr != hrSuccess)
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
-	
+
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
@@ -723,7 +722,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	auto hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if (hr != hrSuccess)
 		return kc_perrorf("ECMemTable::Create failed", hr);
-	
+
 	// Loop through all providers, add each to the table
 	ulock_rec l_srv(serviceAdmin->m_mutexserviceadmin);
 	for (auto &prov : serviceAdmin->providers) {
@@ -739,7 +738,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
-		
+
 		hr = Util::HrAddToPropertyArray(lpsProps, cValues, &sPropID, &~lpDest, &cValuesDest);
 		if (hr != hrSuccess)
 			return kc_perrorf("Util::HrAddToPropertyArray failed", hr);
@@ -747,7 +746,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		if (hr != hrSuccess)
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
-	
+
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if (hr != hrSuccess)
 		return kc_perrorf("HrGetView failed", hr);
@@ -801,7 +800,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	auto minit = service->MSProviderInit();
 	if (minit == nullptr)
 		return kc_perror("Provider has no MSProviderInit function", MAPI_E_NO_SUPPORT);
-	
+
 	// Find the profile section associated with this entryID
 	hr = serviceAdmin->GetProviderTable(0, &~lpTable);
 	if (hr != hrSuccess)
@@ -809,7 +808,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	hr = lpTable->SetColumns(sptaProviders, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
-		
+
 	while (true) {
 		hr = lpTable->QueryRows(1, 0, &~lpsRows);
 		if (hr != hrSuccess)
@@ -824,7 +823,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 			break;
 		}
 	}
-	
+
 	if (lpsRows->cRows != 1)
 		// No provider for the store, use a temporary profile section
 		lpISupport.reset(new(std::nothrow) M4LMAPISupport(this, nullptr, std::move(service)));
@@ -970,7 +969,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		ec_log_err("M4LMAPISession::OpenEntry() cbEntryId too small");
 		return MAPI_E_INVALID_ENTRYID;
 	}
-   
+
 	// If this a wrapped entryid, just unwrap them.
 	if (memcmp(&muidStoreWrap, &lpEntryID->ab, sizeof(GUID)) == 0) {
 		auto hr = UnWrapStoreEntryID(cbEntryID, lpEntryID, &cbUnWrappedID, &~lpUnWrappedID);
@@ -986,7 +985,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	// first 16 bytes are the store/addrbook GUID
 	memcpy(&guidProvider, &lpEntryID->ab, sizeof(GUID));
-        
+
 	// See if we already have the store open
 	object_ptr<IMsgStore> lpMDB;
 	for (const auto &ecunk : lstChildren) {
@@ -1022,7 +1021,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return kc_perrorf("OpenEntry failed", hr);
 		return hr;
     }
-            
+
     // If not, it must be a provider entryid, so we have to find the provider
 
 	// Find the profile section associated with this entryID
@@ -1032,7 +1031,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	hr = lpTable->SetColumns(sptaProviders, 0);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetColumns failed", hr);
-		
+
 	while (true) {
 		rowset_ptr lpsRows;
 		hr = lpTable->QueryRows(1, 0, &~lpsRows);
@@ -1080,7 +1079,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 /**
  * Compare two EntryIDs.
- * 
+ *
  * @param[in]	cbEntryID1		Length of the first entryid
  * @param[in]	lpEntryID1		First entryid.
  * @param[in]	cbEntryID2		Length of the first entryid
@@ -1109,7 +1108,7 @@ HRESULT M4LMAPISession::CompareEntryIDs(ULONG cbEntryID1,
 /**
  * Request notifications on an object identified by lpEntryID. EntryID
  * must be on the default store in Linux.
- * 
+ *
  * @param[in]	cbEntryID		Length of lpEntryID
  * @param[in]	lpEntryID		EntryID of object to Advise on.
  * @param[in]	ulEventMask		Bitmask of events to receive notifications on.
@@ -1127,7 +1126,7 @@ HRESULT M4LMAPISession::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	//FIXME: Advise should handle one or more stores/addressbooks not only the default store,
 	//       the entry identifier can be an address book, message store object or
 	//       NULL which means an advise on the MAPISession.
-	//       MAPISessions should hold his own ulConnection list because it should work 
+	//       MAPISessions should hold his own ulConnection list because it should work
 	//       with one or more different objects.
 	auto hr = HrOpenDefaultStore(this, &~lpMsgStore);
 	if (hr != hrSuccess)
@@ -1140,7 +1139,7 @@ HRESULT M4LMAPISession::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 /**
  * Remove request for notifications for a specific ID.
- * 
+ *
  * @param[in]	ulConnection	Connection identifier of Adivse call.
  *
  * @return		HRESULT
@@ -1281,7 +1280,7 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	return hr;
 }
 
-// 
+//
 // How it works:
 //   1. program calls M4LMAPISession::OpenAddressBook()
 //      OpenAddressBook calls ABProviderInit() for all AB providers in the profile, and adds the returned
@@ -1294,11 +1293,11 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 //         - lpEntryID != NULL, pass to correct IABLogon::OpenEntry()
 //   2.1b. program calls M4LAddrBook::ResolveName()
 //         - for every IABLogon object (in the searchpath), use OpenEntry() to get the IABContainer, and call ResolveNames()
-// 
+//
 
 /**
  * Remove request for notifications for a specific ID.
- * 
+ *
  * @param[in]	cbEntryID	Length of lpEntryID.
  * @param[in]	lpEntryID	Unique entryid of a mapi object in the addressbook.
  * @param[in]	lpInterface	MAPI Interface to query on the object.
@@ -1381,17 +1380,17 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hr;
 }
 
-/** 
+/**
  * @todo Should use the GetSearchPath items, not just all providers.
- * 
- * @param cbEntryID1 
- * @param lpEntryID1 
- * @param cbEntryID2 
- * @param lpEntryID2 
- * @param ulFlags 
- * @param lpulResult 
- * 
- * @return 
+ *
+ * @param cbEntryID1
+ * @param lpEntryID1
+ * @param cbEntryID2
+ * @param lpEntryID2
+ * @param ulFlags
+ * @param lpulResult
+ *
+ * @return
  */
 HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
     const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
@@ -1599,7 +1598,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		}
 	}
 
-	
+
 	// check for still unresolved addresses
 	for (ULONG i = 0; bContinue && i < lpFlagList->cFlags; ++i)
 		if (lpFlagList->ulFlag[i] == MAPI_UNRESOLVED)
@@ -1682,14 +1681,14 @@ no_hierarchy:
 	return hrSuccess;
 }
 
-/** 
+/**
  * Returns all the hierarchy entries of the AB Root Container, see ResolveName()
  * Should return what's set with SetSearchPath().
  * Also should not return AB_SUBFOLDERS from the root container, but the subfolders.
- * 
+ *
  * @param[in] ulFlags MAPI_UNICODE
  * @param[out] lppSearchPath IABContainers EntryIDs of all known providers
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
@@ -1740,7 +1739,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 {
 	unsigned int cValues = 0;
 
-	//FIXME: lpPropTagArray can be NULL, this means that doesn't have extra properties to update only the 
+	//FIXME: lpPropTagArray can be NULL, this means that doesn't have extra properties to update only the
 	//       properties in the lpRecipList array.
 	//       This function should merge properties which are in lpRecipList and lpPropTagArray, the requested
 	//       properties are ordered first, followed by any additional properties that were already present for the entry.
@@ -2044,7 +2043,7 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 }
 
 /**
- * Last function of your MAPI program.  
+ * Last function of your MAPI program.
  *
  * In Linux, this will unload the libkcclient.so library. Any
  * object from that library you still * have will be unusable,

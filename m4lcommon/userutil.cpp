@@ -182,7 +182,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 {
 	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
-	convert_context		converter;
 	memory_ptr<ECSVRNAMELIST> lpSrvNameList;
 	memory_ptr<ECSERVERLIST> lpSrvList;
 	static constexpr SizedSPropTagArray(1, sCols) = {1, {PR_ENTRYID}};
@@ -221,7 +220,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
-		
+
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_ENTRYID) {
 				kc_perror("Unable to get entryid to open tenancy Address Book", hr);
@@ -281,8 +280,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		wchar_t *wszPath = NULL;
 
 		ec_log_info("Check server: \"%ls\" ssl=\"%ls\" flag=%08x",
-			(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>", 
-			(lpSrvList->lpsaServer[i].lpszSslPath)?lpSrvList->lpsaServer[i].lpszSslPath : L"<UNKNOWN>", 
+			(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>",
+			(lpSrvList->lpsaServer[i].lpszSslPath)?lpSrvList->lpsaServer[i].lpszSslPath : L"<UNKNOWN>",
 			lpSrvList->lpsaServer[i].ulFlags);
 
 		if (bLocalOnly && (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
@@ -301,7 +300,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			}
 			wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
 		}
-		hr = GetMailboxDataPerServer(converter.convert_to<std::string>(wszPath).c_str(), lpSSLKey, lpSSLPass, lpCollector);
+		hr = GetMailboxDataPerServer(
+			convert_to<std::string>(wszPath).c_str(), lpSSLKey, lpSSLPass, lpCollector);
 		if(FAILED(hr)) {
 			ec_log_err("Failed to collect data from server: \"%ls\": %s (%x)",
 				wszPath, GetMAPIErrorMessage(hr), hr);
@@ -400,7 +400,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	hr = ptrTable->SetColumns(sCols, TBL_BATCH);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to set set columns on user table", hr);
-	// Restrict to users (not groups) 
+	// Restrict to users (not groups)
 	hr = ECAndRestriction(
 		ECPropertyRestriction(RELOP_NE, PR_DISPLAY_TYPE, &sPropDisplayType, ECRestriction::Cheap) +
 		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sPropUser, ECRestriction::Cheap))
