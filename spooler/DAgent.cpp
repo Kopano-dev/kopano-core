@@ -1184,7 +1184,10 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 
 	// See if we're looping
 	if (lpMessageProps[0].ulPropTag == PR_TRANSPORT_MESSAGE_HEADERS_A) {
-		if (dagent_avoid_autoreply(tokenize(lpMessageProps[0].Value.lpszA, "\n"))) {
+		const std::string inhibitAutoReplySetting(g_lpConfig->GetSetting("inhibit_auto_reply_headers"));
+		const auto inhibitAutoReplyHeaders = tokenizeBySpaceIgnoreQuotes(inhibitAutoReplySetting);
+
+		if (dagent_header_present(tokenize(lpMessageProps[0].Value.lpszA, "\n"), inhibitAutoReplyHeaders)) {
 			ec_log_debug("Avoiding OOF reply to an automated message.");
 			return erSuccess;
 		}
@@ -3298,6 +3301,9 @@ int main(int argc, char **argv)
 		{"unknown_charset_substitutions", ""},
 		{"indexed_headers", ""},
 		{"conversion_detail", "no"},
+		{"inhibit_forward_headers", "X-Kopano-Vacation Auto-Submitted", CONFIGSETTING_RELOADABLE},
+		{"inhibit_auto_reply_headers", "X-Kopano-Vacation Auto-Submitted Precedence List-Id List-Help "
+		"List-Subscribe List-Unsubscribe List-Post List-Owner List-Archive \"X-Spam-Flag: YES\" \"X-Is-Junk: YES\" X-AMAZON* X-LinkedIn*", CONFIGSETTING_RELOADABLE},
 		{ NULL, NULL },
 	};
 
