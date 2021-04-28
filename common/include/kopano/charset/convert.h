@@ -75,6 +75,12 @@ public:
 	iconv_context &operator=(const iconv_context &) = delete;
 
 	/**
+	 * Resets the iconv_context by closing it and opening it again.
+	 * Uses the stored from and to code strings to open the iconv context.
+	 */
+	void reset();
+
+	/**
 	 * @brief Performs the conversion.
 	 *
 	 * The actual conversion in delegated to doconvert.
@@ -108,6 +114,13 @@ public:
 		       iconv_charset<From_Type>::rawsize(from));
 	}
 
+private:
+	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
+	bool m_bForce = true; /* Ignore illegal sequences by default. */
+	bool m_bHTML = false, m_translit_run = false;
+	unsigned int m_translit_adv = 1;
+	std::string m_fromCode, m_toCode;
+
 	/**
 	 * @brief Performs the actual conversion.
 	 *
@@ -121,12 +134,6 @@ public:
 		std::size_t cbFrom,
 		void *obj,
 		const std::function<void(void *, const char *, std::size_t)>& appendFunc);
-
-private:
-	iconv_t	m_cd = reinterpret_cast<iconv_t>(-1);
-	bool m_bForce = true; /* Ignore illegal sequences by default. */
-	bool m_bHTML = false, m_translit_run = false;
-	unsigned int m_translit_adv = 1;
 };
 
 /**
@@ -301,6 +308,17 @@ private:
 		auto iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
 			iContext = m_contexts.emplace(key, iconv_context(tocode, fromcode)).first;
+		} else {
+			// It seems that if we don't reset we get conversion
+			// errors when converting to an encoding that shouldn't
+			// be able to handle certain characters. The unittests
+			// quickly reveal this and will fail.
+			// Example: converting from UTF-32LE to //TRANSLIT, from
+			// a wide character to a normal character. Original
+			// string: ザラファ should result in ???? since those
+			// characters are not compatible. Without a reset,
+			// however, we get ザラファ back.
+			iContext->second.reset();
 		}
 		return iContext->second;
 	}

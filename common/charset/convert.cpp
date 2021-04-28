@@ -57,8 +57,8 @@ private:
 };
 
 /**
- * The conversion context for iconv charset conversions takes a fromcode and a tocode,
- * which are the source and destination charsets, respectively. The 'tocode' may take
+ * The conversion context for iconv charset conversions takes a fromCode and a toCode,
+ * which are the source and destination charsets, respectively. The 'toCode' may take
  * some extra options, separated with '//' from the charset, and then separated by commas
  *
  * This function accepts values accepted by GNU iconv:
@@ -66,7 +66,7 @@ private:
  * iso-8859-1//TRANSLIT,IGNORE
  * windows-1252//TRANSLIT
  *
- * The 'fromcode' can also take modifiers but they are ignored by iconv.
+ * The 'fromCode' can also take modifiers but they are ignored by iconv.
  *
  * Also, instead of IGNORE, the HTMLENTITY modifier can be used, eg:
  *
@@ -76,70 +76,76 @@ private:
  * output character set are not represented by '?' but by the HTML entity '&#xxxx;'. This is useful
  * for generating HTML in which as many characters as possible are directly represented, but
  * other characters are represented by an HTML entity. Note: the HTMLENTITY modifier may only
- * be applied when the fromcode is CHARSET_WCHAR (this is purely an implementation limitation)
+ * be applied when the fromCode is CHARSET_WCHAR (this is purely an implementation limitation)
  *
  * Release builds default to //IGNORE (due to -DFORCE_CHARSET_CONVERSION
  * added by ./configure --enable-release), while debug builds default
  * to //NOIGNORE.
  *
- * @param tocode Destination charset
- * @param fromcode Source charset
+ * @param toCode Destination charset
+ * @param fromCode Source charset
  */
-iconv_context::iconv_context(const char *tocode, const char *fromorig)
+iconv_context::iconv_context(const char *toCode, const char *fromCode)
+	: m_fromCode(fromCode)
+	, m_toCode(toCode)
 {
-	std::string strfrom = fromorig;
-	auto pos = strfrom.find("//");
-	if (pos != strfrom.npos)
-		/* // only meaningful for tocode */
-		strfrom.erase(pos);
-	std::string strto = tocode;
-	pos = strto.find("//");
+	auto pos = m_fromCode.find("//");
+	if (pos != m_fromCode.npos) {
+		// only meaningful for toCode
+		m_fromCode.erase(pos);
+	}
+	pos = m_toCode.find("//");
 
 	if (pos != std::string::npos) {
-		std::string options = strto.substr(pos+2);
-		strto.erase(pos);
+		std::string options = m_toCode.substr(pos+2);
+		m_toCode.erase(pos);
 		std::vector<std::string> vOptions = tokenize(options, ",");
 		std::vector<std::string>::const_iterator i;
 
 		i = vOptions.begin();
 		while (i != vOptions.end()) {
-			if (*i == "IGNORE" || *i == "FORCE")
+			if (*i == "IGNORE" || *i == "FORCE") {
 				m_bForce = true;
-			else if (*i == "NOIGNORE" || *i == "NOFORCE")
+			} else if (*i == "NOIGNORE" || *i == "NOFORCE") {
 				m_bForce = false;
-			else if (*i == "HTMLENTITIES" &&
-			    strcasecmp(strfrom.c_str(), CHARSET_WCHAR) == 0)
+			} else if (*i == "HTMLENTITIES" && strcasecmp(m_fromCode.c_str(), CHARSET_WCHAR) == 0) {
 				m_bHTML = true;
-			else if (*i == "TRANSLIT")
+			}
+			else if (*i == "TRANSLIT") {
 				m_translit_run = true;
+			}
 			++i;
 		}
 	}
 
 	if (m_translit_run) {
-		m_cd = iconv_open((strto + "//TRANSLIT").c_str(), strfrom.c_str());
+		m_cd = iconv_open((m_toCode + "//TRANSLIT").c_str(), m_fromCode.c_str());
 		if (m_cd != (iconv_t)(-1)) {
-			/* Looks like GNU iconv */
+			// Looks like GNU iconv
 			m_translit_run = false;
+			// Set //TRANSLIT back so that when reseting this works.
+			m_toCode += "//TRANSLIT";
 			return;
 		}
-		/* Skip accordingly many bytes for unconvertible characters */
-		if (strcasecmp(strfrom.c_str(), "wchar_t") == 0)
+		// Skip accordingly many bytes for unconvertible characters
+		if (strcasecmp(m_fromCode.c_str(), "wchar_t") == 0) {
 			m_translit_adv = sizeof(wchar_t);
-		else if (strcasecmp(strfrom.c_str(), "utf-16") == 0 ||
-		    strcasecmp(strfrom.c_str(), "utf-16le") == 0 ||
-		    strcasecmp(strfrom.c_str(), "utf-16be") == 0)
+		} else if (strcasecmp(m_fromCode.c_str(), "utf-16") == 0 ||
+		    strcasecmp(m_fromCode.c_str(), "utf-16le") == 0 ||
+		    strcasecmp(m_fromCode.c_str(), "utf-16be") == 0) {
 			m_translit_adv = sizeof(uint16_t);
-		else if (strcasecmp(strfrom.c_str(), "utf-32") == 0 ||
-		    strcasecmp(strfrom.c_str(), "utf-32le") == 0 ||
-		    strcasecmp(strfrom.c_str(), "utf-32be") == 0)
+		} else if (strcasecmp(m_fromCode.c_str(), "utf-32") == 0 ||
+		    strcasecmp(m_fromCode.c_str(), "utf-32le") == 0 ||
+		    strcasecmp(m_fromCode.c_str(), "utf-32be") == 0) {
 			m_translit_adv = sizeof(uint32_t);
+		}
 	}
 
-	m_cd = iconv_open(strto.c_str(), strfrom.c_str());
-	if (m_cd == (iconv_t)(-1))
-		throw unknown_charset_exception(strfrom + " -> "s + strto +
+	m_cd = iconv_open(m_toCode.c_str(), m_fromCode.c_str());
+	if (m_cd == (iconv_t)(-1)) {
+		throw unknown_charset_exception(m_fromCode + " -> "s + m_toCode +
 		      ": " + strerror(errno));
+	}
 }
 
 iconv_context::~iconv_context()
@@ -149,11 +155,31 @@ iconv_context::~iconv_context()
 	}
 }
 
-iconv_context::iconv_context(iconv_context &&rhs) :
-	m_cd(rhs.m_cd), m_bForce(rhs.m_bForce), m_bHTML(rhs.m_bHTML),
-	m_translit_run(rhs.m_translit_run), m_translit_adv(rhs.m_translit_adv)
+iconv_context::iconv_context(iconv_context &&rhs)
+	: m_cd(rhs.m_cd)
+	, m_bForce(std::move(rhs.m_bForce))
+	, m_bHTML(std::move(rhs.m_bHTML))
+	, m_translit_run(std::move(rhs.m_translit_run))
+	, m_translit_adv(std::move(rhs.m_translit_adv))
+	, m_fromCode(std::move(rhs.m_fromCode))
+	, m_toCode(std::move(rhs.m_toCode))
 {
+	// The iconv_t CAN NOT be moved as it'll cause a seg fault, so we are
+	// actually copying it and then invalidating the rhs.
 	rhs.m_cd = iconv_t(-1);
+}
+
+void iconv_context::reset()
+{
+	if (m_cd != (iconv_t)(-1)) {
+		iconv_close(m_cd);
+	}
+
+	m_cd = iconv_open(m_toCode.c_str(), m_fromCode.c_str());
+	if (m_cd == (iconv_t)(-1)) {
+		throw unknown_charset_exception(m_fromCode + " -> "s + m_toCode +
+		": " + strerror(errno));
+	}
 }
 
 void iconv_context::doconvert(
@@ -197,8 +223,8 @@ void iconv_context::doconvert(
 			// Since we don't know in what charset we are outputting, we have to send
 			// the entity through iconv so that it can convert it to the target charset.
 			err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
-			if (err == static_cast<size_t>(-1))
-				assert(false); // This will should never fail
+			assert(err != static_cast<size_t>(-1)); // This will should never fail
+
 			lpSrc += sizeof(wchar_t);
 			cbSrc -= sizeof(wchar_t);
 		} else if (m_translit_run) {
@@ -231,16 +257,18 @@ void iconv_context::doconvert(
 
 utf8string tfstring_to_utf8(const TCHAR *s, unsigned int fl)
 {
-	if (s == nullptr)
+	if (s == nullptr) {
 		return utf8string(nullptr);
+	}
 	return (fl & MAPI_UNICODE) ? convert_to<utf8string>(reinterpret_cast<const wchar_t *>(s)) :
 	       convert_to<utf8string>(reinterpret_cast<const char *>(s));
 }
 
 std::string tfstring_to_lcl(const TCHAR *s, unsigned int fl)
 {
-	if (s == nullptr)
+	if (s == nullptr) {
 		return {};
+	}
 	return (fl & MAPI_UNICODE) ? convert_to<std::string>(reinterpret_cast<const wchar_t *>(s)) :
 	       convert_to<std::string>(reinterpret_cast<const char *>(s));
 }
