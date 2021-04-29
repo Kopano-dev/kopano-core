@@ -194,7 +194,9 @@ class Item(Properties, Contact, Appointment):
                 pass
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
-                icm.ParseICal(ics, 'utf-8', 'UTC', self.user.mapiobj, 0)
+                # User object is not always available, when for example creating an item in the public folder
+                user = self.user.mapiobj if self.user and self.user.mapiobj else None
+                icm.ParseICal(ics, 'utf-8', 'UTC', user, 0)
                 icm.GetItem(0, 0, self.mapiobj)
             elif vcf is not None:
                 vcm = icalmapi.create_vcftomapi(self.mapiobj)
