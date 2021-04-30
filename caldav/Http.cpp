@@ -130,7 +130,7 @@ HRESULT Http::HrReadHeaders()
 
 			// Multi-line header
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
-				if (iHeader == mapHeaders.end())
+				if (iHeader == mapHeaders.end()) {
 					continue;
 				}
 
