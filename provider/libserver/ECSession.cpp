@@ -562,17 +562,65 @@ ECAuthSession::~ECAuthSession()
 	std::unique_lock<std::mutex> l_thread(m_hThreadReleasedMutex);
 	m_hThreadReleased.wait(l_thread, [this](void) { return !IsLocked(); });
 	l_thread.unlock();
-	if (m_NTLM_pid < 0)
+
+	if (m_NTLM_pid < 0) {
 		return;
+	}
 	int status = 0;
 	// close I/O to make ntlm_auth exit
-	if (m_stdin >= 0)
+	if (m_stdin >= 0) {
 		close(m_stdin);
-	if (m_stdout >= 0)
+	}
+	if (m_stdout >= 0) {
 		close(m_stdout);
-	if (m_stderr >= 0)
+	}
+	if (m_stderr >= 0) {
 		close(m_stderr);
-	// wait for process status
+	}
+
+	// wait for SIGCHLD from child process with a 60 second timeout.
+	sigset_t mask;
+	sigset_t orig_mask;
+
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGCHLD);
+
+	if (sigprocmask(SIG_BLOCK, &mask, &orig_mask) < 0) {
+		// This should really never happen as it would mean accessing
+		// memory outside the process's allocated space or an invalid
+		// signal was set.
+		ec_log_err(
+			"Failed to create sigprocmask when trying to remove ntlm_auth on pid: %d Error: %s",
+			m_NTLM_pid,
+			strerror(errno));
+		return;
+	}
+
+	timespec timeout{60, 0};
+	while (true) {
+		if (sigtimedwait(&mask, nullptr, &timeout) < 0) {
+			if (errno == EINTR) {
+				// Interrupted by a signal other than SIGCHLD.
+				continue;
+			}
+			else if (errno == EAGAIN) {
+				ec_log_warn("Waiting for ntlm_auth with pid %d to exit has timed out. Your ntlm_auth "
+					"program might be hanging on shutdown. Killing process...", m_NTLM_pid);
+				kill(m_NTLM_pid, SIGKILL);
+			}
+			else {
+				// This should really never happen as it would
+				// mean the timeout was invalid.
+				ec_log_err(
+					"sigtimedwait failed when trying to remove ntlm_auth on pid: %d Error: %s",
+					m_NTLM_pid,
+					strerror(errno));
+				return;
+			}
+		}
+		break;
+	}
+
 	waitpid(m_NTLM_pid, &status, 0);
 	if (status == -1) {
 		ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
