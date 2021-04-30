@@ -1293,7 +1293,7 @@ retry:
 		// Samba default runs in UTF-8 and setting 'unix charset' to windows-1252 in the samba config will break ntlm_auth
 		// convert the username before we use it in Kopano
 		try {
-			strAnswer = iconv_context<std::string, std::string>("windows-1252", "utf-8").convert(strAnswer);
+			strAnswer = convert_to<std::string>("UTF-8", strAnswer, rawsize(strAnswer), "windows-1252");
 		} catch (const convert_exception &e) {
 			ec_log_crit("Problem setting up windows-1252 to utf-8 converter: %s", e.what());
 			return er;
@@ -1309,8 +1309,9 @@ retry:
 		// Check whether user exists in the user database
 		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, strAnswer.c_str(), &m_ulUserID);
 		// don't check NONACTIVE, since those shouldn't be able to login
-		if(er != erSuccess)
+		if(er != erSuccess) {
 			return er;
+		}
 
 		if (strcasecmp(lpszName, strAnswer.c_str()) != 0) {
 			// cannot open another user without password

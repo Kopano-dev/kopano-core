@@ -139,7 +139,7 @@ public:
 	 *
 	 * OBJECTRELATION_GROUP_MEMBER will be queried to Unix directly, for
 	 * all other relations DBPlugin::getSubObjectsForObject() is called.
-	 * 
+	 *
 	 * @param[in]	relation
 	 *					The relation type which connects the child and parent object
 	 * @param[in]	parentobject
@@ -203,7 +203,7 @@ public:
 	 * @throw notsupported Always when this function is called
 	 */
 	virtual serverdetails_t getServerDetails(const std::string &server) override;
-	
+
 	/**
 	 * Obtain server list
 	 *
@@ -265,7 +265,7 @@ public:
 	 * @param[in]	childobject
 	 *					The child object.
 	 * @throw notimplemented when an unsupported relation is requested
-	 */	 
+	 */
 	virtual void addSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 	/**
@@ -288,8 +288,6 @@ public:
 	virtual void deleteSubObjectRelation(userobject_relation_t, const objectid_t &parent, const objectid_t &child) override;
 
 private:
-	std::unique_ptr<KC::iconv_context<std::string, std::string>> m_iconv;
-
 	/**
 	 * Find a user with specific name
 	 *
@@ -453,6 +451,8 @@ private:
 	 * @throw runtime_error Thrown when errno was set.
 	 */
 	void errnoCheck(const std::string &, int) const;
+
+	std::string m_charset;
 };
 
 
