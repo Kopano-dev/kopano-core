@@ -340,22 +340,25 @@ HRESULT ECChannel::HrGets(char *szBuffer, size_t ulBufSize, size_t *lpulRead)
  * @return MAPI_ERROR_CODE
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
-HRESULT ECChannel::HrReadLine(std::string &strBuffer, size_t ulMaxBuffer)
+HRESULT ECChannel::HrReadLine(std::string &strBuffer, std::size_t ulMaxBuffer)
 {
-	size_t ulRead = 0;
-	static constexpr size_t BUFSIZE = 65536;
-	auto buffer = std::make_unique<char[]>(BUFSIZE);
+	std::size_t ulRead = 0;
+	auto buffer = std::make_unique<char[]>(ulMaxBuffer);
 
 	// clear the buffer before appending
 	strBuffer.clear();
 	do {
-		auto hr = HrGets(buffer.get(), BUFSIZE, &ulRead);
-		if (hr != hrSuccess)
+		auto hr = HrGets(buffer.get(), ulMaxBuffer, &ulRead);
+		if (hr != hrSuccess) {
 			return hr;
-		strBuffer.append(buffer.get(), ulRead);
-		if (strBuffer.size() > ulMaxBuffer)
+		}
+
+		if (strBuffer.size() + ulRead > ulMaxBuffer) {
 			return MAPI_E_TOO_BIG;
-	} while (ulRead == BUFSIZE - 1); // NUL terminator is not counted
+		}
+
+		strBuffer.append(buffer.get(), ulRead);
+	} while (ulRead == ulMaxBuffer - 1); // NUL terminator is not counted
 	return hrSuccess;
 }
 
