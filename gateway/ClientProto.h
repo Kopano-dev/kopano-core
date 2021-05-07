@@ -22,6 +22,7 @@ public:
 	{};
 	virtual ~ClientProto(void) = default;
 	virtual int getTimeoutMinutes() const = 0;
+	virtual bool isAuthenticated() const = 0;
 	virtual bool isContinue() const { return false; }; // imap only
 	virtual HRESULT HrSendGreeting(const std::string &strHostString) = 0;
 	virtual HRESULT HrCloseConnection(const std::string &strQuitMsg) = 0;
