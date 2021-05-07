@@ -129,7 +129,8 @@ public:
 	~IMAP();
 
 	// getTimeoutMinutes: 30 min when logged in otherwise 1 min
-	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 30; }
+	virtual int getTimeoutMinutes() const override { return isAuthenticated() ? 30 : 1; }
+	bool isAuthenticated() const { return lpStore != nullptr; }
 	bool isIdle() const { return m_bIdleMode; }
 	bool isContinue() const { return m_bContinue; }
 	HRESULT HrSendGreeting(const std::string &strHostString);
