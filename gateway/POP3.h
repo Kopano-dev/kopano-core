@@ -29,8 +29,10 @@ public:
 	POP3(const char *path, std::shared_ptr<KC::ECChannel>, std::shared_ptr<KC::ECConfig>);
 	~POP3();
 
+	bool isAuthenticated() const { return lpStore != nullptr; }
+
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min
-	virtual int getTimeoutMinutes() const override { return lpStore == nullptr ? 1 : 5; }
+	virtual int getTimeoutMinutes() const override { return isAuthenticated() ? 5 : 1; }
 	virtual HRESULT HrSendGreeting(const KC::string_view &host) override;
 	virtual HRESULT HrCloseConnection(const std::string &quitmsg) override;
 	virtual HRESULT HrProcessCommand(const std::string &input) override;
@@ -64,7 +66,6 @@ private:
 	HRESULT HrMakeMailList();
 	HRESULT HrLogin(const std::string &strUsername, const std::string &strPassword);
 	std::string DotFilter(const char *input);
-	bool IsAuthorized() const { return lpStore != nullptr; }
 
 	KC::object_ptr<IMAPISession> lpSession;
 	KC::object_ptr<IMsgStore> lpStore;
