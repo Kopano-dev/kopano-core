@@ -1448,7 +1448,7 @@ class Occurrence(object):
     def eventid(self):
         # msgraph has both appointments and expanded appointments under
         # /events, so we need an identier which can be used for both.
-        return self._entryid(True)
+        return self._entryid(self.recurring and self.recurrence)
 
     def attendees(self):
         if self.item.recurring:
