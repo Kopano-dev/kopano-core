@@ -1433,7 +1433,7 @@ class Occurrence(object):
 
     def _entryid(self, event=False):
         # cal item entryid plus basedate (zero if not recurring)
-        flag = b'\x01' if event else b''
+        flag = b'\x01' if event else b'\x00'
         eid = self.item._entryid or _bdec(self.item.entryid)
         basedate_val = self._basedate_val or 0
 
