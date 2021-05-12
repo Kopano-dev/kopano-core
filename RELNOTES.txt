@@ -1,4 +1,21 @@
-11.0.1 (2020-02-08)
+11.0.2 (2021-05-12)
+===================
+Fixes:
+* icalmapi: not all fields of cantacts end up in VCF [KC-1608]
+* common: stderr not logged with unix_system [KC-1872]
+* configuration: commented attachment_storage setting does not reflect
+  default [KC-1875]
+* backup: used diskspace not decreasing after purge [KC-1970]
+* pyko: Unable to create items from ics file in public store [KC-1980]
+Enhancements:
+* dagent: make it possible again to forward auto replied messages
+  (configurable) [KC-1525]
+* pyko: remove item.filtered_html [KC-1752]
+* pyko: remove import * pattern [KC-1799]
+* server: enable enable_sql_procedures by default [KC-1855]
+
+
+11.0.1 (2021-02-08)
 ===================
 Fixes:
 * swig: revert to tuples for multi-output functions [KC-1680]
@@ -15,11 +32,11 @@ Enhancements:
 * Remove unused server_ssl_protocols variable
 
 
-11.0.0 (2020-01-19)
+11.0.0 (2021-01-19)
 ===================
 All changes from the 10.x branch up to 10.0.7 are included.
 
-10.0.7 (2020-01-13)
+10.0.7 (2021-01-13)
 ===================
 Fixes:
 * libserver: disable PR_ACCESS shortcut for GetContentsTable entries [KC-1755]
