@@ -1432,23 +1432,19 @@ class Occurrence(object):
         return self._entryid()
 
     def _entryid(self, event=False):
-        # cal item entryid plus basedate (zero if not recurring)
-        flag = b'\x01' if event else b''
+        # cal item entryid plus basedate (not added if not recurring)
         eid = self.item._entryid or _bdec(self.item.entryid)
-        basedate_val = self._basedate_val or 0
-
-        return _benc(
-            flag +
-            _utils.pack_short(len(eid)) +
-            eid +
-            _utils.pack_long(basedate_val)
-        )
+        flag = b'\x01' if event else b'\x00'
+        eid = flag + _utils.pack_short(len(eid)) + eid
+        if event and self._basedate_val:
+            eid += _utils.pack_long(self._basedate_val)
+        return _benc(eid)
 
     @property
     def eventid(self):
         # msgraph has both appointments and expanded appointments under
         # /events, so we need an identier which can be used for both.
-        return self._entryid(True)
+        return self._entryid(self.recurring and self.recurrence)
 
     def attendees(self):
         if self.item.recurring:
