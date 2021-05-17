@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:Kopano ICS Generator
+BEGIN:VEVENT
+SUMMARY:All day event date only style
+DTSTART;VALUE=DATE:20210226
+DURATION:PT3H
+DTSTAMP;VALUE=DATE-TIME:20210225T142244Z
+UID:simple-allday-event-1
+DESCRIPTION:This is a simple all day meeting that contains the standard date only style
+LOCATION:Delft
+END:VEVENT
+END:VCALENDAR

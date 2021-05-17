@@ -1482,35 +1482,6 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 {
 	icaltimetype ittStamp;
 
-	// if (bDateOnly && !lpicTZinfo)
-	/*
-	 * ZCP-12962: Disregarding tzinfo. Even a minor miscalculation can
-	 * cause a day shift; if possible, we should probably improve the
-	 * actual calculation when we encounter such a problem.
-	 */
-	if (bDateOnly) {
-		struct tm date;
-		// We have a problem now. This is a 'date' property type, so time information should not be sent. However,
-		// the timestamp in tStamp *does* have a time part, which is indicating the start of the day in GMT (so, this
-		// would be say 23:00 in central europe, and 03:00 in brasil). This means that if we 'just' take the date part
-		// of the timestamp, you will get the wrong day if you're east of GMT. Unfortunately, we don't know the
-		// timezone either, so we have to do some guesswork. What we do now is a 'round to closest date'. This will
-		// basically work for any timezone that has an offset between GMT+13 and GMT-10. So the 4th at 23:00 will become
-		// the 5h, and the 5th at 03:00 will become the 5th.
-
-		/* So this is a known problem for users in GMT+14, GMT-12 and
-		 * GMT-11 (Kiribati, Samoa, ..). Sorry. Fortunately, there are
-		 * not many people in these timezones. For this to work
-		 * correctly, clients should store the correct timezone in the
-		 * appointment (WebApp does not do this currently), and we need
-		 * to consider timezones here again.
-		 */
-		gmtime_r(&tStamp, &date);
-		if (date.tm_hour >= 11)
-			// Move timestamp up one day so that later conversion to date-only will be correct
-			tStamp += 86400;
-	}
-
 	if (!bDateOnly && lpicTZinfo != nullptr) {
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, lpicTZinfo);
 		kc_ical_utc(ittStamp, false);
@@ -1519,11 +1490,12 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, icaltimezone_get_utc_timezone());
 	}
 
-	icalproperty_set_value(lpicProp, bDateOnly ? icalvalue_new_date(ittStamp) :
-		icalvalue_new_datetime(ittStamp));
+	icalproperty_set_value(lpicProp, bDateOnly ? icalvalue_new_date(ittStamp) : icalvalue_new_datetime(ittStamp));
+
 	// only allowed to add timezone information on non-allday events
-	if (lpicTZinfo && !bDateOnly)
+	if (!bDateOnly && lpicTZinfo != nullptr) {
 		icalproperty_add_parameter(lpicProp, icalparameter_new_from_value_string(ICAL_TZID_PARAMETER, strTZid.c_str()));
+	}
 	return hrSuccess;
 }
 
@@ -2716,9 +2688,19 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 /**
  * Returns the Allday Status from the ical data as a boolean.
  *
- * Checks for "DTSTART" whether it contains a date, and sets the all
- * day status as true. If that property was not found, then checks if
- * "X-MICROSOFT-CDO-ALLDAYEVENT" property to set the all day status.
+ * According to RFC 5545 of the ical spec an all day event must be presented in the following ways:
+ * - These events have a DATE value type for the "DTSTART" property instead of the default value type of
+ * DATE-TIME.
+ * - If a "DTEND" property is present, it MUST be specified as a DATE value also.
+ * - If a "DURATION" property is present , it MUST be specified as a "dur-day" or "dur-week" value.
+ * - If a "DTEND" nor "DURATION" property is not present, the duration is taken to be one day. (this is
+ * currently not supported by us, since we fail if there is no "DTEND" or "DURATION" present)
+ *
+ * If the "DTDATE" and "DTEND" properties are not a date but the times are set to midnight we check if
+ * microsoft's flag is present.
+ * According to the microsoft spec, the time MUST be present and set to midnight. In adition, the
+ * "X-MICROSOFT-CDO-ALLDAYEVENT" flag must be set to TRUE.
+ * This is explained in the MS-OXCICAL spec. Chapter 2.1.3.1.1.20.28, protocol version 11.0.
  *
  * @param[in]	lpicEvent		VEVENT ical component
  * @param[out]	lpblIsAllday	Return variable to for allday status
@@ -2726,23 +2708,30 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
  */
 HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblIsAllday)
 {
-	// Note: we do not set bIsAllDay to true when (END-START)%24h == 0
-	// If the user forced his ICAL client not to set this to 'true', it really wants an item that is a multiple of 24h, but specify the times too.
 	auto icStart = icalcomponent_get_dtstart(lpicEvent);
-	if (icStart.is_date)
+	auto icEnd = icalcomponent_get_dtend(lpicEvent);
+	auto icDur = icalcomponent_get_duration(lpicEvent);
+
+	// First we check if the time portion of the properties does not contain any time different than zero. This
+	// includes the duration, since only days or weeks are allowed per the spec.
+	if (icStart.hour + icStart.minute + icStart.second != 0 ||
+	    icEnd.hour + icEnd.minute + icEnd.second != 0 ||
+	    icDur.hours + icDur.minutes + icDur.seconds != 0) {
+		*lpblIsAllday = false;
+		return hrSuccess;
+	}
+
+	// Now we check if the type of start and end are actually DATE and not DATE-TIME as per the spec. Note that,
+	// if the "DURATION" property was present instead of "DTEND" libical very nicely sets the "is_date" attribute
+	// to 1 when calculating it, so we don't have to worry about that.
+	if ((icStart.is_date == 1 && icEnd.is_date == 1))
 	{
 		*lpblIsAllday = true;
 		return hrSuccess;
 	}
 
-	// only assume the X header valid when it's a non-floating timestamp.
-	// also check is_utc and/or zone pointer in DTSTART/DTEND ?
-	auto icEnd = icalcomponent_get_dtend(lpicEvent);
-	if (icStart.hour + icStart.minute + icStart.second != 0 ||
-	    icEnd.hour + icEnd.minute + icEnd.second != 0) {
-		*lpblIsAllday = false;
-		return hrSuccess;
-	}
+	// Finally, if we reach this part we might be dealing with a microsoft style ical, so let's check for their
+	// flag.
 	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	     lpicProp != nullptr;
 	     lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY)) {

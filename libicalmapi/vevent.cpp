@@ -240,6 +240,12 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 /**
  * Set time properties in icalitem from the ical data
  *
+ * @note We are not following RFC 5545 completely!
+ * According to the spec, if neither a "DTEND" nor a "DURATION" property is present, the duration is taken to be one
+ * one day, if "DTSTART" is of type "DATE". If the type is "DATE-TIME", the event ends on the same calendar date and
+ * time of day specified by the "DTSTART" property. At the moment, however, we are not following this rule, since we
+ * fail this function if a "DTEND" or "DURATION" is not present.
+ *
  * @param[in]	lpicEventRoot	ical VCALENDAR component to set the timezone
  * @param[in]	lpicEvent		ical VEVENT component
  * @param[in]	bIsAllday		set times for normal or allday event
@@ -317,7 +323,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 	timeDTStartLocal = ICalTimeTypeToLocal(lpicDTStartProp);
 	timeStartOffset = timeDTStartUTC - timeDTStartLocal;
-	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTStartLocal : timeDTStartUTC);
+	sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartUTC);
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
@@ -354,7 +360,7 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 		timeDTEndUTC = timeDTStartUTC + icaldurationtype_as_int(dur);
 	}
 	timeEndOffset = timeDTEndUTC - timeDTEndLocal;
-	sPropVal.Value.ft = UnixTimeToFileTime(bIsAllday ? timeDTEndLocal : timeDTEndUTC);
+	sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndUTC);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
