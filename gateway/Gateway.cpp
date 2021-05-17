@@ -67,6 +67,9 @@ struct socks {
 	std::vector<bool> pop3, ssl;
 };
 
+static constexpr std::size_t AUTHENTICATED_MAX_MESSAGE_SIZE = 65536;
+static constexpr std::size_t UNAUTHENTICATED_MAX_MESSAGE_SIZE = 256;
+
 static int daemonize = 1;
 static bool quit = 0, bThreads, g_dump_config;
 static std::atomic<bool> g_sighup_flag{false};
@@ -208,10 +211,13 @@ static void *Handler(void *lpArg)
 			bQuit = true;
 			break;
 		}
-
 		timeouts = 0;
-		inBuffer.clear();
-		hr = lpChannel->HrReadLine(inBuffer);
+
+		// If we're not logged in lets cap the maximum buffer size to
+		// prevent obvious DDOS attacks.
+		const std::size_t bufferSize = client->isAuthenticated() ?
+			AUTHENTICATED_MAX_MESSAGE_SIZE : UNAUTHENTICATED_MAX_MESSAGE_SIZE;
+		hr = lpChannel->HrReadLine(inBuffer, bufferSize);
 		if (hr != hrSuccess) {
 			if (errno)
 				ec_log_err("Failed to read line: %s", strerror(errno));
@@ -253,6 +259,10 @@ static void *Handler(void *lpArg)
 			ec_log_notice("gateway lost connection with storage server: remote side closed the connection.");
 			bQuit = true;
 		}
+		// Clear the buffer from memory.
+		// Note: .clear() does not actually release memory, since it
+		// only changes the size not the capacity
+		std::string().swap(inBuffer);
 	}
 exit:
 	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());

@@ -29,8 +29,10 @@ public:
 	POP3(const char *path, std::shared_ptr<KC::ECChannel>, std::shared_ptr<KC::ECConfig>);
 	~POP3();
 
+	bool isAuthenticated() const { return lpStore != nullptr; }
+
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min
-	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 5; }
+	virtual int getTimeoutMinutes() const override { return isAuthenticated() ? 5 : 1; }
 	HRESULT HrSendGreeting(const std::string &strHostString);
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
 	HRESULT HrProcessCommand(const std::string &strInput);
@@ -64,7 +66,10 @@ private:
 	HRESULT HrMakeMailList();
 	HRESULT HrLogin(const std::string &strUsername, const std::string &strPassword);
 	std::string DotFilter(const char *input);
+<<<<<<< HEAD
 	BOOL IsAuthorized() const { return !!lpStore; }
+=======
+>>>>>>> 30c31841f... Limit memory allocation for unauthorized client data
 
 	KC::object_ptr<IMAPISession> lpSession;
 	KC::object_ptr<IMsgStore> lpStore;

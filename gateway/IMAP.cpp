@@ -76,6 +76,8 @@ static bool Prefix(const std::string &strInput, const std::string &strPrefix)
     return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
 }
 
+static constexpr std::size_t UNAUTHENTICATED_MAX_MESSAGE_SIZE = 256;
+
 IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
     std::shared_ptr<ECConfig> cfg) :
 	ClientProto(szServerPath, std::move(ch), cfg)
@@ -239,7 +241,10 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	HRESULT hr = hrSuccess;
 	vector<string> strvResult;
 	std::string strTag;
-	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
+	// If we're not logged in lets cap the maximum buffer size to prevent
+	// obvious DDOS attacks.
+	ULONG ulMaxMessageSize = isAuthenticated() ?
+		atoui(lpConfig->GetSetting("imap_max_messagesize")) : UNAUTHENTICATED_MAX_MESSAGE_SIZE;
 
 	static constexpr const struct {
 		const char *command;
