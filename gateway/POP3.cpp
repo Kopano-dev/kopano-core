@@ -114,7 +114,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		HrCmdQuit();
 		// let the gateway quit from the socket read loop
 		return MAPI_E_END_OF_SESSION;
-    } else if (!IsAuthorized()) {
+	} else if (!isAuthenticated()) {
 		HrResponse(POP3_RESP_ERR, "Invalid command");
 		ec_log_err("Not authorized for command \"%s\"", vWords[0].c_str());
 		return MAPI_E_CALL_FAILED;

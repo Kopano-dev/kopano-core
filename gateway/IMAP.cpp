@@ -66,6 +66,8 @@ static const std::string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
+static constexpr std::size_t UNAUTHENTICATED_MAX_MESSAGE_SIZE = 256;
+
 IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
     std::shared_ptr<ECConfig> cfg) :
 	ClientProto(szServerPath, std::move(ch), cfg)
@@ -227,7 +229,10 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	HRESULT hr = hrSuccess;
 	std::vector<std::string> strvResult;
 	std::string strTag;
-	ULONG ulMaxMessageSize = atoui(lpConfig->GetSetting("imap_max_messagesize"));
+	// If we're not logged in lets cap the maximum buffer size to prevent
+	// obvious DDOS attacks.
+	ULONG ulMaxMessageSize = isAuthenticated() ?
+		atoui(lpConfig->GetSetting("imap_max_messagesize")) : UNAUTHENTICATED_MAX_MESSAGE_SIZE;
 
 	static constexpr struct {
 		const char *command;
