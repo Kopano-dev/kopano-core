@@ -11,12 +11,12 @@ private:
     ULONG m_cRef;
 	zval m_lpObj;
 public:
-	ECImportHierarchyChangesProxy(const zval *v TSRMLS_DC);
+	ECImportHierarchyChangesProxy(const zval *v);
     ~ECImportHierarchyChangesProxy();
 	virtual ULONG AddRef() override;
 	virtual ULONG Release() override;
 	virtual HRESULT QueryInterface(const IID &, void **) override;
-    
+
 	virtual HRESULT GetLastError(HRESULT result, unsigned int flags, MAPIERROR **) override;
 	virtual HRESULT Config(IStream *, unsigned int flags) override;
 	virtual HRESULT UpdateState(IStream *) override;

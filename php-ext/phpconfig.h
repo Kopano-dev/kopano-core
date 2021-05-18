@@ -50,4 +50,3 @@
 
 /* Define to 1 if you have strtok_r in <string.h>. */
 #define HAVE_STRTOK_R 1
-
