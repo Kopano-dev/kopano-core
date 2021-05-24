@@ -199,15 +199,19 @@ class BackupWorker(kopano.Worker):
     def backup_hierarchy(self, path, stats, options, store, user, server, config):
         # backup user and store properties
         if not options.folders:
-            open(path+'/store', 'wb').write(dump_props(self._store_props(store), stats, self.log))
+            with open(path+'/store', 'wb') as f:
+                f.write(dump_props(self._store_props(store), stats, self.log))
             if user:
-                open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
+                with open(path+'/user', 'wb') as f:
+                    f.write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
-                    open(path+'/delegates', 'wb').write(store.delegations_dumps(stats=stats))
-                    open(path+'/acl', 'wb').write(store.permissions_dumps(stats=stats))
+                    with open(path+'/delegates', 'wb') as f1, open(path+'/acl', 'wb') as f2:
+                        f1.write(store.delegations_dumps(stats=stats))
+                        f2.write(store.permissions_dumps(stats=stats))
 
         # time of last backup
-        open(path+'/timestamp', 'wb').write(pickle_dumps(self.service.timestamp))
+        with open(path+'/timestamp', 'wb') as f:
+            f.write(pickle_dumps(self.service.timestamp))
         if not os.path.exists(path+'/folders'):
             os.makedirs(path+'/folders')
 
@@ -249,7 +253,8 @@ class BackupWorker(kopano.Worker):
         # timestamp deleted folders
         if not options.folders:
             for del_sk in set(sk_dir) - set(sk_folder):
-                fpath = open(path+'/'+sk_dir[del_sk]+'/path', 'rb').read().decode('utf8')
+                with open(path+'/'+sk_dir[del_sk]+'/path', 'rb') as f:
+                    fpath = f.read().decode('utf8')
                 index = (path+'/'+sk_dir[del_sk]+'/index')
                 _mark_deleted(index, fpath, self.service.timestamp, self.log)
 
@@ -262,13 +267,16 @@ class BackupWorker(kopano.Worker):
             os.makedirs(data_path)
 
         # backup folder properties, path, metadata
-        open(data_path+'/path', 'wb').write(folder.path.encode('utf8'))
-        open(data_path+'/folder', 'wb').write(dump_props(folder.props(), stats, self.log))
+        with open(data_path+'/path', 'wb') as f1, open(data_path+'/folder', 'wb') as f2:
+            f1.write(folder.path.encode('utf8'))
+            f2.write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
-            open(data_path+'/acl', 'wb').write(folder.permissions_dumps(stats=stats))
+            with open(data_path+'/acl', 'wb') as f:
+                f.write(folder.permissions_dumps(stats=stats))
             rules = folder.rules_dumps(stats=stats)
             if rules:
-                open(data_path+'/rules', 'wb').write(rules)
+                with open(data_path+'/rules', 'wb') as f:
+                    f.write(rules)
         if options.only_meta:
             return
 
@@ -278,13 +286,15 @@ class BackupWorker(kopano.Worker):
         if orig_data_path:
             orig_statepath = '%s/state' % orig_data_path
             if os.path.exists(orig_statepath):
-                state = open(orig_statepath, 'rb').read()
+                with open(orig_statepath, 'rb') as f:
+                    state = f.read()
                 self.log.debug('found previous folder sync state: %s', state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
         if new_state != state or options.differential:
             importer.commit()
             statepath = '%s/state' % data_path
-            open(statepath, 'wb').write(new_state.encode('ascii'))
+            with open(statepath, 'wb') as f:
+                f.write(new_state.encode('ascii'))
             self.log.debug('saved folder sync state: %s', new_state)
 
 class FolderImporter:
@@ -472,7 +482,8 @@ class Service(kopano.Service):
         sks = set()
         for path in paths:
             fpath = path_folder[path]
-            folderprops = pickle_loads(open('%s/folder' % fpath, 'rb').read())
+            with open('%s/folder' % fpath, 'rb') as f:
+                folderprops = pickle_loads(f.read())
             folder_sk = folderprops[PR_SOURCE_KEY]
 
             # determine folder to restore
@@ -529,14 +540,17 @@ class Service(kopano.Service):
         if not (self.options.sourcekeys or self.options.skip_meta):
             self.log.info('restoring metadata')
             for (folder, fpath) in meta_folders:
-                folder.permissions_loads(open(fpath+'/acl', 'rb').read(), stats=stats)
+                with open(fpath+'/acl', 'rb') as f:
+                    folder.permissions_loads(f.read(), stats=stats)
                 if os.path.exists(fpath+'/rules'):
-                    folder.rules_loads(open(fpath+'/rules', 'rb').read(), stats=stats)
+                    with open(fpath+'/rules', 'rb') as f:
+                        folder.rules_loads(f.read(), stats=stats)
 
         # restore store-level metadata (webapp/mapi settings)
         if user and not (self.options.folders or self.options.restore_root or self.options.skip_meta or self.options.sourcekeys):
             if os.path.exists('%s/store' % data_path):
-                storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
+                with open('%s/store' % data_path, 'rb') as f:
+                    storeprops = pickle_loads(f.read())
                 for proptag in SETTINGS_PROPTAGS:
                     if PROP_TYPE(proptag) == PT_TSTRING:
                         proptag = CHANGE_PROP_TYPE(proptag, PT_UNICODE)
@@ -546,9 +560,11 @@ class Service(kopano.Service):
                     store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
-                store.delegations_loads(open('%s/delegates' % data_path, 'rb').read(), stats=stats)
+                with open('%s/delegates' % data_path, 'rb') as f:
+                    store.delegations_loads(f.read(), stats=stats)
             if os.path.exists('%s/acl' % data_path):
-                store.permissions_loads(open('%s/acl' % data_path, 'rb').read(), stats=stats)
+                with open('%s/acl' % data_path, 'rb') as f:
+                    store.permissions_loads(f.read(), stats=stats)
 
         for sourcekey in self.options.sourcekeys:
             if sourcekey not in self.restored_sourcekeys:
@@ -613,7 +629,8 @@ class Service(kopano.Service):
             diff_path = diff_base+'/'+diff_id
             self.log.info("merging differential backup '%s' into '%s'", diff_path, data_path)
 
-            timestamp = pickle_loads(open(diff_path+'/timestamp', 'rb').read())
+            with open(diff_path+'/timestamp', 'rb') as f:
+                timestamp = pickle_loads(f.read())
 
             orig_sk_dir = sk_struct(data_path, self.options)
             diff_sk_dir = sk_struct(diff_path, self.options)
@@ -622,14 +639,16 @@ class Service(kopano.Service):
             for new_sk in set(diff_sk_dir) - set(orig_sk_dir):
                 from_dir = diff_path+'/'+diff_sk_dir[new_sk]
                 to_dir = data_path+'/folders/'+new_sk
-                fpath = open(from_dir+'/path', 'rb').read().decode('utf8')
+                with open(from_dir+'/path', 'rb') as f:
+                    fpath = f.read().decode('utf8')
                 self.log.debug("merging new folder '%s'", fpath)
                 _copy_folder_meta(from_dir, to_dir)
 
             # update existing folders # XXX check matching & higher syncstate?
             for both_sk in set(orig_sk_dir) & set(diff_sk_dir):
                 folder_dir = diff_path+'/'+diff_sk_dir[both_sk]
-                fpath = open(folder_dir+'/path', 'rb').read().decode('utf8')
+                with open(folder_dir+'/path', 'rb') as f:
+                    fpath = f.read().decode('utf8')
                 orig_dir = data_path+'/'+orig_sk_dir[both_sk]
 
                 # now merge new data
@@ -657,7 +676,8 @@ class Service(kopano.Service):
             # timestamp deleted folders
             for del_sk in set(orig_sk_dir) - set(diff_sk_dir):
                 orig_dir = data_path+'/'+orig_sk_dir[del_sk]
-                fpath = open(orig_dir+'/path', 'rb').read().decode('utf8')
+                with open(orig_dir+'/path', 'rb') as f:
+                    fpath = f.read().decode('utf8')
 
                 _mark_deleted(orig_dir+'/index', fpath, timestamp, self.log)
 
@@ -713,7 +733,8 @@ class Service(kopano.Service):
     def restore_folder(self, folder, path, data_path, store, subtree, stats, user, server):
         """ restore (partial) folder """
 
-        folderprops = pickle_loads(open('%s/folder' % data_path, 'rb').read())
+        with open('%s/folder' % data_path, 'rb') as f:
+            folderprops = pickle_loads(f.read())
 
         if not self.options.sourcekeys:
             self.log.debug('restoring folder %s', path)
@@ -853,7 +874,8 @@ def folder_struct(data_path, options, mapper=None): # XXX deprecate?
     if mapper is None:
         mapper = {}
     if os.path.exists(data_path+'/path'):
-        path = open(data_path+'/path', 'rb').read().decode('utf8')
+        with open(data_path+'/path', 'rb') as f:
+            path = f.read().decode('utf8')
         mapper[path] = data_path
     if os.path.exists(data_path+'/folders'):
         for f in os.listdir(data_path+'/folders'):
