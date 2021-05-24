@@ -75,7 +75,8 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidAppointmentStateFlags, PidLidResponseStatus,
-    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidFInvited
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidFInvited,
+    PidLidSourceMessageInfo
 )
 
 from .compat import (
@@ -732,28 +733,61 @@ class Item(Properties, Contact, Appointment):
         except KeyError:
             return ""
 
-    def reply(self, folder=None, all=False):
-        """Create reply message
+    def _generate_item_for_reply_or_forward(self, folder, subject, body):
+        """Generate item object for 'reply' or 'forward' action.
 
-        :param folder: Folder to save reply (default in drafts)
-        :param all: Reply to all (default False)
+        Args:
+            folder (Folder): folder object.
+            subject (str): subject text.
+            body (str): body text.
+
+        Returns:
+            Item: created item for 'reply' or 'forward' action.
+        """
+        item = folder.create_item(
+            subject=subject, body=body,
+            from_=self.store.user, to=self.from_.email,
+            message_class=self.message_class
+        )
+        source_message_info = self._create_source_message_info('reply').encode('ascii')
+        item[PidLidSourceMessageInfo] = source_message_info
+        return item
+
+    def reply(self, folder=None, all=False, subject_prefix="Re:"):
+        """Create 'reply' message.
+
+        Args:
+            folder (str): folder to save reply. Defaults to None. None means 'Drafts' directory.
+            all (bool): Reply to all. Defaults to False.
+            subject_prefix (str): subject prefix. Defaults to 'Re:'.
+
+        Returns:
+            Item: a created item.
         """
         # TODO(jelle): support reply all.
-        if not folder:
-            folder = self.store.drafts
         # TODO(jelle): Remove multiple Re:'s, should only be one
-        # Re: <subject> left
-        subject = 'Re: {}'.format(self.subject)
-        body = self._generate_reply_body()
         # TODO(jelle): pass an Address in to?
-        item = folder.create_item(subject=subject, body=body,
-            from_=self.store.user, to=self.from_.email,
-            message_class=self.message_class)
+        return self._generate_item_for_reply_or_forward(
+            self.store.drafts if not folder else folder,
+            '{} {}'.format(subject_prefix, self.subject),
+            self._generate_reply_body()
+        )
 
-        source_message_info = self._create_source_message_info(
-            'reply').encode('ascii')
-        item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
-        return item
+    def forward(self, folder=None, subject_prefix="Fwd:"):
+        """Create 'forward' message.
+
+        Args:
+            folder (str): folder to save reply (default in drafts).
+            subject_prefix (str): subject prefix. Defaults to 'Fwd:'.
+
+        Returns:
+            Item: a created item.
+        """
+        return self._generate_item_for_reply_or_forward(
+            self.store.drafts if not folder else folder,
+            '{} {}'.format(subject_prefix, self.subject),
+            self._generate_reply_body()
+        )
 
     # TODO too many cases overlapping here
     def send(self, copy_to_sentmail=True, _basedate=None, cal_item=None):
@@ -781,7 +815,7 @@ class Item(Properties, Contact, Appointment):
         }
         # TODO(jelle): check if property exists?
         try:
-            source_message = item.prop('common:0x85CE').value
+            source_message = item[PidLidSourceMessageInfo]
             msgtype = source_message[24:26]
             orig = self.store.item(entryid=source_message[48:])
             orig.create_prop(PR_ICON_INDEX, icon_index[msgtype])
