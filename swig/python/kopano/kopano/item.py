@@ -45,7 +45,7 @@ from MAPI.Struct import (
 
 from MAPI.Tags import (
     PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
-    PR_CONTAINER_CLASS_W, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
+    PR_CONTAINER_CLASS_W, PR_COMMENT_W, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
     PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W, PR_INTERNET_CPID,
     PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME, PR_CLIENT_SUBMIT_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
@@ -930,6 +930,27 @@ class Item(Properties, Contact, Appointment):
                 sos += 2
 
             pos += 4 + size
+
+    @property
+    def comment(self):
+        """Return 'comment' of an item.
+
+        Returns:
+            str: comment of the item.
+        """
+        try:
+            return self.get_prop(PR_COMMENT_W).value
+        except MAPIErrorNotFound:
+            return ''
+
+    @comment.setter
+    def comment(self, value):
+        """Setter for the comment of an item.
+
+        Args:
+            value (str): new comment.
+        """
+        self.create_prop(PR_COMMENT_W, str(value))
 
     @property
     def is_meetingrequest(self):
