@@ -214,10 +214,8 @@ class BackupWorker(kopano.Worker):
         # check command-line options and collect folders
         self.log.info('backing up: %s', path)
         sk_folder = {}
-        folders = list(store.folders())
+        folders = store.folders(recurse=not options.no_recursive)
         subtree = store.subtree
-        if options.recursive:
-            folders = sum([[f]+list(f.folders()) for f in folders], [])
         for folder in folders:
             if (not store.public and \
                 ((options.skip_junk and folder == store.junk) or \
@@ -443,7 +441,7 @@ class Service(kopano.Service):
         # determine stored and specified folders
         path_folder = folder_struct(data_path, self.options)
         paths = self.options.folders or sorted(path_folder.keys())
-        if self.options.recursive:
+        if not self.options.no_recursive:
             paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
         for path in paths:
             if path not in path_folder:
@@ -880,7 +878,7 @@ def show_contents(data_path, options):
     for path in paths:
         if path not in path_folder:
             fatal('no such folder: %s' % path)
-    if options.recursive:
+    if not options.no_recursive:
         paths = [p for p in path_folder if [f for f in paths if p.startswith(f)]]
 
     # loop over folders
@@ -941,6 +939,7 @@ def main():
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--sourcekey', dest='sourcekeys', action='append', default=[], help='restore specific sourcekey', metavar='SOURCEKEY')
     parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
+    parser.add_option('', '--no-recursive', dest='no_recursive', action='store_true', help='stop backup/restore folders recursively')
     parser.add_option('', '--differential', dest='differential', action='store_true', help='create/restore differential backup')
     parser.add_option('', '--overwrite', dest='overwrite', action='store_true', help='overwrite duplicate items')
     parser.add_option('', '--merge', dest='merge', action='store_true', help='merge differential backups')
@@ -963,6 +962,8 @@ def main():
         fatal('the --output-dir option cannot be combined with --differential')
     if options.sourcekeys and options.differential:
         fatal('invalid use of --sourcekeys option')
+    if options.recursive and options.no_recursive:
+        fatal('conflict on using --recursive and --no-recursive options')
 
     if options.stats or options.index:
         # handle --stats/--index
