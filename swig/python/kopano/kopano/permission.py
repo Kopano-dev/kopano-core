@@ -76,7 +76,7 @@ def _permissions_loads(obj, data, stats=None):
                     entryid = server.group(value).groupid
                 row[1].Value = _bdec(entryid)
                 rows.append(row)
-            except kopano.NotFoundError:
+            except NotFoundError:
                 log.warning("skipping access control entry for unknown \
 user/group '%s'", value)
         acltab = obj.mapiobj.OpenProperty(PR_ACL_TABLE,
