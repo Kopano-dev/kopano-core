@@ -293,11 +293,12 @@ class FolderImporter:
     def __init__(self, *args):
         self.folder, self.folder_path, self.config, self.options, self.log, self.stats, self.service = args
         self.store = self.folder.store
-        self.reset_cache()
-
-    def reset_cache(self):
         self.item_updates = []
         self.index_updates = []
+
+    def reset_cache(self):
+        self.item_updates.clear()
+        self.index_updates.clear()
         self.cache_size = 0
 
     def update(self, item, flags):
