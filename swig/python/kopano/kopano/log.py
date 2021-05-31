@@ -35,6 +35,21 @@ import traceback
 
 FMT_BASE = '[%(levelname)-8s] %(name)s - %(message)s'
 FMT = '%(asctime)s.%(msecs)03d: ' + FMT_BASE
+LOG_LEVELS = {
+    '0': logging.NOTSET,
+    '1': logging.CRITICAL,
+    '2': logging.ERROR,
+    '3': logging.WARNING,
+    '4': logging.INFO,
+    '5': logging.INFO,
+    '6': logging.DEBUG,
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR,
+    'CRITICAL': logging.CRITICAL,
+}
+
 
 def _kopano_logger():
     log = logging.getLogger('kopano')
@@ -51,26 +66,13 @@ def _kopano_logger():
 LOG = _kopano_logger()
 
 def _loglevel(options, config):
-    log_level = None
+    log_level = ''
     if options and getattr(options, 'loglevel', None):
         log_level = options.loglevel
     elif config:
         log_level = config.get('log_level')
     log_level = log_level or 'warning'
-    return { # TODO NONE?
-        '0': logging.NOTSET,
-        '1': logging.CRITICAL,
-        '2': logging.ERROR,
-        '3': logging.WARNING,
-        '4': logging.INFO,
-        '5': logging.INFO,
-        '6': logging.DEBUG,
-        'DEBUG': logging.DEBUG,
-        'INFO': logging.INFO,
-        'WARNING': logging.WARNING,
-        'ERROR': logging.ERROR,
-        'CRITICAL': logging.CRITICAL,
-    }[log_level.upper()]
+    return LOG_LEVELS.get(log_level.upper(), logging.WARNING)
 
 def _logfmt(config):
     log_fmt = FMT
