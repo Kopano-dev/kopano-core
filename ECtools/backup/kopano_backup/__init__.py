@@ -303,6 +303,7 @@ class FolderImporter:
         self.store = self.folder.store
         self.item_updates = []
         self.index_updates = []
+        self.cache_size = 0
 
     def reset_cache(self):
         self.item_updates.clear()
