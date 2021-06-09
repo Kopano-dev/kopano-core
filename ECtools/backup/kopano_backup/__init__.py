@@ -220,6 +220,11 @@ class BackupWorker(kopano.Worker):
         sk_folder = {}
         folders = store.folders(recurse=not options.no_recursive)
         subtree = store.subtree
+        # store.folders does not expand when options.folders is set nor do we want to implement this
+        # in python-kopano as relying on optparse values passed along to the kopano.Server() object
+        # makes any code unnecessary opaque and complicated.
+        if not options.no_recursive and options.folders:
+            folders = sum([[f]+list(f.folders()) for f in folders], [])
         for folder in folders:
             if (not store.public and \
                 ((options.skip_junk and folder == store.junk) or \
