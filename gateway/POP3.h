@@ -66,10 +66,6 @@ private:
 	HRESULT HrMakeMailList();
 	HRESULT HrLogin(const std::string &strUsername, const std::string &strPassword);
 	std::string DotFilter(const char *input);
-<<<<<<< HEAD
-	BOOL IsAuthorized() const { return !!lpStore; }
-=======
->>>>>>> 30c31841f... Limit memory allocation for unauthorized client data
 
 	KC::object_ptr<IMAPISession> lpSession;
 	KC::object_ptr<IMsgStore> lpStore;
