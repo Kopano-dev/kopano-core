@@ -1,3 +1,14 @@
+8.7.21 (2021-06-15)
+===================
+Fixes:
+* backup: used diskspace not decreasing after purge [KC-1970]
+* ical: malformed headers crash kopano-ical
+* pyko: unable to create items from ics file in public store [KC-1980]
+* libserver: prevent waitpid from hanging if NTLM process hangs
+* gateway: limit memory allocation for unauthorized client data
+Enhancements:
+* dagent: make it possible to forward auto replied messages [KC-1525]
+
 8.7.20 (2021-03-24)
 ===================
 Fixes:
