@@ -945,8 +945,8 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 
 	memory_ptr<SPropValue> pv;
 	if (HrGetFullProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
-	    dagent_header_present(tokenize(pv->Value.lpszA, "\n"), inhibitAutoReplyHeaders)) {
-		ec_log_warn("Rule \"%s\": Not replying to an autoreply", rei.name);
+		dagent_header_present(tokenize(pv->Value.lpszA, "\n"), inhibitAutoReplyHeaders)) {
+		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
 		return {ROP_NOOP};
 	}
 	if (action.acttype == OP_REPLY)
