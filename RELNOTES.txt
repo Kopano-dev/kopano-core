@@ -1,4 +1,9 @@
-8.7.21 (2021-06-15)
+8.7.22 (2021-06-16)
+===================
+Fixes:
+* build: fix erroneous backport commits
+
+8.7.21 (2021-06-15 unreleased)
 ===================
 Fixes:
 * backup: used diskspace not decreasing after purge [KC-1970]
