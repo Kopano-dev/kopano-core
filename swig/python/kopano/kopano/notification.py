@@ -34,6 +34,7 @@ EVENT_TYPES = ['created', 'updated', 'deleted']
 
 TRACER = sys.gettrace()
 
+
 class Notification(object):
     """Notification class
 
@@ -108,8 +109,7 @@ def _split(mapiobj, store):
             item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
 
         elif mapiobj.ulObjType == MAPI_FOLDER:  # TODO mapiobj.lpOldID not set?
-            folder = _folder.Folder(store=store,
-                                    entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+            folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
             notif.object = folder
 
         notif.event_type = 'deleted'
@@ -132,6 +132,7 @@ def _filter(notifs, folder, event_types, folder_types):
             continue
 
         yield notif
+
 
 class AdviseSink(MAPIAdviseSink):
     def __init__(self, store, folder, event_types, folder_types, delegate):
@@ -176,6 +177,7 @@ def _flags(object_types, event_types):
 
     return flags
 
+
 def subscribe(store, folder, delegate, object_types=None, folder_types=None,
               event_types=None):
 
@@ -194,6 +196,7 @@ notifications (try Server(notifications=True))')
         delegate._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink)
     else:
         delegate._conn = store.mapiobj.Advise(None, flags, sink)
+
 
 def unsubscribe(store, delegate):
     store.mapiobj.Unadvise(delegate._conn)
