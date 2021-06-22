@@ -21,6 +21,7 @@ else: # pragma: no cover
     from Queue import Empty
 
 from kopano_search import plaintext
+from MAPI.Struct import MAPIErrorNetworkError
 import kopano
 from kopano import log_exc, Config
 sys.path.insert(0, os.path.dirname(__file__)) # XXX for __import__ to work
@@ -228,28 +229,40 @@ class IndexWorker(kopano.Worker):
             changes = 0
             with log_exc(self.log):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
-                store = server.store(storeguid)
-                folder = kopano.Folder(store, folderid)
-                path = folder.path
+                retries = 0
+                while True:
+                    try:
+                        store = server.store(storeguid)
+                        folder = kopano.Folder(store, folderid)
+                        path = folder.path
 
-                if not self.indexed_folder(config, store, folder):
-                    continue
+                        if not self.indexed_folder(config, store, folder):
+                            continue
 
-                suggestions = config['suggestions'] and folder != store.junk
-                self.log.info('syncing folder: "%s" "%s"', store.name, path)
-                importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
-                state = db_get(state_db, folder.entryid) if not reindex else None
+                        suggestions = config['suggestions'] and folder != store.junk
+                        self.log.info('syncing folder: "%s" "%s"', store.name, path)
+                        importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
+                        state = db_get(state_db, folder.entryid) if not reindex else None
 
-                if state:
-                    self.log.info('found previous folder sync state: %s', state)
-                t0 = time.time()
-                new_state = folder.sync(importer, state, log=self.log)
-                if new_state != state:
-                    plugin.commit(suggestions)
-                    db_put(state_db, folder.entryid, new_state)
-                    self.log.info('saved folder sync state: %s', new_state)
-                    changes = importer.changes + importer.deletes
-                    self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
+                        if state:
+                            self.log.info('found previous folder sync state: %s', state)
+                        t0 = time.time()
+                        new_state = folder.sync(importer, state, log=self.log)
+                        if new_state != state:
+                            plugin.commit(suggestions)
+                            db_put(state_db, folder.entryid, new_state)
+                            self.log.info('saved folder sync state: %s', new_state)
+                            changes = importer.changes + importer.deletes
+                            self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
+                    except MAPIErrorNetworkError:
+                        self.log.warn('unable to connect to kopano-server, retrying... (%s times)', retries)
+                        retries += 1
+                        if retries <= 5:
+                            time.sleep(0.1 * retries)
+                        else:
+                            time.sleep(5)
+                    else:
+                        break
             self.oqueue.put(changes)
 
 class FolderImporter:
