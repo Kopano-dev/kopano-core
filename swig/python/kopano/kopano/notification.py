@@ -122,13 +122,16 @@ def _filter(notifs, folder, event_types, folder_types):
         if notif.event_type not in event_types:
             continue
 
-        if folder and notif.object_type == 'item' and notif.object.folder != folder:
-            continue
-
-        if notif.object_type == 'item' and notif.object.folder and notif.object.folder.type_ not in folder_types:
-            continue
-
         if notif.object_type == 'folder' and notif.object and notif.object.type_ not in folder_types:
+            continue
+
+        # Assign to a local variable so ICS updates won't cause race conditions when the folder is deleted.
+        notif_folder = notif.object.folder
+
+        if folder and notif.object_type == 'item' and notif_folder != folder:
+            continue
+
+        if notif.object_type == 'item' and notif_folder and notif_folder.type_ not in folder_types:
             continue
 
         yield notif
