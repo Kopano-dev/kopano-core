@@ -376,28 +376,32 @@ class Service(kopano.Service):
         while True:
             with log_exc(self.log):
                 try:
-                    storeid = self.reindex_queue.get(block=False)
-                    store = self.server.store(storeid)
-                    self.log.info('handling reindex request for "%s"', store.name)
-                    self.plugin.reindex(self.server.guid, store.guid)
-                    self.initial_sync([store], reindex=True)
-                except Empty:
+                    try:
+                        storeid = self.reindex_queue.get(block=False)
+                        store = self.server.store(storeid)
+                        self.log.info('handling reindex request for "%s"', store.name)
+                        self.plugin.reindex(self.server.guid, store.guid)
+                        self.initial_sync([store], reindex=True)
+                    except Empty:
+                        pass
+                    importer = ServerImporter(self.server.guid, self.config, self.iqueue, self.log)
+                    t0 = time.time()
+                    new_state = self.server.sync(importer, self.state, log=self.log)
+                    if new_state != self.state:
+                        changes = sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
+                        for f in importer.queued:
+                            self.iqueue.put(f+(False,))  # make sure folders are at least synced to new_state
+                        changes += sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
+                        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
+                        self.state = new_state
+                        db_put(self.state_db, 'SERVER', self.state)
+                        self.log.info('saved server sync state = %s', self.state)
+                    if t0 > self.syncrun.value+1:
+                        self.syncrun.value = 0
+                except MAPIErrorNetworkError:
+                    self.log.warn('unable to connect to kopano-server during incremental_sync, retrying...')
                     pass
-                importer = ServerImporter(self.server.guid, self.config, self.iqueue, self.log)
-                t0 = time.time()
-                new_state = self.server.sync(importer, self.state, log=self.log)
-                if new_state != self.state:
-                    changes = sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
-                    for f in importer.queued:
-                        self.iqueue.put(f+(False,))  # make sure folders are at least synced to new_state
-                    changes += sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
-                    self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
-                    self.state = new_state
-                    db_put(self.state_db, 'SERVER', self.state)
-                    self.log.info('saved server sync state = %s', self.state)
-                if t0 > self.syncrun.value+1:
-                    self.syncrun.value = 0
-            time.sleep(5)
+                time.sleep(5)
 
     def reindex(self):
         """ pass usernames/store-ids given on command-line to running search process """
