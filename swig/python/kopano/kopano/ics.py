@@ -42,6 +42,7 @@ from MAPI.Time import (
 )
 
 from .compat import benc as _benc, bdec as _bdec
+from .errors import NotFoundError
 
 from . import item as _item
 try:
@@ -79,7 +80,11 @@ class TrackingHierarchyImporter(ECImportHierarchyChanges):
     def ImportFolderChange(self, props):
         if hasattr(self.importer, 'update'):
             eid = _benc(PpropFindProp(props, PR_ENTRYID).Value)
-            folder = _folder.Folder(store=self.importer.store, entryid=eid)
+            try:
+                folder = _folder.Folder(store=self.importer.store, entryid=eid)
+            except NotFoundError:
+                self.log.debug("received folderchange but could not find folder with entryid: '%s'", eid)
+                return
             self.importer.update(folder)
 
     def ImportFolderDeletion(self, flags, sourcekeys):
