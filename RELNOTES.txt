@@ -1,3 +1,36 @@
+10.1.0 (2020-06-24)
+===================
+Fixes:
+* dagent: make it possible again to forward auto replied messages
+  (configurable) [KC-1525]
+* icalmapi: not all fields of contacts end up in VCF [KC-1608]
+* server: all-day events are shifted if machine time is still on UTC [KC-1664]
+* storeadm: list of orphan stores is incomplete [KC-1816]
+* dagent: stderr not logged with unix_system [KC-1872]
+* configuration: commented attachment_storage setting does not reflect
+  default [KC-1874]
+* backup: used diskspace not decreasing after purge [KC-1970]
+* pyko: unable to create items from ics file in public store [KC-1980]
+* gateway: remote DoS with resource exhaustion [KC-1983]
+* pyko: race condition when folder is deleted and an item was created in it
+  before [KC-1997]
+* caldav: set limit on header size to prevent bad alloc
+* ical: fix an exploit where a malformed header could lead kopano-ical to crash
+* libserver: prevent waitpid from hanging if NTLM process hangs
+* pyko: fix kopano NameError exception in permission
+Enhancements:
+* pyko: remove item.filtered_html [KC-1752]
+* python: remove import * pattern [KC-1799]
+* ldap: deprecate ldap_authentication_method configuration
+* common: make OBSOLETE and UNUSED settings clearly distinct
+* storeadm: set table columns to retrieve from user stores table
+* storeadm: list orphan stores does not return users without a store
+* test: remove ca-certificates version pinning
+* pyko: add notes/tasks folder types
+* pyko: add missing folder types for notes/tasks
+* dagent: fix indentation of new config values
+
+
 10.0.8 (2020-02-08)
 ===================
 Fixes:
