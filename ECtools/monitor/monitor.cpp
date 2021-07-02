@@ -210,7 +210,12 @@ static ECRESULT main2(int argc, char **argv)
 		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? hrSuccess : E_FAIL;
 
 	// setup logging
-	ec_log_set(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0]));
+	auto g_lpLogger = CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0]);
+	if (g_lpLogger == nullptr) {
+		fprintf(stderr, "Error in log configuration, unable to resume.\n");
+		return E_FAIL;
+	}
+	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 
