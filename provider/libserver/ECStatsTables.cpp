@@ -572,12 +572,21 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
 		bool bNoObjectDetails = false;
+		bool bNoQuotaDetails = false;
 
-		if (lpUserManagement->GetObjectDetails(row.ulObjId, &objectDetails) != erSuccess)
+		if (lpUserManagement->GetObjectDetails(row.ulObjId, &objectDetails) != erSuccess) {
 			// user gone missing since first list, all props should be set to ignore
 			bNoObjectDetails = true;
-		if (lpSession->GetSecurity()->GetUserSize(row.ulObjId, &llStoreSize) != erSuccess)
+			bNoQuotaDetails = true;
+		}
+		else if (lpSession->GetSecurity()->GetUserQuota(row.ulObjId, false, &quotaDetails) != erSuccess) {
+			// user gone missing since last call, all quota props should be set to ignore
+			bNoQuotaDetails = true;
+		}
+
+		if (lpSession->GetSecurity()->GetUserSize(row.ulObjId, &llStoreSize) != erSuccess) {
 			llStoreSize = 0;
+		}
 
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
@@ -598,32 +607,36 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (bNoObjectDetails || lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) != erSuccess)
+				if (bNoObjectDetails || lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) != erSuccess) {
 					break;
+				}
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.lpszA = soap_strdup(soap, companyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				break;
 			case PROP_ID(PR_EC_USERNAME):
-				if (bNoObjectDetails)
+				if (bNoObjectDetails) {
 					break;
+				}
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_LOGIN).c_str());
 				break;
 			case PROP_ID(PR_DISPLAY_NAME):
-				if (bNoObjectDetails)
+				if (bNoObjectDetails) {
 					break;
+				}
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				break;
 			case PROP_ID(PR_SMTP_ADDRESS):
-				if (bNoObjectDetails)
+				if (bNoObjectDetails) {
 					break;
+				}
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
@@ -643,31 +656,42 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 			case PROP_ID(PR_EC_HOMESERVER_NAME):
 				// should always be this servername, see ::Load()
-				if (bNoObjectDetails || !lpSession->GetSessionManager()->IsDistributedSupported())
+				if (bNoObjectDetails || !lpSession->GetSessionManager()->IsDistributedSupported()) {
 					break;
+				}
 				// do we have a default copy function??
 				m.__union = SOAP_UNION_propValData_lpszA;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.lpszA = soap_strdup(soap, objectDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str());
 				break;
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
-				if (llStoreSize <= 0)
+				if (llStoreSize <= 0) {
 					break;
+				}
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.li = llStoreSize;
 				break;
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
+				if (bNoQuotaDetails) {
+					break;
+				}
 				m.__union = SOAP_UNION_propValData_ul;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.ul = quotaDetails.llWarnSize / 1024;
 				break;
 			case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
+				if (bNoQuotaDetails) {
+					break;
+				}
 				m.__union = SOAP_UNION_propValData_ul;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.ul = quotaDetails.llSoftSize / 1024;
 				break;
 			case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
+				if (bNoQuotaDetails) {
+					break;
+				}
 				m.__union = SOAP_UNION_propValData_ul;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.ul = quotaDetails.llHardSize / 1024;
