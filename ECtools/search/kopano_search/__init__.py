@@ -15,6 +15,7 @@ import bsddb3 as bsddb
 from queue import Empty
 
 from kopano_search import plaintext
+from MAPI.Struct import MAPIErrorNetworkError
 import kopano
 from kopano import log_exc, Config
 sys.path.insert(0, os.path.dirname(__file__)) # XXX for __import__ to work
@@ -166,6 +167,24 @@ class SearchWorker(kopano.Worker):
 class IndexWorker(kopano.Worker):
     """ process which gets folders from input queue and indexes them, putting the nr of changes in output queue """
 
+    @staticmethod
+    def indexed_folder(config, store, folder):
+        '''Checks if the given folder should be indexed'''
+        path = folder.path
+        if not path:
+            return False
+
+        if folder == store.outbox:
+            return False
+
+        if folder == store.junk and not config['index_junk']:
+            return False
+
+        if folder == store.drafts and not config['index_drafts']:
+            return False
+
+        return True
+
     def main(self):
         config, server, plugin = self.service.config, self.server, self.service.plugin
         state_db = os.path.join(config['index_path'], server.guid+'_state')
@@ -173,27 +192,40 @@ class IndexWorker(kopano.Worker):
             changes = 0
             with log_exc(self.log):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
-                store = server.store(storeguid)
-                folder = kopano.Folder(store, folderid)
-                path = folder.path
-                if path and \
-                   (folder != store.outbox) and \
-                   (folder != store.junk or config['index_junk']) and \
-                   (folder != store.drafts or config['index_drafts']):
-                    suggestions = config['suggestions'] and folder != store.junk
-                    self.log.info('syncing folder: "%s" "%s"', store.name, path)
-                    importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
-                    state = db_get(state_db, folder.entryid) if not reindex else None
-                    if state:
-                        self.log.info('found previous folder sync state: %s', state)
-                    t0 = time.time()
-                    new_state = folder.sync(importer, state, log=self.log)
-                    if new_state != state:
-                        plugin.commit(suggestions)
-                        db_put(state_db, folder.entryid, new_state)
-                        self.log.info('saved folder sync state: %s', new_state)
-                        changes = importer.changes + importer.deletes
-                        self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
+                retries = 0
+                while True:
+                    try:
+                        store = server.store(storeguid)
+                        folder = kopano.Folder(store, folderid)
+                        path = folder.path
+
+                        if not self.indexed_folder(config, store, folder):
+                            continue
+
+                        suggestions = config['suggestions'] and folder != store.junk
+                        self.log.info('syncing folder: "%s" "%s"', store.name, path)
+                        importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
+                        state = db_get(state_db, folder.entryid) if not reindex else None
+
+                        if state:
+                            self.log.info('found previous folder sync state: %s', state)
+                        t0 = time.time()
+                        new_state = folder.sync(importer, state, log=self.log)
+                        if new_state != state:
+                            plugin.commit(suggestions)
+                            db_put(state_db, folder.entryid, new_state)
+                            self.log.info('saved folder sync state: %s', new_state)
+                            changes = importer.changes + importer.deletes
+                            self.log.info('syncing folder "%s" took %.2f seconds (%d changes, %d attachments)', path, time.time()-t0, changes, importer.attachments)
+                    except MAPIErrorNetworkError:
+                        self.log.warn('unable to connect to kopano-server, retrying... (%s times)', retries)
+                        retries += 1
+                        if retries <= 5:
+                            time.sleep(0.1 * retries)
+                        else:
+                            time.sleep(5)
+                    else:
+                        break
             self.oqueue.put(changes)
 
 class FolderImporter:
@@ -344,28 +376,32 @@ class Service(kopano.Service):
         while True:
             with log_exc(self.log):
                 try:
-                    storeid = self.reindex_queue.get(block=False)
-                    store = self.server.store(storeid)
-                    self.log.info('handling reindex request for "%s"', store.name)
-                    self.plugin.reindex(self.server.guid, store.guid)
-                    self.initial_sync([store], reindex=True)
-                except Empty:
+                    try:
+                        storeid = self.reindex_queue.get(block=False)
+                        store = self.server.store(storeid)
+                        self.log.info('handling reindex request for "%s"', store.name)
+                        self.plugin.reindex(self.server.guid, store.guid)
+                        self.initial_sync([store], reindex=True)
+                    except Empty:
+                        pass
+                    importer = ServerImporter(self.server.guid, self.config, self.iqueue, self.log)
+                    t0 = time.time()
+                    new_state = self.server.sync(importer, self.state, log=self.log)
+                    if new_state != self.state:
+                        changes = sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
+                        for f in importer.queued:
+                            self.iqueue.put(f+(False,))  # make sure folders are at least synced to new_state
+                        changes += sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
+                        self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
+                        self.state = new_state
+                        db_put(self.state_db, 'SERVER', self.state)
+                        self.log.info('saved server sync state = %s', self.state)
+                    if t0 > self.syncrun.value+1:
+                        self.syncrun.value = 0
+                except MAPIErrorNetworkError:
+                    self.log.warn('unable to connect to kopano-server during incremental_sync, retrying...')
                     pass
-                importer = ServerImporter(self.server.guid, self.config, self.iqueue, self.log)
-                t0 = time.time()
-                new_state = self.server.sync(importer, self.state, log=self.log)
-                if new_state != self.state:
-                    changes = sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
-                    for f in importer.queued:
-                        self.iqueue.put(f+(False,))  # make sure folders are at least synced to new_state
-                    changes += sum([self.oqueue.get() for i in range(len(importer.queued))])  # blocking
-                    self.log.info('queue processed in %.2f seconds (%d changes, ~%.2f/sec)', time.time()-t0, changes, changes/(time.time()-t0))
-                    self.state = new_state
-                    db_put(self.state_db, 'SERVER', self.state)
-                    self.log.info('saved server sync state = %s', self.state)
-                if t0 > self.syncrun.value+1:
-                    self.syncrun.value = 0
-            time.sleep(5)
+                time.sleep(5)
 
     def reindex(self):
         """ pass usernames/store-ids given on command-line to running search process """
