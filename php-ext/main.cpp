@@ -520,11 +520,26 @@ PHP_MINIT_FUNCTION(mapi) {
 	return SUCCESS;
 }
 
+// filter for errors we want to display as error in the php-mapi log
+static bool is_mapi_error(int scode) {
+	switch (scode) {
+		case MAPI_E_CALL_FAILED:
+		case MAPI_E_INVALID_PARAMETER:
+		case MAPI_E_EXTENDED_ERROR:
+		case MAPI_E_BAD_VALUE:
+			return true;
+		default:
+			return false;
+	}
+	return false;
+}
+#define IS_MAPI_ERROR(scode) (scode == MAPI_E_CALL_FAILED && scode == MAPI_E_INVALID_PARAMETER && scode == MAPI_E_EXTENDED_ERROR)
+
 #define DEFERRED_EPILOGUE \
 	auto epilogue_handler = make_scope_success([&, func=__func__]() { \
 		LOG2_END(func); \
 		if (FAILED(MAPI_G(hr))) { \
-			if (lpLogger) \
+			if (lpLogger && is_mapi_error(MAPI_G(hr))) \
 				lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), func, __LINE__); \
 				\
 			if (MAPI_G(exceptions_enabled)) \
