@@ -377,7 +377,12 @@ class MeetingRequest(object):
     @property
     def response_requested(self):
         """Is a response requested."""
-        return self.item.get(PR_RESPONSE_REQUESTED, False)
+        return self.item.get(PR_RESPONSE_REQUESTED, True)
+
+    @response_requested.setter
+    def response_requested(self, value):
+        """Setter for response-requested attribute."""
+        item[PR_RESPONSE_REQUESTED] = value
 
     @property
     def is_request(self):
