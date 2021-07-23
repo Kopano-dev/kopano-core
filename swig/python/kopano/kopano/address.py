@@ -68,7 +68,10 @@ class Address(object):
             if (not email and self._searchkey and
                     b':' in self._searchkey and b'@' in self._searchkey):
                 email_bin = self._searchkey.split(b':')[1].rstrip(b'\x00')
-                email = email_bin.decode('ascii').lower()
+                if email_bin.isascii():
+                    email = email_bin.decode('ascii').lower()
+                else:
+                    email = email_bin.decode('latin-1').lower()
                 # Distlists have no email in the searchkey but in PR_SMTP_ADDRESS_W.
 
             # fallback to the PR_SMTP_ADDRESS_W property.
