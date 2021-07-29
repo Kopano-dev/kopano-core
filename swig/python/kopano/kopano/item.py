@@ -965,6 +965,53 @@ class Item(Properties, Contact, Appointment):
 
             pos += 4 + size
 
+    @replyto.setter
+    def replyto(self, addrs):
+        """Setter for replyto.
+
+        Args:
+            addrs (Union[str,list[Union[str,User]]]): list of addresses.
+        """
+        if not addrs:
+            del self[PR_REPLY_RECIPIENT_ENTRIES]
+            return
+
+        addrs_list = []
+        if isinstance(addrs, str):
+            addrs_list.extend(addrs.split(","))
+        elif isinstance(addrs, list):
+            for addr in addrs:
+                if isinstance(addr, str):
+                    addrs_list.append(addr)
+                elif isinstance(addr, _user.User):
+                    _, pr_dispname, pr_email, _ = self._addr_props(addr)
+                    addrs_list.append("{} <{}>".format(pr_dispname, pr_email))
+                else:
+                    raise ValueError("invalid address type: %s" % type(addr))
+        else:
+            raise ValueError("invalid addrs type: %s" % type(addrs))
+
+        addrs_count = _utils.pack_long(len(addrs_list))
+        total_size = 0
+
+        result = []
+
+        for addr in addrs_list:
+            pr_dispname, pr_email = email_utils.parseaddr(addr)
+            pr_entryid = self.server.ab.CreateOneOff(pr_dispname, 'SMTP', pr_email, MAPI_UNICODE)
+            size = len(pr_entryid)
+            pr_entryid_size = _utils.pack_long(size)
+
+            total_size += size
+            result.append(pr_entryid_size)
+            result.append(pr_entryid)
+
+        final_result = addrs_count + _utils.pack_long(total_size)
+        for item in result:
+            final_result += item
+
+        self[PR_REPLY_RECIPIENT_ENTRIES] = final_result
+
     @property
     def comment(self):
         """Return 'comment' of an item.
