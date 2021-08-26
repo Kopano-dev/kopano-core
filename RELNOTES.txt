@@ -1,3 +1,11 @@
+8.7.23 (2021-08-26)
+===================
+Fixes:
+* m4lcommon: rework GetBestBody property checks [KS-46031]
+* search: handle network errors during incremental sync
+* search: handle network issues when processing ICS updates
+* search: refactor out folder filtering logic
+
 8.7.22 (2021-06-16)
 ===================
 Fixes:
