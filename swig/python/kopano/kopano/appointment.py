@@ -42,7 +42,7 @@ from .pidlid import (
     PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidAppointmentReplyName,
     PidLidAppointmentReplyTime, PidLidAppointmentCounterProposal,
     PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
-    PidLibPrivate
+    PidLidPrivate
 )
 
 try:
@@ -118,7 +118,7 @@ class Appointment(object):
         Returns:
             bool: private flag of the appointment.
         """
-        return self.get(PidLibPrivate, True)
+        return self.get(PidLidPrivate, True)
 
     @private.setter
     def private(self, value):
@@ -130,7 +130,7 @@ class Appointment(object):
         Returns:
             bool: private flag of the appointment.
         """
-        self[PidLibPrivate] = value
+        self[PidLidPrivate] = value
 
     @property
     def start(self):

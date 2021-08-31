@@ -709,10 +709,12 @@ class Store(Properties):
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Appointment')
         ))
         folder = self.create_folder(
-            name=name, restriction=restriction, container_class="IPF.Appointment"
+            name=name,
+            restriction=restriction,
+            container_class="IPF.Appointment"
+            color=color
+            default_online_meeting_provider=default_online_meeting_provider
         )
-        folder.color = color
-        folder.default_online_meeting_provider = default_online_meeting_provider
         return folder
 
     # TODO store.findroot.create_folder()?
