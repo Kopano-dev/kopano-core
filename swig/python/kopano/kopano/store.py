@@ -711,8 +711,8 @@ class Store(Properties):
         folder = self.create_folder(
             name=name,
             restriction=restriction,
-            container_class="IPF.Appointment"
-            color=color
+            container_class="IPF.Appointment",
+            color=color,
             default_online_meeting_provider=default_online_meeting_provider
         )
         return folder
