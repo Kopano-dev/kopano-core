@@ -237,7 +237,7 @@ class IndexWorker(kopano.Worker):
                         path = folder.path
 
                         if not self.indexed_folder(config, store, folder):
-                            continue
+                            break
 
                         suggestions = config['suggestions'] and folder != store.junk
                         self.log.info('syncing folder: "%s" "%s"', store.name, path)
