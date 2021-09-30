@@ -41,7 +41,8 @@ from .pidlid import (
     PidLidAppointmentStateFlags, PidLidAppointmentColor, PidLidResponseStatus,
     PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidAppointmentReplyName,
     PidLidAppointmentReplyTime, PidLidAppointmentCounterProposal,
-    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
+    PidLidPrivate
 )
 
 try:
@@ -70,7 +71,7 @@ class Appointment(object):
         self[PidLidAppointmentSubType] = value
 
     @property
-    def busy_status(self): # TODO setter
+    def busy_status(self):
         """Appointment busy status (free, tentative, busy, out_of_office,
         working_elsewhere or unknown)"""
         try:
@@ -85,8 +86,51 @@ class Appointment(object):
             return 'unknown'
 
     @property
-    def show_as(self): # TODO deprecate?
+    def show_as(self):
+        """Return "showAs" attribute."""
         return self.busy_status
+
+    @show_as.setter
+    def show_as(self, value):
+        """Setter for "showAs" attribute.
+
+        Args:
+            value (str): new status.
+
+        Raises:
+            NotFoundError: when the new status is not found.
+        """
+        try:
+            self[PidLidBusyStatus] = {
+                'free': 0,
+                'tentative': 1,
+                'busy': 2,
+                'out_of_office': 3,
+                'working_elsewhere': 4
+            }[value]
+        except KeyError:
+            raise NotFoundError
+
+    @property
+    def private(self):
+        """Return "private" flag of the appointment.
+
+        Returns:
+            bool: private flag of the appointment.
+        """
+        return self.get(PidLidPrivate, True)
+
+    @private.setter
+    def private(self, value):
+        """Setter for the "private" flag of the appointment.
+
+        Args:
+            value (bool): make the appointment private or not.
+
+        Returns:
+            bool: private flag of the appointment.
+        """
+        self[PidLidPrivate] = value
 
     @property
     def start(self):

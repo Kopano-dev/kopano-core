@@ -254,6 +254,7 @@ ASF_RECEIVED = 2
 ASF_CANCELED = 4
 
 NR_COLOR = { # PidLidAppointmentColor - only used by old clients
+    -1: 'auto',
     1: 'red',
     2: 'blue',
     3: 'green',

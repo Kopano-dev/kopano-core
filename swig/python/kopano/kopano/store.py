@@ -23,7 +23,7 @@ from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
 )
 from MAPI.Tags import (
-    PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
+    PR_ENTRYID, PR_MDB_PROVIDER, PR_PROVIDER_DISPLAY_W, ZARAFA_STORE_PUBLIC_GUID,
     PR_STORE_RECORD_KEY, PR_EC_HIERARCHYID, PR_REM_ONLINE_ENTRYID,
     PR_IPM_PUBLIC_FOLDERS_ENTRYID, PR_IPM_SUBTREE_ENTRYID,
     PR_FINDER_ENTRYID, PR_ADDITIONAL_REN_ENTRYIDS, PR_ACL_TABLE,
@@ -680,6 +680,42 @@ class Store(Properties):
             SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Appointment')
         ))
         return self.folders(restriction=restriction, **kwargs)
+
+    def create_calendar(
+        self,
+        name,
+        color = "",
+        allow_online_meeting_providers = ["unknown"],
+        default_online_meeting_provider = "unknown"
+    ):
+        """Create a new calendar.
+
+        Args:
+            name (str): calendar name.
+            color (str): calendar color name. Defaults to an empty string.
+            allow_online_meeting_providers (list): allow online meeting providers
+                like "skypeForBusiness", "skypeForCustomer", and etc. Defaults to ["unknown"].
+            default_online_meeting_provider (str): default online meeting providers.
+                Defaults to "unknown".
+
+        Returns:
+            Folder: the created calendar.
+
+        Todo:
+            "allow_online_meeting_providers" needs be to supported.
+        """
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, PR_CONTAINER_CLASS_W,
+            SPropValue(PR_CONTAINER_CLASS_W, 'IPF.Appointment')
+        ))
+        folder = self.create_folder(
+            name=name,
+            restriction=restriction,
+            container_class="IPF.Appointment",
+            color=color,
+            default_online_meeting_provider=default_online_meeting_provider
+        )
+        return folder
 
     # TODO store.findroot.create_folder()?
     def create_searchfolder(self, text=None):
