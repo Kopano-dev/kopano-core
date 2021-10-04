@@ -1,3 +1,11 @@
+8.7.24 (2021-10-04)
+===================
+Fixes:
+* search: fix high cpu load due to permanent loop [KC-2005]
+Enhancements:
+* pyko: validate accepting meeting rooms by checking all occurrences in a
+  datetime range [KC-1940]
+
 8.7.23 (2021-08-26)
 ===================
 Fixes:
