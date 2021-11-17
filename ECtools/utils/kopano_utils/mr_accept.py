@@ -68,8 +68,8 @@ def conflict_occurrences(user, item):
             continue
 
         # Check time range.
-        if (item.start > occ.end and item.end > occ.end) or \
-           (item.start < occ.start and item.end < occ.start):
+        if (item.start >= occ.end and item.end >= occ.end) or \
+           (item.start <= occ.start and item.end <= occ.start):
             continue
         conflicts.append(occ)
 
