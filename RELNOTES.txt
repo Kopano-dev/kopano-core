@@ -1,3 +1,12 @@
+8.7.25 (2022-02-01)
+===================
+Fixes:
+* libserver: early-reject/-filter invalid searchfolder criteria [KC-1915]
+* spooler: groups should not be expanded [KC-1792]
+Packager notes:
+* libvmime: revert to previous version of libvmime-kopano (0.9.2.96) (only
+  affects rpm-based distributions) [KC-2002]
+
 8.7.24 (2021-10-04)
 ===================
 Fixes:
