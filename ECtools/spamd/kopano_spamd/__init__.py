@@ -82,7 +82,7 @@ class Importer:
 
             elif (item.folder == item.store.inbox and \
                   self.learnham and \
-                  self.was_spam(searchkey)):
+                  (self.was_spam(searchkey) or (header and header.upper() == 'YES'))):
 
                 fn = os.path.join(self.spamdir, searchkey + '.eml')
                 if os.path.isfile(fn):
